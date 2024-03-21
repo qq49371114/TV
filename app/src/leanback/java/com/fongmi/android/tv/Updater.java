@@ -82,7 +82,10 @@ public class Updater implements Download.Callback {
             String name = object.optString("name");
             String desc = object.optString("desc");
             int code = object.optInt("code");
-            if (need(code, name)) App.post(() -> show(activity, name, desc));
+            if (need(code, name)) App.post(() -> show(activity, name, desc));}
+else {
+Handler handler = new Handler(Looper.getMainLooper()); new
+handler.post(new Runnable() {
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -122,6 +125,10 @@ public class Updater implements Download.Callback {
     public void progress(int progress) {
         binding.confirm.setText(String.format(Locale.getDefault(), "%1$d%%", progress));
     }
+
+        @Override
+    public void run() { Notify.show(text:"已是最新版本});
+        }
 
     @Override
     public void error(String msg) {
