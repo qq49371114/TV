@@ -82,14 +82,12 @@ public class Updater implements Download.Callback {
             String name = object.optString("name");
             String desc = object.optString("desc");
             int code = object.optInt("code");
-            if (need(code, name)) App.post(() -> show(activity, name, desc));}
-else {
-Handler handler = new Handler(Looper.getMainLooper()); new
-handler.post(new Runnable() {
+        if (need(code, name)) App.post(() -> show(activity, name, desc));
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
 
     private void show(Activity activity, String version, String desc) {
         binding = DialogUpdateBinding.inflate(LayoutInflater.from(activity));
@@ -125,10 +123,6 @@ handler.post(new Runnable() {
     public void progress(int progress) {
         binding.confirm.setText(String.format(Locale.getDefault(), "%1$d%%", progress));
     }
-
-        @Override
-    public void run() { Notify.show(text:"已是最新版本});
-        }
 
     @Override
     public void error(String msg) {
