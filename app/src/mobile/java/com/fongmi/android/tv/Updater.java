@@ -85,9 +85,8 @@ public class Updater implements Download.Callback {
             int code = object.optInt("code");
 if (need(code, name)) App.post(() -> show(activity, name, desc));}
 else {
-Handler handler = new Handler(Looper.getMainLooper()); new*
+Handler handler = new Handler(Looper.getMainLooper()); 
 handler.post(new Runnable() {
-new*
 @Override
 public void run() { Notify.show(text:"已是最新版本"});
         } catch (Exception e) {
