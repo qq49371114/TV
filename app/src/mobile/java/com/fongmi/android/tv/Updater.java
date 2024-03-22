@@ -83,17 +83,21 @@ public class Updater implements Download.Callback {
             String name = object.optString("name");
             String desc = object.optString("desc");
             int code = object.optInt("code");
-if (need(code, name)) App.post(() -> show(activity, name, desc));}
-else {
-Handler handler = new Handler(Looper.getMainLooper()); 
-handler.post(new Runnable() {
-@Override
-public void run() { Notify.show(text:"已是最新版本"});
+          if (need(code, name)) {
+                App.post(() -> show(activity, name, desc));
+            } else {
+                Handler handler = new Handler(Looper.getMainLooper());
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Notify.show("最新版本");
+                    }
+                });
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
     private void show(Activity activity, String version, String desc) {
         binding = DialogUpdateBinding.inflate(LayoutInflater.from(activity));
         check().create(activity, ResUtil.getString(R.string.update_version, version)).show();
