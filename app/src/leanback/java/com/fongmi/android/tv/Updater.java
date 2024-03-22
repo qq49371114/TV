@@ -3,8 +3,6 @@ package com.fongmi.android.tv;
 import android.app.Activity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.os.Handler;
-import android.os.Looper;
 
 import androidx.appcompat.app.AlertDialog;
 
@@ -84,17 +82,7 @@ public class Updater implements Download.Callback {
             String name = object.optString("name");
             String desc = object.optString("desc");
             int code = object.optInt("code");
-            if (need(code, name)) {
-                App.post(() -> show(activity, name, desc));
-            } else {
-                Handler handler = new Handler(Looper.getMainLooper());
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Notify.show("恭喜！你已经是最新版本");
-                    }
-                });
-            }
+            if (need(code, name)) App.post(() -> show(activity, name, desc));
         } catch (Exception e) {
             e.printStackTrace();
         }
