@@ -13,6 +13,7 @@ import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.dialog.ButtonsDialog;
 import com.fongmi.android.tv.ui.dialog.DisplayDialog;
+import com.fongmi.android.tv.ui.dialog.MenuKeyDialog;
 import com.fongmi.android.tv.utils.ResUtil;
 
 import java.util.Locale;
@@ -25,7 +26,6 @@ public class SettingCustomActivity extends BaseActivity {
     private String[] episode;
     private String[] fullscreenMenuKey;
     private String[] smallWindowBackKey;
-    private String[] homeMenuKey;
     private String[] homeUI;
 
     @Override
@@ -52,7 +52,7 @@ public class SettingCustomActivity extends BaseActivity {
         mBinding.homeSiteLockText.setText(getSwitch(Setting.isHomeSiteLock()));
         mBinding.incognitoText.setText(getSwitch(Setting.isIncognito()));
         mBinding.smallWindowBackKeyText.setText((smallWindowBackKey = ResUtil.getStringArray(R.array.select_small_window_back_key))[Setting.getSmallWindowBackKey()]);
-        mBinding.homeMenuKeyText.setText((homeMenuKey = ResUtil.getStringArray(R.array.select_home_menu_key))[Setting.getHomeMenuKey()]);
+        mBinding.homeMenuKeyText.setText((ResUtil.getStringArray(R.array.select_home_menu_key))[Setting.getHomeMenuKey()]);
         mBinding.aggregatedSearchText.setText(getSwitch(Setting.isAggregatedSearch()));
         mBinding.homeUIText.setText((homeUI = ResUtil.getStringArray(R.array.select_home_ui))[Setting.getHomeUI()]);
         mBinding.homeHistoryText.setText(getSwitch(Setting.isHomeHistory()));
@@ -70,7 +70,7 @@ public class SettingCustomActivity extends BaseActivity {
         mBinding.homeSiteLock.setOnClickListener(this::setHomeSiteLock);
         mBinding.incognito.setOnClickListener(this::setIncognito);
         mBinding.smallWindowBackKey.setOnClickListener(this::setSmallWindowBackKey);
-        mBinding.homeMenuKey.setOnClickListener(this::setHomeMenuKey);
+        mBinding.homeMenuKey.setOnClickListener(this::onHomeMenuKey);
         mBinding.aggregatedSearch.setOnClickListener(this::setAggregatedSearch);
         mBinding.homeUI.setOnClickListener(this::setHomeUI);
         mBinding.homeButtons.setOnClickListener(this::onHomeButtons);
@@ -141,10 +141,12 @@ public class SettingCustomActivity extends BaseActivity {
         mBinding.smallWindowBackKeyText.setText(smallWindowBackKey[index]);
     }
 
-    private void setHomeMenuKey(View view) {
-        int index = Setting.getHomeMenuKey();
-        Setting.putHomeMenuKey(index = index == homeMenuKey.length - 1 ? 0 : ++index);
-        mBinding.homeMenuKeyText.setText(homeMenuKey[index]);
+    private void onHomeMenuKey(View view) {
+        MenuKeyDialog.create(this).show();
+    }
+
+    public void setHomeMenuText() {
+        mBinding.homeMenuKeyText.setText((ResUtil.getStringArray(R.array.select_home_menu_key))[Setting.getHomeMenuKey()]);
     }
 
     private void setAggregatedSearch(View view) {
