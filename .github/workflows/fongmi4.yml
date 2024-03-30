@@ -1,7 +1,10 @@
 name: Test Build
 
 on:
-  workflow_dispatch:
+  push:
+    # 根据branch或者tags来触发
+    branches:
+      - kitkat
 
 jobs:
   build:
