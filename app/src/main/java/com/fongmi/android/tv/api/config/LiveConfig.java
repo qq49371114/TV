@@ -177,7 +177,7 @@ public class LiveConfig {
 
     private int[] getKeep(List<Group> items) {
         String[] splits = Setting.getKeep().split(AppDatabase.SYMBOL);
-        if (splits.length < 4 || !home.getName().equals(splits[0])) return new int[]{1, 0};
+        if (splits.length < 4 || !getHome().getName().equals(splits[0])) return new int[]{1, 0};
         for (int i = 0; i < items.size(); i++) {
             Group group = items.get(i);
             if (group.getName().equals(splits[1])) {

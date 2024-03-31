@@ -50,6 +50,14 @@ public class MenuDialog implements MenuAdapter.OnClickListener {
         initView();
     }
 
+    private int getCount() {
+        return 2;
+    }
+
+    private float getWidth() {
+        return 0.4f + (getCount() - 1) * 0.2f;
+    }
+
     private void initView() {
         setRecyclerView();
         setDialog();
@@ -60,15 +68,15 @@ public class MenuDialog implements MenuAdapter.OnClickListener {
         binding.recycler.setAdapter(adapter);
         binding.recycler.setHasFixedSize(true);
         binding.recycler.setItemAnimator(null);
-        binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 16));
-        binding.recycler.setLayoutManager(new GridLayoutManager(dialog.getContext(), 1));
+        binding.recycler.addItemDecoration(new SpaceItemDecoration(getCount(), 16));
+        binding.recycler.setLayoutManager(new GridLayoutManager(dialog.getContext(), getCount()));
         binding.recycler.post(() -> binding.recycler.scrollToPosition(0));
 
     }
 
     private void setDialog() {
         WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
-        params.width = (int) (ResUtil.getScreenWidth() * 0.4f);
+        params.width = (int) (ResUtil.getScreenWidth() * getWidth());
         dialog.getWindow().setAttributes(params);
         dialog.getWindow().setDimAmount(0);
         dialog.show();

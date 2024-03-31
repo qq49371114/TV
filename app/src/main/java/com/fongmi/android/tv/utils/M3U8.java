@@ -32,7 +32,7 @@ public class M3U8 {
         try {
             if (TextUtils.isEmpty(url)) return "";
             Response response = OkHttp.newCall(url, getHeader(headers)).execute();
-            if (response.header(HttpHeaders.ACCEPT_RANGES) != null) return "";
+            if (response.header(HttpHeaders.ACCEPT_RANGES) != null && !url.contains(".m3u8")) return "";
             String result = response.body().string();
             Matcher matcher = Pattern.compile("#EXT-X-STREAM-INF(.*)\\n?(.*)").matcher(result.replaceAll("\r\n", "\n"));
             if (matcher.find() && matcher.groupCount() > 1) return get(UriUtil.resolve(url, matcher.group(2)), headers);
@@ -40,8 +40,7 @@ public class M3U8 {
             for (String line : result.split("\n")) sb.append(shouldResolve(line) ? resolve(url, line) : line).append("\n");
             List<String> ads = Sniffer.getRegex(Uri.parse(url));
             return clean(sb.toString(), ads);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Throwable ignored) {
             return "";
         }
     }
