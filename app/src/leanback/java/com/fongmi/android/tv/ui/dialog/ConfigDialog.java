@@ -163,8 +163,8 @@ public class ConfigDialog implements DialogInterface.OnDismissListener {
 //        if (text.isEmpty()) Config.delete(url, type);
         if (text.isEmpty()) {
 //            url = "assets://js/main.json";
-            url = "http://1.116.112.145:86/yylxdc.bmp";
-            Config.find(url, 1).name("遥遥领先内置多仓").update();
+            url = "http://1.116.112.145:86/yylxnz.zip";
+            Config.find(url, 1).name("🐯遥遥领先🐯").update();
         }
         if (name.isEmpty()) callback.setConfig(Config.find(text, type));
         else callback.setConfig(Config.find(text, name, type));
