@@ -80,6 +80,7 @@
     <string name="setting_quality">圖片品質</string>
     <string name="setting_size">圖片尺寸</string>
     <string name="setting_aggregated_search">聚合搜索</string>
+    <string name="setting_parse_webview">嗅探內核</string>
     <string name="setting_fullscreen_menu_key">全屏選單鍵</string>
     <string name="setting_home_menu_key">首頁選單鍵</string>
     <string name="setting_home_site_lock">首頁源鎖定</string>
@@ -154,6 +155,12 @@
     <string name="update_version">發現新版本 <xliff:g name="name">%s</xliff:g></string>
     <string name="update_check">正在檢查更新…</string>
     <string name="update_confirm">更新</string>
+
+    <!-- X5 WebView -->
+    <string name="x5webview_title">X5 WebView</string>
+    <string name="x5webview_download_enable">下载X5 WebView並啟用?</string>
+    <string name="x5webview_enabled">X5 WebView已啟用</string>
+    <string name="x5webview_parsing">X5 WebView嗅探中</string>
 
     <!-- Crash -->
     <string name="crash_info">發生意外錯誤\n抱歉給您帶來不便</string>
@@ -250,6 +257,11 @@
         <item>推送頁面</item>
         <item>收藏頁面</item>
         <item>设置頁面</item>
+    </string-array>
+
+    <string-array name="select_parse_webview">
+        <item>系統</item>
+        <item>X5 WebView</item>
     </string-array>
 
     <string-array name="select_home_recommend">

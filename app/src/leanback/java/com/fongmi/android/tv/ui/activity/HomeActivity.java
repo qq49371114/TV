@@ -58,6 +58,7 @@ import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.KeyUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.Tbs;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.utils.Prefers;
 import com.github.catvod.utils.Trans;
@@ -111,6 +112,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         setHomeType();
         setPager();
         initConfig();
+        Tbs.init();
     }
 
     @Override

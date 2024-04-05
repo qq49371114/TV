@@ -80,6 +80,7 @@
     <string name="setting_quality">Image quality</string>
     <string name="setting_size">Image size</string>
     <string name="setting_aggregated_search">Aggregated search</string>
+    <string name="setting_parse_webview">Parse webview</string>
     <string name="setting_fullscreen_menu_key">Fullscreen menu key</string>
     <string name="setting_home_menu_key">Home menu key</string>
     <string name="setting_home_site_lock">Home site lock</string>
@@ -154,6 +155,12 @@
     <string name="update_version">New version <xliff:g name="name">%s</xliff:g></string>
     <string name="update_check">Checking for updates…</string>
     <string name="update_confirm">Update</string>
+
+    <!-- X5 WebView -->
+    <string name="x5webview_title">X5 WebView</string>
+    <string name="x5webview_download_enable">Download X5 WebView and Enable?</string>
+    <string name="x5webview_enabled">X5 WebView Enabled</string>
+    <string name="x5webview_parsing">X5 WebView Parsing</string>
 
     <!-- Crash -->
     <string name="crash_info">An unexpected error occurred.\nSorry for the inconvenience.</string>
@@ -250,6 +257,11 @@
         <item>Push page</item>
         <item>Keep page</item>
         <item>Setting page</item>
+    </string-array>
+
+    <string-array name="select_parse_webview">
+        <item>System</item>
+        <item>X5 WebView</item>
     </string-array>
 
     <string-array name="select_small_window_back_key">
