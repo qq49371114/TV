@@ -477,4 +477,11 @@ public class Setting {
         return Math.min(Prefers.getInt("config_cache", 0), 8);
     }
 
+    public static void putParseWebView(int key) {
+        Prefers.put("parse_webview", key);
+    }
+
+    public static int getParseWebView() {
+        return Prefers.getInt("parse_webview", 0);
+    }
 }

@@ -59,6 +59,7 @@ import com.fongmi.android.tv.utils.KeyUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
+import com.fongmi.android.tv.utils.Xwalk;
 import com.github.catvod.utils.Prefers;
 import com.github.catvod.utils.Trans;
 import com.permissionx.guolindev.PermissionX;
@@ -106,6 +107,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         Updater.get().start(this);
         mResult = Result.empty();
         Server.get().start();
+        Xwalk.init();
         setTitleView();
         setRecyclerView();
         setViewModel();

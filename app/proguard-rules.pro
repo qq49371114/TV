@@ -80,3 +80,17 @@
     public static **[] values();
     public static ** valueOf(java.lang.String);
 }
+
+# x5
+-dontwarn dalvik.**
+-dontwarn com.tencent.smtt.**
+-keep class com.tencent.smtt.** { *; }
+-keep class com.tencent.tbs.** { *; }
+
+#xwalk
+-keep class org.xwalk.core.** { *; }
+-keep class org.crosswalk.engine.** { *; }
+-keep class org.chromium.** { *; }
+-dontwarn android.view.**
+-dontwarn android.media.**
+-dontwarn org.chromium.**

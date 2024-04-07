@@ -11,7 +11,7 @@ android {
         minSdk 16
         targetSdk 28
         versionCode 232
-        versionName "2.3.2"
+        versionName "0404"
         multiDexEnabled true
         ndk { abiFilters "armeabi-v7a" }
         javaCompileOptions {
@@ -108,13 +108,14 @@ dependencies {
     implementation 'com.guolindev.permissionx:permissionx:1.7.1'
     implementation 'com.hierynomus:smbj:0.11.5'
     implementation 'me.jessyan:autosize:1.2.1'
-    implementation 'org.chromium.net:cronet-embedded:76.3809.111'
     implementation 'org.eclipse.jetty:jetty-client:8.1.21.v20160908'
     implementation 'org.eclipse.jetty:jetty-server:8.1.21.v20160908'
     implementation 'org.eclipse.jetty:jetty-servlet:8.1.21.v20160908'
     implementation 'org.fourthline.cling:cling-core:2.1.1'
     implementation 'org.fourthline.cling:cling-support:2.1.1'
     implementation 'org.greenrobot:eventbus:3.3.1'
+    implementation 'com.tencent.tbs:tbssdk:44286'
+    implementation 'org.xwalk:xwalk_shared_library:23.53.589.4'
     implementation('org.simpleframework:simple-xml:2.7.1') { exclude group: 'stax', module: 'stax-api' exclude group: 'xpp3', module: 'xpp3' }
     implementation(ext: 'aar', name: 'dlna-core', group: 'fongmi', version: 'release')
     implementation(ext: 'aar', name: 'dlna-dmr', group: 'fongmi', version: 'release')

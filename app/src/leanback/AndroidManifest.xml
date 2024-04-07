@@ -178,5 +178,13 @@
             </intent-filter>
         </receiver>
 
+        <meta-data
+            android:name="xwalk_enable_download_mode"
+            android:value="enable" />
+
+        <meta-data
+            android:name="xwalk_verify"
+            android:value="disable" />
+
     </application>
 </manifest>
