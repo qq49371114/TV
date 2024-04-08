@@ -157,10 +157,10 @@
     <string name="update_confirm">Update</string>
 
     <!-- X5 WebView -->
-    <string name="x5webview_title">Xwalk WebView</string>
-    <string name="x5webview_download_enable">Unzip Xwalk WebView and Enable?</string>
-    <string name="x5webview_enabled">Xwalk WebView Enabled</string>
-    <string name="x5webview_parsing">Xwalk WebView Parsing</string>
+    <string name="x5webview_title">X5 WebView</string>
+    <string name="x5webview_download_enable">Unzip X5 WebView and Enable?</string>
+    <string name="x5webview_enabled">X5 WebView Enabled</string>
+    <string name="x5webview_parsing">X5 WebView Parsing</string>
 
     <!-- Crash -->
     <string name="crash_info">An unexpected error occurred.\nSorry for the inconvenience.</string>
@@ -261,7 +261,7 @@
 
     <string-array name="select_parse_webview">
         <item>System</item>
-        <item>Xwalk WebView</item>
+        <item>X5 WebView</item>
     </string-array>
 
     <string-array name="select_small_window_back_key">

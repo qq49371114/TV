@@ -10,7 +10,7 @@ import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.databinding.DialogX5webviewBinding;
 import com.fongmi.android.tv.utils.Download;
 import com.fongmi.android.tv.utils.Notify;
-import com.fongmi.android.tv.utils.Xwalk;
+import com.fongmi.android.tv.utils.Tbs;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import java.io.File;
 import java.util.Locale;
@@ -23,8 +23,8 @@ public class X5WebViewDialog  implements Download.Callback {
     private boolean confirm;
 
     public X5WebViewDialog(Activity activity) {
-        this.confirm = false;
         this.activity = activity;
+        this.confirm = false;
     }
 
     public void show() {
@@ -39,12 +39,12 @@ public class X5WebViewDialog  implements Download.Callback {
         return new X5WebViewDialog(activity);
     }
 
-    private String getXwalk() {
-        return Xwalk.url();
+    private String getTbs() {
+        return Tbs.url();
     }
 
     private File getFile() {
-        return Xwalk.file();
+        return Tbs.file();
     }
 
     private void cancel(View view) {
@@ -55,8 +55,8 @@ public class X5WebViewDialog  implements Download.Callback {
         if (confirm) return;
         confirm = true;
         binding.confirm.setEnabled(false);
-        Xwalk.remove();
-        Download.create(getXwalk(), getFile(), this).start();
+        Tbs.remove();
+        Download.create(getTbs(), getFile(), this).start();
     }
 
     private void dismiss() {
@@ -80,13 +80,8 @@ public class X5WebViewDialog  implements Download.Callback {
 
     @Override
     public void success(File file) {
-        boolean extract = Xwalk.extract();
-        if (extract) {
-            Setting.putParseWebView(1);
-            Xwalk.init();
-        } else {
-            Setting.putParseWebView(0);
-        }
+        Tbs.install();
+        Setting.putParseWebView(1);
         dismiss();
     }
 

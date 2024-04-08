@@ -157,10 +157,10 @@
     <string name="update_confirm">更新</string>
 
     <!-- X5 WebView -->
-    <string name="x5webview_title">Xwalk WebView</string>
-    <string name="x5webview_download_enable">解压Xwalk WebView并启用?</string>
-    <string name="x5webview_enabled">Xwalk WebView已启用</string>
-    <string name="x5webview_parsing">Xwalk WebView嗅探中</string>
+    <string name="x5webview_title">X5 WebView</string>
+    <string name="x5webview_download_enable">解压X5 WebView并启用?</string>
+    <string name="x5webview_enabled">X5 WebView已启用</string>
+    <string name="x5webview_parsing">X5 WebView嗅探中</string>
 
     <!-- Crash -->
     <string name="crash_info">发生意外错误\n抱歉给您带来不便</string>
@@ -261,7 +261,7 @@
 
     <string-array name="select_parse_webview">
         <item>系统</item>
-        <item>Xwalk WebView</item>
+        <item>X5 WebView</item>
     </string-array>
 
     <string-array name="select_home_recommend">
