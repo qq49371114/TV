@@ -57,11 +57,11 @@ public class SiteDialog implements SiteAdapter.OnClickListener{
     }
 
     private boolean list() {
-        return Setting.getSiteMode() == 0 || adapter.getItemCount() < 20;
+        return Setting.getSiteMode() == 0 || adapter.getItemCount() < 10;
     }
 
     private int getCount() {
-        return list() ? 1 : Math.max(1, Math.min((int) (Math.ceil(adapter.getItemCount() / 20.0f)), 3));
+        return list() ? 1 : Math.max(1, Math.min((int) (Math.ceil(adapter.getItemCount() / 10.0f)), 3));
     }
 
     private int getIcon() {

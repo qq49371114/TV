@@ -84,6 +84,7 @@ public class CustomWebView extends WebView {
         getSettings().setSupportZoom(true);
         getSettings().setUseWideViewPort(true);
         getSettings().setDatabaseEnabled(true);
+        getSettings().setBlockNetworkImage(true);
         getSettings().setDomStorageEnabled(true);
         getSettings().setJavaScriptEnabled(true);
         getSettings().setBuiltInZoomControls(true);

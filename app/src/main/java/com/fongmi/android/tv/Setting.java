@@ -194,7 +194,7 @@ public class Setting {
     }
 
     public static int getSiteMode() {
-        return Prefers.getInt("site_mode");
+        return Prefers.getInt("site_mode", 1);
     }
 
     public static void putSiteMode(int mode) {
@@ -442,7 +442,7 @@ public class Setting {
     }
 
     public static int getHomeUI() {
-        return Prefers.getInt("home_ui", 0);
+        return Prefers.getInt("home_ui", 1);
     }
 
     public static void putHomeButtons(String buttons) {
@@ -474,7 +474,7 @@ public class Setting {
     }
 
     public static int getConfigCache() {
-        return Math.min(Prefers.getInt("config_cache", 0), 8);
+        return Math.min(Prefers.getInt("config_cache", 0), 2);
     }
 
     public static void putParseWebView(int key) {

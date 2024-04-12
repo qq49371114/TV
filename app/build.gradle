@@ -11,7 +11,7 @@ android {
         minSdk 16
         targetSdk 28
         versionCode 232
-        versionName "0408"
+        versionName "0412"
         multiDexEnabled true
         ndk { abiFilters "armeabi-v7a" }
         javaCompileOptions {
@@ -115,7 +115,6 @@ dependencies {
     implementation 'org.fourthline.cling:cling-support:2.1.1'
     implementation 'org.greenrobot:eventbus:3.3.1'
     implementation 'com.tencent.tbs:tbssdk:44286'
-    implementation 'org.xwalk:xwalk_shared_library:23.53.589.4'
     implementation('org.simpleframework:simple-xml:2.7.1') { exclude group: 'stax', module: 'stax-api' exclude group: 'xpp3', module: 'xpp3' }
     implementation(ext: 'aar', name: 'dlna-core', group: 'fongmi', version: 'release')
     implementation(ext: 'aar', name: 'dlna-dmr', group: 'fongmi', version: 'release')

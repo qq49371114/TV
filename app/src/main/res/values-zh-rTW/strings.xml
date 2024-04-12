@@ -251,12 +251,12 @@
         <item>選項彈窗</item>
         <item>切換站源</item>
         <item>切換線路</item>
-        <item>直播页面</item>
+        <item>直播頁面</item>
         <item>歷史頁面</item>
         <item>搜索頁面</item>
         <item>推送頁面</item>
         <item>收藏頁面</item>
-        <item>设置頁面</item>
+        <item>設置頁面</item>
     </string-array>
 
     <string-array name="select_parse_webview">
@@ -276,10 +276,8 @@
 
     <string-array name="select_config_cache">
         <item>關閉</item>
-        <item>1小時</item>
-        <item>2小時</item>
-        <item>3小時</item>
-        <item>4小時</item>
+        <item>12小時</item>
+        <item>24小時</item>
     </string-array>
 
     <string-array name="select_caption">

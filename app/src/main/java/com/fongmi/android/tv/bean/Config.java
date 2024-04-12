@@ -121,7 +121,7 @@ public class Config {
     }
 
     public boolean isCache() {
-        return getTime() + (long)(3600*1000 * Setting.getConfigCache()) > System.currentTimeMillis();
+        return getTime() + (long)(3600*1000*12 * Setting.getConfigCache()) > System.currentTimeMillis();
     }
 
     public Config type(int type) {

@@ -60,7 +60,6 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Tbs;
 import com.fongmi.android.tv.utils.UrlUtil;
-import com.fongmi.android.tv.utils.Xwalk;
 import com.github.catvod.utils.Prefers;
 import com.github.catvod.utils.Trans;
 import com.permissionx.guolindev.PermissionX;

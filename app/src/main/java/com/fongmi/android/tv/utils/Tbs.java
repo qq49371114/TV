@@ -26,6 +26,7 @@ public class Tbs {
         HashMap map = new HashMap();
         map.put(TbsCoreSettings.TBS_SETTINGS_USE_PRIVATE_CLASSLOADER, true);
         QbSdk.initTbsSettings(map);
+        TbsDownloader.stopDownload();
         QbSdk.PreInitCallback callback = new QbSdk.PreInitCallback() {
             @Override
             public void onViewInitFinished(boolean finished) {
@@ -41,6 +42,7 @@ public class Tbs {
 
     public static void init() {
         if (Setting.getParseWebView() == 0) return;
+        if (QbSdk.isTbsCoreInited()) return;
         App.post(() -> tbsInit());
     }
 

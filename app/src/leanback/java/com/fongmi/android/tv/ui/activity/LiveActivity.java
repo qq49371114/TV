@@ -219,6 +219,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
 
     private void setDisplayView() {
         mBinding.display.getRoot().setVisibility(View.VISIBLE);
+        mBinding.display.progress.setVisibility(View.GONE);
         showDisplayInfo();
     }
 
