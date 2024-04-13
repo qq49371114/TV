@@ -339,7 +339,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
             public void success() {
                 setCacheText();
                 Config config = VodConfig.get().getConfig().json("").save();
-                if (!config.isEmpty()) setConfig();
+                if (!config.isEmpty()) setConfig(config);
             }
         });
         return true;
