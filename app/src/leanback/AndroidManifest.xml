@@ -33,7 +33,7 @@
 
         <activity
             android:name=".ui.activity.HomeActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|orientation"
             android:exported="true"
             android:screenOrientation="sensorLandscape">
             <intent-filter>
@@ -90,7 +90,7 @@
 
         <activity
             android:name=".ui.activity.CastActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|orientation"
             android:exported="true"
             android:launchMode="singleTop"
             android:screenOrientation="sensorLandscape">
@@ -102,12 +102,12 @@
 
         <activity
             android:name=".ui.activity.VodActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|orientation"
             android:screenOrientation="sensorLandscape" />
 
         <activity
             android:name=".ui.activity.LiveActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|orientation"
             android:exported="true"
             android:launchMode="singleTop"
             android:screenOrientation="sensorLandscape"
@@ -115,53 +115,53 @@
 
         <activity
             android:name=".ui.activity.VideoActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|orientation"
             android:screenOrientation="sensorLandscape" />
 
         <activity
             android:name=".ui.activity.HistoryActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|orientation"
             android:screenOrientation="sensorLandscape" />
 
         <activity
             android:name=".ui.activity.KeepActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|orientation"
             android:screenOrientation="sensorLandscape" />
 
         <activity
             android:name=".ui.activity.PushActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|orientation"
             android:screenOrientation="sensorLandscape" />
 
         <activity
             android:name=".ui.activity.SearchActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|orientation"
             android:screenOrientation="sensorLandscape"
             android:windowSoftInputMode="stateHidden" />
 
         <activity
             android:name=".ui.activity.CollectActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|orientation"
             android:screenOrientation="sensorLandscape" />
 
         <activity
             android:name=".ui.activity.SettingActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|orientation"
             android:screenOrientation="sensorLandscape" />
 
         <activity
             android:name=".ui.activity.SettingPlayerActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|orientation"
             android:screenOrientation="sensorLandscape" />
 
         <activity
             android:name=".ui.activity.SettingDanmuActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|orientation"
             android:screenOrientation="sensorLandscape" />
 
         <activity
             android:name=".ui.activity.SettingCustomActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|orientation"
             android:screenOrientation="sensorLandscape" />
 
         <service
