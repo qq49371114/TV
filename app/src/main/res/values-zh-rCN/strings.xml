@@ -80,6 +80,7 @@
     <string name="setting_quality">图片品质</string>
     <string name="setting_size">图片尺寸</string>
     <string name="setting_aggregated_search">聚合搜索</string>
+    <string name="setting_language">语言设置</string>
     <string name="setting_parse_webview">嗅探内核</string>
     <string name="setting_fullscreen_menu_key">全屏菜单键</string>
     <string name="setting_home_menu_key">首页菜单键</string>
@@ -257,6 +258,12 @@
         <item>推送页面</item>
         <item>收藏页面</item>
         <item>设置页面</item>
+    </string-array>
+
+    <string-array name="select_language">
+        <item>英文</item>
+        <item>简体中文</item>
+        <item>繁体中文</item>
     </string-array>
 
     <string-array name="select_parse_webview">

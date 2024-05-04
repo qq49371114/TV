@@ -149,6 +149,14 @@ public class Global {
 
     @Keep
     @JSMethod
+    public String md5X(String text) {
+        String result = Crypto.md5(text);
+        Logger.t("md5X").d("text:%s\nresult:\n%s", text, result);
+        return result;
+    }
+
+    @Keep
+    @JSMethod
     public String aesX(String mode, boolean encrypt, String input, boolean inBase64, String key, String iv, boolean outBase64) {
         String result = Crypto.aes(mode, encrypt, input, inBase64, key, iv, outBase64);
         Logger.t("aesX").d("mode:%s\nencrypt:%s\ninBase64:%s\noutBase64:%s\nkey:%s\niv:%s\ninput:\n%s\nresult:\n%s", mode, encrypt, inBase64, outBase64, key, iv, input, result);

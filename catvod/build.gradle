@@ -20,4 +20,5 @@ dependencies {
     api 'com.squareup.okhttp3:okhttp:' + okhttpVersion
     api 'org.jsoup:jsoup:' + jsoupVersion
     api 'org.nanohttpd:nanohttpd:2.3.1'
+    api 'com.tencent.tbs:tbssdk:44286'
 }

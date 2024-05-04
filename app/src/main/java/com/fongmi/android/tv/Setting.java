@@ -5,7 +5,10 @@ import android.content.Intent;
 import android.provider.Settings;
 
 import com.fongmi.android.tv.player.Players;
+import com.fongmi.android.tv.utils.LanguageUtil;
 import com.github.catvod.utils.Prefers;
+
+import java.util.Locale;
 
 public class Setting {
 
@@ -477,6 +480,14 @@ public class Setting {
         return Math.min(Prefers.getInt("config_cache", 0), 2);
     }
 
+    public static void putLanguage(int key) {
+        Prefers.put("language", key);
+    }
+
+    public static int getLanguage() {
+        return Prefers.getInt("language", LanguageUtil.locale());
+    }
+
     public static void putParseWebView(int key) {
         Prefers.put("parse_webview", key);
     }
@@ -484,4 +495,6 @@ public class Setting {
     public static int getParseWebView() {
         return Prefers.getInt("parse_webview", 0);
     }
+
+
 }

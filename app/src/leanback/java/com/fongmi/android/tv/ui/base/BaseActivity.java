@@ -17,6 +17,7 @@ import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.WallConfig;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.utils.FileUtil;
+import com.fongmi.android.tv.utils.LanguageUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 
 import org.greenrobot.eventbus.EventBus;
@@ -34,6 +35,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        LanguageUtil.setLanguage(this.getResources(),Setting.getLanguage());
         setContentView(getBinding().getRoot());
         EventBus.getDefault().register(this);
         setBackCallback();

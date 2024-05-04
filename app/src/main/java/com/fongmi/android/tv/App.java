@@ -15,6 +15,7 @@ import androidx.multidex.MultiDexApplication;
 
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.ui.activity.CrashActivity;
+import com.fongmi.android.tv.utils.LanguageUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.github.catvod.Init;
 import com.github.catvod.bean.Doh;
@@ -85,6 +86,7 @@ public class App extends MultiDexApplication {
 
     private void setActivity(Activity activity) {
         this.activity = activity;
+        LanguageUtil.setLanguage(getResources(), Setting.getLanguage());
     }
 
     private LogAdapter getLogAdapter() {
@@ -146,6 +148,7 @@ public class App extends MultiDexApplication {
             public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
             }
         });
+
     }
 
     @Override

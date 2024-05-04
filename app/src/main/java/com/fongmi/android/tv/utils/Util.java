@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Parcelable;
@@ -160,6 +161,17 @@ public class Util {
             }
         }
         return false;
+    }
+
+    public static int batteryLevel() {
+        BatteryManager batteryManager = (BatteryManager) App.get().getSystemService(Context.BATTERY_SERVICE);
+        return batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+    }
+
+    public static void restartApp(Activity activity) {
+        Intent intent = activity.getBaseContext().getPackageManager().getLaunchIntentForPackage(activity.getBaseContext().getPackageName());
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        activity.startActivity(intent);
     }
 
 }

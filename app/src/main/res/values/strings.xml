@@ -80,6 +80,7 @@
     <string name="setting_quality">Image quality</string>
     <string name="setting_size">Image size</string>
     <string name="setting_aggregated_search">Aggregated search</string>
+    <string name="setting_language">Lanuage setting</string>
     <string name="setting_parse_webview">Parse webview</string>
     <string name="setting_fullscreen_menu_key">Fullscreen menu key</string>
     <string name="setting_home_menu_key">Home menu key</string>
@@ -257,6 +258,12 @@
         <item>Push page</item>
         <item>Keep page</item>
         <item>Setting page</item>
+    </string-array>
+
+    <string-array name="select_language">
+        <item>English</item>
+        <item>Simplified Chinese</item>
+        <item>Traditional Chinese</item>
     </string-array>
 
     <string-array name="select_parse_webview">

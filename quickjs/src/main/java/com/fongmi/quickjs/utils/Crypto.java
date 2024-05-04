@@ -14,8 +14,18 @@ import java.util.Arrays;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import com.github.catvod.utils.Util;
 
 public class Crypto {
+
+    public static String md5(String text) {
+        try {
+            return Util.md5(text);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
 
     public static String aes(String mode, boolean encrypt, String input, boolean inBase64, String key, String iv, boolean outBase64) {
         try {
