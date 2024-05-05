@@ -80,15 +80,11 @@ public class ConfigDialog implements DialogInterface.OnDismissListener {
     }
 
     private void initView() {
-        String address = Server.get().getAddress();
-//        binding.text.setText(url = getUrl());
-        if (TextUtils.isEmpty(getName())) {
-            binding.text.setText(url = getUrl());
-        }
+        binding.text.setText(url = getUrl());
         binding.text.setSelection(TextUtils.isEmpty(url) ? 0 : url.length());
         binding.positive.setText(edit ? R.string.dialog_edit : R.string.dialog_positive);
-        binding.code.setImageBitmap(QRCode.getBitmap(address, 200, 0));
-        binding.info.setText(ResUtil.getString(R.string.push_info, address).replace("，", "\n"));
+        binding.code.setImageBitmap(QRCode.getBitmap(Server.get().getAddress(3), 200, 0));
+        binding.info.setText(ResUtil.getString(R.string.push_info, Server.get().getAddress()).replace("，", "\n"));
         binding.storage.setVisibility(PermissionX.isGranted(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) ? View.GONE : View.VISIBLE);
     }
 
@@ -122,19 +118,6 @@ public class ConfigDialog implements DialogInterface.OnDismissListener {
         }
     }
 
-    private String getName() {
-        switch (type) {
-            case 0:
-                return VodConfig.get().getConfig().getName();
-            case 1:
-                return LiveConfig.get().getConfig().getName();
-            case 2:
-                return WallConfig.get().getConfig().getName();
-            default:
-                return "";
-        }
-    }
-
     private void onStorage(View view) {
         PermissionX.init(activity).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> binding.storage.setVisibility(allGranted ? View.GONE : View.VISIBLE));
     }
@@ -160,12 +143,7 @@ public class ConfigDialog implements DialogInterface.OnDismissListener {
         String name = binding.name.getText().toString().trim();
         String text = UrlUtil.fixUrl(binding.text.getText().toString().trim());
         if (edit) Config.find(url, type).url(text).update();
-//        if (text.isEmpty()) Config.delete(url, type);
-        if (text.isEmpty()) {
-//            url = "assets://js/main.json";
-            url = "http://1.116.112.145:86/yylxnz.zip";
-            Config.find(url, 1).name("🐯遥遥领先🐯").update();
-        }
+        if (text.isEmpty()) Config.delete(url, type);
         if (name.isEmpty()) callback.setConfig(Config.find(text, type));
         else callback.setConfig(Config.find(text, name, type));
         dialog.dismiss();

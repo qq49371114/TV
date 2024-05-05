@@ -87,7 +87,6 @@ import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Sniffer;
 import com.fongmi.android.tv.utils.Traffic;
 import com.fongmi.android.tv.utils.Util;
-import com.fongmi.android.tv.utils.CustomUtil;
 import com.github.bassaer.library.MDColor;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Trans;
@@ -578,8 +577,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private void setDetail(Vod item) {
         mBinding.progressLayout.showContent();
         mBinding.video.setTag(item.getVodPic(getPic()));
-        mBinding.name.setText(CustomUtil.filterString(item.getVodName(getName())));
-//        mBinding.name.setText(item.getVodName(getName()));
+        mBinding.name.setText(item.getVodName(getName()));
         setText(mBinding.remark, 0, item.getVodRemarks());
         setText(mBinding.year, R.string.detail_year, item.getVodYear());
         setText(mBinding.area, R.string.detail_area, item.getVodArea());
@@ -592,8 +590,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.content.setMaxLines(getMaxLines());
         mBinding.video.requestFocus();
         setArtwork(item.getVodPic());
-        getPart(CustomUtil.filterString(item.getVodName()));
-//        getPart(item.getVodName());
+        getPart(item.getVodName());
         App.removeCallbacks(mR4);
         checkHistory(item);
         checkFlag(item);
