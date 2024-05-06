@@ -38,7 +38,7 @@ import java.util.Locale;
 @Database(entities = {Keep.class, Site.class, Live.class, Track.class, Config.class, Device.class, History.class}, version = AppDatabase.VERSION)
 public abstract class AppDatabase extends RoomDatabase {
 
-    public static final int VERSION = 29;
+    public static final int VERSION = 30;
     public static final String NAME = "tv";
     public static final String SYMBOL = "@@@";
 
@@ -54,7 +54,7 @@ public abstract class AppDatabase extends RoomDatabase {
     }
 
     public static String getDate() {
-        return Setting.isBackupAuto() ? ResUtil.getString(R.string.setting_backup_auto) : getBackup().exists() ? Util.format(new SimpleDateFormat("MMddHHmmss", Locale.getDefault()), getBackup().lastModified()) : "";
+        return Setting.isBackupAuto() ? ResUtil.getString(R.string.setting_backup_auto) : getBackup().exists() ? Util.format(new SimpleDateFormat("MMdd", Locale.getDefault()), getBackup().lastModified()) : "";
     }
 
     public static void backup() {
@@ -93,6 +93,7 @@ public abstract class AppDatabase extends RoomDatabase {
                 .addMigrations(MIGRATION_26_27)
                 .addMigrations(MIGRATION_27_28)
                 .addMigrations(MIGRATION_28_29)
+                .addMigrations(MIGRATION_29_30)
                 .allowMainThreadQueries().fallbackToDestructiveMigration().build();
     }
 
@@ -246,6 +247,13 @@ public abstract class AppDatabase extends RoomDatabase {
             database.execSQL("INSERT INTO Site_Backup SELECT `key`, searchable, changeable FROM Site");
             database.execSQL("DROP TABLE Site");
             database.execSQL("ALTER TABLE Site_Backup RENAME to Site");
+        }
+    };
+
+    static final Migration MIGRATION_29_30 = new Migration(29, 30) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE Config ADD COLUMN logo TEXT DEFAULT NULL");
         }
     };
 }

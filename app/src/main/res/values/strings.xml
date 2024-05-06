@@ -139,6 +139,8 @@
     <string name="dialog_delete_history">All history records will be removed.</string>
     <string name="dialog_reset_app">Reset app?</string>
     <string name="dialog_reset_app_data">All app data will be reset, and app will be shutdown.</string>
+    <string name="dialog_restore">Restore backup data?</string>
+    <string name="dialog_restore_msg">Config, history and setting will be restored.</string>
 
     <!-- Error -->
     <string name="error_config_get">Configuration get failed</string>

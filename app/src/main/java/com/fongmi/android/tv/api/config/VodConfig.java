@@ -176,6 +176,7 @@ public class VodConfig {
             initOther(object);
             if (loadLive && object.has("lives")) initLive(object);
             jarLoader.parseJar("", Json.safeString(object, "spider"));
+            config.logo(Json.safeString(object, "logo"));
             config.json(object.toString()).update();
             App.post(callback::success);
         } catch (Throwable e) {

@@ -59,6 +59,7 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
             public void success() {
                 VideoActivity.start(getActivity(), item.getSiteKey(), item.getVodId(), item.getVodName(), item.getVodPic());
                 RefreshEvent.history();
+                RefreshEvent.config();
                 RefreshEvent.video();
             }
 

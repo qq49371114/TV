@@ -125,8 +125,8 @@ public class ImgUtil {
         return new RequestListener<Bitmap>() {
             @Override
             public boolean onLoadFailed(@Nullable GlideException e, Object model, @NonNull Target<Bitmap> target, boolean isFirstResource) {
-                view.setScaleType(scaleType);
                 view.setImageResource(R.drawable.ic_img_error);
+                view.setScaleType(scaleType);
                 return true;
             }
 

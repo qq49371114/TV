@@ -173,6 +173,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
                 setCacheText();
                 Notify.dismiss();
                 RefreshEvent.history();
+                RefreshEvent.config();
                 RefreshEvent.video();
                 mBinding.vodUrl.setText(VodConfig.getDesc());
                 mBinding.liveUrl.setText(LiveConfig.getDesc());
