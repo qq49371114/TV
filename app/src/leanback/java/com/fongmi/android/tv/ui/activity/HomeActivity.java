@@ -334,7 +334,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 else App.post(() -> getHomeFragment().mBinding.progressLayout.showContent(), 1000);
                 mResult = Result.empty();
                 Notify.show(msg);
-                setFocus();
+                setLoading(false);
             }
         };
     }

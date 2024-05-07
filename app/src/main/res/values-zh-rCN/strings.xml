@@ -87,7 +87,7 @@
     <string name="setting_home_site_lock">首页源锁定</string>
     <string name="setting_incognito">无痕模式</string>
     <string name="setting_small_window_back_key">小窗返回键</string>
-    <string name="setting_home_change_config">首页换线</string>
+    <string name="setting_home_display_name">首页显示站源名</string>
     <string name="setting_home_ui">首页UI</string>
     <string name="setting_home_buttons">首页按钮</string>
     <string name="setting_doh">DoH</string>
