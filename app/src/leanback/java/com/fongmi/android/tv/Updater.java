@@ -9,6 +9,7 @@ import android.os.Looper;
 import androidx.appcompat.app.AlertDialog;
 
 import com.fongmi.android.tv.databinding.DialogUpdateBinding;
+import com.fongmi.android.tv.utils.CustomUtil;
 import com.fongmi.android.tv.utils.Download;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
@@ -91,7 +92,7 @@ public class Updater implements Download.Callback {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        Notify.show("已是最新版本 - 关注「插兜的干货仓库」");
+                        Notify.show("已是最新版本 - "+ CustomUtil.getTitle());
                     }
                 });
             }

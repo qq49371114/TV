@@ -14,6 +14,7 @@ import com.fongmi.android.tv.utils.Download;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.CustomUtil;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Github;
 import com.github.catvod.utils.Path;
@@ -92,7 +93,7 @@ public class Updater implements Download.Callback {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        Notify.show("已是最新版本 - 关注「插兜的干货仓库」");
+                        Notify.show("已是最新版本 - "+CustomUtil.getTitle());
                     }
                 });
             }

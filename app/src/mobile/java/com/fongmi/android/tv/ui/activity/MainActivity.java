@@ -2,6 +2,7 @@ package com.fongmi.android.tv.ui.activity;
 
 import android.Manifest;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -38,9 +39,11 @@ import com.fongmi.android.tv.ui.fragment.SettingCustomFragment;
 import com.fongmi.android.tv.ui.fragment.SettingFragment;
 import com.fongmi.android.tv.ui.fragment.SettingPlayerFragment;
 import com.fongmi.android.tv.ui.fragment.VodFragment;
+import com.fongmi.android.tv.utils.CustomUtil;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.UrlUtil;
+import com.github.catvod.utils.Prefers;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.navigation.NavigationBarView;
 import com.permissionx.guolindev.PermissionX;
@@ -67,10 +70,26 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
 
     @Override
     protected void initView(Bundle savedInstanceState) {
-        Updater.get().release().start(this);
+//        Updater.get().release().start(this);
         initFragment(savedInstanceState);
         Server.get().start();
+        CustomUtil.initCache();
         initConfig();
+        showDialog(this);
+    }
+
+    private void showDialog(Context context) {
+        if (!Prefers.getBoolean("welcome_dialog")) {
+            new MaterialAlertDialogBuilder(context)
+                    .setTitle(CustomUtil.getTitle())
+                    .setMessage(CustomUtil.getAppMsg())
+                    .setPositiveButton("我已了解", (dialog, which) -> {
+                        System.out.println("App - 欢迎弹窗");
+                        Prefers.put("welcome_dialog", true);
+                    }).show();
+        } else {
+            System.out.println("App - 无需弹窗");
+        }
     }
 
     @Override
@@ -108,7 +127,7 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
     private void initConfig() {
         WallConfig.get().init();
         LiveConfig.get().init().load();
-        VodConfig.get().init().load(getCallback(), true);
+        VodConfig.get().init().load(getCallback(), true, CustomUtil.getForceRefresh());
     }
 
     private Callback getCallback() {
@@ -122,7 +141,8 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
 
             @Override
             public void error(String msg) {
-                if (TextUtils.isEmpty(msg) && AppDatabase.getBackup().exists()) showRestoreDialog();
+                if (TextUtils.isEmpty(msg) && AppDatabase.getBackup().exists()) onRestore();
+                else RefreshEvent.empty();
                 RefreshEvent.config();
                 StateEvent.empty();
                 Notify.show(msg);

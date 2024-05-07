@@ -1,12 +1,16 @@
 package com.fongmi.android.tv.ui.activity;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.fongmi.android.tv.utils.CustomUtil;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -112,7 +116,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     protected void initView() {
         DLNARendererService.Companion.start(this, R.drawable.ic_logo);
         mClock = Clock.create(mBinding.time).format("MM/dd HH:mm:ss");
-        Updater.get().release().start(this);
+//        Updater.get().release().start(this);
         Server.get().start();
         Tbs.init();
         setTitleView();
@@ -120,7 +124,23 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         setViewModel();
         setHomeType();
         setPager();
+        CustomUtil.initCache();
         initConfig();
+        showDialog(this);
+    }
+
+    private void showDialog(Context context) {
+        if (!Prefers.getBoolean("welcome_dialog")) {
+            new MaterialAlertDialogBuilder(context)
+                    .setTitle(CustomUtil.getTitle())
+                    .setMessage(CustomUtil.getAppMsg())
+                    .setPositiveButton("我已了解", (dialog, which) -> {
+                        System.out.println("App - 欢迎弹窗");
+                        Prefers.put("welcome_dialog", true);
+                    }).show();
+        } else {
+            System.out.println("App - 无需弹窗");
+        }
     }
 
     @Override
@@ -315,7 +335,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         if (isLoading()) return;
         WallConfig.get().init();
         LiveConfig.get().init().load();
-        VodConfig.get().init().load(getCallback(""), true);
+        VodConfig.get().init().load(getCallback(""), true, CustomUtil.getForceRefresh());
         setLoading(true);
     }
 

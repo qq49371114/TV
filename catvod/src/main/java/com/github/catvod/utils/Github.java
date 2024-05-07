@@ -8,11 +8,14 @@ import java.io.File;
 
 public class Github {
 
-    public static final String URL = "https://ghcy.eu.org/https://raw.githubusercontent.com/bestpvp/tm/main";
+//    public static final String URL = "https://raw.gitmirror.com/bestpvp/config/main/";
+//    public static final String URL = "https://gitee.com/bestpvp/config/raw/master/";
+    public static final String URL = "https://ghproxy.liuzhicong.com/https://raw.githubusercontent.com/bestpvp/config/main/";
+
 
     private static String getUrl(String path, String name) {
-        String url = URL + "/" + path + "/" + name;
-        return url;
+        System.out.println(URL + "/" + path + "/" + name);
+        return URL + "/" + path + "/" + name;
     }
 
     public static String getJson(boolean dev, String name) {

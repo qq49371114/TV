@@ -77,8 +77,8 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
     protected void initView() {
         mBinding.vod.requestFocus();
         mBinding.vodUrl.setText(VodConfig.getDesc());
-        mBinding.liveUrl.setText(LiveConfig.getDesc());
-        mBinding.wallUrl.setText(WallConfig.getDesc());
+//        mBinding.liveUrl.setText(LiveConfig.getDesc());
+//        mBinding.wallUrl.setText(WallConfig.getDesc());
         mBinding.backupText.setText(AppDatabase.getDate());
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
         mBinding.versionText.setText(BuildConfig.VERSION_NAME);
@@ -99,8 +99,8 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
     @Override
     protected void initEvent() {
         mBinding.vod.setOnClickListener(this::onVod);
-        mBinding.live.setOnClickListener(this::onLive);
-        mBinding.wall.setOnClickListener(this::onWall);
+//        mBinding.live.setOnClickListener(this::onLive);
+//        mBinding.wall.setOnClickListener(this::onWall);
         mBinding.proxy.setOnClickListener(this::onProxy);
         mBinding.cache.setOnClickListener(this::onCache);
         mBinding.cache.setOnLongClickListener(this::onCacheLongClick);
@@ -110,15 +110,15 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.version.setOnClickListener(this::onVersion);
         mBinding.vod.setOnLongClickListener(this::onVodEdit);
         mBinding.vodHome.setOnClickListener(this::onVodHome);
-        mBinding.live.setOnLongClickListener(this::onLiveEdit);
-        mBinding.liveHome.setOnClickListener(this::onLiveHome);
-        mBinding.wall.setOnLongClickListener(this::onWallEdit);
+//        mBinding.live.setOnLongClickListener(this::onLiveEdit);
+//        mBinding.liveHome.setOnClickListener(this::onLiveHome);
+//        mBinding.wall.setOnLongClickListener(this::onWallEdit);
         mBinding.backup.setOnLongClickListener(this::onBackupAuto);
         mBinding.vodHistory.setOnClickListener(this::onVodHistory);
         mBinding.version.setOnLongClickListener(this::onVersionDev);
-        mBinding.liveHistory.setOnClickListener(this::onLiveHistory);
-        mBinding.wallDefault.setOnClickListener(this::setWallDefault);
-        mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
+//        mBinding.liveHistory.setOnClickListener(this::onLiveHistory);
+//        mBinding.wallDefault.setOnClickListener(this::setWallDefault);
+//        mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
         mBinding.custom.setOnClickListener(this::onCustom);
         mBinding.doh.setOnClickListener(this::setDoh);
         mBinding.configCache.setOnClickListener(this::setConfigCache);
@@ -144,12 +144,12 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
             case 1:
                 Notify.progress(this);
                 LiveConfig.load(config, getCallback());
-                mBinding.liveUrl.setText(config.getDesc());
+//                mBinding.liveUrl.setText(config.getDesc());
                 break;
             case 2:
                 Notify.progress(this);
                 WallConfig.load(config, getCallback());
-                mBinding.wallUrl.setText(config.getDesc());
+//                mBinding.wallUrl.setText(config.getDesc());
                 break;
         }
     }
@@ -178,18 +178,18 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
                 RefreshEvent.config();
                 RefreshEvent.video();
                 mBinding.vodUrl.setText(VodConfig.getDesc());
-                mBinding.liveUrl.setText(LiveConfig.getDesc());
-                mBinding.wallUrl.setText(WallConfig.getDesc());
+//                mBinding.liveUrl.setText(LiveConfig.getDesc());
+//                mBinding.wallUrl.setText(WallConfig.getDesc());
                 break;
             case 1:
                 setCacheText();
                 Notify.dismiss();
-                mBinding.liveUrl.setText(LiveConfig.getDesc());
+//                mBinding.liveUrl.setText(LiveConfig.getDesc());
                 break;
             case 2:
                 setCacheText();
                 Notify.dismiss();
-                mBinding.wallUrl.setText(WallConfig.getDesc());
+//                mBinding.wallUrl.setText(WallConfig.getDesc());
                 break;
         }
     }
