@@ -28,6 +28,14 @@ public class Setting {
         Prefers.put("proxy", proxy);
     }
 
+    public static String getJxtoken() {
+        return Prefers.getString("jxToken");
+    }
+
+    public static void putJxtoken(String jxToken) {
+        Prefers.put("jxToken", jxToken);
+    }
+
     public static String getKeep() {
         return Prefers.getString("keep");
     }

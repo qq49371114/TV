@@ -92,6 +92,7 @@
     <string name="setting_home_buttons">首頁按鈕</string>
     <string name="setting_doh">DoH</string>
     <string name="setting_proxy">Proxy</string>
+    <string name="setting_jxtoken">JxToken</string>
     <string name="setting_cache">暫存</string>
     <string name="setting_backup">備份</string>
     <string name="setting_backup_auto">自動</string>
@@ -182,6 +183,7 @@
     <string name="all">全部</string>
     <string name="times">倍</string>
     <string name="lines">行</string>
+    <string name="hint">關注公衆號, 免費獲取</string>
 
     <string-array name="select_decode">
         <item>軟解</item>

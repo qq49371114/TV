@@ -92,6 +92,7 @@
     <string name="setting_home_buttons">首页按钮</string>
     <string name="setting_doh">DoH</string>
     <string name="setting_proxy">Proxy</string>
+    <string name="setting_jxtoken">JxToken</string>
     <string name="setting_cache">缓存</string>
     <string name="setting_backup">备份</string>
     <string name="setting_backup_auto">自动</string>
@@ -182,6 +183,7 @@
     <string name="all">全部</string>
     <string name="times">倍</string>
     <string name="lines">行</string>
+    <string name="hint">关注公众号, 免费获取</string>
 
     <string-array name="select_decode">
         <item>软解</item>
