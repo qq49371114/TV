@@ -28,6 +28,7 @@ import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.LoadControl;
 import androidx.media3.exoplayer.RenderersFactory;
+import androidx.media3.exoplayer.source.ConcatenatingMediaSource2;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 import androidx.media3.exoplayer.source.MediaSource;
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
@@ -120,7 +121,25 @@ public class ExoUtil {
         return null;
     }
 
+    private static MediaSource getConcatSource(Result result, Sub sub, int errorCode) {
+        String url = result.getRealUrl();
+        String[] urls = url.split("\\*\\*\\*");
+        ConcatenatingMediaSource2.Builder concatenatingMediaSource = new ConcatenatingMediaSource2.Builder();
+        for(String one : urls) {
+            if (TextUtils.isEmpty(one)) continue;
+            String[] oneInfo = one.split("\\|\\|\\|");
+            if (oneInfo.length < 2) continue;
+            String oneUrl = oneInfo[0];
+            String oneDuration = oneInfo[1];
+            long duration = Long.parseLong(oneDuration);
+            concatenatingMediaSource.add(getSource(result.getHeaders(), oneUrl, result.getFormat(), result.getSubs(), sub, null, errorCode), duration);
+        }
+        return concatenatingMediaSource.build();
+    }
+
     public static MediaSource getSource(Result result, Sub sub, int errorCode) {
+        String url = result.getRealUrl();
+        if (url.contains("***") && url.contains("|||")) return getConcatSource(result, sub, errorCode);
         return getSource(result.getHeaders(), result.getRealUrl(), result.getFormat(), result.getSubs(), sub, null, errorCode);
     }
 

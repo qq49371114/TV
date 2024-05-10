@@ -82,6 +82,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
         mBinding.versionText.setText(BuildConfig.VERSION_NAME);
         mBinding.proxyText.setText(UrlUtil.scheme(Setting.getProxy()));
+        mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
         mBinding.configCacheText.setText((configCache = ResUtil.getStringArray(R.array.select_config_cache))[Setting.getConfigCache()]);
         setCacheText();
     }

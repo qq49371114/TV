@@ -96,6 +96,7 @@
     <string name="setting_backup">Backup</string>
     <string name="setting_backup_auto">Auto</string>
     <string name="setting_version">Version</string>
+    <string name="setting_about">About</string>
     <string name="setting_storage">Permission</string>
     <string name="setting_off">Off</string>
     <string name="setting_on">On</string>

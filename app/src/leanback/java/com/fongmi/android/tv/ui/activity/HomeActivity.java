@@ -379,7 +379,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         FileUtil.clearCache(new Callback() {
             @Override
             public void success() {
-                setConfig(VodConfig.get().getConfig().json("").save(), ResUtil.getString(R.string.config_refreshed));
+                Config config = VodConfig.get().getConfig().json("").save();
+                if (!config.isEmpty()) setConfig(config, ResUtil.getString(R.string.config_refreshed));
             }
         });
     }
