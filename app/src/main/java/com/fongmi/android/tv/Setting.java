@@ -432,12 +432,12 @@ public class Setting {
         return Prefers.getInt("small_window_back_key", 0);
     }
 
-    public static void putHomeChangeConfig(boolean change) {
-        Prefers.put("home_change_config", change);
+    public static void putHomeDisplayName(boolean change) {
+        Prefers.put("home_display_name", change);
     }
 
-    public static boolean isHomeChangeConfig() {
-        return Prefers.getBoolean("home_change_config", false);
+    public static boolean isHomeDisplayName() {
+        return Prefers.getBoolean("home_display_name", false);
     }
 
     public static boolean isAggregatedSearch() {

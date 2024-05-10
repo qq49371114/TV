@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.databinding.FragmentSettingCustomBinding;
@@ -15,6 +16,7 @@ import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Util;
+import com.github.catvod.utils.Shell;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.Locale;
@@ -23,8 +25,8 @@ public class SettingCustomFragment extends BaseFragment {
 
     private FragmentSettingCustomBinding mBinding;
     private String[] size;
-
     private String[] lang;
+    private String[] configCache;
 
     public static SettingCustomFragment newInstance() {
         return new SettingCustomFragment();
@@ -46,8 +48,9 @@ public class SettingCustomFragment extends BaseFragment {
         mBinding.speedText.setText(getSpeedText());
         mBinding.incognitoText.setText(getSwitch(Setting.isIncognito()));
         mBinding.aggregatedSearchText.setText(getSwitch(Setting.isAggregatedSearch()));
-        mBinding.homeChangeConfigText.setText(getSwitch(Setting.isHomeChangeConfig()));
+        mBinding.homeDisplayNameText.setText(getSwitch(Setting.isHomeDisplayName()));
         mBinding.languageText.setText((lang = ResUtil.getStringArray(R.array.select_language))[Setting.getLanguage()]);
+        mBinding.configCacheText.setText((configCache = ResUtil.getStringArray(R.array.select_config_cache))[Setting.getConfigCache()]);
     }
 
     @Override
@@ -59,8 +62,10 @@ public class SettingCustomFragment extends BaseFragment {
         mBinding.speed.setOnLongClickListener(this::resetSpeed);
         mBinding.incognito.setOnClickListener(this::setIncognito);
         mBinding.aggregatedSearch.setOnClickListener(this::setAggregatedSearch);
-        mBinding.homeChangeConfig.setOnClickListener(this::setHomeChangeConfig);
+        mBinding.homeDisplayName.setOnClickListener(this::setHomeDisplayName);
         mBinding.language.setOnClickListener(this::setLanguage);
+        mBinding.configCache.setOnClickListener(this::setConfigCache);
+        mBinding.reset.setOnClickListener(this::onReset);
 
     }
 
@@ -111,9 +116,9 @@ public class SettingCustomFragment extends BaseFragment {
         mBinding.aggregatedSearchText.setText(getSwitch(Setting.isAggregatedSearch()));
     }
 
-    private void setHomeChangeConfig(View view) {
-        Setting.putHomeChangeConfig(!Setting.isHomeChangeConfig());
-        mBinding.homeChangeConfigText.setText(getSwitch(Setting.isHomeChangeConfig()));
+    private void setHomeDisplayName(View view) {
+        Setting.putHomeDisplayName(!Setting.isHomeDisplayName());
+        mBinding.homeDisplayNameText.setText(getSwitch(Setting.isHomeDisplayName()));
         RefreshEvent.config();
     }
 
@@ -124,6 +129,22 @@ public class SettingCustomFragment extends BaseFragment {
             dialog.dismiss();
             Util.restartApp(getActivity());
         }).show();
+    }
+
+    private void setConfigCache(View view) {
+        int index = Setting.getConfigCache();
+        Setting.putConfigCache(index = index == configCache.length - 1 ? 0 : ++index);
+        mBinding.configCacheText.setText(configCache[index]);
+    }
+
+    private void onReset(View view) {
+        new MaterialAlertDialogBuilder(getActivity()).setTitle(R.string.dialog_reset_app).setMessage(R.string.dialog_reset_app_data).setNegativeButton(R.string.dialog_negative, null).setPositiveButton(R.string.dialog_positive, (dialog, which) -> reset()).show();
+    }
+
+    private void reset() {
+        new Thread(() -> {
+            Shell.exec("pm clear " + App.get().getPackageName());
+        }).start();
     }
 
 }
