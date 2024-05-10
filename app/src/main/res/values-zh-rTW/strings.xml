@@ -184,6 +184,10 @@
     <string name="times">倍</string>
     <string name="lines">行</string>
     <string name="hint">關注公衆號, 免費獲取</string>
+    <string name="tv">公瑾TV</string>
+    <string name="tvDes">本APP以及「時光機」均為免費開源項目，僅供測試，請勿付費購買！\n\n播放時若出現廣吿均為三方插入, 與本公眾號無關，請勿上當!\n</string>
+    <string name="vodHomeDes">返回線路主頁</string>
+    <string name="vodHistoryDes">返回線路歷史</string>
 
     <string-array name="select_decode">
         <item>軟解</item>

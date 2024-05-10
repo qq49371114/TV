@@ -184,6 +184,10 @@
     <string name="times">倍</string>
     <string name="lines">行</string>
     <string name="hint">关注公众号, 免费获取</string>
+    <string name="tv">公瑾TV</string>
+    <string name="tvDes">本APP以及「时光机」均为免费开源项目，仅供测试，请勿付费购买！\n\n播放时若出现广告均为三方插入, 与本公众号无关，请勿上当!\n</string>
+    <string name="vodHomeDes">返回线路主页</string>
+    <string name="vodHistoryDes">返回线路历史</string>
 
     <string-array name="select_decode">
         <item>软解</item>

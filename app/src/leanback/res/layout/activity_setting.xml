@@ -23,14 +23,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="16dp"
-                android:text="公瑾TV"  android:textColor="@color/white"
+                android:text="@string/tv"
+                android:textColor="@color/white"
                 android:textSize="20sp" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="15dp"
-                android:text="本APP以及「时光机」均为免费开源项目，仅供测试，请勿付费购买！\n\n播放时若出现广告均为三方插入, 与本公众号无关，请勿上当!\n"  android:textColor="@color/white"
+                android:text="@string/tvDes"
+                android:textColor="@color/white"
                 android:textSize="16sp" />
 
         </LinearLayout>
@@ -87,7 +89,8 @@
                 android:focusableInTouchMode="true"
                 android:padding="8dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/ic_setting_home" />
+                android:src="@drawable/ic_setting_home"
+                android:contentDescription="@string/vodHomeDes" />
 
             <ImageView
                 android:id="@+id/vodHistory"
@@ -98,7 +101,8 @@
                 android:focusableInTouchMode="true"
                 android:padding="8dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/ic_setting_history" />
+                android:src="@drawable/ic_setting_history"
+                android:contentDescription="@string/vodHistoryDes" />
 
         </LinearLayout>
 
@@ -139,7 +143,7 @@
                     android:textColor="@color/white"
                     android:textSize="18sp"
                     tools:ignore="NestedWeights"
-                    tools:text="https://" />
+                    tools:text="jxToken" />
 
             </LinearLayout>
 
