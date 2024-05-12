@@ -41,6 +41,7 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
     private Listener listener;
     private ChooserListener cListener;
     private Players player;
+    private boolean vod;
     private int type;
 
     public static TrackDialog create() {
@@ -52,11 +53,6 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
         this.provider = new TrackNameProvider();
     }
 
-    public TrackDialog type(int type) {
-        this.type = type;
-        return this;
-    }
-
     public TrackDialog chooser(ChooserListener listener) {
         this.cListener = listener;
         return this;
@@ -64,6 +60,16 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
 
     public TrackDialog player(Players player) {
         this.player = player;
+        return this;
+    }
+
+    public TrackDialog vod(boolean vod) {
+        this.vod = vod;
+        return this;
+    }
+
+    public TrackDialog type(int type) {
+        this.type = type;
         return this;
     }
 
@@ -86,7 +92,7 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
         binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 16));
         binding.recycler.post(() -> binding.recycler.scrollToPosition(adapter.getSelected()));
         binding.recycler.setVisibility(adapter.getItemCount() == 0 ? View.GONE : View.VISIBLE);
-        binding.choose.setVisibility(type == C.TRACK_TYPE_TEXT && player.isExo() ? View.VISIBLE : View.GONE);
+        binding.choose.setVisibility(type == C.TRACK_TYPE_TEXT && player.isExo() && vod ? View.VISIBLE : View.GONE);
         binding.size.setVisibility(type == C.TRACK_TYPE_TEXT ? View.VISIBLE : View.GONE);
         binding.title.setText(ResUtil.getStringArray(R.array.select_track)[type - 1]);
     }

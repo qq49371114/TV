@@ -8,8 +8,6 @@ import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.utils.LanguageUtil;
 import com.github.catvod.utils.Prefers;
 
-import java.util.Locale;
-
 public class Setting {
 
     public static String getDoh() {
@@ -496,5 +494,12 @@ public class Setting {
         return Prefers.getInt("parse_webview", 0);
     }
 
+    public static boolean isRemoveAd() {
+        return Prefers.getBoolean("remove_ad", false);
+    }
+
+    public static void putRemoveAd(boolean remove) {
+        Prefers.put("remove_ad", remove);
+    }
 
 }
