@@ -18,6 +18,8 @@ import com.fongmi.android.tv.ui.dialog.LanguageDialog;
 import com.fongmi.android.tv.ui.dialog.MenuKeyDialog;
 import com.fongmi.android.tv.ui.dialog.X5WebViewDialog;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.github.catvod.utils.Shell;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.tencent.smtt.sdk.QbSdk;
 import java.util.Locale;
 
@@ -31,6 +33,7 @@ public class SettingCustomActivity extends BaseActivity {
     private String[] smallWindowBackKey;
     private String[] homeUI;
     private String[] parseWebview;
+    private String[] configCache;
 
     @Override
     protected ViewBinding getBinding() {
@@ -60,8 +63,10 @@ public class SettingCustomActivity extends BaseActivity {
         mBinding.aggregatedSearchText.setText(getSwitch(Setting.isAggregatedSearch()));
         mBinding.homeUIText.setText((homeUI = ResUtil.getStringArray(R.array.select_home_ui))[Setting.getHomeUI()]);
         mBinding.homeHistoryText.setText(getSwitch(Setting.isHomeHistory()));
+        mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
         mBinding.languageText.setText((ResUtil.getStringArray(R.array.select_language))[Setting.getLanguage()]);
         mBinding.parseWebviewText.setText((parseWebview = ResUtil.getStringArray(R.array.select_parse_webview))[Setting.getParseWebView()]);
+        mBinding.configCacheText.setText((configCache = ResUtil.getStringArray(R.array.select_config_cache))[Setting.getConfigCache()]);
     }
 
     @Override
@@ -81,8 +86,11 @@ public class SettingCustomActivity extends BaseActivity {
         mBinding.homeUI.setOnClickListener(this::setHomeUI);
         mBinding.homeButtons.setOnClickListener(this::onHomeButtons);
         mBinding.homeHistory.setOnClickListener(this::setHomeHistory);
+        mBinding.removeAd.setOnClickListener(this::setRemoveAd);
         mBinding.setLanguage.setOnClickListener(this::setLanguage);
         mBinding.parseWebview.setOnClickListener(this::setParseWebview);
+        mBinding.configCache.setOnClickListener(this::setConfigCache);
+        mBinding.reset.setOnClickListener(this::onReset);
 
     }
 
@@ -178,6 +186,11 @@ public class SettingCustomActivity extends BaseActivity {
         mBinding.homeHistoryText.setText(getSwitch(Setting.isHomeHistory()));
     }
 
+    private void setRemoveAd(View view) {
+        Setting.putRemoveAd(!Setting.isRemoveAd());
+        mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
+    }
+
     private void setLanguage(View view) {
         LanguageDialog.create(this).show();
     }
@@ -192,6 +205,22 @@ public class SettingCustomActivity extends BaseActivity {
         Setting.putParseWebView(index = index == parseWebview.length - 1 ? 0 : ++index);
         mBinding.parseWebviewText.setText(parseWebview[index]);
         if (index == 1 && QbSdk.getTbsVersion(App.get()) <= 0) X5WebViewDialog.create(this).show();
+    }
+
+    private void setConfigCache(View view) {
+        int index = Setting.getConfigCache();
+        Setting.putConfigCache(index = index == configCache.length - 1 ? 0 : ++index);
+        mBinding.configCacheText.setText(configCache[index]);
+    }
+
+    private void onReset(View view) {
+        new MaterialAlertDialogBuilder(this).setTitle(R.string.dialog_reset_app).setMessage(R.string.dialog_reset_app_data).setNegativeButton(R.string.dialog_negative, null).setPositiveButton(R.string.dialog_positive, (dialog, which) -> reset()).show();
+    }
+
+    private void reset() {
+        new Thread(() -> {
+            Shell.exec("pm clear " + App.get().getPackageName());
+        }).start();
     }
 
 }

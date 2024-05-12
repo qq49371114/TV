@@ -1048,7 +1048,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void onTrack(View view) {
-        TrackDialog.create().player(mPlayers).chooser(this).type(Integer.parseInt(view.getTag().toString())).show(this);
+        TrackDialog.create().player(mPlayers).chooser(this).vod(true).type(Integer.parseInt(view.getTag().toString())).show(this);
         hideControl();
     }
 

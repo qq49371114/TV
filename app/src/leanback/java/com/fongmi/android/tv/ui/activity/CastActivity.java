@@ -216,7 +216,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     }
 
     private void onTrack(View view) {
-        TrackDialog.create().player(mPlayers).type(Integer.parseInt(view.getTag().toString())).show(this);
+        TrackDialog.create().player(mPlayers).vod(true).type(Integer.parseInt(view.getTag().toString())).show(this);
         hideControl();
     }
 

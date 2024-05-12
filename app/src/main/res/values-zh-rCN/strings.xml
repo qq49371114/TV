@@ -86,6 +86,7 @@
     <string name="setting_home_menu_key">首页菜单键</string>
     <string name="setting_home_site_lock">首页源锁定</string>
     <string name="setting_incognito">无痕模式</string>
+    <string name="setting_remove_ad">AI去广告</string>
     <string name="setting_small_window_back_key">小窗返回键</string>
     <string name="setting_home_display_name">首页显示站源</string>
     <string name="setting_home_ui">首页UI</string>
