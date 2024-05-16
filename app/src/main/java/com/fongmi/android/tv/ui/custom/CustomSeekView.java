@@ -90,10 +90,10 @@ public class CustomSeekView extends FrameLayout implements TimeBar.OnScrubListen
             timeBar.setBufferedPosition(buffered);
         }
         if (player.isEmpty()) {
-            timeBar.setPosition(0);
-            timeBar.setDuration(0);
             positionView.setText("00:00");
             durationView.setText("00:00");
+            timeBar.setPosition(currentDuration = 0);
+            timeBar.setDuration(currentDuration = 0);
         }
         removeCallbacks(refresh);
         if (player.isPlaying()) {

@@ -28,6 +28,8 @@ public class Tbs {
     }
 
     public static String getUrl() {
+        File file = new File(Path.tv(), "x5.tbs.apk");
+        if (file.exists()) return Server.get().getAddress("/file/TV/x5.tbs.apk");
         return Server.get().getAddress("x5.tbs.apk");
     }
 

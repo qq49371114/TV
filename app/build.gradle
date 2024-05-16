@@ -10,8 +10,8 @@ android {
         applicationId "com.gongjin.android.tv"
         minSdk 21
         targetSdk 28
-        versionCode 1017
-        versionName "10.1.7"
+        versionCode 1018
+        versionName "10.1.8"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
@@ -124,11 +124,11 @@ dependencies {
     implementation 'com.github.jahirfiquitiva:TextDrawable:1.0.3'
     implementation('com.github.teamnewpipe:NewPipeExtractor:v0.23.1') { exclude group: 'org.jsoup', module: 'jsoup' }
     implementation 'com.github.thegrizzlylabs:sardine-android:0.9'
-    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'com.google.android.material:material:1.12.0'
     implementation 'com.google.net.cronet:cronet-okhttp:0.1.0'
     implementation 'com.google.zxing:core:3.3.0'
     implementation 'com.guolindev.permissionx:permissionx:1.7.1'
-    implementation 'com.hierynomus:smbj:0.11.5'
+    implementation 'com.hierynomus:smbj:0.13.0'
     implementation 'org.chromium.net:cronet-embedded:76.3809.111'
     implementation 'org.eclipse.jetty:jetty-client:8.1.21.v20160908'
     implementation 'org.eclipse.jetty:jetty-server:8.1.21.v20160908'

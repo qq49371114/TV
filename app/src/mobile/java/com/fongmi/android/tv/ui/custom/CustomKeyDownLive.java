@@ -47,7 +47,7 @@ public class CustomKeyDownLive extends GestureDetector.SimpleOnGestureListener {
     public boolean onTouchEvent(MotionEvent e) {
         if (changeBright && e.getAction() == MotionEvent.ACTION_UP) listener.onBrightEnd();
         if (changeVolume && e.getAction() == MotionEvent.ACTION_UP) listener.onVolumeEnd();
-        return detector.onTouchEvent(e);
+        return e.getPointerCount() == 1 && detector.onTouchEvent(e);
     }
 
     public void setLock(boolean lock) {
