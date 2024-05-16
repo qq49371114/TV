@@ -187,7 +187,7 @@ public class Setting {
     }
 
     public static int getEpisode() {
-        return Prefers.getInt("episode");
+        return Prefers.getInt("episode", 1);
     }
 
     public static void putEpisode(int episode) {
@@ -503,7 +503,7 @@ public class Setting {
     }
 
     public static boolean isRemoveAd() {
-        return Prefers.getBoolean("remove_ad", false);
+        return Prefers.getBoolean("remove_ad", true);
     }
 
     public static void putRemoveAd(boolean remove) {
