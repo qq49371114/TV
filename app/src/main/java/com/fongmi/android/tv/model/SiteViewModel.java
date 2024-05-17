@@ -160,6 +160,7 @@ public class SiteViewModel extends ViewModel {
                 VodConfig.get().setRecent(site);
                 Result result = Result.fromJson(playerContent);
                 if (result.getFlag().isEmpty()) result.setFlag(flag);
+                System.out.println("playerContent - siteType 3: url ->"+Source.get().fetch(result));
                 result.setUrl(Source.get().fetch(result));
                 result.setHeader(site.getHeader());
                 result.setKey(key);
@@ -172,6 +173,7 @@ public class SiteViewModel extends ViewModel {
                 SpiderDebug.log(playerContent);
                 Result result = Result.fromJson(playerContent);
                 if (result.getFlag().isEmpty()) result.setFlag(flag);
+                System.out.println("playerContent - siteType 4: url ->"+Source.get().fetch(result));
                 result.setUrl(Source.get().fetch(result));
                 result.setHeader(site.getHeader());
                 return result;
@@ -181,6 +183,7 @@ public class SiteViewModel extends ViewModel {
                 result.setFlag(flag);
                 result.setUrl(Url.create().add(id));
                 result.setUrl(Source.get().fetch(result));
+                System.out.println("playerContent - push_agent: url ->"+Source.get().fetch(result));
                 return result;
             } else {
                 Url url = Url.create().add(id);
@@ -191,6 +194,7 @@ public class SiteViewModel extends ViewModel {
                 result.setFlag(flag);
                 result.setHeader(site.getHeader());
                 result.setPlayUrl(site.getPlayUrl());
+                System.out.println("playerContent - other: playUrl ->"+site.getPlayUrl());
                 result.setParse(Sniffer.isVideoFormat(url.v()) && result.getPlayUrl().isEmpty() ? 0 : 1);
                 SpiderDebug.log(result.toString());
                 return result;
