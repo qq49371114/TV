@@ -41,6 +41,7 @@ public class VodConfig {
     private List<Site> sites;
     private List<Parse> parses;
     private List<String> flags;
+    private List<String> ads;
     private JarLoader jarLoader;
     private PyLoader pyLoader;
     private JsLoader jsLoader;
@@ -48,7 +49,6 @@ public class VodConfig {
     private Config config;
     private Parse parse;
     private String wall;
-    private String ads;
     private Site home;
 
     private static class Loader {
@@ -84,11 +84,11 @@ public class VodConfig {
     }
 
     public VodConfig init() {
-        this.ads = null;
         this.wall = null;
         this.home = null;
         this.parse = null;
         this.config = Config.vod();
+        this.ads = new ArrayList<>();
         this.doh = new ArrayList<>();
         this.rules = new ArrayList<>();
         this.sites = new ArrayList<>();
@@ -107,10 +107,10 @@ public class VodConfig {
     }
 
     public VodConfig clear() {
-        this.ads = null;
         this.wall = null;
         this.home = null;
         this.parse = null;
+        this.ads.clear();
         this.doh.clear();
         this.rules.clear();
         this.sites.clear();
@@ -336,12 +336,12 @@ public class VodConfig {
         this.flags.addAll(flags);
     }
 
-    public String getAds() {
-        return TextUtils.isEmpty(ads) ? "" : ads;
+    public List<String> getAds() {
+        return ads == null ? Collections.emptyList() : ads;
     }
 
     private void setAds(List<String> ads) {
-        this.ads = TextUtils.join(",", ads);
+        this.ads = ads;
     }
 
     public Config getConfig() {

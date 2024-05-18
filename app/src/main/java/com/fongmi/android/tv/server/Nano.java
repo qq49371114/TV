@@ -9,11 +9,9 @@ import com.fongmi.android.tv.server.process.Action;
 import com.fongmi.android.tv.server.process.Cache;
 import com.fongmi.android.tv.server.process.Local;
 import com.fongmi.android.tv.server.process.Process;
-import com.fongmi.android.tv.utils.M3U8;
 import com.github.catvod.utils.Asset;
 import com.google.common.net.HttpHeaders;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -71,7 +69,6 @@ public class Nano extends NanoHTTPD {
         if (session.getMethod() == Method.POST) parse(session, files);
         if (url.contains("?")) url = url.substring(0, url.indexOf('?'));
         if (url.startsWith("/go")) return go();
-        if (url.startsWith("/m3u8")) return m3u8(session);
         if (url.startsWith("/proxy")) return proxy(session);
         if (url.startsWith("/tvbus")) return success(LiveConfig.getResp());
         if (url.startsWith("/device")) return success(Device.get().toString());
@@ -96,17 +93,6 @@ public class Nano extends NanoHTTPD {
     private Response go() {
         Go.start();
         return success();
-    }
-
-    private Response m3u8(IHTTPSession session) {
-        try {
-            String url = session.getParms().get("url");
-            String result = M3U8.get(url, session.getHeaders());
-            if (result.isEmpty()) return redirect(url, session.getHeaders());
-            return newChunkedResponse(Response.Status.OK, MIME_PLAINTEXT, new ByteArrayInputStream(result.getBytes("UTF-8")));
-        } catch (Exception e) {
-            return error(e.getMessage());
-        }
     }
 
     private Response proxy(IHTTPSession session) {
