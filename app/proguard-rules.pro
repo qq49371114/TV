@@ -41,6 +41,7 @@
 
 # EXO
 -keep class org.xmlpull.v1.** { *; }
+-keep class androidx.media3.** { *; }
 
 # IJK
 -keep class tv.danmaku.ijk.media.player.** { *; }

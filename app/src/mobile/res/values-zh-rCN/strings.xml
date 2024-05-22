@@ -40,6 +40,9 @@
     <string name="timer_delay">延长 5 分钟</string>
     <string name="timer_cancel">取消定时器</string>
 
+    <!-- Transmit -->
+    <string name="transmit_apk">推送APK</string>
+
     <!-- Hint -->
     <string name="shortcut"> 已于主萤幕新增捷径。</string>
 

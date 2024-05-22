@@ -12,11 +12,14 @@ import com.fongmi.android.tv.impl.Callback;
 import com.github.catvod.utils.Path;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.net.URLConnection;
 import java.text.DecimalFormat;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 public class FileUtil {
 
@@ -30,6 +33,35 @@ public class FileUtil {
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         intent.setDataAndType(getShareUri(file), FileUtil.getMimeType(file.getName()));
         App.get().startActivity(intent);
+    }
+
+    public static void zipFolder(File folder, File zip) {
+        try {
+            ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zip));
+            folderToZip("", folder, zipOut);
+            zipOut.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void folderToZip(String parentPath, File folder, ZipOutputStream zipOut) throws Exception {
+        for (File file : folder.listFiles()) {
+            if (file.isDirectory()) {
+                folderToZip(parentPath + file.getName() + "/", file, zipOut);
+                continue;
+            }
+            ZipEntry zipEntry = new ZipEntry(parentPath + file.getName());
+            zipOut.putNextEntry(zipEntry);
+
+            FileInputStream in = new FileInputStream(file);
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = in.read(buffer)) != -1) {
+                zipOut.write(buffer, 0, bytesRead);
+            }
+            in.close();
+        }
     }
 
     public static void unzip(File target, File path) {

@@ -40,6 +40,9 @@
     <string name="timer_delay">Add 5 minutes</string>
     <string name="timer_cancel">Cancel timer</string>
 
+    <!-- Transmit -->
+    <string name="transmit_apk">Push apk</string>
+
     <!-- Hint -->
     <string name="shortcut">Shortcut has been added.</string>
 

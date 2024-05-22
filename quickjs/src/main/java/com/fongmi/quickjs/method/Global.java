@@ -20,6 +20,7 @@ import com.whl.quickjs.wrapper.QuickJSContext;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URLEncoder;
+import java.nio.charset.CharacterCodingException;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
@@ -145,6 +146,14 @@ public class Global {
     @JSMethod
     public String joinUrl(String parent, String child) {
         return parser.joinUrl(parent, child);
+    }
+
+    @Keep
+    @JSMethod
+    public String gbkDecode(JSArray buffer) throws CharacterCodingException {
+        String result = JSUtil.decodeTo("GB2312", buffer);
+        Logger.t("gbkDecode").d("text:%s\nresult:\n%s", buffer, result);
+        return result;
     }
 
     @Keep

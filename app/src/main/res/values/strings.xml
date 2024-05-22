@@ -76,6 +76,7 @@
     <string name="setting_danmu">Danmu setting</string>
     <string name="setting_custom">Custom setting</string>
     <string name="setting_config_cache">Config cache</string>
+    <string name="setting_cache_dir">Thunder cache</string>
     <string name="setting_reset">Reset app</string>
     <string name="setting_quality">Image quality</string>
     <string name="setting_size">Image size</string>
@@ -96,7 +97,7 @@
     <string name="setting_jxtoken">JxToken</string>
     <string name="setting_cache">Cache</string>
     <string name="setting_backup">Backup</string>
-    <string name="setting_backup_auto">Auto</string>
+    <string name="setting_restore">Restore</string>
     <string name="setting_version">Version</string>
     <string name="setting_about">About</string>
     <string name="setting_storage">Permission</string>
@@ -183,6 +184,7 @@
 
     <!-- Hint -->
     <string name="copied">Copied</string>
+    <string name="backed">Backup successful</string>
     <string name="config_refreshed">Config rereshed</string>
 
     <!-- UNIT -->
@@ -194,6 +196,11 @@
     <string name="tvDes">This APP and "Time Machine" are free and open-source projects, only for testing, please do not pay to buy!\n\nIf the advertisement appears during playback, it is inserted by three parties, and has nothing to do with this official account, please do not be fooled!\n</string>
     <string name="vodHomeDes">Return to lines home</string>
     <string name="vodHistoryDes">Return to lines History</string>
+
+    <string-array name="select_backup">
+        <item>Auto</item>
+        <item>Manual</item>
+    </string-array>
 
     <string-array name="select_decode">
         <item>Soft</item>

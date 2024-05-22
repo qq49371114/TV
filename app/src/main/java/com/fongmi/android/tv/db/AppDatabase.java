@@ -9,6 +9,7 @@ import androidx.room.RoomDatabase;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
+import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Device;
@@ -24,7 +25,7 @@ import com.fongmi.android.tv.db.dao.KeepDao;
 import com.fongmi.android.tv.db.dao.LiveDao;
 import com.fongmi.android.tv.db.dao.SiteDao;
 import com.fongmi.android.tv.db.dao.TrackDao;
-import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
@@ -41,6 +42,7 @@ public abstract class AppDatabase extends RoomDatabase {
     public static final int VERSION = 30;
     public static final String NAME = "tv";
     public static final String SYMBOL = "@@@";
+    public static final String BACKUP_SUFFIX = "tv.backup";
 
     private static volatile AppDatabase instance;
 
@@ -49,37 +51,36 @@ public abstract class AppDatabase extends RoomDatabase {
         return instance;
     }
 
-    public static File getBackup() {
-        return new File(Path.tv(), NAME);
-    }
-
-    public static String getDate() {
-        return Setting.isBackupAuto() ? ResUtil.getString(R.string.setting_backup_auto) : getBackup().exists() ? Util.format(new SimpleDateFormat("MMdd", Locale.getDefault()), getBackup().lastModified()) : "";
-    }
-
     public static void backup() {
-        if (Setting.isBackupAuto()) backup(new com.fongmi.android.tv.impl.Callback());
+        if (Setting.getBackupMode() == 0) backup(new com.fongmi.android.tv.impl.Callback());
     }
 
     public static void backup(com.fongmi.android.tv.impl.Callback callback) {
         App.execute(() -> {
+            File restore = Path.restore();
+            if (!restore.exists()) return;
             File db = App.get().getDatabasePath(NAME).getAbsoluteFile();
             File wal = App.get().getDatabasePath(NAME + "-wal").getAbsoluteFile();
             File shm = App.get().getDatabasePath(NAME + "-shm").getAbsoluteFile();
-            if (db.exists()) Path.copy(db, new File(Path.tv(), db.getName()));
-            if (wal.exists()) Path.copy(wal, new File(Path.tv(), wal.getName()));
-            if (shm.exists()) Path.copy(shm, new File(Path.tv(), shm.getName()));
-            Prefers.backup(new File(Path.tv(), NAME + "-pref"));
+            if (db.exists()) Path.copy(db, new File(restore, db.getName()));
+            if (wal.exists()) Path.copy(wal, new File(restore, wal.getName()));
+            if (shm.exists()) Path.copy(shm, new File(restore, shm.getName()));
+            Prefers.backup(new File(restore, NAME + "-pref"));
+            String time = Util.format(new SimpleDateFormat("yyyyMMddHHmm", Locale.getDefault()), (new File(restore, db.getName())).lastModified());
+            FileUtil.zipFolder(restore, new File(Path.tv(), time + "." + BACKUP_SUFFIX));
             App.post(callback::success);
         });
     }
 
-    public static void restore(com.fongmi.android.tv.impl.Callback callback) {
+    public static void restore(File file, com.fongmi.android.tv.impl.Callback callback) {
         App.execute(() -> {
-            File db = new File(Path.tv(), NAME);
-            File wal = new File(Path.tv(), NAME + "-wal");
-            File shm = new File(Path.tv(), NAME + "-shm");
-            File pref = new File(Path.tv(), NAME + "-pref");
+            File restore = Path.restore();
+            if (!restore.exists()) return;
+            FileUtil.unzip(file, restore);
+            File db = new File(restore, NAME);
+            File wal = new File(restore, NAME + "-wal");
+            File shm = new File(restore, NAME + "-shm");
+            File pref = new File(restore, NAME + "-pref");
             if (db.exists()) Path.copy(db, App.get().getDatabasePath(db.getName()).getAbsoluteFile());
             if (wal.exists()) Path.copy(wal, App.get().getDatabasePath(wal.getName()).getAbsoluteFile());
             if (shm.exists()) Path.copy(shm, App.get().getDatabasePath(shm.getName()).getAbsoluteFile());

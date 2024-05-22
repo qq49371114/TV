@@ -1,52 +1,40 @@
 package com.fongmi.android.tv.ui.dialog;
 
 import android.app.Activity;
-import android.view.LayoutInflater;
-import android.view.View;
-
-import androidx.appcompat.app.AlertDialog;
-
-import com.fongmi.android.tv.databinding.DialogRestoreBinding;
 import com.fongmi.android.tv.impl.RestoreCallback;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.github.catvod.utils.Path;
+import com.obsez.android.lib.filechooser.ChooserDialog;
+
+import java.io.File;
 
 public class RestoreDialog {
 
-    private final DialogRestoreBinding binding;
-    private final RestoreCallback callback;
-    private final AlertDialog dialog;
+    private ChooserDialog dialog;
 
-    public static RestoreDialog create(Activity activity) {
-        return new RestoreDialog(activity);
+    private RestoreCallback callback;
+
+    public static RestoreDialog create() {
+        return new RestoreDialog();
     }
 
-    public RestoreDialog(Activity activity) {
-        this.callback = (RestoreCallback) activity;
-        this.binding = DialogRestoreBinding.inflate(LayoutInflater.from(activity));
-        this.dialog = new MaterialAlertDialogBuilder(activity).setView(binding.getRoot()).create();
+    public RestoreDialog callback(RestoreCallback callback) {
+        this.callback = callback;
+        return this;
     }
 
-    public void show() {
-        initDialog();
-        initEvent();
+    public void show(Activity activity) {
+        dialog = new ChooserDialog(activity);
+        dialog.withFilter(false, false, "tv", "backup");
+        dialog.withStartFile(Path.tv().getAbsolutePath());
+        dialog.withChosenListener(this::onChoosePath);
+        dialog.withOnBackPressedListener(d -> dialog.goBack());
+        dialog.withOnLastBackPressedListener(d -> dialog.dismiss());
+        dialog.build().show();
     }
 
-    private void initDialog() {
-        dialog.getWindow().setDimAmount(0);
-        dialog.show();
-    }
 
-    private void initEvent() {
-        binding.positive.setOnClickListener(this::onPositive);
-        binding.negative.setOnClickListener(this::onNegative);
-    }
-
-    private void onPositive(View view) {
-        callback.onRestore();
-        dialog.dismiss();
-    }
-
-    private void onNegative(View view) {
-        dialog.dismiss();
+    private void onChoosePath(String path, File pathFile) {
+        callback.onRestore(pathFile);
+        if (dialog != null) dialog.dismiss();
     }
 }

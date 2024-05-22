@@ -19,6 +19,7 @@ import com.fongmi.android.tv.utils.Notify;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -57,6 +58,9 @@ public class Action implements Process {
                 return Nano.success();
             case "sync":
                 onSync(params);
+                return Nano.success();
+            case "transmit":
+                onTransmit(params, files);
                 return Nano.success();
             default:
                 return Nano.error(null);
@@ -131,6 +135,14 @@ public class Action implements Process {
             syncHistory(params);
         } else if (keep) {
             syncKeep(params);
+        }
+    }
+
+    private void onTransmit(Map<String, String> params, Map<String, String> files) {
+        String type = params.get("type");
+        switch (type) {
+            case "apk":
+                apk(params, files);
         }
     }
 
@@ -214,5 +226,20 @@ public class Action implements Process {
                 Notify.show(msg);
             }
         };
+    }
+
+    private void apk(Map<String, String> params, Map<String, String> files) {
+        for (String k : files.keySet()) {
+            String fn = params.get(k);
+            File temp = new File(files.get(k));
+            if (!temp.exists()) continue;
+            if (fn.toLowerCase().endsWith(".apk")) {
+                File apk = Path.cache(System.currentTimeMillis() + "-" + fn);
+                Path.copy(temp, apk);
+                FileUtil.openFile(apk);
+            } else {
+                temp.delete();
+            }
+        }
     }
 }

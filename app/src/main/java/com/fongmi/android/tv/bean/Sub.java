@@ -30,7 +30,7 @@ public class Sub {
         if (path.startsWith("http")) {
             return http(path);
         } else {
-            return file(Path.local(path));
+            return file(Path.utf8(Path.local(path)));
         }
     }
 
