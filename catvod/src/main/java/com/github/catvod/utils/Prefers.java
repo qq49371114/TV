@@ -7,6 +7,8 @@ import androidx.preference.PreferenceManager;
 import com.github.catvod.Init;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.ToNumberPolicy;
 import com.google.gson.internal.LazilyParsedNumber;
 import com.google.gson.reflect.TypeToken;
@@ -109,5 +111,26 @@ public class Prefers {
         } else {
             return entry.getValue();
         }
+    }
+
+    public static void printAllEntries() {
+        Map<String, ?> allEntries = getPrefers().getAll();
+        for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
+            System.out.println(" - Key: " + entry.getKey() + ", Value: " + entry.getValue());
+        }
+    }
+
+    public static Map<String, ?> getAllEntries() {
+        return getPrefers().getAll();
+    }
+
+
+    public static void removeKeys(JsonArray keyArray) {
+        SharedPreferences.Editor editor = getPrefers().edit();
+        for (JsonElement keyElement : keyArray) {
+            String key = keyElement.getAsString();
+            editor.remove(key);
+        }
+        editor.apply();
     }
 }

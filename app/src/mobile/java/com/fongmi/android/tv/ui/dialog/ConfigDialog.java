@@ -19,6 +19,7 @@ import com.fongmi.android.tv.impl.ConfigCallback;
 import com.fongmi.android.tv.ui.custom.CustomTextListener;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.UrlUtil;
+import com.fongmi.android.tv.utils.CustomUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class ConfigDialog {
@@ -67,7 +68,11 @@ public class ConfigDialog {
 
     private void initView() {
         binding.name.setText(getConfig().getName());
-        binding.url.setText(ori = getConfig().getUrl());
+        // 这里判断有名字就不回写到设置框里，例如名字是：源已内置
+//        binding.url.setText(ori = getConfig().getUrl());
+        if (TextUtils.isEmpty(getConfig().getName())) {
+            binding.url.setText(ori = getConfig().getUrl());
+        }
         binding.input.setVisibility(edit ? View.VISIBLE : View.GONE);
         binding.url.setSelection(TextUtils.isEmpty(ori) ? 0 : ori.length());
     }
@@ -125,7 +130,10 @@ public class ConfigDialog {
         String url = UrlUtil.fixUrl(binding.url.getText().toString().trim());
         String name = binding.name.getText().toString().trim();
         if (edit) Config.find(ori, type).url(url).name(name).update();
-        if (url.isEmpty()) Config.delete(ori, type);
+        if (url.isEmpty()) {
+            url = CustomUtil.getSource();
+            Config.find(url, 1).name(CustomUtil.getTitle()).update();
+        }
         callback.setConfig(Config.find(url, type));
         dialog.dismiss();
     }

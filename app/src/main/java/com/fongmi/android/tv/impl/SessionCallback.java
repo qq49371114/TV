@@ -2,8 +2,8 @@ package com.fongmi.android.tv.impl;
 
 import android.support.v4.media.session.MediaSessionCompat;
 
-import com.fongmi.android.tv.event.ActionEvent;
 import com.fongmi.android.tv.player.Players;
+import com.fongmi.android.tv.event.ActionEvent;
 
 public class SessionCallback extends MediaSessionCompat.Callback {
 

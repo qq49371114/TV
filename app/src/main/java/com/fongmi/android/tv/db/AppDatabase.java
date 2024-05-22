@@ -27,6 +27,8 @@ import com.fongmi.android.tv.db.dao.SiteDao;
 import com.fongmi.android.tv.db.dao.TrackDao;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Util;
+import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.R;
 import com.github.catvod.utils.Path;
 import com.github.catvod.utils.Prefers;
 

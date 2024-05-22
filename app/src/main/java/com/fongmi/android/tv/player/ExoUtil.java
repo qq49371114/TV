@@ -67,7 +67,7 @@ public class ExoUtil {
     private static Cache cache;
 
     public static LoadControl buildLoadControl() {
-        return new DefaultLoadControl(Setting.getBuffer());
+        return new DefaultLoadControl();
     }
 
     public static TrackSelector buildTrackSelector() {
@@ -116,7 +116,6 @@ public class ExoUtil {
 
     private static String getMimeType(String format, int errorCode) {
         if (format != null) return format;
-        if (errorCode == PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED || errorCode == PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED) return MimeTypes.APPLICATION_OCTET;
         if (errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED || errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED) return MimeTypes.APPLICATION_M3U8;
         return null;
     }
@@ -157,7 +156,6 @@ public class ExoUtil {
         MediaItem.Builder builder = new MediaItem.Builder().setUri(uri);
         if (!subs.isEmpty()) builder.setSubtitleConfigurations(getSubtitles(subs));
         if (drm != null) builder.setDrmConfiguration(drm.get());
-        builder.setAllowChunklessPreparation(Players.isHard(Players.EXO));
         if (mimeType != null) builder.setMimeType(mimeType);
         return builder.build();
     }

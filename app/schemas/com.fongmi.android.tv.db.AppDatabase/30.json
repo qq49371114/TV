@@ -206,7 +206,7 @@
       },
       {
         "tableName": "Config",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `type` INTEGER NOT NULL, `time` INTEGER NOT NULL, `url` TEXT, `json` TEXT, `name` TEXT, `home` TEXT, `logo` TEXT, `parse` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `type` INTEGER NOT NULL, `time` INTEGER NOT NULL, `url` TEXT, `json` TEXT, `name` TEXT, `logo` TEXT, `home` TEXT, `parse` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -245,14 +245,14 @@
             "notNull": false
           },
           {
-            "fieldPath": "home",
-            "columnName": "home",
+            "fieldPath": "logo",
+            "columnName": "logo",
             "affinity": "TEXT",
             "notNull": false
           },
           {
-            "fieldPath": "logo",
-            "columnName": "logo",
+            "fieldPath": "home",
+            "columnName": "home",
             "affinity": "TEXT",
             "notNull": false
           },
