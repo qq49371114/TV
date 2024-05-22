@@ -81,7 +81,7 @@ public class SettingActivity extends BaseActivity implements RestoreCallback, Co
         mBinding.vod.requestFocus();
 //         mBinding.vodUrl.setText(VodConfig.getDesc());
 //         mBinding.liveUrl.setText(LiveConfig.getDesc());
-        mBinding.wallUrl.setText(WallConfig.getDesc());
+//        mBinding.wallUrl.setText(WallConfig.getDesc());
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
         mBinding.versionText.setText(BuildConfig.VERSION_NAME);
         mBinding.proxyText.setText(UrlUtil.scheme(Setting.getProxy()));

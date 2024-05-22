@@ -160,10 +160,11 @@ public class SiteViewModel extends ViewModel {
                 VodConfig.get().setRecent(site);
                 Result result = Result.fromJson(playerContent);
                 if (result.getFlag().isEmpty()) result.setFlag(flag);
-                System.out.println("playerContent - siteType 3: url ->"+Source.get().fetch(result));
                 result.setUrl(Source.get().fetch(result));
                 result.setHeader(site.getHeader());
                 result.setKey(key);
+                System.out.println("playerContent - siteType 3: url ->"+Source.get().fetch(result));
+                System.out.println("playerContent - siteType 3: result ->"+ result);
                 return result;
             } else if (site.getType() == 4) {
                 ArrayMap<String, String> params = new ArrayMap<>();
@@ -173,9 +174,10 @@ public class SiteViewModel extends ViewModel {
                 SpiderDebug.log(playerContent);
                 Result result = Result.fromJson(playerContent);
                 if (result.getFlag().isEmpty()) result.setFlag(flag);
-                System.out.println("playerContent - siteType 4: url ->"+Source.get().fetch(result));
                 result.setUrl(Source.get().fetch(result));
                 result.setHeader(site.getHeader());
+                System.out.println("playerContent - siteType 4: url ->"+Source.get().fetch(result));
+                System.out.println("playerContent - siteType 4: result ->"+ result);
                 return result;
             } else if (site.isEmpty() && "push_agent".equals(key)) {
                 Result result = new Result();
@@ -184,6 +186,7 @@ public class SiteViewModel extends ViewModel {
                 result.setUrl(Url.create().add(id));
                 result.setUrl(Source.get().fetch(result));
                 System.out.println("playerContent - push_agent: url ->"+Source.get().fetch(result));
+                System.out.println("playerContent - push_agent: result ->"+ result);
                 return result;
             } else {
                 Url url = Url.create().add(id);
@@ -194,9 +197,10 @@ public class SiteViewModel extends ViewModel {
                 result.setFlag(flag);
                 result.setHeader(site.getHeader());
                 result.setPlayUrl(site.getPlayUrl());
-                System.out.println("playerContent - other: playUrl ->"+site.getPlayUrl());
                 result.setParse(Sniffer.isVideoFormat(url.v()) && result.getPlayUrl().isEmpty() ? 0 : 1);
                 SpiderDebug.log(result.toString());
+                System.out.println("playerContent - other: url ->"+url);
+                System.out.println("playerContent - other: result ->"+ result);
                 return result;
             }
         });
