@@ -96,6 +96,15 @@ public class OkHttp {
         }
     }
 
+    public static String string(String url, Map<String, String> headers) {
+        try {
+            return newCall(url, Headers.of(headers)).execute().body().string();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
     public static Call newCall(String url) {
         return client().newCall(new Request.Builder().url(url).build());
     }

@@ -30,6 +30,7 @@ import com.fongmi.android.tv.impl.ProxyCallback;
 import com.fongmi.android.tv.impl.RestoreCallback;
 import com.fongmi.android.tv.impl.SiteCallback;
 import com.fongmi.android.tv.player.ExoUtil;
+import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
 import com.fongmi.android.tv.ui.dialog.DohDialog;
@@ -46,6 +47,10 @@ import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
 import com.permissionx.guolindev.PermissionX;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -177,24 +182,18 @@ public class SettingActivity extends BaseActivity implements RestoreCallback, Co
     private void setConfig() {
         switch (type) {
             case 0:
-                setCacheText();
                 Notify.dismiss();
                 RefreshEvent.history();
                 RefreshEvent.config();
                 RefreshEvent.video();
-                mBinding.vodUrl.setText(VodConfig.getDesc());
-//                mBinding.liveUrl.setText(LiveConfig.getDesc());
-//                mBinding.wallUrl.setText(WallConfig.getDesc());
                 break;
             case 1:
-                setCacheText();
                 Notify.dismiss();
-//                mBinding.liveUrl.setText(LiveConfig.getDesc());
+                RefreshEvent.config();
                 break;
             case 2:
-                setCacheText();
                 Notify.dismiss();
-//                mBinding.wallUrl.setText(WallConfig.getDesc());
+                RefreshEvent.config();
                 break;
         }
     }
@@ -303,6 +302,8 @@ public class SettingActivity extends BaseActivity implements RestoreCallback, Co
 
     @Override
     public void setDoh(Doh doh) {
+        ExoUtil.reset();
+        Source.get().stop();
         OkHttp.get().setDoh(doh);
         Notify.progress(getActivity());
         Setting.putDoh(doh.toString());
@@ -317,6 +318,7 @@ public class SettingActivity extends BaseActivity implements RestoreCallback, Co
     @Override
     public void setProxy(String proxy) {
         ExoUtil.reset();
+        Source.get().stop();
         Setting.putProxy(proxy);
         OkHttp.get().setProxy(proxy);
         Notify.progress(getActivity());
@@ -381,7 +383,7 @@ public class SettingActivity extends BaseActivity implements RestoreCallback, Co
     private void onBackup(View view) {
         PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> AppDatabase.backup(new Callback() {
             @Override
-            public void success() {
+            public void success(String path) {
                 Notify.show(R.string.backed);
             }
         }));
@@ -392,6 +394,19 @@ public class SettingActivity extends BaseActivity implements RestoreCallback, Co
         Setting.putBackupMode(index = index == backup.length - 1 ? 0 : ++index);
         mBinding.backupText.setText(backup[index]);
         return true;
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onRefreshEvent(RefreshEvent event) {
+        super.onRefreshEvent(event);
+        switch (event.getType()) {
+            case CONFIG:
+                setCacheText();
+                mBinding.vodUrl.setText(VodConfig.getDesc());
+                mBinding.liveUrl.setText(LiveConfig.getDesc());
+                mBinding.wallUrl.setText(WallConfig.getDesc());
+                break;
+        }
     }
 
     @Override

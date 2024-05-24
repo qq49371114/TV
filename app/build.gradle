@@ -10,8 +10,8 @@ android {
         applicationId "com.gongjin.android.tv"
         minSdk 21
         targetSdk 28
-        versionCode 1020
-        versionName "10.2.0"
+        versionCode 1021
+        versionName "10.2.1"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
@@ -99,6 +99,7 @@ dependencies {
     implementation project(':catvod')
     implementation project(':quickjs')
     implementation project(':thunder')
+    implementation project(':youtube')
     implementation project(':jianpian')
     implementation project(':forcetech')
     implementation project(':ijkplayer')

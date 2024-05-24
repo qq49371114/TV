@@ -42,6 +42,11 @@
 
     <!-- Transmit -->
     <string name="transmit_apk">推送APK</string>
+    <string name="transmit_vod_config">一鍵配置TV</string>
+    <string name="transmit_wall_config">推送TV墻紙</string>
+    <string name="transmit_push_restore">一键恢复TV</string>
+    <string name="transmit_pull_restore">從TV恢復</string>
+    <string name="transmit_pull_restore_desc">確認從TV恢復數據嗎？</string>
 
     <!-- Hint -->
     <string name="shortcut"> 已於主螢幕新增捷徑。</string>

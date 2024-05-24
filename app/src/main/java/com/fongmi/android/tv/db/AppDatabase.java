@@ -67,8 +67,9 @@ public abstract class AppDatabase extends RoomDatabase {
             if (shm.exists()) Path.copy(shm, new File(restore, shm.getName()));
             Prefers.backup(new File(restore, NAME + "-pref"));
             String time = Util.format(new SimpleDateFormat("yyyyMMddHHmm", Locale.getDefault()), (new File(restore, db.getName())).lastModified());
-            FileUtil.zipFolder(restore, new File(Path.tv(), time + "." + BACKUP_SUFFIX));
-            App.post(callback::success);
+            File file = new File(Path.tv(), time + "." + BACKUP_SUFFIX);
+            FileUtil.zipFolder(restore, file);
+            App.post(() -> callback.success(file.getAbsolutePath()));
         });
     }
 

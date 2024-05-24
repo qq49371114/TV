@@ -15,13 +15,11 @@ import com.github.catvod.net.OkHttp;
 
 import java.io.InputStream;
 
-import okhttp3.Call;
-
 @GlideModule
 public class OkHttpGlideModule extends AppGlideModule {
 
     @Override
     public void registerComponents(@NonNull Context context, @Nullable Glide glide, Registry registry) {
-        registry.replace(GlideUrl.class, InputStream.class, new OkHttpUrlLoader.Factory((Call.Factory) OkHttp.client()));
+        registry.replace(GlideUrl.class, InputStream.class, new OkHttpUrlLoader.Factory(OkHttp.client()));
     }
 }

@@ -11,11 +11,13 @@ import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
+import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Device;
 import com.fongmi.android.tv.cast.ScanEvent;
 import com.fongmi.android.tv.cast.ScanTask;
 import com.fongmi.android.tv.databinding.DialogDeviceBinding;
 import com.fongmi.android.tv.impl.Callback;
+import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.ui.activity.ScanActivity;
 import com.fongmi.android.tv.ui.adapter.DeviceAdapter;
 import com.fongmi.android.tv.utils.Notify;
@@ -31,6 +33,7 @@ import java.io.IOException;
 import java.util.List;
 
 import okhttp3.Call;
+import okhttp3.FormBody;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
@@ -39,7 +42,7 @@ import okhttp3.Response;
 
 public class TransmitDialog extends BaseDialog implements DeviceAdapter.OnClickListener, ScanTask.Listener {
 
-    private final MultipartBody.Builder body;
+    private RequestBody requestBody;
     private final OkHttpClient client;
     private DialogDeviceBinding binding;
     private DeviceAdapter adapter;
@@ -51,18 +54,62 @@ public class TransmitDialog extends BaseDialog implements DeviceAdapter.OnClickL
 
     public TransmitDialog() {
         client = OkHttp.client(Constant.TIMEOUT_TRANSMIT);
-        body = new MultipartBody.Builder();
     }
 
     public TransmitDialog apk(String path) {
         type = "apk";
         File file = new File(path);
         MediaType mediaType = MediaType.parse("multipart/form-data");
-        RequestBody requestBody = RequestBody.create(mediaType, file);
+        MultipartBody.Builder body = new MultipartBody.Builder();
         body.setType(MultipartBody.FORM);
         body.addFormDataPart("name", file.getName());
-        body.addFormDataPart("files-0", file.getName(), requestBody);
+        body.addFormDataPart("files-0", file.getName(), RequestBody.create(mediaType, file));
+        requestBody = body.build();
         return this;
+    }
+
+    public TransmitDialog vodConfig() {
+        type = "vod_config";
+        FormBody.Builder body = new FormBody.Builder();
+        if (VodConfig.getUrl() != null) body.add("url", VodConfig.getUrl());
+        requestBody = body.build();
+        return this;
+    }
+
+    public TransmitDialog wallConfig(String path) {
+        type = "wall_config";
+        File file = new File(path);
+        MediaType mediaType = MediaType.parse("multipart/form-data");
+        MultipartBody.Builder body = new MultipartBody.Builder();
+        body.setType(MultipartBody.FORM);
+        body.addFormDataPart("name", file.getName());
+        body.addFormDataPart("files-0", file.getName(), RequestBody.create(mediaType, file));
+        requestBody = body.build();
+        return this;
+    }
+
+    public TransmitDialog pushRetore(String path) {
+        type = "push_restore";
+        File file = new File(path);
+        MediaType mediaType = MediaType.parse("multipart/form-data");
+        MultipartBody.Builder body = new MultipartBody.Builder();
+        body.setType(MultipartBody.FORM);
+        body.addFormDataPart("name", file.getName());
+        body.addFormDataPart("files-0", file.getName(), RequestBody.create(mediaType, file));
+        requestBody = body.build();
+        return this;
+    }
+
+    public TransmitDialog pullRetore() {
+        type = "pull_restore";
+        FormBody.Builder body = new FormBody.Builder();
+        body.add("ip", Server.get().getAddress());
+        requestBody = body.build();
+        return this;
+    }
+
+    public void show(Fragment fragment) {
+        show(fragment.getActivity());
     }
 
     public void show(FragmentActivity activity) {
@@ -130,13 +177,13 @@ public class TransmitDialog extends BaseDialog implements DeviceAdapter.OnClickL
     @Override
     public void onItemClick(Device item) {
         Notify.progress(getContext());
-        OkHttp.newCall(client, item.getIp().concat("/action?do=transmit&type=").concat(type), body.build()).enqueue(getCallback());
+        OkHttp.newCall(client, item.getIp().concat("/action?do=transmit&type=").concat(type), requestBody).enqueue(getCallback());
     }
 
     @Override
     public boolean onLongClick(Device item) {
         Notify.progress(getContext());
-        OkHttp.newCall(client, item.getIp().concat("/action?do=transmit&type=").concat(type), body.build()).enqueue(getCallback());
+        OkHttp.newCall(client, item.getIp().concat("/action?do=transmit&type=").concat(type), requestBody).enqueue(getCallback());
         return true;
     }
 

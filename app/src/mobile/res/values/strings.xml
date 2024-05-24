@@ -42,6 +42,11 @@
 
     <!-- Transmit -->
     <string name="transmit_apk">Push apk</string>
+    <string name="transmit_vod_config">Push vod config</string>
+    <string name="transmit_wall_config">Push wallpaper</string>
+    <string name="transmit_push_restore">Push restore</string>
+    <string name="transmit_pull_restore">Pull restore</string>
+    <string name="transmit_pull_restore_desc">Data restore from TV?</string>
 
     <!-- Hint -->
     <string name="shortcut">Shortcut has been added.</string>

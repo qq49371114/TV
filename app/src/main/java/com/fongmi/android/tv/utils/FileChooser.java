@@ -26,12 +26,27 @@ public class FileChooser {
 
     private final Fragment fragment;
 
+    private static int type;
+    public static final int TYPE_RESTORE = 0;
+    public static final int TYPE_APK = 1;
+    public static final int TYPE_PUSH_WALLPAPER = 2;
+
     public static FileChooser from(Fragment fragment) {
         return new FileChooser(fragment);
     }
 
     private FileChooser(Fragment fragment) {
         this.fragment = fragment;
+        type(-1);
+    }
+
+    public static int type() {
+        return type;
+    }
+
+    public FileChooser type(int t) {
+        type = t;
+        return this;
     }
 
     public void show() {
