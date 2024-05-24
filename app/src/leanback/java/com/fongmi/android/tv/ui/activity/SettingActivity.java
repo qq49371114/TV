@@ -403,8 +403,8 @@ public class SettingActivity extends BaseActivity implements RestoreCallback, Co
             case CONFIG:
                 setCacheText();
                 mBinding.vodUrl.setText(VodConfig.getDesc());
-                mBinding.liveUrl.setText(LiveConfig.getDesc());
-                mBinding.wallUrl.setText(WallConfig.getDesc());
+//                mBinding.liveUrl.setText(LiveConfig.getDesc());
+//                mBinding.wallUrl.setText(WallConfig.getDesc());
                 break;
         }
     }

@@ -37,7 +37,7 @@ public class TransmitActionDialog {
     private void initEvent() {
         this.binding.apk.setOnClickListener(v-> pushApk());
         this.binding.vodConfig.setOnClickListener(v-> pushVodConfig());
-        this.binding.wallConfig.setOnClickListener(v-> pushWallConfig());
+//        this.binding.wallConfig.setOnClickListener(v-> pushWallConfig());
         this.binding.pushRestore.setOnClickListener(v-> pushRestore());
     }
 
