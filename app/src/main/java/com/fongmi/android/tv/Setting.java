@@ -26,6 +26,14 @@ public class Setting {
         Prefers.put("proxy", proxy);
     }
 
+    public static String getJxtoken() {
+        return Prefers.getString("jxToken");
+    }
+
+    public static void putJxtoken(String jxToken) {
+        Prefers.put("jxToken", jxToken);
+    }
+
     public static String getKeep() {
         return Prefers.getString("keep");
     }
@@ -179,7 +187,7 @@ public class Setting {
     }
 
     public static int getEpisode() {
-        return Prefers.getInt("episode");
+        return Prefers.getInt("episode", 1);
     }
 
     public static void putEpisode(int episode) {
@@ -443,7 +451,7 @@ public class Setting {
     }
 
     public static int getHomeUI() {
-        return Prefers.getInt("home_ui", 1);
+        return Prefers.getInt("home_ui", 0);
     }
 
     public static void putHomeButtons(String buttons) {
@@ -475,7 +483,7 @@ public class Setting {
     }
 
     public static int getConfigCache() {
-        return Math.min(Prefers.getInt("config_cache", 0), 2);
+        return Math.min(Prefers.getInt("config_cache", 1), 2);
     }
 
     public static void putLanguage(int key) {
@@ -495,7 +503,7 @@ public class Setting {
     }
 
     public static boolean isRemoveAd() {
-        return Prefers.getBoolean("remove_ad", false);
+        return Prefers.getBoolean("remove_ad", true);
     }
 
     public static void putRemoveAd(boolean remove) {

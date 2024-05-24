@@ -27,7 +27,7 @@
     </queries>
 
     <application
-        android:name=".App"
+        android:name="com.fongmi.android.tv.App"
         android:allowBackup="false"
         android:appCategory="video"
         android:hardwareAccelerated="true"
@@ -59,11 +59,11 @@
 
         <provider
             android:name="com.fongmi.quickjs.Provider"
-            android:authorities="com.fongmi.quickjs.provider"
+            android:authorities="com.gongjin.quickjs.provider"
             android:exported="false" />
 
         <activity
-            android:name=".ui.activity.CrashActivity"
+            android:name="com.fongmi.android.tv.ui.activity.CrashActivity"
             android:process=":error_activity" />
 
         <receiver
@@ -75,7 +75,7 @@
         </receiver>
 
         <receiver
-            android:name=".receiver.ActionReceiver"
+            android:name="com.fongmi.android.tv.receiver.ActionReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="${applicationId}.stop" />

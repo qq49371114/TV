@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.appcompat.app.AlertDialog;
 
@@ -12,6 +14,7 @@ import com.fongmi.android.tv.utils.Download;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.CustomUtil;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Github;
 import com.github.catvod.utils.Path;
@@ -83,7 +86,17 @@ public class Updater implements Download.Callback {
             String name = object.optString("name");
             String desc = object.optString("desc");
             int code = object.optInt("code");
-            if (need(code, name)) App.post(() -> show(activity, name, desc));
+            if (need(code, name)) {
+                App.post(() -> show(activity, name, desc));
+            } else {
+                Handler handler = new Handler(Looper.getMainLooper());
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Notify.show("已是最新版本 - "+CustomUtil.getTitle());
+                    }
+                });
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -24,6 +24,7 @@ import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.ConfigCallback;
 import com.fongmi.android.tv.impl.DohCallback;
+import com.fongmi.android.tv.impl.JxtokenCallback;
 import com.fongmi.android.tv.impl.LiveCallback;
 import com.fongmi.android.tv.impl.ProxyCallback;
 import com.fongmi.android.tv.impl.RestoreCallback;
@@ -34,6 +35,7 @@ import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
 import com.fongmi.android.tv.ui.dialog.DohDialog;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
+import com.fongmi.android.tv.ui.dialog.JxtokenDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.ProxyDialog;
 import com.fongmi.android.tv.ui.dialog.RestoreDialog;
@@ -54,7 +56,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SettingActivity extends BaseActivity implements RestoreCallback, ConfigCallback, SiteCallback, LiveCallback, DohCallback, ProxyCallback {
+public class SettingActivity extends BaseActivity implements RestoreCallback, ConfigCallback, SiteCallback, LiveCallback, DohCallback, ProxyCallback, JxtokenCallback {
 
     private ActivitySettingBinding mBinding;
     private String[] backup;
@@ -82,13 +84,14 @@ public class SettingActivity extends BaseActivity implements RestoreCallback, Co
     @Override
     protected void initView() {
         mBinding.vod.requestFocus();
-        mBinding.vodUrl.setText(VodConfig.getDesc());
-        mBinding.liveUrl.setText(LiveConfig.getDesc());
-        mBinding.wallUrl.setText(WallConfig.getDesc());
+//         mBinding.vodUrl.setText(VodConfig.getDesc());
+//         mBinding.liveUrl.setText(LiveConfig.getDesc());
+//        mBinding.wallUrl.setText(WallConfig.getDesc());
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
         mBinding.versionText.setText(BuildConfig.VERSION_NAME);
         mBinding.proxyText.setText(UrlUtil.scheme(Setting.getProxy()));
         mBinding.backupText.setText((backup = ResUtil.getStringArray(R.array.select_backup))[Setting.getBackupMode()]);
+        mBinding.jxtokenText.setText(Setting.getJxtoken());
         mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
         setCacheText();
     }
@@ -105,9 +108,10 @@ public class SettingActivity extends BaseActivity implements RestoreCallback, Co
     @Override
     protected void initEvent() {
         mBinding.vod.setOnClickListener(this::onVod);
-        mBinding.live.setOnClickListener(this::onLive);
-        mBinding.wall.setOnClickListener(this::onWall);
+//        mBinding.live.setOnClickListener(this::onLive);
+//        mBinding.wall.setOnClickListener(this::onWall);
         mBinding.proxy.setOnClickListener(this::onProxy);
+        mBinding.jxtoken.setOnClickListener(this::onJxtoken);
         mBinding.cache.setOnClickListener(this::onCache);
         mBinding.cache.setOnLongClickListener(this::onCacheLongClick);
         mBinding.backup.setOnClickListener(this::onBackup);
@@ -117,15 +121,15 @@ public class SettingActivity extends BaseActivity implements RestoreCallback, Co
         mBinding.version.setOnClickListener(this::onVersion);
         mBinding.vod.setOnLongClickListener(this::onVodEdit);
         mBinding.vodHome.setOnClickListener(this::onVodHome);
-        mBinding.live.setOnLongClickListener(this::onLiveEdit);
-        mBinding.liveHome.setOnClickListener(this::onLiveHome);
-        mBinding.wall.setOnLongClickListener(this::onWallEdit);
+//         mBinding.live.setOnLongClickListener(this::onLiveEdit);
+//         mBinding.liveHome.setOnClickListener(this::onLiveHome);
+//         mBinding.wall.setOnLongClickListener(this::onWallEdit);
         mBinding.backup.setOnLongClickListener(this::onBackupMode);
         mBinding.vodHistory.setOnClickListener(this::onVodHistory);
         mBinding.version.setOnLongClickListener(this::onVersionDev);
-        mBinding.liveHistory.setOnClickListener(this::onLiveHistory);
-        mBinding.wallDefault.setOnClickListener(this::setWallDefault);
-        mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
+//        mBinding.liveHistory.setOnClickListener(this::onLiveHistory);
+//        mBinding.wallDefault.setOnClickListener(this::setWallDefault);
+//        mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
         mBinding.custom.setOnClickListener(this::onCustom);
         mBinding.doh.setOnClickListener(this::setDoh);
         mBinding.about.setOnClickListener(this::onAbout);
@@ -150,12 +154,12 @@ public class SettingActivity extends BaseActivity implements RestoreCallback, Co
             case 1:
                 Notify.progress(this);
                 LiveConfig.load(config, getCallback());
-                mBinding.liveUrl.setText(config.getDesc());
+//                mBinding.liveUrl.setText(config.getDesc());
                 break;
             case 2:
                 Notify.progress(this);
                 WallConfig.load(config, getCallback());
-                mBinding.wallUrl.setText(config.getDesc());
+//                mBinding.wallUrl.setText(config.getDesc());
                 break;
         }
     }
@@ -320,6 +324,15 @@ public class SettingActivity extends BaseActivity implements RestoreCallback, Co
         Notify.progress(getActivity());
         VodConfig.load(Config.vod(), getCallback());
         mBinding.proxyText.setText(UrlUtil.scheme(proxy));
+    }
+
+    private void onJxtoken(View view) {
+        JxtokenDialog.create(this).show();
+    }
+
+    @Override
+    public void setJxtoken(String jxToken) {
+        mBinding.jxtokenText.setText(jxToken);
     }
 
     private void onCache(View view) {
