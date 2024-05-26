@@ -39,6 +39,7 @@ public class TransmitActionDialog {
         this.binding.vodConfig.setOnClickListener(v-> pushVodConfig());
 //        this.binding.wallConfig.setOnClickListener(v-> pushWallConfig());
         this.binding.pushRestore.setOnClickListener(v-> pushRestore());
+        this.binding.pushJxtoken.setOnClickListener(v-> pushJxToken());
     }
 
     public void show() {
@@ -57,6 +58,11 @@ public class TransmitActionDialog {
 
     private void pushVodConfig() {
         TransmitDialog.create().vodConfig().show(fragment);
+        dialog.dismiss();
+    }
+
+    private void pushJxToken() {
+        TransmitDialog.create().jxTokenConfig().show(fragment);
         dialog.dismiss();
     }
 
