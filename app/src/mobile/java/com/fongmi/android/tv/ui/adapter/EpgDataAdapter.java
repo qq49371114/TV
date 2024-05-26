@@ -6,27 +6,25 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.fongmi.android.tv.bean.Group;
-import com.fongmi.android.tv.databinding.AdapterGroupBinding;
+import com.fongmi.android.tv.bean.EpgData;
+import com.fongmi.android.tv.databinding.AdapterEpgDataBinding;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.ViewHolder> {
+public class EpgDataAdapter extends RecyclerView.Adapter<EpgDataAdapter.ViewHolder> {
 
     private final OnClickListener mListener;
-    private final List<Group> mItems;
+    private final List<EpgData> mItems;
 
-    public GroupAdapter(OnClickListener listener) {
+    public EpgDataAdapter(OnClickListener listener) {
         this.mListener = listener;
         this.mItems = new ArrayList<>();
     }
 
     public interface OnClickListener {
 
-        void setWidth(Group item);
-
-        void onItemClick(Group item);
+        void onItemClick(EpgData item);
     }
 
     public void clear() {
@@ -34,38 +32,19 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.ViewHolder> 
         notifyDataSetChanged();
     }
 
-    public void addAll(List<Group> items) {
+    public void addAll(List<EpgData> items) {
         mItems.clear();
         mItems.addAll(items);
         notifyDataSetChanged();
     }
 
-    public void add(Group item) {
-        mItems.add(item);
-        notifyItemInserted(getItemCount() - 1);
-    }
-
-    public Group get(int position) {
-        return mItems.get(position);
-    }
-
-    public int getPosition() {
-        for (int i = 0; i < mItems.size(); i++) if (mItems.get(i).isSelected()) return i;
-        return 0;
-    }
-
-    public int indexOf(Group group) {
-        return mItems.indexOf(group);
-    }
-
-    public void setSelected(Group group) {
-        setSelected(indexOf(group));
+    public void setSelected(EpgData item) {
+        setSelected(mItems.indexOf(item));
     }
 
     public void setSelected(int position) {
         for (int i = 0; i < mItems.size(); i++) mItems.get(i).setSelected(i == position);
         notifyItemRangeChanged(0, getItemCount());
-        mListener.setWidth(mItems.get(position));
     }
 
     @Override
@@ -76,22 +55,23 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.ViewHolder> 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ViewHolder(AdapterGroupBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+        return new ViewHolder(AdapterEpgDataBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Group item = mItems.get(position);
-        holder.binding.name.setText(item.getName());
+        EpgData item = mItems.get(position);
+        holder.binding.time.setText(item.getTime());
+        holder.binding.title.setText(item.getTitle());
         holder.binding.getRoot().setSelected(item.isSelected());
         holder.binding.getRoot().setOnClickListener(view -> mListener.onItemClick(item));
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
 
-        private final AdapterGroupBinding binding;
+        private final AdapterEpgDataBinding binding;
 
-        ViewHolder(@NonNull AdapterGroupBinding binding) {
+        ViewHolder(@NonNull AdapterEpgDataBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
         }

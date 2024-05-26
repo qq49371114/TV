@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.adapter;
 
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -24,6 +25,8 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
 
     public interface OnClickListener {
 
+        void showEpg(Channel item);
+
         void onItemClick(Channel item);
 
         boolean onLongClick(Channel item);
@@ -38,6 +41,12 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
         mItems.clear();
         mItems.addAll(items);
         notifyDataSetChanged();
+    }
+
+    public void changed(Channel item) {
+        int position = mItems.indexOf(item);
+        if (position == -1) return;
+        notifyItemChanged(position);
     }
 
     public void remove(Channel item) {
@@ -66,19 +75,21 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
 
     @NonNull
     @Override
-    public ChannelAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         return new ViewHolder(AdapterChannelBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ChannelAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Channel item = mItems.get(position);
         item.loadLogo(holder.binding.logo);
         holder.binding.name.setText(item.getName());
         holder.binding.number.setText(item.getNumber());
         holder.binding.getRoot().setSelected(item.isSelected());
+        holder.binding.epg.setOnClickListener(view -> mListener.showEpg(item));
         holder.binding.getRoot().setOnClickListener(view -> mListener.onItemClick(item));
         holder.binding.getRoot().setOnLongClickListener(view -> mListener.onLongClick(item));
+        holder.binding.epg.setVisibility(item.getData().getList().isEmpty() || !item.isSelected() ? View.GONE : View.VISIBLE);
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

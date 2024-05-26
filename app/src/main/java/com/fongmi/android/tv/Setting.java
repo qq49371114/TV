@@ -323,7 +323,7 @@ public class Setting {
     }
 
     public static int getBackupMode() {
-        return Prefers.getInt("backup_mode");
+        return Prefers.getInt("backup_mode", 1);
     }
 
     public static void putBackupMode(int auto) {

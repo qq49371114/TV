@@ -65,7 +65,8 @@
         android:layout_height="match_parent"
         android:background="@drawable/shape_live_list"
         android:orientation="horizontal"
-        android:visibility="gone">
+        android:visibility="gone"
+        tools:visibility="visible">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/group"
@@ -87,7 +88,7 @@
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/channel"
-            android:layout_width="280dp"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:clipChildren="false"
             android:clipToPadding="false"

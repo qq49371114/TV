@@ -6,42 +6,38 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.leanback.widget.Presenter;
 
-import com.fongmi.android.tv.bean.Channel;
-import com.fongmi.android.tv.databinding.AdapterChannelBinding;
+import com.fongmi.android.tv.bean.EpgData;
+import com.fongmi.android.tv.databinding.AdapterEpgDataBinding;
 
-public class ChannelPresenter extends Presenter {
+public class EpgDataPresenter extends Presenter {
 
     private final OnClickListener mListener;
 
-    public ChannelPresenter(OnClickListener listener) {
+    public EpgDataPresenter(OnClickListener listener) {
         this.mListener = listener;
     }
 
     public interface OnClickListener {
 
-        void showEpg(Channel item);
+        void showUI();
 
-        void onItemClick(Channel item);
-
-        boolean onLongClick(Channel item);
+        void onItemClick(EpgData item);
     }
 
     @Override
     public Presenter.ViewHolder onCreateViewHolder(ViewGroup parent) {
-        return new ViewHolder(AdapterChannelBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+        return new ViewHolder(AdapterEpgDataBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
     }
 
     @Override
     public void onBindViewHolder(Presenter.ViewHolder viewHolder, Object object) {
-        Channel item = (Channel) object;
+        EpgData item = (EpgData) object;
         ViewHolder holder = (ViewHolder) viewHolder;
-        item.loadLogo(holder.binding.logo);
-        holder.binding.name.setText(item.getName());
-        holder.binding.number.setText(item.getNumber());
+        holder.binding.time.setText(item.getTime());
+        holder.binding.title.setText(item.getTitle());
         holder.binding.getRoot().setSelected(item.isSelected());
+        holder.binding.getRoot().setLeftListener(mListener::showUI);
         setOnClickListener(holder, view -> mListener.onItemClick(item));
-        holder.view.setOnLongClickListener(view -> mListener.onLongClick(item));
-        holder.binding.getRoot().setRightListener(() -> mListener.showEpg(item));
     }
 
     @Override
@@ -50,9 +46,9 @@ public class ChannelPresenter extends Presenter {
 
     public static class ViewHolder extends Presenter.ViewHolder {
 
-        private final AdapterChannelBinding binding;
+        private final AdapterEpgDataBinding binding;
 
-        public ViewHolder(@NonNull AdapterChannelBinding binding) {
+        public ViewHolder(@NonNull AdapterEpgDataBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
         }

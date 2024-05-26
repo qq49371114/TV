@@ -94,6 +94,10 @@ public class Live {
     private List<Group> groups;
 
     @Ignore
+    @SerializedName("catchup")
+    private Catchup catchup;
+
+    @Ignore
     @SerializedName("core")
     private Core core;
 
@@ -214,6 +218,10 @@ public class Live {
 
     public List<Group> getGroups() {
         return groups = groups == null ? new ArrayList<>() : groups;
+    }
+
+    public Catchup getCatchup() {
+        return catchup == null ? new Catchup() : catchup;
     }
 
     public Core getCore() {

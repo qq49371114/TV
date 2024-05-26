@@ -31,6 +31,7 @@ import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.bean.Channel;
 import com.fongmi.android.tv.bean.Epg;
+import com.fongmi.android.tv.bean.EpgData;
 import com.fongmi.android.tv.bean.Group;
 import com.fongmi.android.tv.bean.Keep;
 import com.fongmi.android.tv.bean.Live;
@@ -47,10 +48,10 @@ import com.fongmi.android.tv.impl.SubtitleCallback;
 import com.fongmi.android.tv.model.LiveViewModel;
 import com.fongmi.android.tv.player.ExoUtil;
 import com.fongmi.android.tv.player.Players;
-import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.ui.adapter.ChannelAdapter;
+import com.fongmi.android.tv.ui.adapter.EpgDataAdapter;
 import com.fongmi.android.tv.ui.adapter.GroupAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownLive;
@@ -79,10 +80,11 @@ import java.util.List;
 
 import tv.danmaku.ijk.media.player.ui.IjkVideoView;
 
-public class LiveActivity extends BaseActivity implements Clock.Callback, CustomKeyDownLive.Listener, TrackDialog.Listener, Biometric.Callback, PassCallback, LiveCallback, GroupAdapter.OnClickListener, ChannelAdapter.OnClickListener, SubtitleCallback, CastDialog.Listener, InfoDialog.Listener {
+public class LiveActivity extends BaseActivity implements Clock.Callback, CustomKeyDownLive.Listener, TrackDialog.Listener, Biometric.Callback, PassCallback, LiveCallback, GroupAdapter.OnClickListener, ChannelAdapter.OnClickListener, EpgDataAdapter.OnClickListener, SubtitleCallback, CastDialog.Listener, InfoDialog.Listener {
 
     private ActivityLiveBinding mBinding;
     private ChannelAdapter mChannelAdapter;
+    private EpgDataAdapter mEpgDataAdapter;
     private Observer<Channel> mObserveUrl;
     private CustomKeyDownLive mKeyDown;
     private GroupAdapter mGroupAdapter;
@@ -159,6 +161,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mKeyDown = CustomKeyDownLive.create(this, mBinding.video);
         mClock = Clock.create(Arrays.asList(mBinding.widget.time, mBinding.display.time));
         setPadding(mBinding.control.getRoot());
+        setPadding(mBinding.widget.epg, true);
         setPadding(mBinding.recycler, true);
         mPlayers = new Players().init(this);
         mObserveEpg = this::setEpg;
@@ -202,15 +205,17 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mBinding.control.action.text.setOnLongClickListener(view -> onTextLong());
         mBinding.control.action.player.setOnLongClickListener(view -> onChoose());
         mBinding.control.action.speed.setOnLongClickListener(view -> onSpeedLong());
-        mBinding.video.setOnTouchListener((view, event) -> mKeyDown.onTouchEvent(event));
         mBinding.control.action.getRoot().setOnTouchListener(this::onActionTouch);
+        mBinding.video.setOnTouchListener((view, event) -> mKeyDown.onTouchEvent(event));
     }
 
     private void setRecyclerView() {
         mBinding.group.setItemAnimator(null);
         mBinding.channel.setItemAnimator(null);
+        mBinding.widget.epgData.setItemAnimator(null);
         mBinding.group.setAdapter(mGroupAdapter = new GroupAdapter(this));
         mBinding.channel.setAdapter(mChannelAdapter = new ChannelAdapter(this));
+        mBinding.widget.epgData.setAdapter(mEpgDataAdapter = new EpgDataAdapter(this));
     }
 
     private void setPlayerView() {
@@ -218,6 +223,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mBinding.control.action.player.setText(mPlayers.getPlayerText());
         getExo().setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
         getIjk().setVisibility(mPlayers.isIjk() ? View.VISIBLE : View.GONE);
+        mBinding.control.action.decode.setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
         mBinding.video.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> mPiP.update(getActivity(), view));
     }
 
@@ -307,10 +313,27 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     }
 
     private void setWidth(Live live) {
-        int base = ResUtil.dp2px(45);
-        for (Group group : live.getGroups()) live.setWidth(Math.max(live.getWidth(), ResUtil.getTextWidth(group.getName(), 14)));
-        mBinding.group.getLayoutParams().width = live.getWidth() == 0 ? 0 : Math.min(live.getWidth() + base, ResUtil.dp2px(200));
+        int padding = ResUtil.dp2px(48);
+        if (live.getWidth() == 0) for (Group item : live.getGroups()) live.setWidth(Math.max(live.getWidth(), ResUtil.getTextWidth(item.getName(), 14)));
+        mBinding.group.getLayoutParams().width = live.getWidth() == 0 ? 0 : Math.min(live.getWidth() + padding, ResUtil.getScreenWidth() / 4);
         mBinding.divide.setVisibility(live.getWidth() == 0 ? View.GONE : View.VISIBLE);
+    }
+
+    @Override
+    public void setWidth(Group group) {
+        int logo = ResUtil.dp2px(56);
+        int padding = ResUtil.dp2px(60);
+        if (group.isKeep()) group.setWidth(0);
+        if (group.getWidth() == 0) for (Channel item : group.getChannel()) group.setWidth(Math.max(group.getWidth(), (item.getLogo().isEmpty() ? 0 : logo) + ResUtil.getTextWidth(item.getNumber() + item.getName(), 14)));
+        mBinding.channel.getLayoutParams().width = group.getWidth() == 0 ? 0 : Math.min(group.getWidth() + padding, ResUtil.getScreenWidth() / 3);
+    }
+
+    private void setWidth(Epg epg) {
+        int padding = ResUtil.dp2px(40);
+        if (epg.getList().isEmpty()) return;
+        int minWidth = ResUtil.getTextWidth(epg.getList().get(0).getTime(), 14);
+        if (epg.getWidth() == 0) for (EpgData item : epg.getList()) epg.setWidth(Math.max(epg.getWidth(), ResUtil.getTextWidth(item.getTitle(), 14)));
+        mBinding.widget.epgData.getLayoutParams().width = epg.getWidth() == 0 ? 0 : Math.min(Math.max(epg.getWidth(), minWidth) + padding, ResUtil.getScreenWidth() / 3);
     }
 
     private void setPosition(int[] position) {
@@ -330,8 +353,9 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         boolean change = mGroupAdapter.getPosition() != position;
         if (change) mGroupAdapter.setSelected(position);
         if (change) mChannelAdapter.addAll(mGroup.getChannel());
-        mChannelAdapter.setSelected(mGroup.getPosition());
+        if (change) mChannelAdapter.setSelected(mGroup.getPosition());
         mBinding.channel.scrollToPosition(mGroup.getPosition());
+        mBinding.group.scrollToPosition(position);
     }
 
     private void onCast() {
@@ -451,7 +475,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     }
 
     private boolean onActionTouch(View v, MotionEvent e) {
-        setR1Callback();
+        if (e.getAction() == MotionEvent.ACTION_UP) setR1Callback();
         return false;
     }
 
@@ -466,6 +490,19 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mBinding.recycler.setVisibility(View.VISIBLE);
         mBinding.channel.requestFocus();
         setPosition();
+        hideEpg();
+    }
+
+    @Override
+    public void showEpg(Channel item) {
+        if (mChannel == null || mChannel.getData().getList().isEmpty() || mEpgDataAdapter.getItemCount() == 0 || !mChannel.equals(item)) return;
+        mBinding.widget.epgData.scrollToPosition(item.getData().getSelected());
+        mBinding.widget.epg.setVisibility(View.VISIBLE);
+        hideUI();
+    }
+
+    private void hideEpg() {
+        mBinding.widget.epg.setVisibility(View.GONE);
     }
 
     private void showProgress() {
@@ -502,6 +539,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
         setR1Callback();
         hideInfo();
+        hideEpg();
     }
 
     private void hideControl() {
@@ -510,16 +548,16 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     }
 
     private void showDisplayInfo() {
-        boolean controlVisible = isVisible(mBinding.control.getRoot());
-        boolean visible = (!controlVisible || isLock());
+        boolean controlVisible = isVisible(mBinding.control.getRoot()) || isVisible(mBinding.widget.info);
+        boolean visible = (!controlVisible && !isLock());
         mBinding.display.time.setVisibility(Setting.isDisplayTime() && visible  ? View.VISIBLE : View.GONE);
         mBinding.display.netspeed.setVisibility(Setting.isDisplaySpeed() && visible ? View.VISIBLE : View.GONE);
         mBinding.display.duration.setVisibility(View.GONE);
     }
 
     private void onTimeChangeDisplaySpeed() {
-        boolean controlVisible = isVisible(mBinding.control.getRoot());
-        boolean visible = (!controlVisible || isLock());
+        boolean controlVisible = isVisible(mBinding.control.getRoot()) || isVisible(mBinding.widget.info);
+        boolean visible = (!controlVisible && !isLock());
         if (Setting.isDisplaySpeed() && visible) Traffic.setSpeed(mBinding.display.netspeed);
         showDisplayInfo();
     }
@@ -530,6 +568,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mBinding.widget.info.setVisibility(pip ? View.GONE : View.VISIBLE);
         setR3Callback();
         hideControl();
+        hideEpg();
         setInfo();
     }
 
@@ -537,17 +576,6 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mBinding.widget.infoPip.setVisibility(View.GONE);
         mBinding.widget.info.setVisibility(View.GONE);
         App.removeCallbacks(mR3);
-    }
-
-    private void showEpg() {
-        String epg = mChannel.getData().getEpg();
-        mBinding.widget.name.setMaxEms(epg.isEmpty() ? mChannel.getName().length() : 12);
-        mBinding.widget.play.setText(epg);
-        setMetadata();
-    }
-
-    private void setEpg(Epg epg) {
-        if (mChannel != null && mChannel.getName().equals(epg.getKey())) showEpg();
     }
 
     private void setTraffic() {
@@ -630,6 +658,17 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         return true;
     }
 
+    @Override
+    public void onItemClick(EpgData item) {
+        if (item.isFuture() || !mChannel.hasCatchup()) return;
+        Notify.show(getString(R.string.play_ready, item.getTitle()));
+        mEpgDataAdapter.setSelected(item);
+        mViewModel.getUrl(mChannel, item);
+        mPlayers.clear();
+        showProgress();
+        hideEpg();
+    }
+
     private void addKeep(Channel item) {
         getKeep().add(item);
         Keep keep = new Keep();
@@ -646,6 +685,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
 
     private void setInfo() {
         mViewModel.getEpg(mChannel);
+        mBinding.widget.play.setText("");
         mChannel.loadLogo(mBinding.widget.logo);
         mBinding.widget.name.setText(mChannel.getName());
         mBinding.control.title.setText(mChannel.getName());
@@ -653,10 +693,25 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mBinding.widget.line.setText(mChannel.getLineText());
         mBinding.widget.number.setText(mChannel.getNumber());
         mBinding.widget.numberPip.setText(mChannel.getNumber());
+        mBinding.widget.name.setMaxEms(mChannel.getName().length());
         mBinding.widget.line.setVisibility(mChannel.getLineVisible());
         mBinding.control.action.line.setText(mBinding.widget.line.getText());
         mBinding.control.action.line.setVisibility(mBinding.widget.line.getVisibility());
-        showEpg();
+    }
+
+    private void setEpg() {
+        String epg = mChannel.getData().getEpg();
+        List<EpgData> data = mChannel.getData().getList();
+        if (epg.length() > 0) mBinding.widget.name.setMaxEms(12);
+        mBinding.widget.play.setText(epg);
+        mChannelAdapter.changed(mChannel);
+        mEpgDataAdapter.addAll(data);
+        setWidth(mChannel.getData());
+        setMetadata();
+    }
+
+    private void setEpg(Epg epg) {
+        if (mChannel != null && mChannel.getName().equals(epg.getKey())) setEpg();
     }
 
     private void fetch() {
@@ -681,7 +736,11 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     }
 
     private void resetAdapter() {
+        mBinding.widget.epgData.getLayoutParams().width = 0;
+        mBinding.channel.getLayoutParams().width = 0;
+        mBinding.group.getLayoutParams().width = 0;
         mBinding.divide.setVisibility(View.GONE);
+        mEpgDataAdapter.clear();
         mChannelAdapter.clear();
         mGroupAdapter.clear();
         mHides.clear();
@@ -767,7 +826,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
                 if (isVisible(mBinding.control.getRoot())) showControl();
                 break;
             case Player.STATE_ENDED:
-                nextChannel();
+                nextEpg();
                 break;
         }
     }
@@ -874,6 +933,13 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         if (!mGroup.isEmpty()) onItemClick(mGroup.current());
     }
 
+    public void nextEpg() {
+        int position = mChannel.getData().getSelected() + 1;
+        boolean limit = position > mEpgDataAdapter.getItemCount() - 1;
+        if (!limit) onItemClick(mChannel.getData().getList().get(position));
+        else nextChannel();
+    }
+
     private void prevLine() {
         if (mChannel == null) return;
         mChannel.prevLine();
@@ -928,9 +994,11 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         this.rotate = rotate;
         if (rotate) {
             noPadding(mBinding.recycler);
+            noPadding(mBinding.widget.epg);
             noPadding(mBinding.control.getRoot());
         } else {
             setPadding(mBinding.recycler, true);
+            setPadding(mBinding.widget.epg, true);
             setPadding(mBinding.control.getRoot());
         }
     }
@@ -1027,6 +1095,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     @Override
     public void onDoubleTap() {
         if (isVisible(mBinding.recycler)) hideUI();
+        else if (isVisible(mBinding.widget.epg)) hideEpg();
         else if (isVisible(mBinding.control.getRoot())) hideControl();
         else showControl();
     }
@@ -1036,8 +1105,9 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra(Intent.EXTRA_TEXT, url);
-        intent.putExtra("name", title);
+        intent.putExtra("extra_headers", mPlayers.getHeaderBundle());
         intent.putExtra("title", title);
+        intent.putExtra("name", title);
         intent.setType("text/plain");
         startActivity(Util.getChooser(intent));
         setRedirect(true);
@@ -1123,6 +1193,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
             hideControl();
         } else if (isVisible(mBinding.widget.info)) {
             hideInfo();
+        } else if (isVisible(mBinding.widget.epg)) {
+            hideEpg();
         } else if (isVisible(mBinding.recycler)) {
             hideUI();
         } else if (!isLock()) {
@@ -1135,9 +1207,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         super.onDestroy();
         mClock.release();
         mPlayers.release();
-        Source.get().stop();
         PlaybackService.stop();
-        App.removeCallbacks(mR1, mR2, mR3);
+        App.removeCallbacks(mR0, mR1, mR2, mR3);
         mViewModel.url.removeObserver(mObserveUrl);
         mViewModel.epg.removeObserver(mObserveEpg);
     }
