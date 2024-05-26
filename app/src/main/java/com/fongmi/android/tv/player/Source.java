@@ -1,7 +1,5 @@
 package com.fongmi.android.tv.player;
 
-import com.fongmi.android.tv.bean.Channel;
-import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.player.extractor.BiliBili;
 import com.fongmi.android.tv.player.extractor.Force;
 import com.fongmi.android.tv.player.extractor.JianPian;
@@ -11,6 +9,8 @@ import com.fongmi.android.tv.player.extractor.Thunder;
 import com.fongmi.android.tv.player.extractor.Video;
 import com.fongmi.android.tv.player.extractor.Youtube;
 import com.fongmi.android.tv.player.extractor.ZLive;
+import com.fongmi.android.tv.bean.Channel;
+import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.utils.UrlUtil;
 
 import java.util.ArrayList;

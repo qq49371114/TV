@@ -4,10 +4,10 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
 
-import com.fongmi.android.tv.App;
-import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.R;
 import com.github.catvod.utils.Json;
 import com.google.common.net.HttpHeaders;
 import com.google.gson.JsonElement;

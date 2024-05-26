@@ -489,6 +489,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
     }
 
     private void setMediaSource(Result result, int timeout) {
+        System.out.println("setMediaSource -1: "+result.getRealUrl());
         Logger.t(TAG).d(error + "," + result.getRealUrl());
         if (isIjk() && ijkPlayer != null) ijkPlayer.setMediaSource(IjkUtil.getSource(result), position);
         if (isExo() && exoPlayer != null) exoPlayer.setMediaSource(ExoUtil.getSource(result, sub, error), position);
@@ -497,6 +498,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
     }
 
     private void setMediaSource(Channel channel, int timeout) {
+        System.out.println("setMediaSource -2: "+channel.getUrl());
         Logger.t(TAG).d(error + "," + channel.getUrl());
         if (isIjk() && ijkPlayer != null) ijkPlayer.setMediaSource(IjkUtil.getSource(channel));
         if (isExo() && exoPlayer != null) exoPlayer.setMediaSource(ExoUtil.getSource(channel, error));
@@ -505,6 +507,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
     }
 
     private void setMediaSource(Map<String, String> headers, String url) {
+        System.out.println("setMediaSource -3: "+url);
         Logger.t(TAG).d(error + "," + url);
         if (isIjk() && ijkPlayer != null) ijkPlayer.setMediaSource(IjkUtil.getSource(headers, url), position);
         if (isExo() && exoPlayer != null) exoPlayer.setMediaSource(ExoUtil.getSource(headers, url, sub, error), position);

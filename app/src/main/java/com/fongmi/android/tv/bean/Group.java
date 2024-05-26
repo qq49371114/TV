@@ -4,9 +4,9 @@ import android.text.TextUtils;
 
 import androidx.annotation.StringRes;
 
+import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.utils.ResUtil;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 

@@ -2,9 +2,9 @@ package com.fongmi.android.tv.api.loader;
 
 import android.content.Context;
 
+import com.fongmi.android.tv.utils.UrlUtil;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.api.Decoder;
-import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.crawler.SpiderNull;
 import com.github.catvod.net.OkHttp;

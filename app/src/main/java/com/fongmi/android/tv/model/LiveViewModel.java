@@ -3,6 +3,7 @@ package com.fongmi.android.tv.model;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.api.LiveParser;
 import com.fongmi.android.tv.api.config.VodConfig;
@@ -12,7 +13,6 @@ import com.fongmi.android.tv.bean.EpgData;
 import com.fongmi.android.tv.bean.Group;
 import com.fongmi.android.tv.bean.Live;
 import com.fongmi.android.tv.exception.ExtractException;
-import com.fongmi.android.tv.player.Source;
 import com.github.catvod.net.OkHttp;
 
 import java.text.SimpleDateFormat;

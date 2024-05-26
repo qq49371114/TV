@@ -2,9 +2,6 @@ package com.fongmi.android.tv.api.config;
 
 import android.text.TextUtils;
 
-import com.fongmi.android.tv.App;
-import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.Decoder;
 import com.fongmi.android.tv.api.LiveParser;
 import com.fongmi.android.tv.bean.Channel;
@@ -13,10 +10,14 @@ import com.fongmi.android.tv.bean.Depot;
 import com.fongmi.android.tv.bean.Group;
 import com.fongmi.android.tv.bean.Keep;
 import com.fongmi.android.tv.bean.Live;
-import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.impl.Callback;
-import com.fongmi.android.tv.ui.activity.LiveActivity;
+import com.fongmi.android.tv.utils.CustomUtil;
 import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.Setting;
+import com.fongmi.android.tv.db.AppDatabase;
+import com.fongmi.android.tv.ui.activity.LiveActivity;
 import com.github.catvod.utils.Json;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -64,7 +65,8 @@ public class LiveConfig {
     }
 
     public static boolean hasUrl() {
-        return getUrl() != null && getUrl().length() > 0;
+        return true;
+//        return getUrl() != null && getUrl().length() > 0;
     }
 
     public static void load(Config config, Callback callback) {
@@ -99,7 +101,12 @@ public class LiveConfig {
 
     private void loadConfig(Callback callback) {
         try {
-            parseConfig(Decoder.getJson(config.getUrl()), callback);
+            String url = config.getUrl();
+            if (TextUtils.isEmpty(url)) {
+                url = CustomUtil.getSource();
+                Config.find(url, 1).name(CustomUtil.getTitle()).update();
+            }
+            parseConfig(Decoder.getJson(url), callback);
         } catch (Throwable e) {
             if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
             else App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));

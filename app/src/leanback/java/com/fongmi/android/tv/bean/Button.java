@@ -23,7 +23,7 @@ public class Button {
         if (buttons != null) return buttons;
         buttons = new ArrayList<>();
         buttons.add(new Button(0, R.string.home_vod));
-        buttons.add(new Button(1, R.string.home_live));
+//        buttons.add(new Button(1, R.string.home_live));
         buttons.add(new Button(2, R.string.home_search));
         buttons.add(new Button(3, R.string.home_keep));
         buttons.add(new Button(4, R.string.home_push));
@@ -56,7 +56,9 @@ public class Button {
     }
 
     public static String getDefaultButtons() {
-        return Setting.getHomeUI() == 0 ? "0,1,2,3,4,5,6" : "1,2,3,4,5,6";
+//        return Setting.getHomeUI() == 0 ? "0,1,2,3,4,5,6" : "1,2,3,4,5,6";
+        return Setting.getHomeUI() == 0 ? "0,2,3,4,5,6" : "2,3,4,5,6";
+
     }
 
     public static List<Button> getButtons() {
