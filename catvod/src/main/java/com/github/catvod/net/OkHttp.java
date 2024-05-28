@@ -49,7 +49,7 @@ public class OkHttp {
     }
 
     public static Dns dns() {
-        return get().dns != null ? get().dns : new OkDns();
+        return get().dns != null ? get().dns : Dns.SYSTEM;
     }
 
     public void setDoh(Doh doh) {

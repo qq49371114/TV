@@ -14,8 +14,6 @@ import okhttp3.OkHttpClient;
 
 public class YoutubeDownloader {
 
-    private final Downloader downloader;
-    private final Config config;
     private final Parser parser;
 
     public YoutubeDownloader(OkHttpClient client) {
@@ -23,12 +21,8 @@ public class YoutubeDownloader {
     }
 
     public YoutubeDownloader(Config config, OkHttpClient client) {
-        this.downloader = new DownloaderImpl(this.config = config, client);
+        Downloader downloader = new DownloaderImpl(config, client);
         this.parser = new ParserImpl(config, downloader, new ExtractorImpl(downloader), new CachedCipherFactory(downloader));
-    }
-
-    public Config getConfig() {
-        return config;
     }
 
     public Response<VideoInfo> getVideoInfo(RequestVideoInfo request) {

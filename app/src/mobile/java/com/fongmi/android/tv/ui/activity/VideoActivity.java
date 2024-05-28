@@ -399,8 +399,10 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void setPlayerView() {
         getIjk().setPlayer(mPlayers.getPlayer());
         mBinding.control.action.player.setText(mPlayers.getPlayerText());
+        mBinding.control.action.speed.setEnabled(mPlayers.canAdjustSpeed());
         getExo().setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
         getIjk().setVisibility(mPlayers.isIjk() ? View.VISIBLE : View.GONE);
+        mBinding.control.action.speed.setText(mPlayers.setSpeed(mHistory.getSpeed()));
         if (mControlDialog != null && mControlDialog.isVisible()) mControlDialog.updatePlayer();
     }
 
@@ -1130,7 +1132,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         if (Setting.isIncognito() && mHistory.getKey().equals(getHistoryKey())) mHistory.delete();
         mBinding.control.action.opening.setText(mHistory.getOpening() == 0 ? getString(R.string.play_op) : mPlayers.stringToTime(mHistory.getOpening()));
         mBinding.control.action.ending.setText(mHistory.getEnding() == 0 ? getString(R.string.play_ed) : mPlayers.stringToTime(mHistory.getEnding()));
-        mBinding.control.action.speed.setText(mPlayers.setSpeed(mHistory.getSpeed()));
         mPlayers.setPlayer(getPlayer());
         setScale(getScale());
         setPlayerView();
@@ -1354,6 +1355,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void onError(ErrorEvent event) {
         mBinding.swipeLayout.setEnabled(true);
+        Track.delete(getHistoryKey());
         showError(event.getMsg());
         mClock.setCallback(null);
         mPlayers.stop();
@@ -1600,7 +1602,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Override
     public void onSpeedUp() {
-        if (!mPlayers.isPlaying()) return;
+        if (!mPlayers.isPlaying() || !mPlayers.canAdjustSpeed()) return;
         mBinding.control.action.speed.setText(mPlayers.setSpeed(mPlayers.getSpeed() < 3 ? 3 : 5));
         mBinding.widget.speed.startAnimation(ResUtil.getAnim(R.anim.forward));
         mBinding.widget.speed.setVisibility(View.VISIBLE);
