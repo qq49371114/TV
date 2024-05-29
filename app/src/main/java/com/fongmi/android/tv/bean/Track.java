@@ -121,4 +121,8 @@ public class Track {
     public static List<Track> find(String key) {
         return AppDatabase.get().getTrackDao().find(key);
     }
+
+    public static void delete(String key) {
+        AppDatabase.get().getTrackDao().delete(key);
+    }
 }

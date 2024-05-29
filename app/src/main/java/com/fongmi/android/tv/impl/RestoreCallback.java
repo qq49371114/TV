@@ -1,6 +1,8 @@
 package com.fongmi.android.tv.impl;
 
+import java.io.File;
+
 public interface RestoreCallback {
 
-    void onRestore();
+    void onRestore(File file);
 }

@@ -76,6 +76,7 @@
     <string name="setting_danmu">Danmu setting</string>
     <string name="setting_custom">Custom setting</string>
     <string name="setting_config_cache">Config cache</string>
+    <string name="setting_cache_dir">Thunder cache</string>
     <string name="setting_reset">Reset app</string>
     <string name="setting_quality">Image quality</string>
     <string name="setting_size">Image size</string>
@@ -95,7 +96,7 @@
     <string name="setting_proxy">Proxy</string>
     <string name="setting_cache">Cache</string>
     <string name="setting_backup">Backup</string>
-    <string name="setting_backup_auto">Auto</string>
+    <string name="setting_restore">Restore</string>
     <string name="setting_version">Version</string>
     <string name="setting_about">About</string>
     <string name="setting_storage">Permission</string>
@@ -176,12 +177,18 @@
 
     <!-- Hint -->
     <string name="copied">Copied</string>
+    <string name="backed">Backup successful</string>
     <string name="config_refreshed">Config rereshed</string>
 
     <!-- UNIT -->
     <string name="all">All</string>
     <string name="times">times</string>
     <string name="lines">lines</string>
+
+    <string-array name="select_backup">
+        <item>Auto</item>
+        <item>Manual</item>
+    </string-array>
 
     <string-array name="select_decode">
         <item>Soft</item>

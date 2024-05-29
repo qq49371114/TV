@@ -19,6 +19,8 @@ public class ChannelPresenter extends Presenter {
 
     public interface OnClickListener {
 
+        void showEpg(Channel item);
+
         void onItemClick(Channel item);
 
         boolean onLongClick(Channel item);
@@ -39,6 +41,7 @@ public class ChannelPresenter extends Presenter {
         holder.binding.getRoot().setSelected(item.isSelected());
         setOnClickListener(holder, view -> mListener.onItemClick(item));
         holder.view.setOnLongClickListener(view -> mListener.onLongClick(item));
+        holder.binding.getRoot().setRightListener(() -> mListener.showEpg(item));
     }
 
     @Override

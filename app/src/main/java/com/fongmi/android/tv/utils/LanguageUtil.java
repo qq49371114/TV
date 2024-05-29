@@ -11,20 +11,13 @@ public class LanguageUtil {
     }
 
     public static int locale() {
-        if (Locale.getDefault().getLanguage().equals("zh")) {
-            if (Locale.getDefault().getCountry().equals("TW")) {
-                return 2;
-            } else {
-                return 1;
-            }
-        } else {
-            return 0;
-        }
+        if (!Locale.getDefault().getLanguage().equals("zh")) return 0;
+        if (Locale.getDefault().getCountry().equals("TW")) return 2;
+        return 1;
     }
 
     private static Locale getLocale(int lang) {
-        if (lang == 0) return Locale.ENGLISH;
-        else if (lang == 1) return Locale.SIMPLIFIED_CHINESE;
+        if (lang == 1) return Locale.SIMPLIFIED_CHINESE;
         else if (lang == 2) return Locale.TRADITIONAL_CHINESE;
         else return Locale.ENGLISH;
     }

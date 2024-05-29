@@ -37,7 +37,6 @@ import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.SubtitleCallback;
 import com.fongmi.android.tv.player.ExoUtil;
 import com.fongmi.android.tv.player.Players;
-import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownCast;
 import com.fongmi.android.tv.ui.dialog.TrackDialog;
@@ -105,10 +104,10 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     @SuppressLint("ClickableViewAccessibility")
     protected void initEvent() {
         mBinding.control.seek.setListener(mPlayers);
-        mBinding.control.text.setAddListener(this::onTextAdd);
-        mBinding.control.text.setSubListener(this::onTextSub);
-        mBinding.control.speed.setAddListener(this::onSpeedAdd);
-        mBinding.control.speed.setSubListener(this::onSpeedSub);
+        mBinding.control.text.setUpListener(this::onTextAdd);
+        mBinding.control.text.setDownListener(this::onTextSub);
+        mBinding.control.speed.setUpListener(this::onSpeedAdd);
+        mBinding.control.speed.setDownListener(this::onSpeedSub);
         mBinding.control.text.setOnClickListener(this::onTrack);
         mBinding.control.audio.setOnClickListener(this::onTrack);
         mBinding.control.video.setOnClickListener(this::onTrack);
@@ -161,6 +160,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
         mBinding.control.player.setText(mPlayers.getPlayerText());
         getExo().setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
         getIjk().setVisibility(mPlayers.isIjk() ? View.VISIBLE : View.GONE);
+        mBinding.control.decode.setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
     }
 
     private void setDecodeView() {
@@ -462,7 +462,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
 
     @Override
     public void onSpeedUp() {
-        if (!mPlayers.isPlaying()) return;
+        if (!mPlayers.isPlaying() || !mPlayers.canAdjustSpeed()) return;
         mBinding.control.speed.setText(mPlayers.setSpeed(mPlayers.getSpeed() < 3 ? 3 : 5));
         mBinding.widget.speed.startAnimation(ResUtil.getAnim(R.anim.forward));
         mBinding.widget.speed.setVisibility(View.VISIBLE);
@@ -538,7 +538,6 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
         super.onDestroy();
         mClock.release();
         mPlayers.release();
-        Source.get().stop();
         unbindService(this);
         mService.bindRealPlayer(null);
         App.removeCallbacks(mR1, mR2);

@@ -3,6 +3,7 @@ package com.fongmi.android.tv;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -86,7 +87,6 @@ public class App extends MultiDexApplication {
 
     private void setActivity(Activity activity) {
         this.activity = activity;
-        LanguageUtil.setLanguage(getResources(), Setting.getLanguage());
     }
 
     private LogAdapter getLogAdapter() {
@@ -149,6 +149,13 @@ public class App extends MultiDexApplication {
             }
         });
 
+    }
+
+    @Override
+    public Resources getResources() {
+        Resources resources = super.getResources();
+        LanguageUtil.setLanguage(resources, Setting.getLanguage());
+        return resources;
     }
 
     @Override

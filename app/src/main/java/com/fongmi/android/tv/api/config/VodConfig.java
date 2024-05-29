@@ -323,7 +323,7 @@ public class VodConfig {
 
     public List<Parse> getParses(int type, String flag) {
         List<Parse> items = new ArrayList<>();
-        for (Parse item : getParses(type)) if (item.getExt().getFlag().contains(flag)) items.add(item);
+        for (Parse item : getParses(type)) if (item.getExt().getFlag().isEmpty() || item.getExt().getFlag().contains(flag)) items.add(item);
         if (items.isEmpty()) items.addAll(getParses(type));
         return items;
     }

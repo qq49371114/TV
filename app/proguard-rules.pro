@@ -41,15 +41,13 @@
 
 # EXO
 -keep class org.xmlpull.v1.** { *; }
+-keep class androidx.media3.** { *; }
 
 # IJK
 -keep class tv.danmaku.ijk.media.player.** { *; }
 
 # Jianpian
 -keep class com.p2p.** { *; }
-
-# Mozilla
--keep class org.mozilla.javascript.** { *; }
 
 # Nano
 -keep class fi.iki.elonen.** { *; }

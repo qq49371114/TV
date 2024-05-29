@@ -2,6 +2,9 @@ package com.fongmi.android.tv.api;
 
 import android.util.Base64;
 
+import androidx.media3.common.MimeTypes;
+
+import com.fongmi.android.tv.bean.Catchup;
 import com.fongmi.android.tv.bean.Channel;
 import com.fongmi.android.tv.bean.ClearKey;
 import com.fongmi.android.tv.bean.Drm;
@@ -21,6 +24,8 @@ import java.util.regex.Pattern;
 
 public class LiveParser {
 
+    private static final Pattern CATCHUP_SOURCE = Pattern.compile(".*catchup-source=\"(.?|.+?)\".*");
+    private static final Pattern CATCHUP = Pattern.compile(".*catchup=\"(.?|.+?)\".*");
     private static final Pattern GROUP = Pattern.compile(".*group-title=\"(.?|.+?)\".*");
     private static final Pattern LOGO = Pattern.compile(".*tvg-logo=\"(.?|.+?)\".*");
     private static final Pattern NAME = Pattern.compile(".*,(.+?)$");
@@ -33,9 +38,9 @@ public class LiveParser {
 
     public static void start(Live live) {
         if (live.getGroups().size() > 0) return;
-        if (live.getType() == 0) text(live, getText(live.getUrl()));
-        if (live.getType() == 1) json(live, getText(live.getUrl()));
-        if (live.getType() == 2) proxy(live, getText(live.getUrl()));
+        if (live.getType() == 0) text(live, getText(live));
+        if (live.getType() == 1) json(live, getText(live));
+        if (live.getType() == 2) proxy(live, getText(live));
     }
 
     public static void text(Live live, String text) {
@@ -62,15 +67,20 @@ public class LiveParser {
 
     private static void m3u(Live live, String text) {
         Setting setting = Setting.create();
+        Catchup catchup = Catchup.create();
         Channel channel = Channel.create("");
         for (String line : text.split("\n")) {
             if (Thread.interrupted()) break;
             if (setting.find(line)) {
                 setting.check(line);
+            } else if (line.startsWith("#EXTM3U")) {
+                catchup.setType(extract(line, CATCHUP));
+                catchup.setSource(extract(line, CATCHUP_SOURCE));
             } else if (line.startsWith("#EXTINF:")) {
                 Group group = live.find(Group.create(extract(line, GROUP), live.isPass()));
                 channel = group.find(Channel.create(extract(line, NAME)));
                 channel.setLogo(extract(line, LOGO));
+                channel.setCatchup(catchup);
             } else if (!line.startsWith("#") && line.contains("://")) {
                 String[] split = line.split("\\|");
                 if (split.length > 1) setting.headers(Arrays.copyOfRange(split, 1, split.length));
@@ -85,6 +95,7 @@ public class LiveParser {
         for (String line : text.split("\n")) {
             if (Thread.interrupted()) break;
             String[] split = line.split(",");
+            int index = line.indexOf(",") + 1;
             if (setting.find(line)) setting.check(line);
             if (line.contains("#genre#")) setting.clear();
             if (line.contains("#genre#")) live.getGroups().add(Group.create(split[0], live.isPass()));
@@ -92,7 +103,7 @@ public class LiveParser {
             if (split.length > 1 && split[1].contains("://")) {
                 Group group = live.getGroups().get(live.getGroups().size() - 1);
                 Channel channel = group.find(Channel.create(split[0]));
-                channel.addUrls(split[1].split("#"));
+                channel.addUrls(line.substring(index).split("#"));
                 setting.copy(channel);
             }
         }
@@ -110,11 +121,15 @@ public class LiveParser {
         }
     }
 
-    private static String getText(String url) {
+    private static String getText(Live live) {
+        return getText(live.getUrl(), live.getHeaders()).replace("\r\n", "\n");
+    }
+
+    private static String getText(String url, Map<String, String> header) {
         if (url.startsWith("file")) return Path.read(url);
-        if (url.startsWith("http")) return OkHttp.string(url);
-        if (url.startsWith("assets") || url.startsWith("clan") ||  url.startsWith("proxy")) return getText(UrlUtil.convert(url));
-        if (url.length() > 0 && url.length() % 4 == 0) return getText(new String(Base64.decode(url, Base64.DEFAULT)));
+        if (url.startsWith("http")) return OkHttp.string(url, header);
+        if (url.startsWith("assets") || url.startsWith("proxy")) return getText(UrlUtil.convert(url), header);
+        if (url.length() > 0 && url.length() % 4 == 0) return getText(new String(Base64.decode(url, Base64.DEFAULT)), header);
         return "";
     }
 
@@ -124,6 +139,7 @@ public class LiveParser {
         private String key;
         private String type;
         private String click;
+        private String format;
         private String origin;
         private String referer;
         private Integer parse;
@@ -135,7 +151,7 @@ public class LiveParser {
         }
 
         public boolean find(String line) {
-            return line.startsWith("ua") || line.startsWith("parse") || line.startsWith("click") || line.startsWith("player") || line.startsWith("header") || line.startsWith("origin") || line.startsWith("referer") || line.startsWith("#EXTHTTP:") || line.startsWith("#EXTVLCOPT:") || line.startsWith("#KODIPROP:");
+            return line.startsWith("ua") || line.startsWith("parse") || line.startsWith("click") || line.startsWith("player") || line.startsWith("header") || line.startsWith("format") || line.startsWith("origin") || line.startsWith("referer") || line.startsWith("#EXTHTTP:") || line.startsWith("#EXTVLCOPT:") || line.startsWith("#KODIPROP:");
         }
 
         public void check(String line) {
@@ -144,6 +160,7 @@ public class LiveParser {
             else if (line.startsWith("click")) click(line);
             else if (line.startsWith("player")) player(line);
             else if (line.startsWith("header")) header(line);
+            else if (line.startsWith("format")) format(line);
             else if (line.startsWith("origin")) origin(line);
             else if (line.startsWith("referer")) referer(line);
             else if (line.startsWith("#EXTHTTP:")) header(line);
@@ -152,6 +169,7 @@ public class LiveParser {
             else if (line.startsWith("#EXTVLCOPT:http-referrer")) referer(line);
             else if (line.startsWith("#KODIPROP:inputstream.adaptive.license_key")) key(line);
             else if (line.startsWith("#KODIPROP:inputstream.adaptive.license_type")) type(line);
+            else if (line.startsWith("#KODIPROP:inputstream.adaptive.manifest_type")) format(line);
             else if (line.startsWith("#KODIPROP:inputstream.adaptive.stream_headers")) headers(line);
         }
 
@@ -159,6 +177,7 @@ public class LiveParser {
             if (ua != null) channel.setUa(ua);
             if (parse != null) channel.setParse(parse);
             if (click != null) channel.setClick(click);
+            if (format != null) channel.setFormat(format);
             if (origin != null) channel.setOrigin(origin);
             if (referer != null) channel.setReferer(referer);
             if (player != null) channel.setPlayerType(player);
@@ -205,6 +224,17 @@ public class LiveParser {
                 player = Integer.parseInt(line.split("player=")[1].trim());
             } catch (Exception e) {
                 player = null;
+            }
+        }
+
+        private void format(String line) {
+            try {
+                if (line.startsWith("format=")) format = line.split("format=")[1].trim();
+                if (line.contains("manifest_type=")) format = line.split("manifest_type=")[1].trim();
+                if ("mpd".equals(format)) format = MimeTypes.APPLICATION_MPD;
+                if ("hls".equals(format)) format = MimeTypes.APPLICATION_M3U8;
+            } catch (Exception e) {
+                format = null;
             }
         }
 
@@ -277,6 +307,7 @@ public class LiveParser {
             click = null;
             player = null;
             header = null;
+            format = null;
             origin = null;
             referer = null;
         }

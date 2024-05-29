@@ -40,6 +40,15 @@ public class Path {
         return Init.context().getCacheDir();
     }
 
+    public static File thunderCache() {
+        File internal = Init.context().getCacheDir();
+        String dir = Prefers.getString("thunder_cache_dir", internal.getAbsolutePath());
+        if (dir.equals(internal.getAbsolutePath())) return internal;
+        File cache = new File(dir);
+        if (!cache.exists()) return internal;
+        return cache;
+    }
+
     public static File files() {
         return Init.context().getFilesDir();
     }
@@ -85,7 +94,11 @@ public class Path {
     }
 
     public static File thunder() {
-        return mkdir(new File(cache() + File.separator + "thunder"));
+        return mkdir(new File(thunderCache() + File.separator + "thunder"));
+    }
+
+    public static File restore() {
+        return mkdir(new File(cache() + File.separator + "restore"));
     }
 
     public static File root(String name) {
@@ -150,6 +163,19 @@ public class Path {
         }
     }
 
+    public static byte[] readToByte(File file) {
+        try {
+            FileInputStream is = new FileInputStream(file);
+            byte[] data = new byte[is.available()];
+            is.read(data);
+            is.close();
+            return data;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new byte[0];
+        }
+    }
+
     public static File write(File file, byte[] data) {
         try {
             FileOutputStream fos = new FileOutputStream(create(file));
@@ -161,6 +187,10 @@ public class Path {
             ignored.printStackTrace();
             return file;
         }
+    }
+
+    public static File utf8(File file) {
+        return write(cache(file.getName()), Util.utf8(readToByte(file)));
     }
 
     public static void move(File in, File out) {

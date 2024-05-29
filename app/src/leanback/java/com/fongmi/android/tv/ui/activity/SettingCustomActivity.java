@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.ui.activity;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.view.View;
@@ -11,20 +12,27 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.databinding.ActivitySettingCustomBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
+import com.fongmi.android.tv.impl.CacheDirCallback;
+import com.fongmi.android.tv.impl.LanguageCallback;
+import com.fongmi.android.tv.impl.MenuKeyCallback;
+import com.fongmi.android.tv.impl.X5WebViewCallback;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.dialog.ButtonsDialog;
+import com.fongmi.android.tv.ui.dialog.CacheDirDialog;
 import com.fongmi.android.tv.ui.dialog.DisplayDialog;
 import com.fongmi.android.tv.ui.dialog.LanguageDialog;
 import com.fongmi.android.tv.ui.dialog.MenuKeyDialog;
 import com.fongmi.android.tv.ui.dialog.X5WebViewDialog;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.utils.Shell;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.permissionx.guolindev.PermissionX;
 import com.tencent.smtt.sdk.QbSdk;
 
 import java.util.Locale;
 
-public class SettingCustomActivity extends BaseActivity {
+public class SettingCustomActivity extends BaseActivity implements MenuKeyCallback, X5WebViewCallback, LanguageCallback, CacheDirCallback {
 
     private ActivitySettingCustomBinding mBinding;
     private String[] quality;
@@ -64,6 +72,7 @@ public class SettingCustomActivity extends BaseActivity {
         mBinding.aggregatedSearchText.setText(getSwitch(Setting.isAggregatedSearch()));
         mBinding.homeUIText.setText((homeUI = ResUtil.getStringArray(R.array.select_home_ui))[Setting.getHomeUI()]);
         mBinding.homeHistoryText.setText(getSwitch(Setting.isHomeHistory()));
+        mBinding.cacheDirText.setText(Setting.getThunderCacheDir());
         mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
         mBinding.languageText.setText((ResUtil.getStringArray(R.array.select_language))[Setting.getLanguage()]);
         mBinding.parseWebviewText.setText((parseWebview = ResUtil.getStringArray(R.array.select_parse_webview))[Setting.getParseWebView()]);
@@ -91,8 +100,8 @@ public class SettingCustomActivity extends BaseActivity {
         mBinding.setLanguage.setOnClickListener(this::setLanguage);
         mBinding.parseWebview.setOnClickListener(this::setParseWebview);
         mBinding.configCache.setOnClickListener(this::setConfigCache);
+        mBinding.cacheDir.setOnClickListener(this::setCacheDir);
         mBinding.reset.setOnClickListener(this::onReset);
-
     }
 
     private void setQuality(View view) {
@@ -163,10 +172,6 @@ public class SettingCustomActivity extends BaseActivity {
         MenuKeyDialog.create(this).show();
     }
 
-    public void setHomeMenuText() {
-        mBinding.homeMenuKeyText.setText((ResUtil.getStringArray(R.array.select_home_menu_key))[Setting.getHomeMenuKey()]);
-    }
-
     private void setAggregatedSearch(View view) {
         Setting.putAggregatedSearch(!Setting.isAggregatedSearch());
         mBinding.aggregatedSearchText.setText(getSwitch(Setting.isAggregatedSearch()));
@@ -192,14 +197,17 @@ public class SettingCustomActivity extends BaseActivity {
         mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
     }
 
+    private void setCacheDir(View view) {
+        PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> {
+            if (allGranted) {
+                CacheDirDialog.create(this).show();
+            }
+        });
+    }
+
     private void setLanguage(View view) {
         LanguageDialog.create(this).show();
     }
-
-    public void setLanguageText() {
-        mBinding.languageText.setText((ResUtil.getStringArray(R.array.select_language))[Setting.getLanguage()]);
-    }
-
 
     private void setParseWebview(View view) {
         int index = Setting.getParseWebView();
@@ -223,6 +231,46 @@ public class SettingCustomActivity extends BaseActivity {
         new Thread(() -> {
             Shell.exec("pm clear " + App.get().getPackageName());
         }).start();
+    }
+
+    @Override
+    public void setCacheDir(String dir) {
+        Setting.putThunderCacheDir(dir);
+        mBinding.cacheDirText.setText(dir);
+    }
+
+    @Override
+    public void setLanguage(int lang) {
+        Setting.putLanguage(lang);
+        mBinding.languageText.setText((ResUtil.getStringArray(R.array.select_language))[Setting.getLanguage()]);
+        Util.restartApp(this);
+    }
+
+    @Override
+    public void onX5Success() {
+        int index = 1;
+        Setting.putParseWebView(index);
+        mBinding.parseWebviewText.setText(parseWebview[index]);
+    }
+
+    @Override
+    public void onX5Error() {
+        int index = 0;
+        Setting.putParseWebView(index);
+        mBinding.parseWebviewText.setText(parseWebview[index]);
+    }
+
+    @Override
+    public void onX5Cancel() {
+        int index = 0;
+        Setting.putParseWebView(index);
+        mBinding.parseWebviewText.setText(parseWebview[index]);
+    }
+
+    @Override
+    public void onMenuKeyItemClick(int position) {
+        Setting.putHomeMenuKey(position);
+        mBinding.homeMenuKeyText.setText((ResUtil.getStringArray(R.array.select_home_menu_key))[Setting.getHomeMenuKey()]);
     }
 
 }

@@ -12,6 +12,8 @@ import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.db.AppDatabase;
+import com.github.catvod.utils.Json;
+import com.google.common.net.HttpHeaders;
 import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
@@ -21,6 +23,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Entity
 public class Live {
@@ -89,6 +92,10 @@ public class Live {
     @Ignore
     @SerializedName("groups")
     private List<Group> groups;
+
+    @Ignore
+    @SerializedName("catchup")
+    private Catchup catchup;
 
     @Ignore
     @SerializedName("core")
@@ -213,6 +220,10 @@ public class Live {
         return groups = groups == null ? new ArrayList<>() : groups;
     }
 
+    public Catchup getCatchup() {
+        return catchup == null ? new Catchup() : catchup;
+    }
+
     public Core getCore() {
         return core == null ? new Core() : core;
     }
@@ -284,6 +295,14 @@ public class Live {
         setBoot(item.isBoot());
         setPass(item.isPass());
         return this;
+    }
+
+    public Map<String, String> getHeaders() {
+        Map<String, String> headers = Json.toMap(getHeader());
+        if (!getUa().isEmpty()) headers.put(HttpHeaders.USER_AGENT, getUa());
+        if (!getOrigin().isEmpty()) headers.put(HttpHeaders.ORIGIN, getOrigin());
+        if (!getReferer().isEmpty()) headers.put(HttpHeaders.REFERER, getReferer());
+        return headers;
     }
 
     public static Live find(String name) {

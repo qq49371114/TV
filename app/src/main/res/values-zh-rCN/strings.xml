@@ -76,6 +76,7 @@
     <string name="setting_danmu">弹幕设置</string>
     <string name="setting_custom">个性设置</string>
     <string name="setting_config_cache">接口缓存</string>
+    <string name="setting_cache_dir">迅雷缓存</string>
     <string name="setting_reset">重置App</string>
     <string name="setting_quality">图片品质</string>
     <string name="setting_size">图片尺寸</string>
@@ -95,7 +96,7 @@
     <string name="setting_proxy">Proxy</string>
     <string name="setting_cache">缓存</string>
     <string name="setting_backup">备份</string>
-    <string name="setting_backup_auto">自动</string>
+    <string name="setting_restore">恢复</string>
     <string name="setting_version">版本</string>
     <string name="setting_about">关于</string>
     <string name="setting_storage">权限</string>
@@ -176,12 +177,18 @@
 
     <!-- Hint -->
     <string name="copied">已复制</string>
+    <string name="backed">备份成功</string>
     <string name="config_refreshed">接口已刷新</string>
 
     <!-- UNIT -->
     <string name="all">全部</string>
     <string name="times">倍</string>
     <string name="lines">行</string>
+
+    <string-array name="select_backup">
+        <item>自动</item>
+        <item>手动</item>
+    </string-array>
 
     <string-array name="select_decode">
         <item>软解</item>
