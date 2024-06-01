@@ -32,6 +32,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
+import java.util.Random;
 
 import me.jessyan.autosize.AutoSizeCompat;
 
@@ -105,7 +106,9 @@ public abstract class BaseActivity extends AppCompatActivity {
     private void refreshWall() {
         try {
             if (!customWall()) return;
-            File file = FileUtil.getWall(Setting.getWall());
+            Random random = new Random();
+            int randomNumber = 1 + random.nextInt(5);
+            File file = FileUtil.getWall(randomNumber);
             if (file.exists() && file.length() > 0) loadWall(file);
             else getWindow().setBackgroundDrawableResource(ResUtil.getDrawable(file.getName()));
         } catch (Exception e) {

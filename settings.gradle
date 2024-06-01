@@ -34,4 +34,4 @@ include ':youtube'
 include ':jianpian'
 include ':forcetech'
 include ':ijkplayer'
-rootProject.name = "公瑾"
+rootProject.name = "公瑾TV"
