@@ -23,6 +23,7 @@ import com.fongmi.android.tv.ui.dialog.DisplayDialog;
 import com.fongmi.android.tv.ui.dialog.LanguageDialog;
 import com.fongmi.android.tv.ui.dialog.MenuKeyDialog;
 import com.fongmi.android.tv.ui.dialog.X5WebViewDialog;
+import com.fongmi.android.tv.utils.LanguageUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.utils.Shell;
@@ -242,6 +243,7 @@ public class SettingCustomActivity extends BaseActivity implements MenuKeyCallba
     @Override
     public void setLanguage(int lang) {
         Setting.putLanguage(lang);
+        LanguageUtil.setLocale(LanguageUtil.getLocale(Setting.getLanguage()));
         mBinding.languageText.setText((ResUtil.getStringArray(R.array.select_language))[Setting.getLanguage()]);
         Util.restartApp(this);
     }

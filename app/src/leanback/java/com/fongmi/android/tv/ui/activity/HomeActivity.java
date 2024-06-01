@@ -330,7 +330,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
             @Override
             public void error(String msg) {
-                if (getHomeFragment().init) getHomeFragment().mBinding.progressLayout.showContent();
+                if (getHomeFragment().inited) getHomeFragment().mBinding.progressLayout.showContent();
                 else App.post(() -> getHomeFragment().mBinding.progressLayout.showContent(), 1000);
                 mResult = Result.empty();
                 Notify.show(msg);
@@ -471,11 +471,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void setLogo() {
-        try {
-            Glide.with(this).load(UrlUtil.convert(VodConfig.get().getConfig().getLogo())).circleCrop().override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL).listener(getListener()).into(mBinding.logo);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        Glide.with(this).load(UrlUtil.convert(VodConfig.get().getConfig().getLogo())).circleCrop().override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL).listener(getListener()).into(mBinding.logo);
     }
 
     private RequestListener<Drawable> getListener() {
@@ -545,9 +541,9 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     protected void onBackPress() {
         if (isVisible(mBinding.recycler) && mBinding.recycler.getSelectedPosition() != 0) {
             mBinding.recycler.scrollToPosition(0);
-        } else if (mPageAdapter != null && getHomeFragment().init && getHomeFragment().mBinding.progressLayout.isProgress()) {
+        } else if (mPageAdapter != null && getHomeFragment().inited && getHomeFragment().mBinding.progressLayout.isProgress()) {
             getHomeFragment().mBinding.progressLayout.showContent();
-        } else if (mPageAdapter != null && getHomeFragment().init && getHomeFragment().mPresenter != null && getHomeFragment().mPresenter.isDelete()) {
+        } else if (mPageAdapter != null && getHomeFragment().inited && getHomeFragment().mPresenter != null && getHomeFragment().mPresenter.isDelete()) {
             getHomeFragment().setHistoryDelete(false);
         } else if (getHomeFragment().canBack()) {
             getHomeFragment().goBack();
