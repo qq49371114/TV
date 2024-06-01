@@ -130,7 +130,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         try {
             if (!customWall()) return;
             Random random = new Random();
-            int randomNumber = 1 + random.nextInt(4);
+            int randomNumber = 1 + random.nextInt(5);
             File file = FileUtil.getWall(randomNumber);
             if (file.exists() && file.length() > 0) loadWall(file);
             else getWindow().setBackgroundDrawableResource(ResUtil.getDrawable(file.getName()));
