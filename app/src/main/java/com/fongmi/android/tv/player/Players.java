@@ -256,7 +256,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
     }
 
     public boolean canAdjustSpeed() {
-        return isIjk() || (isExo() && !Setting.isTunnel());
+        return isIjk() || !Setting.isTunnel();
     }
 
     public boolean haveTrack(int type) {

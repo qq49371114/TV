@@ -14,6 +14,7 @@ import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.databinding.FragmentSettingCustomBinding;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.ui.base.BaseFragment;
+import com.fongmi.android.tv.utils.LanguageUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.utils.Shell;
@@ -133,6 +134,7 @@ public class SettingCustomFragment extends BaseFragment {
         new MaterialAlertDialogBuilder(getActivity()).setTitle(R.string.setting_language).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(lang, Setting.getLanguage(), (dialog, which) -> {
             mBinding.languageText.setText(lang[which]);
             Setting.putLanguage(which);
+            LanguageUtil.setLocale(LanguageUtil.getLocale(Setting.getLanguage()));
             dialog.dismiss();
             Util.restartApp(getActivity());
         }).show();

@@ -198,7 +198,9 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
 
     private void setPlayerView() {
         getIjk().setPlayer(mPlayers.getPlayer());
+        mBinding.control.speed.setText(mPlayers.getSpeedText());
         mBinding.control.player.setText(mPlayers.getPlayerText());
+        mBinding.control.speed.setEnabled(mPlayers.canAdjustSpeed());
         getExo().setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
         getIjk().setVisibility(mPlayers.isIjk() ? View.VISIBLE : View.GONE);
         mBinding.control.decode.setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
@@ -212,7 +214,6 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
         mPlayers.set(getExo(), getIjk());
         setScale(Setting.getLiveScale());
         setSubtitle(Setting.getSubtitle());
-        mBinding.control.speed.setText(mPlayers.getSpeedText());
         mBinding.control.invert.setActivated(Setting.isInvert());
         mBinding.control.across.setActivated(Setting.isAcross());
         mBinding.control.change.setActivated(Setting.isChange());

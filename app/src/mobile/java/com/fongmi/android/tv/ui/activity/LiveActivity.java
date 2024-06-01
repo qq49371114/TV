@@ -220,7 +220,9 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
 
     private void setPlayerView() {
         getIjk().setPlayer(mPlayers.getPlayer());
+        mBinding.control.action.speed.setText(mPlayers.getSpeedText());
         mBinding.control.action.player.setText(mPlayers.getPlayerText());
+        mBinding.control.action.speed.setEnabled(mPlayers.canAdjustSpeed());
         getExo().setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
         getIjk().setVisibility(mPlayers.isIjk() ? View.VISIBLE : View.GONE);
         mBinding.control.action.decode.setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
@@ -237,7 +239,6 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         setSubtitle(Setting.getSubtitle());
         getExo().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
         getIjk().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
-        mBinding.control.action.speed.setText(mPlayers.getSpeedText());
         mBinding.control.action.invert.setActivated(Setting.isInvert());
         mBinding.control.action.across.setActivated(Setting.isAcross());
         mBinding.control.action.change.setActivated(Setting.isChange());
