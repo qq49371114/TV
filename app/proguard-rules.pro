@@ -34,13 +34,23 @@
 # Cling
 -keep class org.fourthline.cling.** { *; }
 -keep class javax.xml.** { *; }
+-dontwarn org.ietf.jgss.**
+-dontwarn com.sun.net.**
+-dontwarn sun.net.**
+-dontwarn java.awt.**
+-dontwarn javax.**
 
 # Cronet
 -keep class org.chromium.net.** { *; }
 -keep class com.google.net.cronet.** { *; }
 
 # EXO
--keep class org.xmlpull.v1.** { *; }
+-dontwarn org.xmlpull.v1.**
+-dontwarn org.kxml2.io.**
+-dontwarn android.content.res.**
+-dontwarn org.slf4j.impl.StaticLoggerBinder
+-keep class org.xmlpull.** { *; }
+-keepclassmembers class org.xmlpull.** { *; }
 -keep class androidx.media3.** { *; }
 
 # IJK
@@ -54,6 +64,7 @@
 
 # QuickJS
 -keep class com.whl.quickjs.** { *; }
+-keep class com.fongmi.quickjs.** { *; }
 
 # Sardine
 -keep class com.thegrizzlylabs.sardineandroid.** { *; }

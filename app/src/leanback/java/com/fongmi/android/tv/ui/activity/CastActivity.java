@@ -91,7 +91,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     @Override
     protected void initView() {
         bindService(new Intent(this, DLNARendererService.class), this, Context.BIND_AUTO_CREATE);
-        mClock = Clock.create(mBinding.widget.time);
+        mClock = Clock.create(mBinding.widget.clock);
         mKeyDown = CustomKeyDownCast.create(this);
         mPlayers = new Players().init(this);
         mParser = new DIDLParser();

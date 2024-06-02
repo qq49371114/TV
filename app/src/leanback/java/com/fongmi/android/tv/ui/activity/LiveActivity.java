@@ -140,7 +140,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
 
     @Override
     protected void initView() {
-        mClock = Clock.create(Arrays.asList(mBinding.widget.time, mBinding.display.time));
+        mClock = Clock.create(Arrays.asList(mBinding.widget.clock, mBinding.display.clock));
         mKeyDown = CustomKeyDownLive.create(this);
         mPlayers = new Players().init(this);
         mHides = new ArrayList<>();
@@ -203,7 +203,6 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
         mBinding.control.speed.setEnabled(mPlayers.canAdjustSpeed());
         getExo().setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
         getIjk().setVisibility(mPlayers.isIjk() ? View.VISIBLE : View.GONE);
-        mBinding.control.decode.setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
     }
 
     private void setDecodeView() {
@@ -488,6 +487,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
     private void showControl(View view) {
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
         mBinding.widget.top.setVisibility(View.VISIBLE);
+        App.post(view::requestFocus, 25);
         view.requestFocus();
         setR1Callback();
         hideInfo();
@@ -503,7 +503,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
     private void showDisplayInfo() {
         boolean controlVisible = isVisible(mBinding.control.getRoot());
         boolean visible = !controlVisible;
-        mBinding.display.time.setVisibility(Setting.isDisplayTime() && visible  ? View.VISIBLE : View.GONE);
+        mBinding.display.clock.setVisibility(Setting.isDisplayTime() && visible  ? View.VISIBLE : View.GONE);
         mBinding.display.netspeed.setVisibility(Setting.isDisplaySpeed() && visible ? View.VISIBLE : View.GONE);
         mBinding.display.duration.setVisibility(View.GONE);
     }
@@ -851,14 +851,14 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
     }
 
     private void prevLine() {
-        if (mChannel == null) return;
+        if (mChannel == null || mChannel.isOnly()) return;
         mChannel.prevLine();
         showInfo();
         fetch();
     }
 
     private void nextLine(boolean show) {
-        if (mChannel == null) return;
+        if (mChannel == null || mChannel.isOnly()) return;
         mChannel.nextLine();
         if (show) showInfo();
         else setInfo();
@@ -867,6 +867,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
 
     private void seekTo(int time) {
         mPlayers.seekTo(time);
+        mKeyDown.resetTime();
         showProgress();
         hideCenter();
     }
@@ -936,7 +937,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
 
     @Override
     public void onSeeking(int time) {
-        if (!mPlayers.isVod() || !mChannel.isOnly()) return;
+        if (!mPlayers.isVod()) return;
         mBinding.widget.exoDuration.setText(mPlayers.getDurationTime());
         mBinding.widget.exoPosition.setText(mPlayers.getPositionTime(time));
         mBinding.widget.action.setImageResource(time > 0 ? R.drawable.ic_widget_forward : R.drawable.ic_widget_rewind);
@@ -946,28 +947,26 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
 
     @Override
     public void onKeyUp() {
-        prevChannel();
+        if (!mPlayers.isVod()) prevChannel();
+        else showControl(mBinding.control.player);
     }
 
     @Override
     public void onKeyDown() {
-        nextChannel();
+        if (!mPlayers.isVod()) nextChannel();
+        else showControl(mBinding.control.player);
     }
 
     @Override
     public void onKeyLeft(int time) {
-        if (mChannel == null) return;
-        if (mChannel.isOnly() && mPlayers.isVod()) App.post(() -> seekTo(time), 250);
-        else if (!mChannel.isOnly()) prevLine();
-        mKeyDown.resetTime();
+        if (!mPlayers.isVod()) prevLine();
+        else App.post(() -> seekTo(time), 250);
     }
 
     @Override
     public void onKeyRight(int time) {
-        if (mChannel == null) return;
-        if (mChannel.isOnly() && mPlayers.isVod()) App.post(() -> seekTo(time), 250);
-        else if (!mChannel.isOnly()) nextLine(true);
-        mKeyDown.resetTime();
+        if (!mPlayers.isVod()) nextLine(true);
+        else App.post(() -> seekTo(time), 250);
     }
 
     @Override
