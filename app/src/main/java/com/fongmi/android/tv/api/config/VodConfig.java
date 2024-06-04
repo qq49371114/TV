@@ -197,7 +197,7 @@ public class VodConfig {
             if (sites.contains(site)) continue;
             site.setApi(parseApi(site.getApi()));
             site.setExt(parseExt(site.getExt()));
-            sites.add(site.sync());
+            sites.add(site.trans().sync());
         }
         for (Site site : sites) {
             if (site.getKey().equals(config.getHome())) {

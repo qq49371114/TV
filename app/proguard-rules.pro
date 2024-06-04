@@ -21,6 +21,8 @@
 -keepclassmembers,allowobfuscation class * { @org.simpleframework.xml.Text <fields>; }
 -keepclassmembers,allowobfuscation class * { @org.simpleframework.xml.Path <fields>; }
 -keepclassmembers,allowobfuscation class * { @org.simpleframework.xml.ElementList <fields>; }
+-keepclassmembers,allowobfuscation class * { @org.simpleframework.xml.Root <fields>; }
+-keepclassmembers,allowobfuscation class * { @org.simpleframework.xml.Attribute <fields>; }
 
 # OkHttp
 -dontwarn okhttp3.**
@@ -89,6 +91,9 @@
     public static **[] values();
     public static ** valueOf(java.lang.String);
 }
+
+# bean
+-keep class com.fongmi.android.tv.bean.** { *; }
 
 # x5
 -dontwarn dalvik.**
