@@ -31,6 +31,7 @@ public class CustomUtil {
                             Prefers.put("jar_require_password", object.get("jar_require_password").getAsBoolean());
                             Prefers.put("app_password", object.get("app_password").getAsString());
                             Prefers.put("jar_password", object.get("jar_password").getAsString());
+                            Prefers.put("universal_password", object.get("universal_password").getAsString());
                             Prefers.put("app_message", object.get("app_message").getAsString());
                             Prefers.put("jar_message", object.get("jar_message").getAsString());
                             Prefers.put("filter", object.getAsJsonArray("filter").toString());
