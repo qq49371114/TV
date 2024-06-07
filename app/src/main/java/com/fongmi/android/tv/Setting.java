@@ -202,6 +202,14 @@ public class Setting {
         Prefers.put("background", background);
     }
 
+    public static int getRtsp() {
+        return Prefers.getInt("rtsp");
+    }
+
+    public static void putRtsp(int rtsp) {
+        Prefers.put("rtsp", rtsp);
+    }
+
     public static int getSiteMode() {
         return Prefers.getInt("site_mode", 1);
     }
@@ -292,14 +300,6 @@ public class Setting {
 
     public static int getDanmuAlpha() {
         return Math.min(Math.max(Prefers.getInt("danmu_alpha", 90), 10), 100);
-    }
-
-    public static void putDanmuSync(boolean sync) {
-        Prefers.put("danmu_sync", sync);
-    }
-
-    public static boolean isDanmuSync() {
-        return Prefers.getBoolean("danmu_sync", false);
     }
 
     public static void putDanmuAlpha(int alpha) {

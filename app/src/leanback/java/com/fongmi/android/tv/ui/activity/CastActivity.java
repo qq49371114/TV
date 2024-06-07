@@ -69,7 +69,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     private int scale;
 
     private PlayerView getExo() {
-        return Setting.getRender() == 0 ? mBinding.surface : mBinding.texture;
+        return mBinding.exo;
     }
 
     private IjkVideoView getIjk() {

@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.media3.common.AudioAttributes;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
+import androidx.media3.common.VideoSize;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.analytics.AnalyticsListener;
 import androidx.media3.exoplayer.util.EventLogger;
@@ -81,11 +82,9 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
     private Sub sub;
 
     private long position;
-    private float speed;
     private int player;
     private int error;
     private int retry;
-    private boolean danmuSync;
 
     public static boolean isExo(int type) {
         return type == EXO;
@@ -112,7 +111,6 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
         builder = new StringBuilder();
         runnable = ErrorEvent::timeout;
         formatter = new Formatter(builder, Locale.getDefault());
-        danmuSync = Setting.isDanmuSync();
         createSession(activity);
         return this;
     }
@@ -167,6 +165,11 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
 
     public IjkVideoView ijk() {
         return ijkPlayer;
+    }
+
+    public VideoSize getVideoSize() {
+        if (isExo()) return exo().getVideoSize();
+        return new VideoSize(ijk().getVideoWidth(), ijk().getVideoHeight());
     }
 
     public Map<String, String> getHeaders() {
@@ -283,6 +286,10 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
         return TextUtils.isEmpty(getUrl());
     }
 
+    public boolean isLive() {
+        return getDuration() < 5 * 60 * 1000;
+    }
+
     public boolean isVod() {
         return getDuration() > 5 * 60 * 1000;
     }
@@ -308,8 +315,8 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
     }
 
     public String setSpeed(float speed) {
-        if (exoPlayer != null && !Setting.isTunnel()) exoPlayer.setPlaybackSpeed(this.speed = speed);
-        if (ijkPlayer != null) ijkPlayer.setSpeed(this.speed = speed);
+        if (exoPlayer != null && !Setting.isTunnel()) exoPlayer.setPlaybackSpeed(speed);
+        if (ijkPlayer != null) ijkPlayer.setSpeed(speed);
         return getSpeedText();
     }
 
@@ -692,8 +699,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
 
     @Override
     public void updateTimer(DanmakuTimer timer) {
-        if (danmuSync) App.post(() -> timer.update(getPosition()));
-        else if (speed != 1) timer.add((long) (timer.lastInterval() * (speed - 1)));
+
     }
 
     @Override

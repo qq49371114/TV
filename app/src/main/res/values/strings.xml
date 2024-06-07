@@ -123,6 +123,7 @@
     <string name="player_exo_tunnel">Tunnel mode</string>
     <string name="player_exo_http">HTTP method</string>
     <string name="player_exo_buffer">Buffer time</string>
+    <string name="player_rtsp">RTSP channel</string>
     <string name="player_ua">User-Agent</string>
 
     <!-- Search -->
@@ -324,6 +325,11 @@
         <item>Select audio track</item>
         <item>Select video track</item>
         <item>Select subtitle track</item>
+    </string-array>
+
+    <string-array name="select_rtsp">
+        <item>UDP</item>
+        <item>TCP</item>
     </string-array>
 
 </resources>

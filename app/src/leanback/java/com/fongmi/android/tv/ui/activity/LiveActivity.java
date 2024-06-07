@@ -105,7 +105,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
     }
 
     private PlayerView getExo() {
-        return Setting.getRender() == 0 ? mBinding.surface : mBinding.texture;
+        return mBinding.exo;
     }
 
     private IjkVideoView getIjk() {
@@ -756,7 +756,6 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
                 setMetadata();
                 hideProgress();
                 mPlayers.reset();
-                setSpeedVisible();
                 setTrackVisible(true);
                 mBinding.widget.size.setText(mPlayers.getSizeText());
                 break;
@@ -766,12 +765,9 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
         }
     }
 
-    private void setSpeedVisible() {
-        mBinding.control.speed.setVisibility(mPlayers.isVod() ? View.VISIBLE : View.GONE);
-    }
-
     private void setTrackVisible(boolean visible) {
         mBinding.control.text.setVisibility(visible && mPlayers.haveTrack(C.TRACK_TYPE_TEXT) ? View.VISIBLE : View.GONE);
+        mBinding.control.speed.setVisibility(visible && mPlayers.isVod() ? View.VISIBLE : View.GONE);
         mBinding.control.audio.setVisibility(visible && mPlayers.haveTrack(C.TRACK_TYPE_AUDIO) ? View.VISIBLE : View.GONE);
         mBinding.control.video.setVisibility(visible && mPlayers.haveTrack(C.TRACK_TYPE_VIDEO) ? View.VISIBLE : View.GONE);
     }

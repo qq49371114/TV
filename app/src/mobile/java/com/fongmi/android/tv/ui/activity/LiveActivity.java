@@ -117,7 +117,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     }
 
     private PlayerView getExo() {
-        return Setting.getRender() == 0 ? mBinding.surface : mBinding.texture;
+        return mBinding.exo;
     }
 
     private IjkVideoView getIjk() {
@@ -819,7 +819,6 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
                 resetToggle();
                 hideProgress();
                 mPlayers.reset();
-                setSpeedVisible();
                 setTrackVisible(true);
                 checkPlayImg(mPlayers.isPlaying());
                 mBinding.control.size.setText(mPlayers.getSizeText());
@@ -831,12 +830,9 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         }
     }
 
-    private void setSpeedVisible() {
-        mBinding.control.action.speed.setVisibility(mPlayers.isVod() ? View.VISIBLE : View.GONE);
-    }
-
     private void setTrackVisible(boolean visible) {
         mBinding.control.action.text.setVisibility(visible && mPlayers.haveTrack(C.TRACK_TYPE_TEXT) ? View.VISIBLE : View.GONE);
+        mBinding.control.action.speed.setVisibility(visible && mPlayers.isVod() ? View.VISIBLE : View.GONE);
         mBinding.control.action.audio.setVisibility(visible && mPlayers.haveTrack(C.TRACK_TYPE_AUDIO) ? View.VISIBLE : View.GONE);
         mBinding.control.action.video.setVisibility(visible && mPlayers.haveTrack(C.TRACK_TYPE_VIDEO) ? View.VISIBLE : View.GONE);
     }
@@ -1143,7 +1139,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         super.onUserLeaveHint();
         if (isRedirect()) return;
         if (isLock()) App.post(this::onLock, 500);
-        if (mPlayers.haveTrack(C.TRACK_TYPE_VIDEO)) mPiP.enter(this, Setting.getLiveScale() == 2);
+        if (mPlayers.haveTrack(C.TRACK_TYPE_VIDEO)) mPiP.enter(this, mPlayers.getVideoSize(), Setting.getLiveScale());
     }
 
     @Override
