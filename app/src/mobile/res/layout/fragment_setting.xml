@@ -351,7 +351,7 @@
                     android:gravity="end"
                     android:textColor="@color/white"
                     android:textSize="16sp"
-                    tools:text="jxtokenText" />
+                    tools:text="@string/jxtokenText" />
 
             </LinearLayout>
 

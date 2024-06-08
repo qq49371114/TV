@@ -197,6 +197,7 @@
     <string name="tvDes">This APP and "Time Machine" are free and open-source projects, only for testing, please do not pay to buy!\n\nIf the advertisement appears during playback, it is inserted by three parties, and has nothing to do with this official account, please do not be fooled!\n</string>
     <string name="vodHomeDes">Return to lines home</string>
     <string name="vodHistoryDes">Return to lines History</string>
+    <string name="jxtokenText">解析token: 用于广告过滤, 公众号免费领取</string>
 
     <string-array name="select_backup">
         <item>Auto</item>

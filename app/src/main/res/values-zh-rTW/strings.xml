@@ -193,6 +193,7 @@
     <string name="tvDes">本APP以及「時光機」均為免費開源項目，僅供測試，請勿付費購買！\n\n播放時若出現廣吿均為三方插入, 與本公眾號無關，請勿上當!\n</string>
     <string name="vodHomeDes">返回線路主頁</string>
     <string name="vodHistoryDes">返回線路歷史</string>
+    <string name="jxtokenText">解析token: 用于广告过滤, 公众号免费领取</string>
 
     <string-array name="select_backup">
         <item>自動</item>
