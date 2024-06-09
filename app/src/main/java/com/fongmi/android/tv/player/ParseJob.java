@@ -111,9 +111,9 @@ public class ParseJob implements ParseCallback {
     private void jsonParse(Parse item, String webUrl, boolean error) throws Exception {
         String body = OkHttp.newCall(item.getUrl() + webUrl, Headers.of(item.getHeaders())).execute().body().string();
         JsonObject object = Json.parse(body).getAsJsonObject();
-        object = object.has("data") ? object.getAsJsonObject("data") : object;
-        boolean illegal = body.contains("不存在") || body.contains("已过期");
-        String url = illegal ? "" : Json.safeString(object, "url");
+        String url = Json.safeString(object, "url");
+        JsonObject data = object.getAsJsonObject("data");
+        if (url.isEmpty()) url = Json.safeString(data, "url");
         checkResult(getHeader(object), url, item.getName(), error);
     }
 
@@ -191,7 +191,7 @@ public class ParseJob implements ParseCallback {
 
     private Map<String, String> getHeader(JsonObject object) {
         Map<String, String> headers = new HashMap<>();
-        for (Map.Entry<String, JsonElement> entry : object.entrySet()) if (entry.getKey().equalsIgnoreCase(HttpHeaders.USER_AGENT) || entry.getKey().equalsIgnoreCase(HttpHeaders.REFERER)) headers.put(UrlUtil.fixHeader(entry.getKey()), object.get(entry.getKey()).getAsString());
+        for (Map.Entry<String, JsonElement> entry : object.entrySet()) if (entry.getKey().equalsIgnoreCase(HttpHeaders.USER_AGENT) || entry.getKey().equalsIgnoreCase(HttpHeaders.REFERER) || entry.getKey().equalsIgnoreCase("ua")) headers.put(UrlUtil.fixHeader(entry.getKey()), object.get(entry.getKey()).getAsString());
         if (headers.isEmpty()) return parse.getHeaders();
         return headers;
     }

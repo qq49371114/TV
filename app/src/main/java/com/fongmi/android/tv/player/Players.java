@@ -3,6 +3,8 @@ package com.fongmi.android.tv.player;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.media.MediaMetadataCompat;
@@ -136,10 +138,6 @@ public class Players implements Player.Listener, AnalyticsListener, ParseCallbac
         return session;
     }
 
-    public void setMetadata(MediaMetadataCompat metadata) {
-        session.setMetadata(metadata);
-    }
-
     public int getDecode() {
         return decode;
     }
@@ -230,7 +228,7 @@ public class Players implements Player.Listener, AnalyticsListener, ParseCallbac
     }
 
     public String getDecodeText() {
-        return ResUtil.getStringArray(R.array.select_decode)[decode];
+        return ResUtil.getStringArray(R.array.select_decode)[getDecode()];
     }
 
     public String setSpeed(float speed) {
@@ -264,8 +262,8 @@ public class Players implements Player.Listener, AnalyticsListener, ParseCallbac
     }
 
     public void toggleDecode() {
-        setDecode(decode == HARD ? SOFT : HARD);
-        Setting.putDecode(decode);
+        setDecode(getDecode() == HARD ? SOFT : HARD);
+        Setting.putDecode(getDecode());
     }
 
     public String getPositionTime(long time) {
@@ -328,7 +326,7 @@ public class Players implements Player.Listener, AnalyticsListener, ParseCallbac
         } else if (channel.getParse() == 1) {
             startParse(channel.result(), false);
         } else if (isIllegal(channel.getUrl())) {
-            ErrorEvent.url(0);
+            ErrorEvent.url();
         } else {
             setMediaSource(channel, timeout);
         }
@@ -340,7 +338,7 @@ public class Players implements Player.Listener, AnalyticsListener, ParseCallbac
         } else if (result.getParse(1) == 1 || result.getJx() == 1) {
             startParse(result, useParse);
         } else if (isIllegal(result.getRealUrl())) {
-            ErrorEvent.url(0);
+            ErrorEvent.url();
         } else {
             setMediaSource(result, timeout);
         }
@@ -446,29 +444,52 @@ public class Players implements Player.Listener, AnalyticsListener, ParseCallbac
         return bundle;
     }
 
+    public void setMetadata(String title, String artist, PlayerView view) {
+        try {
+            Bitmap bitmap = ((BitmapDrawable) view.getDefaultArtwork()).getBitmap();
+            MediaMetadataCompat.Builder builder = new MediaMetadataCompat.Builder();
+            builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, title);
+            builder.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist);
+            builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, bitmap);
+            builder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, getDuration());
+            session.setMetadata(builder.build());
+            ActionEvent.update();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void share(Activity activity, CharSequence title) {
-        if (isEmpty()) return;
-        Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra(Intent.EXTRA_TEXT, getUrl());
-        intent.putExtra("extra_headers", getHeaderBundle());
-        intent.putExtra("title", title);
-        intent.putExtra("name", title);
-        intent.setType("text/plain");
-        activity.startActivity(Util.getChooser(intent));
+        try {
+            if (isEmpty()) return;
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.putExtra(Intent.EXTRA_TEXT, getUrl());
+            intent.putExtra("extra_headers", getHeaderBundle());
+            intent.putExtra("title", title);
+            intent.putExtra("name", title);
+            intent.setType("text/plain");
+            activity.startActivity(Util.getChooser(intent));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void choose(Activity activity, CharSequence title) {
-        if (isEmpty()) return;
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        intent.setDataAndType(getUri(), "video/*");
-        intent.putExtra("title", title);
-        intent.putExtra("return_result", isVod());
-        intent.putExtra("headers", getHeaderArray());
-        if (isVod()) intent.putExtra("position", (int) getPosition());
-        activity.startActivityForResult(Util.getChooser(intent), 1001);
+        try {
+            if (isEmpty()) return;
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.setDataAndType(getUri(), "video/*");
+            intent.putExtra("title", title);
+            intent.putExtra("return_result", isVod());
+            intent.putExtra("headers", getHeaderArray());
+            if (isVod()) intent.putExtra("position", (int) getPosition());
+            activity.startActivityForResult(Util.getChooser(intent), 1001);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void checkData(Intent data) {
@@ -502,8 +523,8 @@ public class Players implements Player.Listener, AnalyticsListener, ParseCallbac
 
     @Override
     public void onPlayerError(@NonNull PlaybackException error) {
-        ErrorEvent.url(ExoUtil.getRetry(this.error = error.errorCode));
         setPlaybackState(PlaybackStateCompat.STATE_ERROR);
+        ErrorEvent.url(this.error = error.errorCode);
     }
 
     @Override

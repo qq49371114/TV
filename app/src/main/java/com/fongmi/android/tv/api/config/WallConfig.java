@@ -5,7 +5,7 @@ import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.signature.ObjectKey;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
@@ -18,7 +18,6 @@ import com.fongmi.android.tv.utils.ResUtil;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Asset;
 import com.github.catvod.utils.Path;
-import com.github.catvod.utils.Util;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -106,7 +105,7 @@ public class WallConfig {
 
     private File resize(File file) {
         try {
-            Bitmap bitmap = Glide.with(App.get()).asBitmap().load(file).centerCrop().override(ResUtil.getScreenWidth(), ResUtil.getScreenHeight()).signature(new ObjectKey(Util.md5(file))).submit().get();
+            Bitmap bitmap = Glide.with(App.get()).asBitmap().load(file).centerCrop().override(ResUtil.getScreenWidth(), ResUtil.getScreenHeight()).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE).submit().get();
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, new FileOutputStream(file));
             bitmap.recycle();
             return file;

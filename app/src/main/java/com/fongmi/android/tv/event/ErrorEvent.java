@@ -8,50 +8,49 @@ import org.greenrobot.eventbus.EventBus;
 public class ErrorEvent {
 
     private final Type type;
-    private final int retry;
     private String msg;
+    private int code;
 
-    public static void url(int retry) {
-        EventBus.getDefault().post(new ErrorEvent(Type.URL, retry));
+    public static void url() {
+        EventBus.getDefault().post(new ErrorEvent(Type.URL, -1));
+    }
+
+    public static void url(int code) {
+        EventBus.getDefault().post(new ErrorEvent(Type.URL, code));
     }
 
     public static void flag() {
-        EventBus.getDefault().post(new ErrorEvent(Type.FLAG, 0));
+        EventBus.getDefault().post(new ErrorEvent(Type.FLAG, -1));
     }
 
     public static void parse() {
-        EventBus.getDefault().post(new ErrorEvent(Type.PARSE, 0));
+        EventBus.getDefault().post(new ErrorEvent(Type.PARSE, -1));
     }
 
     public static void timeout() {
-        EventBus.getDefault().post(new ErrorEvent(Type.TIMEOUT, 0));
+        EventBus.getDefault().post(new ErrorEvent(Type.TIMEOUT, -1));
     }
 
     public static void extract(String msg) {
-        EventBus.getDefault().post(new ErrorEvent(Type.EXTRACT, 0, msg));
+        EventBus.getDefault().post(new ErrorEvent(Type.EXTRACT, msg));
     }
 
-    public ErrorEvent(Type type, int retry) {
+    public ErrorEvent(Type type, int code) {
         this.type = type;
-        this.retry = retry;
+        this.code = code;
     }
 
-    public ErrorEvent(Type type, int retry, String msg) {
+    public ErrorEvent(Type type, String msg) {
         this.msg = msg;
         this.type = type;
-        this.retry = retry;
     }
 
     public Type getType() {
         return type;
     }
 
-    public int getRetry() {
-        return retry;
-    }
-
-    public boolean isUrl() {
-        return Type.URL.equals(getType());
+    public int getCode() {
+        return code;
     }
 
     public String getMsg() {
