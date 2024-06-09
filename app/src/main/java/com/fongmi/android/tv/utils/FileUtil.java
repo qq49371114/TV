@@ -13,10 +13,15 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.impl.Callback;
 import com.github.catvod.utils.Path;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.net.URLConnection;
 import java.text.DecimalFormat;
 import java.util.Enumeration;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -34,7 +39,17 @@ public class FileUtil {
         App.get().startActivity(intent);
     }
 
-    public static void unzip(File target, File path) {
+    public static void extractGzip(File target, File path) {
+        byte[] buffer = new byte[1024];
+        try (GZIPInputStream is = new GZIPInputStream(new BufferedInputStream(new FileInputStream(target))); BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(path))) {
+            int read;
+            while ((read = is.read(buffer)) != -1) os.write(buffer, 0, read);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void extractZip(File target, File path) {
         try (ZipFile zip = new ZipFile(target)) {
             Enumeration<?> entries = zip.entries();
             while (entries.hasMoreElements()) {

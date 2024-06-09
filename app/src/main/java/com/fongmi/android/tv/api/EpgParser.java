@@ -9,6 +9,7 @@ import com.fongmi.android.tv.bean.Group;
 import com.fongmi.android.tv.bean.Live;
 import com.fongmi.android.tv.bean.Tv;
 import com.fongmi.android.tv.utils.Download;
+import com.fongmi.android.tv.utils.FileUtil;
 import com.github.catvod.utils.Path;
 import com.github.catvod.utils.Trans;
 
@@ -31,10 +32,11 @@ public class EpgParser {
 
     public static void start(Live live) {
         try {
-            if (!live.getEpg().contains(".xml") || live.getEpg().contains("{")) return;
-            File file = Path.cache(Uri.parse(live.getEpg()).getLastPathSegment());
+            if (!live.getEpg().endsWith(".xml") && !live.getEpg().endsWith(".gz")) return;
+            File file = Path.epg(Uri.parse(live.getEpg()).getLastPathSegment());
             if (shouldDownload(file)) Download.create(live.getEpg(), file).start();
-            readXml(live, Path.read(file));
+            if (file.getName().endsWith(".gz")) readGzip(live, file);
+            else readXml(live, file);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -54,12 +56,18 @@ public class EpgParser {
         return formatFull.parse(text.substring(0, 14));
     }
 
-    private static void readXml(Live live, String xml) throws Exception {
+    private static void readGzip(Live live, File file) throws Exception {
+        File xml = Path.epg(file.getName().replace(".gz", ""));
+        if (!xml.exists()) FileUtil.extractGzip(file, xml);
+        readXml(live, xml);
+    }
+
+    private static void readXml(Live live, File file) throws Exception {
         Set<String> exist = new HashSet<>();
         Map<String, Epg> epgMap = new HashMap<>();
         Map<String, String> mapping = new HashMap<>();
         String today = formatDate.format(new Date());
-        Tv tv = new Persister().read(Tv.class, xml);
+        Tv tv = new Persister().read(Tv.class, Path.read(file));
         for (Group group : live.getGroups()) for (Channel channel : group.getChannel()) exist.add(channel.getTvgName());
         for (Tv.Channel channel : tv.getChannel()) mapping.put(channel.getId(), channel.getDisplayName());
         for (Tv.Programme programme : tv.getProgramme()) {

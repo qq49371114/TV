@@ -116,6 +116,10 @@ public class ExoUtil {
         return null;
     }
 
+    public static int getRetry(int errorCode) {
+        return errorCode >= PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED && errorCode <= PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED ? 2 : errorCode > 999 ? 1 : 0;
+    }
+
     public static MediaSource getSource(Result result, Sub sub, int errorCode) {
         return getSource(result.getHeaders(), result.getRealUrl(), result.getFormat(), result.getSubs(), sub, null, errorCode);
     }

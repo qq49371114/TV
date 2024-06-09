@@ -162,9 +162,8 @@ public class Players implements Player.Listener, AnalyticsListener, ParseCallbac
         this.url = null;
     }
 
-    public int addRetry() {
-        ++retry;
-        return retry;
+    public boolean error() {
+        return ++retry > ExoUtil.getRetry(error);
     }
 
     public String stringToTime(long time) {

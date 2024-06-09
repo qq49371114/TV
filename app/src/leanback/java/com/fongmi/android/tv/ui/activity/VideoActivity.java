@@ -1131,7 +1131,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     public void onErrorEvent(ErrorEvent event) {
         if (isBackground()) return;
         if (event.getCode() / 1000 == 4 && Players.isHard()) onDecode();
-        else if (mPlayers.addRetry() > 2) onError(event);
+        else if (mPlayers.error()) onError(event);
         else onRefresh();
     }
 
