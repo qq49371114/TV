@@ -63,6 +63,9 @@ public class Tv {
         @Element(name = "date", required = false)
         private String date;
 
+        @Element(name = "desc", required = false)
+        private String desc;
+
         public String getStart() {
             return TextUtils.isEmpty(start) ? "" : start;
         }
@@ -83,8 +86,8 @@ public class Tv {
             return TextUtils.isEmpty(date) ? "" : date;
         }
 
-        public boolean equals(String date) {
-            return getDate().isEmpty() || getDate().equals(date);
+        public String getDesc() {
+            return TextUtils.isEmpty(desc) ? "" : desc;
         }
     }
 }
