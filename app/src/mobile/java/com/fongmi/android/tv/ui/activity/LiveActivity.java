@@ -8,7 +8,6 @@ import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.media.MediaMetadataCompat;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -463,13 +462,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
 
     private boolean onChoose() {
         if (mPlayers.isEmpty()) return false;
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        intent.putExtra("headers", mPlayers.getHeaderArray());
-        intent.putExtra("title", mBinding.control.title.getText());
-        intent.setDataAndType(mPlayers.getUri(), "video/*");
-        startActivity(Util.getChooser(intent));
+        mPlayers.choose(this, mBinding.control.title.getText());
         setRedirect(true);
         return true;
     }
@@ -493,8 +486,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         hideEpg();
     }
 
-    @Override
-    public void showEpg(Channel item) {
+    private void showEpg(Channel item) {
         if (mChannel == null || mChannel.getData().getList().isEmpty() || mEpgDataAdapter.getItemCount() == 0 || !mChannel.equals(item)) return;
         mBinding.widget.epgData.scrollToPosition(item.getData().getSelected());
         mBinding.widget.epg.setVisibility(View.VISIBLE);
@@ -638,14 +630,18 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
 
     @Override
     public void onItemClick(Channel item) {
-        mGroup.setPosition(mChannelAdapter.setSelected(item.group(mGroup)));
-        mPlayers.setPlayer(getPlayerType(item.getPlayerType()));
-        setArtwork(item.getLogo());
-        mChannel = item;
-        setPlayerView();
-        showInfo();
-        hideUI();
-        fetch();
+        if (item.getData().getList().size() > 0 && item.isSelected() && mChannel != null) {
+            showEpg(item);
+        } else {
+            mGroup.setPosition(mChannelAdapter.setSelected(item.group(mGroup)));
+            mPlayers.setPlayer(getPlayerType(item.getPlayerType()));
+            setArtwork(item.getLogo());
+            mChannel = item;
+            setPlayerView();
+            showInfo();
+            hideUI();
+            fetch();
+        }
     }
 
     @Override
@@ -711,7 +707,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     }
 
     private void setEpg(Epg epg) {
-        if (mChannel != null && mChannel.getName().equals(epg.getKey())) setEpg();
+        if (mChannel != null && mChannel.getTvgName().equals(epg.getKey())) setEpg();
     }
 
     private void fetch() {
@@ -840,18 +836,13 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     private void setMetadata() {
         String title = mBinding.widget.name.getText().toString();
         String artist = mBinding.widget.play.getText().toString();
-        MediaMetadataCompat.Builder builder = new MediaMetadataCompat.Builder();
-        builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, title);
-        builder.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist);
-        builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, getIjk().getDefaultArtwork());
-        builder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, mPlayers.getDuration());
-        mPlayers.setMetadata(builder.build());
-        ActionEvent.update();
+        mPlayers.setMetadata(title, artist, mBinding.exo);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
-        if (mPlayers.addRetry() > event.getRetry()) checkError(event);
+        if (event.getCode() / 1000 == 4 && mPlayers.isExo() && Players.isHard(Players.EXO)) onDecode();
+        else if (mPlayers.addRetry() > event.getRetry()) checkError(event);
         else fetch();
     }
 
@@ -1122,15 +1113,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     }
 
     @Override
-    public void onShare(CharSequence title, String url) {
-        Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra(Intent.EXTRA_TEXT, url);
-        intent.putExtra("extra_headers", mPlayers.getHeaderBundle());
-        intent.putExtra("title", title);
-        intent.putExtra("name", title);
-        intent.setType("text/plain");
-        startActivity(Util.getChooser(intent));
+    public void onShare(CharSequence title) {
+        mPlayers.share(this, title);
         setRedirect(true);
     }
 

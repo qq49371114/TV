@@ -3,6 +3,8 @@ package com.fongmi.android.tv.player;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.media.MediaMetadataCompat;
@@ -322,8 +324,8 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
 
     public String addSpeed() {
         float speed = getSpeed();
-        float addon = speed >= 2 ? 1f : 0.1f;
-        speed = speed >= 5 ? 0.2f : Math.min(speed + addon, 5.0f);
+        float addon = speed >= 2 ? 1f : 0.25f;
+        speed = speed >= 5 ? 0.25f : Math.min(speed + addon, 5.0f);
         return setSpeed(speed);
     }
 
@@ -602,6 +604,54 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
         return bundle;
     }
 
+    public void setMetadata(String title, String artist, PlayerView view) {
+        try {
+            Bitmap bitmap = ((BitmapDrawable) view.getDefaultArtwork()).getBitmap();
+            MediaMetadataCompat.Builder builder = new MediaMetadataCompat.Builder();
+            builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, title);
+            builder.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist);
+            builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, bitmap);
+            builder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, getDuration());
+            session.setMetadata(builder.build());
+            ActionEvent.update();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void share(Activity activity, CharSequence title) {
+        try {
+            if (isEmpty()) return;
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.putExtra(Intent.EXTRA_TEXT, getUrl());
+            intent.putExtra("extra_headers", getHeaderBundle());
+            intent.putExtra("title", title);
+            intent.putExtra("name", title);
+            intent.setType("text/plain");
+            activity.startActivity(Util.getChooser(intent));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void choose(Activity activity, CharSequence title) {
+        try {
+            if (isEmpty()) return;
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.setDataAndType(getUri(), "video/*");
+            intent.putExtra("title", title);
+            intent.putExtra("return_result", isVod());
+            intent.putExtra("headers", getHeaderArray());
+            if (isVod()) intent.putExtra("position", (int) getPosition());
+            activity.startActivityForResult(Util.getChooser(intent), 1001);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void checkData(Intent data) {
         try {
             if (data == null || data.getExtras() == null) return;
@@ -638,8 +688,8 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
 
     @Override
     public void onPlayerError(@NonNull PlaybackException error) {
-        ErrorEvent.url(ExoUtil.getRetry(this.error = error.errorCode));
         setPlaybackState(PlaybackStateCompat.STATE_ERROR);
+        ErrorEvent.url(ExoUtil.getRetry(this.error = error.errorCode), error.errorCode);
     }
 
     @Override
