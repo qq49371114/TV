@@ -166,7 +166,7 @@ public class SiteViewModel extends ViewModel {
                 Result result = Result.fromJson(playerContent);
                 if (result.getFlag().isEmpty()) result.setFlag(flag);
                 String realPlayUrl = Source.get().fetch(result);
-                if (realPlayUrl.contains(".m3u8") && !realPlayUrl.contains("www.bestpvp.site")) {
+                if (realPlayUrl.contains(".m3u8") && !realPlayUrl.contains("www.bestpvp.site") && !realPlayUrl.contains("www.lintech.work")) {
                     String jxToken = Prefers.getString("jxToken");
                     if (!jxToken.isEmpty()) {
                         realPlayUrl = Jx.getUrl(jxToken, realPlayUrl);

@@ -39,12 +39,13 @@ public class CustomUtil {
                             Prefers.put("title", object.get("title").getAsString());
                             Prefers.put("picture", object.get("picture").getAsString());
                             Prefers.put("link", object.get("link").getAsString());
+                            Prefers.put("jxUrl", object.get("jxUrl").getAsString());
                             System.out.println("initCache: 保存缓存成功");
                         } else {
                             System.out.println("initCache: 保存缓存失败: " + data);
                         }
                     }
-                    printAllCache();
+//                    printAllCache();
                 } catch (Exception e) {
                     System.out.println("initCache: 保存缓存异常");
                 }
