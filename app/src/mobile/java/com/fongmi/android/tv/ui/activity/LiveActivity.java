@@ -27,6 +27,7 @@ import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.LiveConfig;
+import com.fongmi.android.tv.bean.CastVideo;
 import com.fongmi.android.tv.bean.Channel;
 import com.fongmi.android.tv.bean.Epg;
 import com.fongmi.android.tv.bean.EpgData;
@@ -34,7 +35,6 @@ import com.fongmi.android.tv.bean.Group;
 import com.fongmi.android.tv.bean.Keep;
 import com.fongmi.android.tv.bean.Live;
 import com.fongmi.android.tv.bean.Track;
-import com.fongmi.android.tv.cast.CastVideo;
 import com.fongmi.android.tv.databinding.ActivityLiveBinding;
 import com.fongmi.android.tv.event.ActionEvent;
 import com.fongmi.android.tv.event.ErrorEvent;
@@ -157,6 +157,7 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
         Server.get().start();
         setForeground(true);
         setRecyclerView();
+        setSubtitleView();
         setVideoView();
         setViewModel();
         checkLive();
@@ -201,9 +202,7 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
     private void setVideoView() {
         mPlayers.set(mBinding.exo);
         setScale(Setting.getLiveScale());
-        setSubtitle(Setting.getSubtitle());
         mBinding.exo.setVisibility(View.VISIBLE);
-        mBinding.exo.getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
         mBinding.control.action.invert.setActivated(Setting.isInvert());
         mBinding.control.action.across.setActivated(Setting.isAcross());
         mBinding.control.action.change.setActivated(Setting.isChange());
@@ -212,6 +211,12 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
         mBinding.control.action.speed.setEnabled(mPlayers.canAdjustSpeed());
         mBinding.control.action.home.setVisibility(LiveConfig.isOnly() ? View.GONE : View.VISIBLE);
         mBinding.video.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> mPiP.update(getActivity(), view));
+    }
+
+    private void setSubtitleView() {
+        setSubtitle(Setting.getSubtitle());
+        mBinding.exo.getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
+        mBinding.exo.getSubtitleView().setApplyEmbeddedStyles(!Setting.isCaption());
     }
 
     @Override
@@ -231,8 +236,10 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
     private void setViewModel() {
         mViewModel = new ViewModelProvider(this).get(LiveViewModel.class);
         mViewModel.url.observeForever(mObserveUrl);
+        mViewModel.xml.observe(this, this::setEpg);
         mViewModel.epg.observeForever(mObserveEpg);
         mViewModel.live.observe(this, live -> {
+            mViewModel.getXml(live);
             hideProgress();
             setGroup(live);
             setWidth(live);
@@ -639,6 +646,10 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
         mEpgDataAdapter.addAll(data);
         setWidth(mChannel.getData());
         setMetadata();
+    }
+
+    private void setEpg(boolean success) {
+        if (mChannel != null && success) mViewModel.getEpg(mChannel);
     }
 
     private void setEpg(Epg epg) {

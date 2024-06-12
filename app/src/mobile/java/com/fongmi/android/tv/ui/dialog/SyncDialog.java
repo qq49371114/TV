@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.dialog;
 
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -11,18 +12,19 @@ import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Device;
 import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.bean.Keep;
-import com.fongmi.android.tv.cast.ScanEvent;
-import com.fongmi.android.tv.cast.ScanTask;
 import com.fongmi.android.tv.databinding.DialogDeviceBinding;
+import com.fongmi.android.tv.event.ScanEvent;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.ui.activity.ScanActivity;
 import com.fongmi.android.tv.ui.adapter.DeviceAdapter;
 import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.android.tv.utils.ScanTask;
 import com.github.catvod.net.OkHttp;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
@@ -32,6 +34,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 import okhttp3.Call;
 import okhttp3.FormBody;
@@ -56,24 +59,27 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
     }
 
     public SyncDialog history() {
-        type = "history";
         body.add("device", Device.get().toString());
+        body.add("config", Config.vod().toString());
         body.add("targets", App.gson().toJson(History.get()));
-        if (VodConfig.getUrl() != null) body.add("url", VodConfig.getUrl());
-        return this;
+        return type("history");
     }
 
     public SyncDialog keep() {
-        type = "keep";
         body.add("device", Device.get().toString());
         body.add("targets", App.gson().toJson(Keep.getVod()));
         body.add("configs", App.gson().toJson(Config.findUrls()));
-        return this;
+        return type("keep");
     }
 
     public void show(FragmentActivity activity) {
         for (Fragment f : activity.getSupportFragmentManager().getFragments()) if (f instanceof BottomSheetDialogFragment) return;
         show(activity.getSupportFragmentManager(), null);
+    }
+
+    private SyncDialog type(String type) {
+        this.type = type;
+        return this;
     }
 
     @Override
@@ -83,6 +89,7 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
 
     @Override
     protected void initView() {
+        binding.mode.setVisibility(View.VISIBLE);
         EventBus.getDefault().register(this);
         setRecyclerView();
         getDevice();
@@ -90,6 +97,7 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
 
     @Override
     protected void initEvent() {
+        binding.mode.setOnClickListener(v -> onMode());
         binding.scan.setOnClickListener(v -> onScan());
         binding.refresh.setOnClickListener(v -> onRefresh());
     }
@@ -104,13 +112,26 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
         if (adapter.getItemCount() == 0) App.post(this::onRefresh, 1000);
     }
 
-    private void onRefresh() {
-        ScanTask.create(this).start(adapter.getIps());
-        adapter.clear();
+    private void onMode() {
+        if (binding.mode.getTag().toString().equals("0")) {
+            binding.mode.setTag("1");
+            binding.mode.setImageResource(R.drawable.ic_cast_upload);
+        } else if (binding.mode.getTag().toString().equals("1")) {
+            binding.mode.setTag("2");
+            binding.mode.setImageResource(R.drawable.ic_cast_download);
+        } else if (binding.mode.getTag().toString().equals("2")) {
+            binding.mode.setTag("0");
+            binding.mode.setImageResource(R.drawable.ic_cast_sync);
+        }
     }
 
     private void onScan() {
         ScanActivity.start(getActivity());
+    }
+
+    private void onRefresh() {
+        ScanTask.create(this).start(adapter.getIps());
+        adapter.clear();
     }
 
     private void onSuccess() {
@@ -129,12 +150,16 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
 
     @Override
     public void onItemClick(Device item) {
-        OkHttp.newCall(client, item.getIp().concat("/action?do=sync&mode=0&type=").concat(type), body.build()).enqueue(getCallback());
+        OkHttp.newCall(client, String.format(Locale.getDefault(), "%s/action?do=sync&mode=%s&type=%s", item.getIp(), binding.mode.getTag().toString(), type), body.build()).enqueue(getCallback());
     }
 
     @Override
     public boolean onLongClick(Device item) {
-        OkHttp.newCall(client, item.getIp().concat("/action?do=sync&mode=1&type=").concat(type), body.build()).enqueue(getCallback());
+        String mode = binding.mode.getTag().toString();
+        if (mode.equals("0")) return false;
+        if (mode.equals("2") && type.equals("keep")) Keep.deleteAll();
+        if (mode.equals("2") && type.equals("history")) History.delete(VodConfig.getCid());
+        OkHttp.newCall(client, String.format(Locale.getDefault(), "%s/action?do=sync&mode=%s&type=%s&force=true", item.getIp(), binding.mode.getTag().toString(), type), body.build()).enqueue(getCallback());
         return true;
     }
 

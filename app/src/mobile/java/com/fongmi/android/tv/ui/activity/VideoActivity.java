@@ -43,6 +43,7 @@ import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.VodConfig;
+import com.fongmi.android.tv.bean.CastVideo;
 import com.fongmi.android.tv.bean.Episode;
 import com.fongmi.android.tv.bean.Flag;
 import com.fongmi.android.tv.bean.History;
@@ -53,7 +54,6 @@ import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Sub;
 import com.fongmi.android.tv.bean.Track;
 import com.fongmi.android.tv.bean.Vod;
-import com.fongmi.android.tv.cast.CastVideo;
 import com.fongmi.android.tv.databinding.ActivityVideoBinding;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.event.ActionEvent;
@@ -294,6 +294,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mPiP = new PiP();
         setForeground(true);
         setRecyclerView();
+        setSubtitleView();
         setVideoView();
         setViewModel();
         showProgress();
@@ -367,14 +368,18 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void setVideoView() {
         mPlayers.set(mBinding.exo);
         mBinding.exo.setVisibility(View.VISIBLE);
-        mBinding.exo.getSubtitleView().setFixedTextSize(Dimension.SP, 14);
-        mBinding.exo.getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
         mBinding.control.action.decode.setText(mPlayers.getDecodeText());
         mBinding.control.action.speed.setEnabled(mPlayers.canAdjustSpeed());
         mBinding.control.action.reset.setText(ResUtil.getStringArray(R.array.select_reset)[Setting.getReset()]);
         mBinding.video.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> mPiP.update(getActivity(), view));
         if (mControlDialog != null && mControlDialog.isVisible()) mControlDialog.setPlayer();
         if (isPort() && ResUtil.isLand(this)) enterFullscreen();
+    }
+
+    private void setSubtitleView() {
+        mBinding.exo.getSubtitleView().setFixedTextSize(Dimension.SP, 14);
+        mBinding.exo.getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
+        mBinding.exo.getSubtitleView().setApplyEmbeddedStyles(!Setting.isCaption());
     }
 
     @Override

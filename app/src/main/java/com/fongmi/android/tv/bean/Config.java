@@ -2,6 +2,7 @@ package com.fongmi.android.tv.bean;
 
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
@@ -43,6 +44,10 @@ public class Config {
         Type listType = new TypeToken<List<Config>>() {}.getType();
         List<Config> items = App.gson().fromJson(str, listType);
         return items == null ? Collections.emptyList() : items;
+    }
+
+    public static Config objectFrom(String str) {
+        return App.gson().fromJson(str, Config.class);
     }
 
     public static Config create(int type) {
@@ -220,6 +225,10 @@ public class Config {
         return item == null ? create(type, url, name) : item.type(type).name(name);
     }
 
+    public static Config find(Config config) {
+        return find(config, config.getType());
+    }
+
     public static Config find(Config config, int type) {
         Config item = AppDatabase.get().getConfigDao().find(config.getUrl(), type);
         return item == null ? create(type, config.getUrl(), config.getName()) : item.type(type).name(config.getName());
@@ -253,6 +262,12 @@ public class Config {
         AppDatabase.get().getConfigDao().delete(getUrl(), getType());
         History.delete(getId());
         Keep.delete(getId());
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return App.gson().toJson(this);
     }
 
     @Override

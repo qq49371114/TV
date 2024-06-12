@@ -1,4 +1,4 @@
-package com.fongmi.android.tv.cast;
+package com.fongmi.android.tv.bean;
 
 import com.fongmi.android.tv.server.Server;
 import com.github.catvod.utils.Path;

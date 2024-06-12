@@ -207,11 +207,11 @@ public class Players implements Player.Listener, AnalyticsListener, ParseCallbac
     }
 
     public boolean isLive() {
-        return getDuration() < 5 * 60 * 1000;
+        return getDuration() < 5 * 60 * 1000 || player.isCurrentMediaItemLive();
     }
 
     public boolean isVod() {
-        return getDuration() > 5 * 60 * 1000;
+        return getDuration() > 5 * 60 * 1000 && !player.isCurrentMediaItemLive();
     }
 
     public boolean isPortrait() {
@@ -308,6 +308,7 @@ public class Players implements Player.Listener, AnalyticsListener, ParseCallbac
         stopParse();
         releasePlayer();
         session.release();
+        removeTimeoutCheck();
         App.execute(() -> Source.get().stop());
     }
 
@@ -366,25 +367,23 @@ public class Players implements Player.Listener, AnalyticsListener, ParseCallbac
     }
 
     private void setMediaSource(Result result, int timeout) {
-        Logger.t(TAG).d(error + "," + result.getRealUrl());
         if (player != null) player.setMediaSource(ExoUtil.getSource(result, sub, error), position);
         setTimeoutCheck(result.getHeaders(), result.getRealUrl(), timeout);
     }
 
     private void setMediaSource(Channel channel, int timeout) {
-        Logger.t(TAG).d(error + "," + channel.getUrl());
         if (player != null) player.setMediaSource(ExoUtil.getSource(channel, error));
         setTimeoutCheck(channel.getHeaders(), channel.getUrl(), timeout);
     }
 
     private void setMediaSource(Map<String, String> headers, String url) {
-        Logger.t(TAG).d(error + "," + url);
         if (player != null) player.setMediaSource(ExoUtil.getSource(headers, url, sub, error), position);
         setTimeoutCheck(headers, url, Constant.TIMEOUT_PLAY);
     }
 
     private void setTimeoutCheck(Map<String, String> headers, String url, int timeout) {
         if (player != null) player.prepare();
+        Logger.t(TAG).d(error + "," + url);
         App.post(runnable, timeout);
         this.headers = headers;
         PlayerEvent.state(0);

@@ -85,6 +85,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
         mParser = new DIDLParser();
         mR1 = this::hideControl;
         mR2 = this::setTraffic;
+        setSubtitleView();
         setVideoView();
         checkAction();
     }
@@ -133,14 +134,19 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
 
     private void setVideoView() {
         mPlayers.set(mBinding.exo);
-        setSubtitle(Setting.getSubtitle());
-        mBinding.exo.setVisibility(View.VISIBLE);
         setScale(scale = Setting.getScale());
+        mBinding.exo.setVisibility(View.VISIBLE);
         findViewById(R.id.timeBar).setNextFocusUpId(R.id.reset);
         mBinding.control.speed.setText(mPlayers.getSpeedText());
+        mBinding.control.decode.setText(mPlayers.getDecodeText());
         mBinding.control.speed.setEnabled(mPlayers.canAdjustSpeed());
-        mBinding.exo.getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
         mBinding.control.reset.setText(ResUtil.getStringArray(R.array.select_reset)[0]);
+    }
+
+    private void setSubtitleView() {
+        setSubtitle(Setting.getSubtitle());
+        mBinding.exo.getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
+        mBinding.exo.getSubtitleView().setApplyEmbeddedStyles(!Setting.isCaption());
     }
 
     @Override
