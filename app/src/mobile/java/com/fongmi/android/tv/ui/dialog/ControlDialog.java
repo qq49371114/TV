@@ -99,6 +99,7 @@ public class ControlDialog extends BaseDialog implements ParseAdapter.OnClickLis
         binding.dpspeed.setActivated(Setting.isDisplaySpeed());
         binding.dpduration.setActivated(Setting.isDisplayDuration());
         binding.dpminiprogress.setActivated(Setting.isDisplayMiniProgress());
+        binding.dpvideotitle.setActivated(Setting.isDisplayVideoTitle());
         setTrackVisible();
         setScaleText();
         setPlayer();
@@ -125,6 +126,7 @@ public class ControlDialog extends BaseDialog implements ParseAdapter.OnClickLis
         binding.dpspeed.setOnClickListener(v -> displaySpeed());
         binding.dpduration.setOnClickListener(v -> displayDuration());
         binding.dpminiprogress.setOnClickListener(v -> displayMiniProgress());
+        binding.dpvideotitle.setOnClickListener(v -> displayVideoTitle());
     }
 
     private void displayTime() {
@@ -153,6 +155,13 @@ public class ControlDialog extends BaseDialog implements ParseAdapter.OnClickLis
         parent.display.progress.setVisibility(!display ? View.VISIBLE : View.GONE);
         Setting.putDisplayMiniProgress(!display);
         binding.dpminiprogress.setActivated(!display);
+    }
+
+    private void displayVideoTitle() {
+        boolean display = Setting.isDisplayVideoTitle();
+        parent.display.titleLayout.setVisibility(!display ? View.VISIBLE : View.GONE);
+        Setting.putDisplayVideoTitle(!display);
+        binding.dpvideotitle.setActivated(!display);
     }
 
     private void onTimer(View view) {

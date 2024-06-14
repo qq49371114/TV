@@ -206,6 +206,6 @@ public class SettingPlayerFragment extends BaseFragment implements UaCallback, B
 
     @Override
     public void onHiddenChanged(boolean hidden) {
-        if (!hidden) setVisible();
+        if (!hidden) initView();
     }
 }

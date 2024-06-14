@@ -27,16 +27,13 @@ import java.util.Set;
 
 public class EpgParser {
 
-    public static void start(Live live) {
-        try {
-            if (!live.getEpg().endsWith(".xml") && !live.getEpg().endsWith(".gz")) return;
-            File file = Path.epg(Uri.parse(live.getEpg()).getLastPathSegment());
-            if (shouldDownload(file)) Download.create(live.getEpg(), file).start();
-            if (file.getName().endsWith(".gz")) readGzip(live, file);
-            else readXml(live, file);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public static boolean start(Live live) throws Exception {
+        if (!live.getEpg().endsWith(".xml") && !live.getEpg().endsWith(".gz")) return false;
+        File file = Path.epg(Uri.parse(live.getEpg()).getLastPathSegment());
+        if (shouldDownload(file)) Download.create(live.getEpg(), file).start();
+        if (file.getName().endsWith(".gz")) readGzip(live, file);
+        else readXml(live, file);
+        return true;
     }
 
     private static boolean shouldDownload(File file) {

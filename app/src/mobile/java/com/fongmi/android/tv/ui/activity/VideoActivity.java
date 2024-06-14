@@ -54,7 +54,7 @@ import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Sub;
 import com.fongmi.android.tv.bean.Track;
 import com.fongmi.android.tv.bean.Vod;
-import com.fongmi.android.tv.cast.CastVideo;
+import com.fongmi.android.tv.bean.CastVideo;
 import com.fongmi.android.tv.databinding.ActivityVideoBinding;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.event.ActionEvent;
@@ -320,6 +320,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mPiP = new PiP();
         setForeground(true);
         setRecyclerView();
+        setSubtitleView();
         setVideoView();
         setDisplayView();
         setDanmuView();
@@ -413,11 +414,16 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void setVideoView() {
         mPlayers.set(getExo(), getIjk());
         if (isPort() && ResUtil.isLand(this)) enterFullscreen();
-        getExo().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
-        getIjk().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
         mBinding.control.action.reset.setText(ResUtil.getStringArray(R.array.select_reset)[Setting.getReset()]);
         mBinding.video.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> mPiP.update(getActivity(), view));
+    }
+
+    private void setSubtitleView() {
         setSubtitle(14);
+        getExo().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
+        getIjk().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
+        getExo().getSubtitleView().setApplyEmbeddedStyles(!Setting.isCaption());
+        getIjk().getSubtitleView().setApplyEmbeddedStyles(!Setting.isCaption());
     }
 
     public void setDanmuViewSettings() {
@@ -584,6 +590,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void getPlayer(Flag flag, Episode episode, boolean replay) {
         mBinding.control.title.setText(getString(R.string.detail_title, mBinding.name.getText(), episode.getName()));
+        mBinding.display.title.setText(mBinding.control.title.getText());
         mViewModel.playerContent(getKey(), flag.getFlag(), episode.getUrl());
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         updateHistory(episode, replay);
@@ -866,7 +873,11 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void onDecode() {
-        mPlayers.toggleDecode();
+        onDecode(true);
+    }
+
+    private void onDecode(boolean save) {
+        mPlayers.toggleDecode(save);
         mPlayers.set(getExo(), getIjk());
         setDecodeView();
         setR1Callback();
@@ -934,7 +945,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.display.clock.setVisibility(Setting.isDisplayTime() && visible  ? View.VISIBLE : View.GONE);
         mBinding.display.netspeed.setVisibility(Setting.isDisplaySpeed() && visible ? View.VISIBLE : View.GONE);
         mBinding.display.duration.setVisibility(Setting.isDisplayDuration() && visible ? View.VISIBLE : View.GONE);
-        mBinding.display.progress.setVisibility(Setting.isDisplayMiniProgress() && visible && (mPlayers.getDuration() > 60000) ? View.VISIBLE : View.GONE);
+        mBinding.display.progress.setVisibility(Setting.isDisplayMiniProgress() && visible && (mPlayers.isVod()) ? View.VISIBLE : View.GONE);
+        mBinding.display.titleLayout.setVisibility(Setting.isDisplayVideoTitle()&& visible ? View.VISIBLE : View.GONE);
     }
 
     private void onTimeChangeDisplaySpeed() {
@@ -943,7 +955,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         long position = mPlayers.getPosition();
         if (Setting.isDisplaySpeed() && visible) Traffic.setSpeed(mBinding.display.netspeed);
         if (Setting.isDisplayDuration() && visible && position > 0) mBinding.display.duration.setText(mPlayers.getPositionTime(0) + "/" + mPlayers.getDurationTime());
-        if (Setting.isDisplayMiniProgress() && visible && position > 0 && (mPlayers.getDuration() > 60000)) mBinding.display.progress.setProgress((int)(position * 100 / mPlayers.getDuration()));
+        if (Setting.isDisplayMiniProgress() && visible && position > 0 && (mPlayers.isVod())) mBinding.display.progress.setProgress((int)(position * 100 / mPlayers.getDuration()));
         showDisplayInfo();
     }
 
@@ -1268,6 +1280,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                 checkPlayImg(mPlayers.isPlaying());
                 mHistory.setPlayer(mPlayers.getPlayer());
                 mBinding.control.size.setText(mPlayers.getSizeText());
+                mBinding.display.size.setText(mPlayers.getSizeText());
                 if (isVisible(mBinding.control.getRoot())) showControl();
                 break;
             case Player.STATE_ENDED:
@@ -1308,16 +1321,17 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void setMetadata() {
+        String logo = mHistory == null ? "" : mHistory.getVodPic();
         String title = mHistory == null ? getName() : mHistory.getVodName();
         String artist = mEpisodeAdapter.isEmpty() ? "" : getEpisode().getName();
         artist = title.equals(artist) ? "" : getString(R.string.play_now, artist);
-        mPlayers.setMetadata(title, artist, mBinding.exo);
+        mPlayers.setMetadata(title, artist, logo, mBinding.exo);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
         if (isRedirect()) return;
-        if (event.getCode() / 1000 == 4 && mPlayers.isExo() && Players.isHard(Players.EXO)) onDecode();
+        if (event.getCode() / 1000 == 4 && mPlayers.isExo() && mPlayers.isHard()) onDecode(false);
         else if (mPlayers.addRetry() > event.getRetry()) checkError(event);
         else onRefresh();
     }

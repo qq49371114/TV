@@ -45,14 +45,13 @@ import com.fongmi.android.tv.bean.Drm;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Sub;
 import com.fongmi.android.tv.player.custom.NextRenderersFactory;
+import com.fongmi.android.tv.utils.Sniffer;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
-import com.github.catvod.utils.Util;
-import com.google.common.net.HttpHeaders;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -77,8 +76,8 @@ public class ExoUtil {
         return trackSelector;
     }
 
-    public static RenderersFactory buildRenderersFactory() {
-        return new NextRenderersFactory(App.get()).setEnableDecoderFallback(true).setExtensionRendererMode(Players.isSoft(Players.EXO) ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON);
+    public static RenderersFactory buildRenderersFactory(int decode) {
+        return new NextRenderersFactory(App.get()).setEnableDecoderFallback(true).setExtensionRendererMode(decode == Players.SOFT ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON);
     }
 
     public static CaptionStyleCompat getCaptionStyle() {
@@ -121,43 +120,45 @@ public class ExoUtil {
         return null;
     }
 
-    public static MediaSource getSource(Result result, Sub sub, int errorCode) {
-        return getSource(result.getHeaders(), result.getRealUrl(), result.getFormat(), result.getSubs(), sub, null, errorCode);
+    public static MediaSource getSource(Result result, Sub sub, int decode, int errorCode) {
+        return getSource(result.getHeaders(), result.getRealUrl(), result.getFormat(), result.getSubs(), sub, null, decode, errorCode);
     }
 
-    public static MediaSource getSource(Channel channel, int errorCode) {
-        return getSource(channel.getHeaders(), channel.getUrl(), null, Collections.emptyList(), null, channel.getDrm(), errorCode);
+    public static MediaSource getSource(Channel channel, Sub sub, int decode, int errorCode) {
+        return getSource(channel.getHeaders(), channel.getUrl(), channel.getFormat(), new ArrayList<>(), sub, channel.getDrm(), decode, errorCode);
     }
 
-    public static MediaSource getSource(Map<String, String> headers, String url, Sub sub, int errorCode) {
-        return getSource(headers, url, null, new ArrayList<>(), sub, null, errorCode);
+    public static MediaSource getSource(Map<String, String> headers, String url, Sub sub, int decode, int errorCode) {
+        return getSource(headers, url, null, new ArrayList<>(), sub, null, decode, errorCode);
     }
 
-    private static MediaSource getSource(Map<String, String> headers, String url, String format, List<Sub> subs, Sub sub, Drm drm, int errorCode) {
+    private static MediaSource getSource(Map<String, String> headers, String url, String format, List<Sub> subs, Sub sub, Drm drm, int decode, int errorCode) {
         Uri uri = UrlUtil.uri(url);
         if (sub != null) subs.add(sub);
         String mimeType = getMimeType(format, errorCode);
-        if (uri.getUserInfo() != null) headers.put(HttpHeaders.AUTHORIZATION, Util.basic(uri.getUserInfo()));
-        if (url.contains("***") && url.contains("|||")) return getConcat(headers, url, format, subs, sub, drm, errorCode);
-        return new DefaultMediaSourceFactory(getDataSourceFactory(headers), getExtractorsFactory()).createMediaSource(getMediaItem(uri, mimeType, subs, drm));
+        if (url.contains("***") && url.contains("|||")) return getConcat(headers, url, format, subs, drm, decode, errorCode);
+        return new DefaultMediaSourceFactory(getDataSourceFactory(headers), getExtractorsFactory()).createMediaSource(getMediaItem(uri, mimeType, subs, drm, decode));
     }
 
-    private static MediaSource getConcat(Map<String, String> headers, String url, String format, List<Sub> subs, Sub sub, Drm drm, int errorCode) {
+    private static MediaSource getConcat(Map<String, String> headers, String url, String format, List<Sub> subs, Drm drm, int decode, int errorCode) {
         ConcatenatingMediaSource2.Builder builder = new ConcatenatingMediaSource2.Builder();
         for (String split : url.split("\\*\\*\\*")) {
             String[] info = split.split("\\|\\|\\|");
             if (info.length < 2) continue;
             long duration = Long.parseLong(info[1]);
-            builder.add(getSource(headers, info[0], format, subs, sub, drm, errorCode), duration);
+            builder.add(getSource(headers, info[0], format, subs, null, drm, decode, errorCode), duration);
         }
         return builder.build();
     }
 
-    private static MediaItem getMediaItem(Uri uri, String mimeType, List<Sub> subs, Drm drm) {
+    private static MediaItem getMediaItem(Uri uri, String mimeType, List<Sub> subs, Drm drm, int decode) {
         MediaItem.Builder builder = new MediaItem.Builder().setUri(uri);
         if (!subs.isEmpty()) builder.setSubtitleConfigurations(getSubtitles(subs));
         if (drm != null) builder.setDrmConfiguration(drm.get());
         if (mimeType != null) builder.setMimeType(mimeType);
+        builder.setAllowChunklessPreparation(decode == Players.HARD);
+        builder.setForceUseRtpTcp(Setting.getRtsp() == 1);
+        builder.setAds(Setting.isRemoveAd() ? Arrays.asList("9999") : Sniffer.getRegex(uri));
         return builder.build();
     }
 

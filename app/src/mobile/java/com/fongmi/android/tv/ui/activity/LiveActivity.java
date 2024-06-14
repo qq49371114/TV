@@ -35,7 +35,7 @@ import com.fongmi.android.tv.bean.Group;
 import com.fongmi.android.tv.bean.Keep;
 import com.fongmi.android.tv.bean.Live;
 import com.fongmi.android.tv.bean.Track;
-import com.fongmi.android.tv.cast.CastVideo;
+import com.fongmi.android.tv.bean.CastVideo;
 import com.fongmi.android.tv.databinding.ActivityLiveBinding;
 import com.fongmi.android.tv.event.ActionEvent;
 import com.fongmi.android.tv.event.ErrorEvent;
@@ -174,6 +174,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         Server.get().start();
         setForeground(true);
         setRecyclerView();
+        setSubtitleView();
         setVideoView();
         setDisplayView();
         setViewModel();
@@ -234,13 +235,18 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     private void setVideoView() {
         mPlayers.set(getExo(), getIjk());
         setScale(Setting.getLiveScale());
-        setSubtitle(Setting.getSubtitle());
-        getExo().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
-        getIjk().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
         mBinding.control.action.invert.setActivated(Setting.isInvert());
         mBinding.control.action.across.setActivated(Setting.isAcross());
         mBinding.control.action.change.setActivated(Setting.isChange());
         mBinding.control.action.home.setVisibility(LiveConfig.isOnly() ? View.GONE : View.VISIBLE);
+    }
+
+    private void setSubtitleView() {
+        setSubtitle(Setting.getSubtitle());
+        getExo().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
+        getIjk().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
+        getExo().getSubtitleView().setApplyEmbeddedStyles(!Setting.isCaption());
+        getIjk().getSubtitleView().setApplyEmbeddedStyles(!Setting.isCaption());
     }
 
     private void setDisplayView() {
@@ -264,8 +270,10 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     private void setViewModel() {
         mViewModel = new ViewModelProvider(this).get(LiveViewModel.class);
         mViewModel.url.observeForever(mObserveUrl);
+        mViewModel.xml.observe(this, this::setEpg);
         mViewModel.epg.observeForever(mObserveEpg);
         mViewModel.live.observe(this, live -> {
+            mViewModel.getXml(live);
             hideProgress();
             setGroup(live);
             setWidth(live);
@@ -453,7 +461,11 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     }
 
     private void onDecode() {
-        mPlayers.toggleDecode();
+        onDecode(true);
+    }
+
+    private void onDecode(boolean save) {
+        mPlayers.toggleDecode(save);
         mPlayers.set(getExo(), getIjk());
         setDecodeView();
         setR1Callback();
@@ -545,6 +557,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mBinding.display.clock.setVisibility(Setting.isDisplayTime() && visible  ? View.VISIBLE : View.GONE);
         mBinding.display.netspeed.setVisibility(Setting.isDisplaySpeed() && visible ? View.VISIBLE : View.GONE);
         mBinding.display.duration.setVisibility(View.GONE);
+        mBinding.display.titleLayout.setVisibility(Setting.isDisplayVideoTitle()&& visible ? View.VISIBLE : View.GONE);
     }
 
     private void onTimeChangeDisplaySpeed() {
@@ -630,7 +643,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
 
     @Override
     public void onItemClick(Channel item) {
-        if (item.getData().getList().size() > 0 && item.isSelected() && mChannel != null) {
+        if (item.getData().getList().size() > 0 && item.isSelected() && mChannel != null && mChannel.equals(item)) {
             showEpg(item);
         } else {
             mGroup.setPosition(mChannelAdapter.setSelected(item.group(mGroup)));
@@ -685,6 +698,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mChannel.loadLogo(mBinding.widget.logo);
         mBinding.widget.name.setText(mChannel.getName());
         mBinding.control.title.setText(mChannel.getName());
+        mBinding.display.title.setText(mChannel.getName());
         mBinding.widget.namePip.setText(mChannel.getName());
         mBinding.widget.line.setText(mChannel.getLineText());
         mBinding.widget.number.setText(mChannel.getNumber());
@@ -704,6 +718,10 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         mEpgDataAdapter.addAll(data);
         setWidth(mChannel.getData());
         setMetadata();
+    }
+
+    private void setEpg(boolean success) {
+        if (mChannel != null && success) mViewModel.getEpg(mChannel);
     }
 
     private void setEpg(Epg epg) {
@@ -818,6 +836,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
                 setTrackVisible(true);
                 checkPlayImg(mPlayers.isPlaying());
                 mBinding.control.size.setText(mPlayers.getSizeText());
+                mBinding.display.size.setText(mPlayers.getSizeText());
                 if (isVisible(mBinding.control.getRoot())) showControl();
                 break;
             case Player.STATE_ENDED:
@@ -834,14 +853,15 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     }
 
     private void setMetadata() {
+        String logo = mChannel == null ? "" : mChannel.getLogo();
         String title = mBinding.widget.name.getText().toString();
         String artist = mBinding.widget.play.getText().toString();
-        mPlayers.setMetadata(title, artist, mBinding.exo);
+        mPlayers.setMetadata(title, artist, logo, mBinding.exo);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
-        if (event.getCode() / 1000 == 4 && mPlayers.isExo() && Players.isHard(Players.EXO)) onDecode();
+        if (event.getCode() / 1000 == 4 && mPlayers.isExo() && mPlayers.isHard()) onDecode(false);
         else if (mPlayers.addRetry() > event.getRetry()) checkError(event);
         else fetch();
     }
