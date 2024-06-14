@@ -11,6 +11,7 @@ import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
+import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Device;
 import com.fongmi.android.tv.event.ScanEvent;
@@ -72,6 +73,14 @@ public class TransmitDialog extends BaseDialog implements DeviceAdapter.OnClickL
         type = "vod_config";
         FormBody.Builder body = new FormBody.Builder();
         if (VodConfig.getUrl() != null) body.add("url", VodConfig.getUrl());
+        requestBody = body.build();
+        return this;
+    }
+
+    public TransmitDialog jxTokenConfig() {
+        type = "push_jxtoken";
+        FormBody.Builder body = new FormBody.Builder();
+        if (Setting.getJxtoken() != null) body.add("jxToken", Setting.getJxtoken());
         requestBody = body.build();
         return this;
     }

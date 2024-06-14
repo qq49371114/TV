@@ -6,10 +6,10 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 
-import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.gson.FilterAdapter;
 import com.fongmi.android.tv.gson.MsgAdapter;
 import com.fongmi.android.tv.gson.UrlAdapter;
+import com.fongmi.android.tv.App;
 import com.github.catvod.utils.Json;
 import com.github.catvod.utils.Trans;
 import com.google.gson.JsonElement;

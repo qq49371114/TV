@@ -2,9 +2,6 @@ package com.fongmi.android.tv.api.config;
 
 import android.text.TextUtils;
 
-import com.fongmi.android.tv.App;
-import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.api.Decoder;
 import com.fongmi.android.tv.api.loader.JarLoader;
 import com.fongmi.android.tv.api.loader.JsLoader;
 import com.fongmi.android.tv.api.loader.PyLoader;
@@ -14,13 +11,18 @@ import com.fongmi.android.tv.bean.Parse;
 import com.fongmi.android.tv.bean.Rule;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.impl.Callback;
+import com.fongmi.android.tv.utils.CustomUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.UrlUtil;
+import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.api.Decoder;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.crawler.SpiderNull;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
+import com.github.catvod.utils.Prefers;
 import com.github.catvod.utils.Util;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -124,18 +126,35 @@ public class VodConfig {
     }
 
     public void load(Callback callback) {
-        load(callback, false);
+        load(callback, false, CustomUtil.getForceRefresh());
     }
 
-    public void load(Callback callback, boolean cache) {
-        if (cache) App.execute(() -> loadConfigCache(callback));
-        else App.execute(() -> loadConfig(callback));
+    public void load(Callback callback, boolean cache, int force_refresh) {
+        if (cache && force_refresh == 0) App.execute(() -> loadConfigCache(callback));
+        else App.execute(() -> loadConfig(callback, force_refresh));
     }
 
-    private void loadConfig(Callback callback) {
+    private void loadConfig(Callback callback, int force_refresh) {
         try {
-            checkJson(Json.parse(Decoder.getJson(config.getUrl())).getAsJsonObject(), callback);
+            String url = config.getUrl();
+            if (TextUtils.isEmpty(url)) {
+                url = CustomUtil.getSource();
+                Config.find(url, 0).name(CustomUtil.getTitle()).update();
+                App.post(() -> callback.error("公瑾TV 以及 时光机数据源 均为免费开源项目！播放时若出现广告均为三方插入, 与本公众号无关，请勿相信!"));
+            } else {
+                if (force_refresh == 1 && !TextUtils.equals(url, Prefers.getString("source"))) {
+                    url = Prefers.getString("source");
+                    System.out.println("强制刷新source: "+url);
+                }
+            }
+            checkJson(Json.parse(Decoder.getJson(url)).getAsJsonObject(), callback);
         } catch (Throwable e) {
+            if (TextUtils.isEmpty(config.getUrl())) {
+                App.post(() -> callback.error(""));
+            } else {
+                loadCache(callback, e);
+            }
+            LiveConfig.get().load();
             if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
             else loadCache(callback, e);
             e.printStackTrace();
@@ -148,8 +167,9 @@ public class VodConfig {
     }
 
     private void loadConfigCache(Callback callback) {
+        int force_refresh = CustomUtil.getForceRefresh();
         if (!TextUtils.isEmpty(config.getJson()) && config.isCache()) checkJson(Json.parse(config.getJson()).getAsJsonObject(), callback);
-        else loadConfig(callback);
+        else loadConfig(callback, force_refresh);
     }
 
     private void checkJson(JsonObject object, Callback callback) {
@@ -165,10 +185,11 @@ public class VodConfig {
     private void parseDepot(JsonObject object, Callback callback) {
         List<Depot> items = Depot.arrayFrom(object.getAsJsonArray("urls").toString());
         List<Config> configs = new ArrayList<>();
+        int force_refresh = CustomUtil.getForceRefresh();
         for (Depot item : items) configs.add(Config.find(item, 0));
         Config.delete(config.getUrl());
         config = configs.get(0);
-        loadConfig(callback);
+        loadConfig(callback, force_refresh);
     }
 
     private void parseConfig(JsonObject object, Callback callback) {
@@ -178,8 +199,8 @@ public class VodConfig {
             initOther(object);
             if (loadLive && object.has("lives")) initLive(object);
             jarLoader.parseJar("", Json.safeString(object, "spider"));
-            config.logo(Json.safeString(object, "logo"));
             config.json(object.toString()).update();
+            config.logo(Json.safeString(object, "logo"));
             App.post(callback::success);
         } catch (Throwable e) {
             e.printStackTrace();

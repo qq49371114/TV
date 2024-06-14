@@ -3,8 +3,8 @@ package com.fongmi.android.tv.bean;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.utils.Util;
+import com.fongmi.android.tv.App;
 import com.github.catvod.utils.Trans;
 import com.google.gson.annotations.SerializedName;
 

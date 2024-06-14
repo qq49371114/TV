@@ -9,11 +9,11 @@ import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
+import com.fongmi.android.tv.gson.ExtAdapter;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.db.AppDatabase;
-import com.fongmi.android.tv.gson.ExtAdapter;
 import com.github.catvod.utils.Json;
 import com.github.catvod.utils.Trans;
 import com.google.gson.JsonElement;

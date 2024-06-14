@@ -7,6 +7,14 @@ import androidx.collection.ArrayMap;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.fongmi.android.tv.player.Source;
+import com.fongmi.android.tv.player.extractor.Thunder;
+import com.fongmi.android.tv.utils.Jx;
+import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.Sniffer;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
@@ -19,13 +27,10 @@ import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Url;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.exception.ExtractException;
-import com.fongmi.android.tv.player.Source;
-import com.fongmi.android.tv.player.extractor.Thunder;
-import com.fongmi.android.tv.utils.ResUtil;
-import com.fongmi.android.tv.utils.Sniffer;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
+import com.github.catvod.utils.Prefers;
 import com.github.catvod.utils.Trans;
 import com.github.catvod.utils.Util;
 
@@ -160,9 +165,20 @@ public class SiteViewModel extends ViewModel {
                 VodConfig.get().setRecent(site);
                 Result result = Result.fromJson(playerContent);
                 if (result.getFlag().isEmpty()) result.setFlag(flag);
-                result.setUrl(Source.get().fetch(result));
+                String realPlayUrl = Source.get().fetch(result);
+                if (realPlayUrl.contains(".m3u8") && !realPlayUrl.contains("www.bestpvp.site") && !realPlayUrl.contains("www.lintech.work")) {
+                    String jxToken = Prefers.getString("jxToken");
+                    if (!jxToken.isEmpty()) {
+                        realPlayUrl = Jx.getUrl(jxToken, realPlayUrl);
+                    } else {
+                        System.out.println("公瑾TV 没有jxToken");
+                    }
+                }
+                result.setUrl(realPlayUrl);
                 result.setHeader(site.getHeader());
                 result.setKey(key);
+                System.out.println("playerContent - siteType 3: url ->"+realPlayUrl);
+                System.out.println("playerContent - siteType 3: result ->"+ result);
                 return result;
             } else if (site.getType() == 4) {
                 ArrayMap<String, String> params = new ArrayMap<>();
@@ -174,6 +190,8 @@ public class SiteViewModel extends ViewModel {
                 if (result.getFlag().isEmpty()) result.setFlag(flag);
                 result.setUrl(Source.get().fetch(result));
                 result.setHeader(site.getHeader());
+                System.out.println("playerContent - siteType 4: url ->"+Source.get().fetch(result));
+                System.out.println("playerContent - siteType 4: result ->"+ result);
                 return result;
             } else if (site.isEmpty() && "push_agent".equals(key)) {
                 Result result = new Result();
@@ -181,6 +199,8 @@ public class SiteViewModel extends ViewModel {
                 result.setFlag(flag);
                 result.setUrl(Url.create().add(id));
                 result.setUrl(Source.get().fetch(result));
+                System.out.println("playerContent - push_agent: url ->"+Source.get().fetch(result));
+                System.out.println("playerContent - push_agent: result ->"+ result);
                 return result;
             } else {
                 Url url = Url.create().add(id);
@@ -193,6 +213,8 @@ public class SiteViewModel extends ViewModel {
                 result.setPlayUrl(site.getPlayUrl());
                 result.setParse(Sniffer.isVideoFormat(url.v()) && result.getPlayUrl().isEmpty() ? 0 : 1);
                 SpiderDebug.log(result.toString());
+                System.out.println("playerContent - other: url ->"+url);
+                System.out.println("playerContent - other: result ->"+ result);
                 return result;
             }
         });

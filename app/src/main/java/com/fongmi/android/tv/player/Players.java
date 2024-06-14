@@ -138,7 +138,6 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
         exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, true);
         exoPlayer.addAnalyticsListener(new EventLogger());
         exoPlayer.setHandleAudioBecomingNoisy(true);
-        view.setRender(Setting.getRender());
         exoPlayer.addAnalyticsListener(this);
         exoPlayer.setPlayWhenReady(true);
         exoPlayer.addListener(this);
@@ -511,6 +510,8 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
     }
 
     private void setMediaSource(Result result, int timeout) {
+      
+        System.out.println("setMediaSource -1: "+result.getRealUrl());
         if (isIjk() && ijkPlayer != null) ijkPlayer.setMediaSource(IjkUtil.getSource(result), position);
         if (isExo() && exoPlayer != null) exoPlayer.setMediaSource(ExoUtil.getSource(result, sub, decode, error), position);
         if (isExo() && exoPlayer != null) exoPlayer.prepare();
@@ -518,6 +519,8 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
     }
 
     private void setMediaSource(Channel channel, int timeout) {
+
+        System.out.println("setMediaSource -2: "+channel.getUrl());
         if (isIjk() && ijkPlayer != null) ijkPlayer.setMediaSource(IjkUtil.getSource(channel));
         if (isExo() && exoPlayer != null) exoPlayer.setMediaSource(ExoUtil.getSource(channel, sub, decode, error));
         if (isExo() && exoPlayer != null) exoPlayer.prepare();
@@ -525,6 +528,8 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
     }
 
     private void setMediaSource(Map<String, String> headers, String url) {
+
+        System.out.println("setMediaSource -3: "+url);
         if (isIjk() && ijkPlayer != null) ijkPlayer.setMediaSource(IjkUtil.getSource(headers, url), position);
         if (isExo() && exoPlayer != null) exoPlayer.setMediaSource(ExoUtil.getSource(headers, url, sub, decode, error), position);
         if (isExo() && exoPlayer != null) exoPlayer.prepare();

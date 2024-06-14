@@ -25,6 +25,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
+import java.util.Random;
 
 public abstract class BaseActivity extends AppCompatActivity {
 
@@ -119,7 +120,12 @@ public abstract class BaseActivity extends AppCompatActivity {
     private void refreshWall() {
         try {
             if (!customWall()) return;
-            File file = FileUtil.getWall(Setting.getWall());
+            int randomNumber = Setting.getWall();
+            if (randomNumber > 0){
+                Random random = new Random();
+                randomNumber = 1 + random.nextInt(5);
+            }
+            File file = FileUtil.getWall(randomNumber);
             if (file.exists() && file.length() > 0) getWindow().setBackgroundDrawable(WallConfig.drawable(file));
             else getWindow().setBackgroundDrawableResource(ResUtil.getDrawable(file.getName()));
         } catch (Exception e) {

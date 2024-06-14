@@ -52,25 +52,6 @@
         android:orientation="horizontal">
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/wallConfig"
-            style="?attr/materialButtonOutlinedStyle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ellipsize="marquee"
-            android:singleLine="true"
-            android:textColor="@color/control"
-            android:textSize="14sp"
-            android:text="@string/transmit_wall_config" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <com.google.android.material.button.MaterialButton
             android:id="@+id/pushRestore"
             style="?attr/materialButtonOutlinedStyle"
             android:layout_width="0dp"
@@ -83,5 +64,25 @@
             android:text="@string/transmit_push_restore" />
 
     </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/pushJxtoken"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="marquee"
+            android:singleLine="true"
+            android:textColor="@color/control"
+            android:textSize="14sp"
+            android:text="@string/transmit_push_jxtoken" />
+
+    </LinearLayout>
+
 
 </LinearLayout>

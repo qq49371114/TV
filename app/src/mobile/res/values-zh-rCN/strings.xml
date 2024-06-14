@@ -23,7 +23,7 @@
     <!-- Device -->
     <string name="device_select">选择装置</string>
     <string name="device_offline">装置已离线</string>
-    <string name="device_scan">请扫描影视 QRCode 进行绑定</string>
+    <string name="device_scan">请扫描公瑾 QRCode 进行绑定</string>
 
     <!-- Control -->
     <string name="control_speed">倍速</string>
@@ -46,6 +46,7 @@
     <string name="transmit_wall_config">推送TV壁纸</string>
     <string name="transmit_push_restore">一键恢复TV</string>
     <string name="transmit_pull_restore">从TV恢复</string>
+    <string name="transmit_push_jxtoken">推送jxToken到TV</string>
     <string name="transmit_pull_restore_desc">确认从TV恢复数据吗？</string>
 
     <!-- Hint -->

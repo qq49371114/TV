@@ -27,7 +27,8 @@ import java.util.zip.ZipOutputStream;
 public class FileUtil {
 
     public static File getWall(int index) {
-        return Path.files("wallpaper_" + index);
+        String wallpaper = "wallpaper_" + index;
+        return Path.files(wallpaper);
     }
 
     public static void openFile(File file) {

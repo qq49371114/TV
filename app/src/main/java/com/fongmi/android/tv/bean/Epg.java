@@ -4,6 +4,8 @@ import android.text.TextUtils;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.utils.Util;
+import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.R;
 import com.github.catvod.utils.Trans;
 import com.google.gson.annotations.SerializedName;
 

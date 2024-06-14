@@ -3,6 +3,8 @@ package com.fongmi.android.tv.server.process;
 import android.os.Environment;
 import android.text.TextUtils;
 
+import com.fongmi.android.tv.Setting;
+import com.fongmi.android.tv.server.Nano;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.api.config.LiveConfig;
@@ -17,7 +19,6 @@ import com.fongmi.android.tv.event.CastEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.event.ServerEvent;
 import com.fongmi.android.tv.impl.Callback;
-import com.fongmi.android.tv.server.Nano;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.github.catvod.net.OkHttp;
@@ -163,6 +164,9 @@ public class Action implements Process {
             case "pull_restore":
                 pullRestore(params, files);
                 break;
+            case "push_jxtoken":
+                jxTokenConfig(params);
+                break;
             default:
                 break;
         }
@@ -270,6 +274,29 @@ public class Action implements Process {
         if (TextUtils.isEmpty(url)) return;
         App.post(() -> Notify.progress(App.activity()));
         VodConfig.load(Config.find(url, 0), getCallback());
+    }
+
+    private void jxTokenConfig(Map<String, String> params) {
+        String jxToken = params.get("jxToken");
+        if (TextUtils.isEmpty(jxToken)) return;
+
+        // Display progress indicator
+        App.post(() -> Notify.progress(App.activity()));
+
+        // Add sleep after progress display
+        try {
+            Thread.sleep(2000); // Adjust sleep duration in milliseconds as needed
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        Setting.putJxtoken(jxToken);
+
+        // Dismiss progress indicator
+        App.post(Notify::dismiss);
+
+        System.out.println("推送jxToken成功: "+jxToken);
+        App.post(() -> Notify.show("推送jxToken成功: "+jxToken));
     }
 
     private void wallConfig(Map<String, String> params, Map<String, String> files) {
