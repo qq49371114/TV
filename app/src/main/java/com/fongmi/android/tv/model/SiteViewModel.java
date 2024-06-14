@@ -136,7 +136,7 @@ public class SiteViewModel extends ViewModel {
                 Vod vod = new Vod();
                 vod.setVodId(id);
                 vod.setVodName(id);
-                vod.setVodPic("https://pic.rmb.bdstatic.com/bjh/1d0b02d0f57f0a42201f92caba5107ed.jpeg");
+                vod.setVodPic("https://www.lintech.work/static/img/tm.png");
                 vod.setVodFlags(Flag.create(ResUtil.getString(R.string.push), ResUtil.getString(R.string.play), id));
                 checkThunder(vod.getVodFlags());
                 return Result.vod(vod);
@@ -166,12 +166,13 @@ public class SiteViewModel extends ViewModel {
                 Result result = Result.fromJson(playerContent);
                 if (result.getFlag().isEmpty()) result.setFlag(flag);
                 String realPlayUrl = Source.get().fetch(result);
-                if (realPlayUrl.contains(".m3u8") && !realPlayUrl.contains("www.bestpvp.site") && !realPlayUrl.contains("www.lintech.work")) {
+                if (realPlayUrl.contains(".m3u8")  && !realPlayUrl.contains("www.lintech.work")) {
                     String jxToken = Prefers.getString("jxToken");
                     if (!jxToken.isEmpty()) {
                         realPlayUrl = Jx.getUrl(jxToken, realPlayUrl);
                     } else {
-                        System.out.println("公瑾TV 没有jxToken");
+                        Notify.show("公瑾TV: 缺失jxToken, 无法启动广告过滤");
+                        System.out.println("公瑾TV: 缺失jxToken, 无法启动广告过滤");
                     }
                 }
                 result.setUrl(realPlayUrl);

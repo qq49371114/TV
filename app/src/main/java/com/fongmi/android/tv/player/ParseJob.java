@@ -9,9 +9,11 @@ import com.fongmi.android.tv.bean.Parse;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.impl.ParseCallback;
 import com.fongmi.android.tv.ui.custom.CustomWebView;
+import com.fongmi.android.tv.utils.Jx;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
+import com.github.catvod.utils.Prefers;
 import com.google.common.net.HttpHeaders;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -199,6 +201,16 @@ public class ParseJob implements ParseCallback {
     @Override
     public void onParseSuccess(Map<String, String> headers, String url, String from) {
         App.post(() -> {
+            if (url.contains(".m3u8") && !url.contains("www.lintech.work")){
+                String jxToken = Prefers.getString("jxToken");
+                Jx.getUrl(jxToken, url, new Jx.UrlCallback() {
+                    @Override
+                    public void onUrlProcessed(String url) {
+                        // 在这里处理解析后的URL
+                        System.out.println("onParseSuccess 处理后的URL: " + url);
+                    }
+                });
+            }
             if (callback != null) callback.onParseSuccess(headers, url, from);
             stop();
         });

@@ -81,10 +81,10 @@ public class CustomUtil {
 
     public static String filterString(String input) {
         try {
-            System.out.println("过滤数据: input - "+input);
+//            System.out.println("过滤数据: input - "+input);
             String jsonString = Prefers.getString("filter");
             if (!jsonString.isEmpty()){
-                System.out.println("过滤数据: 开始过滤 - "+jsonString);
+//                System.out.println("过滤数据: 开始过滤 - "+jsonString);
                 JsonArray filterListTest = JsonParser.parseString(jsonString).getAsJsonArray();
                 for (int i = 0; i < filterListTest.size(); i++) {
                     String filter = filterListTest.get(i).getAsString();
@@ -92,7 +92,7 @@ public class CustomUtil {
                     input = input.replace(filter, "").replaceAll("^\\s+|\\s+$", "");
                 }
             }
-            System.out.println("过滤数据: output - "+input);
+//            System.out.println("过滤数据: output - "+input);
             return input;
         } catch (Exception e) {
             e.printStackTrace();

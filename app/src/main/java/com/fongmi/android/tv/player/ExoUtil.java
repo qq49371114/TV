@@ -156,9 +156,9 @@ public class ExoUtil {
         if (!subs.isEmpty()) builder.setSubtitleConfigurations(getSubtitles(subs));
         if (drm != null) builder.setDrmConfiguration(drm.get());
         if (mimeType != null) builder.setMimeType(mimeType);
-        builder.setAllowChunklessPreparation(decode == Players.HARD);
-        builder.setForceUseRtpTcp(Setting.getRtsp() == 1);
-        builder.setAds(Setting.isRemoveAd() ? Arrays.asList("9999") : Sniffer.getRegex(uri));
+//        builder.setAllowChunklessPreparation(decode == Players.HARD);
+//        builder.setForceUseRtpTcp(Setting.getRtsp() == 1);
+//        builder.setAds(Setting.isRemoveAd() ? Arrays.asList("9999") : Sniffer.getRegex(uri));
         return builder.build();
     }
 
