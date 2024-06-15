@@ -3,8 +3,6 @@ package com.fongmi.android.tv.player;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.media.MediaMetadataCompat;
@@ -18,7 +16,6 @@ import androidx.media3.common.AudioAttributes;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.exoplayer.ExoPlayer;
-import androidx.media3.exoplayer.util.EventLogger;
 import androidx.media3.ui.PlayerView;
 
 import com.fongmi.android.tv.App;
@@ -35,6 +32,7 @@ import com.fongmi.android.tv.event.ErrorEvent;
 import com.fongmi.android.tv.event.PlayerEvent;
 import com.fongmi.android.tv.impl.ParseCallback;
 import com.fongmi.android.tv.impl.SessionCallback;
+import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -63,20 +61,26 @@ public class Players implements Player.Listener, ParseCallback {
     private MediaSessionCompat session;
     private StringBuilder builder;
     private Formatter formatter;
+    private ExoPlayer exoPlayer;
     private ParseJob parseJob;
     private Runnable runnable;
-    private ExoPlayer player;
     private String format;
     private String url;
     private Sub sub;
 
     private long position;
-    private int decode;
     private int error;
     private int retry;
 
+    public static boolean isHard() {
+        return Setting.getDecode() == HARD;
+    }
+
+    public static boolean isSoft() {
+        return Setting.getDecode() == SOFT;
+    }
+
     public Players init(Activity activity) {
-        decode = Setting.getDecode();
         builder = new StringBuilder();
         runnable = ErrorEvent::timeout;
         formatter = new Formatter(builder, Locale.getDefault());
@@ -92,20 +96,19 @@ public class Players implements Player.Listener, ParseCallback {
         MediaControllerCompat.setMediaController(activity, session.getController());
     }
 
-    public void set(PlayerView view) {
+    public void set(PlayerView exo) {
         releasePlayer();
-        setPlayer(view);
+        setupExo(exo);
     }
 
-    private void setPlayer(PlayerView view) {
-        player = new ExoPlayer.Builder(App.get()).setLoadControl(ExoUtil.buildLoadControl()).setRenderersFactory(ExoUtil.buildRenderersFactory(decode)).setTrackSelector(ExoUtil.buildTrackSelector()).build();
-        player.setAudioAttributes(AudioAttributes.DEFAULT, true);
-        player.addAnalyticsListener(new EventLogger());
-        player.setHandleAudioBecomingNoisy(true);
+    private void setupExo(PlayerView view) {
+        exoPlayer = new ExoPlayer.Builder(App.get()).setLoadControl(ExoUtil.buildLoadControl()).setTrackSelector(ExoUtil.buildTrackSelector()).setRenderersFactory(ExoUtil.buildRenderersFactory()).setMediaSourceFactory(ExoUtil.buildMediaSourceFactory()).build();
+        exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, true);
+        exoPlayer.setHandleAudioBecomingNoisy(true);
         view.setRender(Setting.getRender());
-        player.setPlayWhenReady(true);
-        player.addListener(this);
-        view.setPlayer(player);
+        exoPlayer.setPlayWhenReady(true);
+        exoPlayer.addListener(this);
+        view.setPlayer(exoPlayer);
     }
 
     public void setSub(Sub sub) {
@@ -114,7 +117,7 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     public ExoPlayer get() {
-        return player;
+        return exoPlayer;
     }
 
     public Map<String, String> getHeaders() {
@@ -151,27 +154,27 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     public int getVideoWidth() {
-        return player == null ? 0 : player.getVideoSize().width;
+        return exoPlayer == null ? 0 : exoPlayer.getVideoSize().width;
     }
 
     public int getVideoHeight() {
-        return player == null ? 0 : player.getVideoSize().height;
+        return exoPlayer == null ? 0 : exoPlayer.getVideoSize().height;
     }
 
     public float getSpeed() {
-        return player == null ? 1.0f : player.getPlaybackParameters().speed;
+        return exoPlayer == null ? 1.0f : exoPlayer.getPlaybackParameters().speed;
     }
 
     public long getPosition() {
-        return player == null ? 0 : player.getCurrentPosition();
+        return exoPlayer == null ? 0 : exoPlayer.getCurrentPosition();
     }
 
     public long getDuration() {
-        return player == null ? -1 : player.getDuration();
+        return exoPlayer == null ? -1 : exoPlayer.getDuration();
     }
 
     public long getBuffered() {
-        return player == null ? 0 : player.getBufferedPosition();
+        return exoPlayer == null ? 0 : exoPlayer.getBufferedPosition();
     }
 
     public boolean error() {
@@ -183,15 +186,15 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     public boolean haveTrack(int type) {
-        return player != null && ExoUtil.haveTrack(player.getCurrentTracks(), type);
+        return exoPlayer != null && ExoUtil.haveTrack(exoPlayer.getCurrentTracks(), type);
     }
 
     public boolean isPlaying() {
-        return player != null && player.isPlaying();
+        return exoPlayer != null && exoPlayer.isPlaying();
     }
 
     public boolean isEnd() {
-        return player != null && player.getPlaybackState() == Player.STATE_ENDED;
+        return exoPlayer != null && exoPlayer.getPlaybackState() == Player.STATE_ENDED;
     }
 
     public boolean isEmpty() {
@@ -199,15 +202,11 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     public boolean isLive() {
-        return getDuration() < 5 * 60 * 1000 || player.isCurrentMediaItemLive();
+        return getDuration() < 5 * 60 * 1000 || exoPlayer.isCurrentMediaItemLive();
     }
 
     public boolean isVod() {
-        return getDuration() > 5 * 60 * 1000 && !player.isCurrentMediaItemLive();
-    }
-
-    public boolean isHard() {
-        return decode == HARD;
+        return getDuration() > 5 * 60 * 1000 && !exoPlayer.isCurrentMediaItemLive();
     }
 
     public boolean isPortrait() {
@@ -223,11 +222,11 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     public String getDecodeText() {
-        return ResUtil.getStringArray(R.array.select_decode)[decode];
+        return ResUtil.getStringArray(R.array.select_decode)[Setting.getDecode()];
     }
 
     public String setSpeed(float speed) {
-        if (player != null && !Setting.isTunnel()) player.setPlaybackSpeed(speed);
+        if (exoPlayer != null && !Setting.isTunnel()) exoPlayer.setPlaybackSpeed(speed);
         return getSpeedText();
     }
 
@@ -256,9 +255,8 @@ public class Players implements Player.Listener, ParseCallback {
         return setSpeed(speed);
     }
 
-    public void toggleDecode(boolean save) {
-        decode = decode == HARD ? SOFT : HARD;
-        if (save) Setting.putDecode(decode);
+    public void toggleDecode() {
+        Setting.putDecode(Setting.getDecode() == HARD ? SOFT : HARD);
     }
 
     public String getPositionTime(long time) {
@@ -279,24 +277,24 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     public void seekTo(long time) {
-        if (player != null) player.seekTo(time);
+        if (exoPlayer != null) exoPlayer.seekTo(time);
     }
 
     public void play() {
         session.setActive(true);
-        if (player != null) player.play();
+        if (exoPlayer != null) exoPlayer.play();
         setPlaybackState(PlaybackStateCompat.STATE_PLAYING);
     }
 
     public void pause() {
-        if (player != null) player.pause();
+        if (exoPlayer != null) exoPlayer.pause();
         setPlaybackState(PlaybackStateCompat.STATE_PAUSED);
     }
 
     public void stop() {
         session.setActive(false);
-        if (player != null) player.stop();
-        if (player != null) player.clearMediaItems();
+        if (exoPlayer != null) exoPlayer.stop();
+        if (exoPlayer != null) exoPlayer.clearMediaItems();
         setPlaybackState(PlaybackStateCompat.STATE_STOPPED);
     }
 
@@ -309,10 +307,10 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     private void releasePlayer() {
-        if (player == null) return;
-        player.removeListener(this);
-        player.release();
-        player = null;
+        if (exoPlayer == null) return;
+        exoPlayer.removeListener(this);
+        exoPlayer.release();
+        exoPlayer = null;
     }
 
     public void start(Channel channel, int timeout) {
@@ -383,8 +381,8 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     private void setMediaSource(Map<String, String> headers, String url, String format, Drm drm, List<Sub> subs, int timeout) {
-        if (player != null) player.setMediaSource(ExoUtil.getSource(this.headers = checkUa(headers), this.url = url, ExoUtil.getMimeType(this.format = format, error), drm, checkSub(subs), decode), position);
-        if (player != null) player.prepare();
+        if (exoPlayer != null) exoPlayer.setMediaItem(ExoUtil.getMediaItem(this.headers = checkUa(headers), UrlUtil.uri(this.url = url), ExoUtil.getMimeType(this.format = format, error), drm, checkSub(subs)), position);
+        if (exoPlayer != null) exoPlayer.prepare();
         Logger.t(TAG).d(error + "," + url);
         App.post(runnable, timeout);
         PlayerEvent.prepare();
@@ -400,9 +398,9 @@ public class Players implements Player.Listener, ParseCallback {
 
     private void setTrack(Track item) {
         if (item.isSelected()) {
-            ExoUtil.selectTrack(player, item.getGroup(), item.getTrack());
+            ExoUtil.selectTrack(exoPlayer, item.getGroup(), item.getTrack());
         } else {
-            ExoUtil.deselectTrack(player, item.getGroup(), item.getTrack());
+            ExoUtil.deselectTrack(exoPlayer, item.getGroup(), item.getTrack());
         }
     }
 
@@ -435,22 +433,16 @@ public class Players implements Player.Listener, ParseCallback {
         return bundle;
     }
 
-    public void setMetadata(String title, String artist, String logo, PlayerView view) {
-        try {
-            Bitmap bitmap = ((BitmapDrawable) view.getDefaultArtwork()).getBitmap();
-            MediaMetadataCompat.Builder builder = new MediaMetadataCompat.Builder();
-            builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, bitmap);
-            builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, title);
-            builder.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist);
-            builder.putString(MediaMetadataCompat.METADATA_KEY_ART_URI, logo);
-            builder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, logo);
-            builder.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, logo);
-            builder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, getDuration());
-            session.setMetadata(builder.build());
-            ActionEvent.update();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void setMetadata(String title, String artist, String artUri) {
+        MediaMetadataCompat.Builder builder = new MediaMetadataCompat.Builder();
+        builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, title);
+        builder.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist);
+        builder.putString(MediaMetadataCompat.METADATA_KEY_ART_URI, artUri);
+        builder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, artUri);
+        builder.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, artUri);
+        builder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, getDuration());
+        session.setMetadata(builder.build());
+        ActionEvent.update();
     }
 
     public void share(Activity activity, CharSequence title) {
@@ -511,8 +503,9 @@ public class Players implements Player.Listener, ParseCallback {
 
     @Override
     public void onEvents(@NonNull Player player, @NonNull Player.Events events) {
-        if (!events.containsAny(Player.EVENT_PLAYBACK_STATE_CHANGED, Player.EVENT_PLAY_WHEN_READY_CHANGED, Player.EVENT_IS_PLAYING_CHANGED, Player.EVENT_TIMELINE_CHANGED, Player.EVENT_PLAYBACK_PARAMETERS_CHANGED, Player.EVENT_POSITION_DISCONTINUITY, Player.EVENT_MEDIA_METADATA_CHANGED)) return;
-        setPlaybackState(isPlaying() ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED);
+        if (events.containsAny(Player.EVENT_TIMELINE_CHANGED, Player.EVENT_IS_PLAYING_CHANGED, Player.EVENT_POSITION_DISCONTINUITY, Player.EVENT_MEDIA_METADATA_CHANGED, Player.EVENT_PLAYBACK_STATE_CHANGED, Player.EVENT_PLAY_WHEN_READY_CHANGED, Player.EVENT_PLAYBACK_PARAMETERS_CHANGED)) {
+            setPlaybackState(isPlaying() ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED);
+        }
     }
 
     @Override

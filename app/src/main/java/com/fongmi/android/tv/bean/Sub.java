@@ -7,7 +7,7 @@ import androidx.annotation.Nullable;
 import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
 
-import com.fongmi.android.tv.player.ExoUtil;
+import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.github.catvod.utils.Path;
 import com.github.catvod.utils.Trans;
 import com.google.gson.annotations.SerializedName;

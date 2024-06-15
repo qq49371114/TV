@@ -29,7 +29,6 @@ import com.fongmi.android.tv.impl.ConfigCallback;
 import com.fongmi.android.tv.impl.LiveCallback;
 import com.fongmi.android.tv.impl.ProxyCallback;
 import com.fongmi.android.tv.impl.SiteCallback;
-import com.fongmi.android.tv.player.ExoUtil;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.ui.activity.MainActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
@@ -316,7 +315,6 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
     }
 
     private void setDoh(Doh doh) {
-        ExoUtil.reset();
         Source.get().stop();
         OkHttp.get().setDoh(doh);
         Notify.progress(getActivity());
@@ -331,7 +329,6 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
 
     @Override
     public void setProxy(String proxy) {
-        ExoUtil.reset();
         Source.get().stop();
         Setting.putProxy(proxy);
         OkHttp.get().setProxy(proxy);

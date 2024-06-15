@@ -44,8 +44,8 @@ import com.fongmi.android.tv.impl.LiveCallback;
 import com.fongmi.android.tv.impl.PassCallback;
 import com.fongmi.android.tv.impl.SubtitleCallback;
 import com.fongmi.android.tv.model.LiveViewModel;
-import com.fongmi.android.tv.player.ExoUtil;
 import com.fongmi.android.tv.player.Players;
+import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.ui.adapter.ChannelAdapter;
@@ -416,11 +416,7 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
     }
 
     private void onDecode() {
-        onDecode(true);
-    }
-
-    private void onDecode(boolean save) {
-        mPlayers.toggleDecode(save);
+        mPlayers.toggleDecode();
         mPlayers.set(mBinding.exo);
         setR1Callback();
         setDecode();
@@ -549,13 +545,11 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
             @Override
             public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
                 mBinding.exo.setDefaultArtwork(resource);
-                setMetadata();
             }
 
             @Override
             public void onLoadFailed(@Nullable Drawable error) {
                 mBinding.exo.setDefaultArtwork(error);
-                setMetadata();
             }
 
             @Override
@@ -780,15 +774,14 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
     }
 
     private void setMetadata() {
-        String logo = mChannel == null ? "" : mChannel.getLogo();
         String title = mBinding.widget.name.getText().toString();
         String artist = mBinding.widget.play.getText().toString();
-        mPlayers.setMetadata(title, artist, logo, mBinding.exo);
+        mPlayers.setMetadata(title, artist, mChannel.getLogo());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
-        if (event.getCode() / 1000 == 4 && mPlayers.isHard()) onDecode(false);
+        if (event.getCode() / 1000 == 4 && Players.isHard()) onDecode();
         else if (mPlayers.error()) onError(event);
         else fetch();
     }

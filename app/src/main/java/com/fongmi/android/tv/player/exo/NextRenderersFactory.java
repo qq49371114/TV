@@ -1,4 +1,4 @@
-package com.fongmi.android.tv.player.custom;
+package com.fongmi.android.tv.player.exo;
 
 import android.content.Context;
 import android.os.Handler;

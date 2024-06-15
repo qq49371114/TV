@@ -62,9 +62,9 @@ import com.fongmi.android.tv.event.PlayerEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.SubtitleCallback;
 import com.fongmi.android.tv.model.SiteViewModel;
-import com.fongmi.android.tv.player.ExoUtil;
 import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.player.Source;
+import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.ui.adapter.EpisodeAdapter;
 import com.fongmi.android.tv.ui.adapter.FlagAdapter;
@@ -766,11 +766,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void onDecode() {
-        onDecode(true);
-    }
-
-    private void onDecode(boolean save) {
-        mPlayers.toggleDecode(save);
+        mPlayers.toggleDecode();
         mPlayers.set(mBinding.exo);
         setR1Callback();
         setDecode();
@@ -947,14 +943,11 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
             @Override
             public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
                 mBinding.exo.setDefaultArtwork(resource);
-                setMetadata();
             }
 
             @Override
             public void onLoadFailed(@Nullable Drawable error) {
                 mBinding.exo.setDefaultArtwork(error);
-                hideProgress();
-                setMetadata();
             }
 
             @Override
@@ -1142,17 +1135,16 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void setMetadata() {
-        String logo = mHistory == null ? "" : mHistory.getVodPic();
-        String title = mHistory == null ? getName() : mHistory.getVodName();
-        String artist = mEpisodeAdapter.isEmpty() ? "" : getEpisode().getName();
-        artist = title.equals(artist) ? "" : getString(R.string.play_now, artist);
-        mPlayers.setMetadata(title, artist, logo, mBinding.exo);
+        String title = mHistory.getVodName();
+        String episode = getEpisode().getName();
+        String artist = title.equals(episode) ? "" : getString(R.string.play_now, episode);
+        mPlayers.setMetadata(title, artist, mHistory.getVodPic());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
         if (isRedirect()) return;
-        if (event.getCode() / 1000 == 4 && mPlayers.isHard()) onDecode(false);
+        if (event.getCode() / 1000 == 4 && Players.isHard()) onDecode();
         else if (mPlayers.error()) onError(event);
         else onRefresh();
     }
@@ -1500,12 +1492,10 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         super.onPictureInPictureModeChanged(isInPictureInPictureMode);
         if (isInPictureInPictureMode) {
             PlaybackService.start(mPlayers);
-            enterFullscreen();
             setSubtitle(10);
             hideControl();
             hideSheet();
         } else {
-            exitFullscreen();
             setForeground(true);
             PlaybackService.stop();
             if (isStop()) finish();
@@ -1515,8 +1505,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        if (isPort() && newConfig.orientation == 1 && !isRotate()) exitFullscreen();
-        if (isPort() && newConfig.orientation == 2) enterFullscreen();
+        if (isAutoRotate() && isPort() && newConfig.orientation == 1 && !isRotate()) exitFullscreen();
+        if (isAutoRotate() && isPort() && newConfig.orientation == 2) enterFullscreen();
         if (isFullscreen()) Util.hideSystemUI(this);
     }
 

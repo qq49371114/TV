@@ -1,8 +1,9 @@
-package com.fongmi.android.tv.player;
+package com.fongmi.android.tv.player.exo;
 
 import android.content.Context;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.accessibility.CaptioningManager;
 
@@ -11,41 +12,22 @@ import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.TrackSelectionOverride;
 import androidx.media3.common.Tracks;
-import androidx.media3.database.DatabaseProvider;
-import androidx.media3.database.StandaloneDatabaseProvider;
-import androidx.media3.datasource.DataSource;
-import androidx.media3.datasource.DefaultDataSource;
-import androidx.media3.datasource.HttpDataSource;
-import androidx.media3.datasource.cache.Cache;
-import androidx.media3.datasource.cache.CacheDataSource;
-import androidx.media3.datasource.cache.NoOpCacheEvictor;
-import androidx.media3.datasource.cache.SimpleCache;
-import androidx.media3.datasource.okhttp.OkHttpDataSource;
 import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.LoadControl;
 import androidx.media3.exoplayer.RenderersFactory;
-import androidx.media3.exoplayer.source.ConcatenatingMediaSource2;
-import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 import androidx.media3.exoplayer.source.MediaSource;
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector;
 import androidx.media3.exoplayer.trackselection.TrackSelector;
-import androidx.media3.extractor.DefaultExtractorsFactory;
-import androidx.media3.extractor.ExtractorsFactory;
-import androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory;
-import androidx.media3.extractor.ts.TsExtractor;
 import androidx.media3.ui.CaptionStyleCompat;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.bean.Drm;
 import com.fongmi.android.tv.bean.Sub;
-import com.fongmi.android.tv.player.custom.NextRenderersFactory;
+import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.utils.Sniffer;
-import com.fongmi.android.tv.utils.UrlUtil;
-import com.github.catvod.net.OkHttp;
-import com.github.catvod.utils.Path;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,12 +35,6 @@ import java.util.Locale;
 import java.util.Map;
 
 public class ExoUtil {
-
-    private static HttpDataSource.Factory httpDataSourceFactory;
-    private static DataSource.Factory dataSourceFactory;
-    private static ExtractorsFactory extractorsFactory;
-    private static DatabaseProvider database;
-    private static Cache cache;
 
     public static LoadControl buildLoadControl() {
         return new DefaultLoadControl(Setting.getBuffer());
@@ -70,8 +46,12 @@ public class ExoUtil {
         return trackSelector;
     }
 
-    public static RenderersFactory buildRenderersFactory(int decode) {
-        return new NextRenderersFactory(App.get()).setEnableDecoderFallback(true).setExtensionRendererMode(decode == Players.SOFT ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON);
+    public static RenderersFactory buildRenderersFactory() {
+        return new NextRenderersFactory(App.get()).setEnableDecoderFallback(true).setExtensionRendererMode(Players.isSoft() ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON);
+    }
+
+    public static MediaSource.Factory buildMediaSourceFactory() {
+        return new MediaSourceFactory();
     }
 
     public static CaptionStyleCompat getCaptionStyle() {
@@ -115,37 +95,29 @@ public class ExoUtil {
         return errorCode >= PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED && errorCode <= PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED ? 2 : errorCode > 999 ? 1 : 0;
     }
 
-    public static MediaSource getSource(Map<String, String> headers, String url, String mimeType, Drm drm, List<Sub> subs, int decode) {
-        if (url.contains("***") && url.contains("|||")) return getConcat(headers, url, mimeType, drm, subs, decode);
-        return getMediaSource(headers, url, mimeType, drm, subs, decode);
-    }
-
-    private static MediaSource getConcat(Map<String, String> headers, String url, String mimeType, Drm drm, List<Sub> subs, int decode) {
-        ConcatenatingMediaSource2.Builder builder = new ConcatenatingMediaSource2.Builder();
-        for (String split : url.split("\\*\\*\\*")) {
-            String[] info = split.split("\\|\\|\\|");
-            if (info.length < 2) continue;
-            long duration = Long.parseLong(info[1]);
-            builder.add(getMediaSource(headers, info[0], mimeType, drm, subs, decode), duration);
-        }
-        return builder.build();
-    }
-
-    private static MediaSource getMediaSource(Map<String, String> headers, String url, String mimeType, Drm drm, List<Sub> subs, int decode) {
-        return new DefaultMediaSourceFactory(getDataSourceFactory(headers), getExtractorsFactory()).createMediaSource(getMediaItem(UrlUtil.uri(url), mimeType, drm, subs, decode));
-    }
-
-    private static MediaItem getMediaItem(Uri uri, String mimeType, Drm drm, List<Sub> subs, int decode) {
-        List<MediaItem.SubtitleConfiguration> subtitleConfigurations = new ArrayList<>();
-        for (Sub sub : subs) subtitleConfigurations.add(sub.getConfig());
+    public static MediaItem getMediaItem(Map<String, String> headers, Uri uri, String mimeType, Drm drm, List<Sub> subs) {
         MediaItem.Builder builder = new MediaItem.Builder().setUri(uri);
-        builder.setSubtitleConfigurations(subtitleConfigurations);
+        builder.setRequestMetadata(getRequestMetadata(headers, uri));
+        builder.setSubtitleConfigurations(getSubtitleConfigs(subs));
         if (drm != null) builder.setDrmConfiguration(drm.get());
+        builder.setAllowChunklessPreparation(Players.isHard());
         if (mimeType != null) builder.setMimeType(mimeType);
-        builder.setAllowChunklessPreparation(decode == 1);
         builder.setForceUseRtpTcp(Setting.getRtsp() == 1);
         builder.setAds(Sniffer.getRegex(uri));
+        builder.setMediaId(uri.toString());
         return builder.build();
+    }
+
+    private static MediaItem.RequestMetadata getRequestMetadata(Map<String, String> headers, Uri uri) {
+        Bundle extras = new Bundle();
+        for (Map.Entry<String, String> header : headers.entrySet()) extras.putString(header.getKey(), header.getValue());
+        return new MediaItem.RequestMetadata.Builder().setMediaUri(uri).setExtras(extras).build();
+    }
+
+    private static List<MediaItem.SubtitleConfiguration> getSubtitleConfigs(List<Sub> subs) {
+        List<MediaItem.SubtitleConfiguration> configs = new ArrayList<>();
+        for (Sub sub : subs) configs.add(sub.getConfig());
+        return configs;
     }
 
     private static void selectTrack(ExoPlayer player, int group, int track, List<Integer> trackIndices) {
@@ -167,44 +139,5 @@ public class ExoUtil {
     private static void setTrackParameters(ExoPlayer player, int group, List<Integer> trackIndices) {
         if (group >= player.getCurrentTracks().getGroups().size()) return;
         player.setTrackSelectionParameters(player.getTrackSelectionParameters().buildUpon().setOverrideForType(new TrackSelectionOverride(player.getCurrentTracks().getGroups().get(group).getMediaTrackGroup(), trackIndices)).build());
-    }
-
-    private static synchronized ExtractorsFactory getExtractorsFactory() {
-        if (extractorsFactory == null) extractorsFactory = new DefaultExtractorsFactory().setTsExtractorFlags(DefaultTsPayloadReaderFactory.FLAG_ENABLE_HDMV_DTS_AUDIO_STREAMS).setTsExtractorTimestampSearchBytes(TsExtractor.DEFAULT_TIMESTAMP_SEARCH_BYTES * 3);
-        return extractorsFactory;
-    }
-
-    private static synchronized HttpDataSource.Factory getHttpDataSourceFactory() {
-        if (httpDataSourceFactory == null) httpDataSourceFactory = new OkHttpDataSource.Factory(OkHttp.client());
-        return httpDataSourceFactory;
-    }
-
-    private static synchronized DataSource.Factory getDataSourceFactory(Map<String, String> headers) {
-        if (dataSourceFactory == null) dataSourceFactory = buildReadOnlyCacheDataSource(new DefaultDataSource.Factory(App.get(), getHttpDataSourceFactory()), getCache());
-        httpDataSourceFactory.setDefaultRequestProperties(headers);
-        return dataSourceFactory;
-    }
-
-    private static CacheDataSource.Factory buildReadOnlyCacheDataSource(DataSource.Factory upstreamFactory, Cache cache) {
-        return new CacheDataSource.Factory().setCache(cache).setUpstreamDataSourceFactory(upstreamFactory).setCacheWriteDataSinkFactory(null).setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR);
-    }
-
-    private static synchronized DatabaseProvider getDatabase() {
-        if (database == null) database = new StandaloneDatabaseProvider(App.get());
-        return database;
-    }
-
-    private static synchronized Cache getCache() {
-        if (cache == null) cache = new SimpleCache(Path.exo(), new NoOpCacheEvictor(), getDatabase());
-        return cache;
-    }
-
-    public static void reset() {
-        if (cache != null) cache.release();
-        httpDataSourceFactory = null;
-        dataSourceFactory = null;
-        extractorsFactory = null;
-        database = null;
-        cache = null;
     }
 }
