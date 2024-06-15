@@ -425,6 +425,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.swipeLayout.setEnabled(false);
         mBinding.scroll.scrollTo(0, 0);
         mClock.setCallback(null);
+        mPlayers.reset();
         mPlayers.stop();
         getDetail();
     }
@@ -526,6 +527,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         updateHistory(episode, replay);
         mPlayers.clear();
+        mPlayers.stop();
         showProgress();
         setMetadata();
     }
@@ -764,7 +766,11 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void onDecode() {
-        mPlayers.toggleDecode();
+        onDecode(true);
+    }
+
+    private void onDecode(boolean save) {
+        mPlayers.toggleDecode(save);
         mPlayers.set(mBinding.exo);
         setR1Callback();
         setDecode();
@@ -1136,16 +1142,17 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void setMetadata() {
+        String logo = mHistory == null ? "" : mHistory.getVodPic();
         String title = mHistory == null ? getName() : mHistory.getVodName();
         String artist = mEpisodeAdapter.isEmpty() ? "" : getEpisode().getName();
         artist = title.equals(artist) ? "" : getString(R.string.play_now, artist);
-        mPlayers.setMetadata(title, artist, mBinding.exo);
+        mPlayers.setMetadata(title, artist, logo, mBinding.exo);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
         if (isRedirect()) return;
-        if (event.getCode() / 1000 == 4 && Players.isHard()) onDecode();
+        if (event.getCode() / 1000 == 4 && mPlayers.isHard()) onDecode(false);
         else if (mPlayers.error()) onError(event);
         else onRefresh();
     }
@@ -1155,6 +1162,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         Track.delete(getHistoryKey());
         showError(event.getMsg());
         mClock.setCallback(null);
+        mPlayers.reset();
         mPlayers.stop();
         startFlow();
     }
@@ -1484,7 +1492,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         super.onUserLeaveHint();
         if (isRedirect()) return;
         if (isLock()) App.post(this::onLock, 500);
-        if (mPlayers.haveTrack(C.TRACK_TYPE_VIDEO)) mPiP.enter(this, mPlayers.get().getVideoSize(), getScale());
+        if (mPlayers.haveTrack(C.TRACK_TYPE_VIDEO)) mPiP.enter(this, mPlayers.getVideoWidth(), mPlayers.getVideoHeight(), getScale());
     }
 
     @Override

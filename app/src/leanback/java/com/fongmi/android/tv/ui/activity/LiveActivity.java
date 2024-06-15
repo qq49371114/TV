@@ -385,7 +385,11 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
     }
 
     private void onDecode() {
-        mPlayers.toggleDecode();
+        onDecode(true);
+    }
+
+    private void onDecode(boolean save) {
+        mPlayers.toggleDecode(save);
         mPlayers.set(mBinding.exo);
         setDecode();
         fetch();
@@ -532,7 +536,7 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
 
     @Override
     public void onItemClick(Channel item) {
-        if (item.getData().getList().size() > 0 && item.isSelected() && mChannel != null) {
+        if (item.getData().getList().size() > 0 && item.isSelected() && mChannel != null && mChannel.equals(item)) {
             showEpg(item);
         } else {
             mGroup.setPosition(mBinding.channel.getSelectedPosition());
@@ -558,6 +562,7 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
         mViewModel.getUrl(mChannel, item);
         setActivated(item);
         mPlayers.clear();
+        mPlayers.stop();
         showProgress();
         hideEpg();
     }
@@ -620,6 +625,7 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
         LiveConfig.get().setKeep(mChannel);
         mViewModel.getUrl(mChannel);
         mPlayers.clear();
+        mPlayers.stop();
         showProgress();
     }
 
@@ -643,6 +649,7 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
     @Override
     public void setLive(Live item) {
         LiveConfig.get().setHome(item);
+        mPlayers.reset();
         mPlayers.stop();
         resetAdapter();
         hideControl();
@@ -714,20 +721,22 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
     }
 
     private void setMetadata() {
+        String logo = mChannel == null ? "" : mChannel.getLogo();
         String title = mBinding.widget.name.getText().toString();
         String artist = mBinding.widget.play.getText().toString();
-        mPlayers.setMetadata(title, artist, mBinding.exo);
+        mPlayers.setMetadata(title, artist, logo, mBinding.exo);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
-        if (event.getCode() / 1000 == 4 && Players.isHard()) onDecode();
+        if (event.getCode() / 1000 == 4 && mPlayers.isHard()) onDecode(false);
         else if (mPlayers.error()) onError(event);
         else fetch();
     }
 
     private void onError(ErrorEvent event) {
         showError(event.getMsg());
+        mPlayers.reset();
         mPlayers.stop();
         startFlow();
     }

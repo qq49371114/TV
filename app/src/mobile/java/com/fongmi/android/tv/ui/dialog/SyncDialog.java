@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.ui.dialog;
 
+import android.content.res.TypedArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,7 @@ import androidx.viewbinding.ViewBinding;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Device;
@@ -24,6 +26,7 @@ import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.ui.activity.ScanActivity;
 import com.fongmi.android.tv.ui.adapter.DeviceAdapter;
 import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.ScanTask;
 import com.github.catvod.net.OkHttp;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
@@ -45,6 +48,7 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
 
     private final FormBody.Builder body;
     private final OkHttpClient client;
+    private final TypedArray mode;
     private DialogDeviceBinding binding;
     private DeviceAdapter adapter;
     private String type;
@@ -55,6 +59,7 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
 
     public SyncDialog() {
         client = OkHttp.client(Constant.TIMEOUT_SYNC);
+        mode = ResUtil.getTypedArray(R.array.cast_mode);
         body = new FormBody.Builder();
     }
 
@@ -93,6 +98,7 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
         EventBus.getDefault().register(this);
         setRecyclerView();
         getDevice();
+        setMode();
     }
 
     @Override
@@ -112,17 +118,17 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
         if (adapter.getItemCount() == 0) App.post(this::onRefresh, 1000);
     }
 
+    private void setMode() {
+        int index = Setting.getSyncMode();
+        binding.mode.setImageResource(mode.getResourceId(index, 0));
+        binding.mode.setTag(String.valueOf(index));
+    }
+
     private void onMode() {
-        if (binding.mode.getTag().toString().equals("0")) {
-            binding.mode.setTag("1");
-            binding.mode.setImageResource(R.drawable.ic_cast_upload);
-        } else if (binding.mode.getTag().toString().equals("1")) {
-            binding.mode.setTag("2");
-            binding.mode.setImageResource(R.drawable.ic_cast_download);
-        } else if (binding.mode.getTag().toString().equals("2")) {
-            binding.mode.setTag("0");
-            binding.mode.setImageResource(R.drawable.ic_cast_sync);
-        }
+        int index = Setting.getSyncMode();
+        Setting.putSyncMode(index = index == mode.length() - 1 ? 0 : ++index);
+        binding.mode.setImageResource(mode.getResourceId(index, 0));
+        binding.mode.setTag(String.valueOf(index));
     }
 
     private void onScan() {

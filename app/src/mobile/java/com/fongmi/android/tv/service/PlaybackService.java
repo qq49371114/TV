@@ -17,6 +17,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.media.app.NotificationCompat.MediaStyle;
+import androidx.media.session.MediaButtonReceiver;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
@@ -137,6 +138,7 @@ public class PlaybackService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (nonNull()) MediaButtonReceiver.handleIntent(players.getSession(), intent);
         startForeground(ID, buildNotification());
         return START_NOT_STICKY;
     }

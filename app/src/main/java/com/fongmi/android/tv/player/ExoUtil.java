@@ -39,20 +39,15 @@ import androidx.media3.ui.CaptionStyleCompat;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Setting;
-import com.fongmi.android.tv.bean.Channel;
 import com.fongmi.android.tv.bean.Drm;
-import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Sub;
 import com.fongmi.android.tv.player.custom.NextRenderersFactory;
 import com.fongmi.android.tv.utils.Sniffer;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
-import com.github.catvod.utils.Util;
-import com.google.common.net.HttpHeaders;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -75,8 +70,8 @@ public class ExoUtil {
         return trackSelector;
     }
 
-    public static RenderersFactory buildRenderersFactory() {
-        return new NextRenderersFactory(App.get()).setEnableDecoderFallback(true).setExtensionRendererMode(Players.isSoft() ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON);
+    public static RenderersFactory buildRenderersFactory(int decode) {
+        return new NextRenderersFactory(App.get()).setEnableDecoderFallback(true).setExtensionRendererMode(decode == Players.SOFT ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON);
     }
 
     public static CaptionStyleCompat getCaptionStyle() {
@@ -109,7 +104,7 @@ public class ExoUtil {
         return MimeTypes.APPLICATION_SUBRIP;
     }
 
-    private static String getMimeType(String format, int errorCode) {
+    public static String getMimeType(String format, int errorCode) {
         if (format != null) return format;
         if (errorCode == PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED || errorCode == PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED) return MimeTypes.APPLICATION_OCTET;
         if (errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED || errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED) return MimeTypes.APPLICATION_M3U8;
@@ -120,53 +115,37 @@ public class ExoUtil {
         return errorCode >= PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED && errorCode <= PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED ? 2 : errorCode > 999 ? 1 : 0;
     }
 
-    public static MediaSource getSource(Result result, Sub sub, int errorCode) {
-        return getSource(result.getHeaders(), result.getRealUrl(), result.getFormat(), result.getSubs(), sub, null, errorCode);
+    public static MediaSource getSource(Map<String, String> headers, String url, String mimeType, Drm drm, List<Sub> subs, int decode) {
+        if (url.contains("***") && url.contains("|||")) return getConcat(headers, url, mimeType, drm, subs, decode);
+        return getMediaSource(headers, url, mimeType, drm, subs, decode);
     }
 
-    public static MediaSource getSource(Channel channel, int errorCode) {
-        return getSource(channel.getHeaders(), channel.getUrl(), channel.getFormat(), Collections.emptyList(), null, channel.getDrm(), errorCode);
-    }
-
-    public static MediaSource getSource(Map<String, String> headers, String url, Sub sub, int errorCode) {
-        return getSource(headers, url, null, new ArrayList<>(), sub, null, errorCode);
-    }
-
-    private static MediaSource getSource(Map<String, String> headers, String url, String format, List<Sub> subs, Sub sub, Drm drm, int errorCode) {
-        Uri uri = UrlUtil.uri(url);
-        if (sub != null) subs.add(sub);
-        String mimeType = getMimeType(format, errorCode);
-        if (uri.getUserInfo() != null) headers.put(HttpHeaders.AUTHORIZATION, Util.basic(uri.getUserInfo()));
-        if (url.contains("***") && url.contains("|||")) return getConcat(headers, url, format, subs, sub, drm, errorCode);
-        return new DefaultMediaSourceFactory(getDataSourceFactory(headers), getExtractorsFactory()).createMediaSource(getMediaItem(uri, mimeType, subs, drm));
-    }
-
-    private static MediaSource getConcat(Map<String, String> headers, String url, String format, List<Sub> subs, Sub sub, Drm drm, int errorCode) {
+    private static MediaSource getConcat(Map<String, String> headers, String url, String mimeType, Drm drm, List<Sub> subs, int decode) {
         ConcatenatingMediaSource2.Builder builder = new ConcatenatingMediaSource2.Builder();
         for (String split : url.split("\\*\\*\\*")) {
             String[] info = split.split("\\|\\|\\|");
             if (info.length < 2) continue;
             long duration = Long.parseLong(info[1]);
-            builder.add(getSource(headers, info[0], format, subs, sub, drm, errorCode), duration);
+            builder.add(getMediaSource(headers, info[0], mimeType, drm, subs, decode), duration);
         }
         return builder.build();
     }
 
-    private static MediaItem getMediaItem(Uri uri, String mimeType, List<Sub> subs, Drm drm) {
+    private static MediaSource getMediaSource(Map<String, String> headers, String url, String mimeType, Drm drm, List<Sub> subs, int decode) {
+        return new DefaultMediaSourceFactory(getDataSourceFactory(headers), getExtractorsFactory()).createMediaSource(getMediaItem(UrlUtil.uri(url), mimeType, drm, subs, decode));
+    }
+
+    private static MediaItem getMediaItem(Uri uri, String mimeType, Drm drm, List<Sub> subs, int decode) {
+        List<MediaItem.SubtitleConfiguration> subtitleConfigurations = new ArrayList<>();
+        for (Sub sub : subs) subtitleConfigurations.add(sub.getConfig());
         MediaItem.Builder builder = new MediaItem.Builder().setUri(uri);
-        if (!subs.isEmpty()) builder.setSubtitleConfigurations(getSubtitles(subs));
+        builder.setSubtitleConfigurations(subtitleConfigurations);
         if (drm != null) builder.setDrmConfiguration(drm.get());
-        builder.setAllowChunklessPreparation(Players.isHard());
         if (mimeType != null) builder.setMimeType(mimeType);
+        builder.setAllowChunklessPreparation(decode == 1);
         builder.setForceUseRtpTcp(Setting.getRtsp() == 1);
         builder.setAds(Sniffer.getRegex(uri));
         return builder.build();
-    }
-
-    private static List<MediaItem.SubtitleConfiguration> getSubtitles(List<Sub> subs) {
-        List<MediaItem.SubtitleConfiguration> items = new ArrayList<>();
-        for (Sub sub : subs) items.add(sub.getExo());
-        return items;
     }
 
     private static void selectTrack(ExoPlayer player, int group, int track, List<Integer> trackIndices) {
@@ -202,7 +181,7 @@ public class ExoUtil {
 
     private static synchronized DataSource.Factory getDataSourceFactory(Map<String, String> headers) {
         if (dataSourceFactory == null) dataSourceFactory = buildReadOnlyCacheDataSource(new DefaultDataSource.Factory(App.get(), getHttpDataSourceFactory()), getCache());
-        httpDataSourceFactory.setDefaultRequestProperties(Players.checkUa(headers));
+        httpDataSourceFactory.setDefaultRequestProperties(headers);
         return dataSourceFactory;
     }
 
