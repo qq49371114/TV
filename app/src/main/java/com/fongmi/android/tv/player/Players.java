@@ -1,6 +1,9 @@
 package com.fongmi.android.tv.player;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -297,8 +300,8 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
 
     public String addSpeed() {
         float speed = getSpeed();
-        float addon = speed >= 2 ? 1f : 0.1f;
-        speed = speed >= 5 ? 0.2f : Math.min(speed + addon, 5.0f);
+        float addon = speed >= 2 ? 1f : 0.25f;
+        speed = speed >= 5 ? 0.25f : Math.min(speed + addon, 5.0f);
         return setSpeed(speed);
     }
 
@@ -380,6 +383,8 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
         if (isExo()) releaseExo();
         if (isIjk()) releaseIjk();
         if (haveDanmu()) danmuView.release();
+        removeTimeoutCheck();
+        App.execute(() -> Source.get().stop());
     }
 
     public void start(Channel channel, int timeout) {
@@ -473,7 +478,6 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
     }
 
     private void setMediaSource(Result result, int timeout) {
-        Logger.t(TAG).d(error + "," + result.getRealUrl());
         if (isIjk() && ijkPlayer != null) ijkPlayer.setMediaSource(IjkUtil.getSource(result), position);
         if (isExo() && exoPlayer != null) exoPlayer.setMediaSource(ExoUtil.getSource(result, sub, error), position);
         if (isExo() && exoPlayer != null) exoPlayer.prepare();
@@ -481,7 +485,6 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
     }
 
     private void setMediaSource(Channel channel, int timeout) {
-        Logger.t(TAG).d(error + "," + channel.getUrl());
         if (isIjk() && ijkPlayer != null) ijkPlayer.setMediaSource(IjkUtil.getSource(channel));
         if (isExo() && exoPlayer != null) exoPlayer.setMediaSource(ExoUtil.getSource(channel, error));
         if (isExo() && exoPlayer != null) exoPlayer.prepare();
@@ -489,7 +492,6 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
     }
 
     private void setMediaSource(Map<String, String> headers, String url) {
-        Logger.t(TAG).d(error + "," + url);
         if (isIjk() && ijkPlayer != null) ijkPlayer.setMediaSource(IjkUtil.getSource(headers, url), position);
         if (isExo() && exoPlayer != null) exoPlayer.setMediaSource(ExoUtil.getSource(headers, url, sub, error), position);
         if (isExo() && exoPlayer != null) exoPlayer.prepare();
@@ -497,6 +499,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
     }
 
     private void setTimeoutCheck(Map<String, String> headers, String url, int timeout) {
+        Logger.t(TAG).d(error + "," + url);
         App.post(runnable, timeout);
         this.headers = headers;
         PlayerEvent.state(0);
@@ -563,6 +566,23 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
         return bundle;
     }
 
+    public void choose(Activity activity, CharSequence title) {
+        try {
+            if (isEmpty()) return;
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.setDataAndType(getUri(), "video/*");
+            intent.putExtra("title", title);
+            intent.putExtra("return_result", isVod());
+            intent.putExtra("headers", getHeaderArray());
+            if (isVod()) intent.putExtra("position", (int) getPosition());
+            activity.startActivityForResult(Util.getChooser(intent), 1001);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void checkData(Intent data) {
         try {
             if (data == null || data.getExtras() == null) return;
@@ -588,7 +608,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, Analytic
 
     @Override
     public void onPlayerError(@NonNull PlaybackException error) {
-        ErrorEvent.url(ExoUtil.getRetry(this.error = error.errorCode));
+        ErrorEvent.url(ExoUtil.getRetry(this.error = error.errorCode), error.errorCode);
     }
 
     @Override

@@ -12,7 +12,6 @@ import com.fongmi.android.tv.server.process.Process;
 import com.github.catvod.utils.Asset;
 import com.google.common.net.HttpHeaders;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -111,7 +110,7 @@ public class Nano extends NanoHTTPD {
             if (path.isEmpty()) path = "index.html";
             InputStream is = Asset.open(path);
             return newFixedLengthResponse(Response.Status.OK, getMimeTypeForFile(path), is, is.available());
-        } catch (IOException e) {
+        } catch (Exception e) {
             return newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_HTML, null);
         }
     }
