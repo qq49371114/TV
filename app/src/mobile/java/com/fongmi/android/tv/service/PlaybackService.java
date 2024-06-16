@@ -138,7 +138,6 @@ public class PlaybackService extends Service {
 
             @Override
             public void onLoadCleared(@Nullable Drawable placeholder) {
-
             }
         };
     }
