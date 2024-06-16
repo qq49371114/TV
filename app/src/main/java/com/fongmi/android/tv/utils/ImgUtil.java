@@ -47,14 +47,14 @@ public class ImgUtil {
         view.setScaleType(scaleType);
         if (!TextUtils.isEmpty(url)) Glide.with(App.get()).asBitmap().load(getUrl(url)).placeholder(R.drawable.ic_img_loading).skipMemoryCache(true).dontAnimate().sizeMultiplier(Setting.getThumbnail()).signature(new ObjectKey(url + "_" + Setting.getQuality())).listener(getListener(view, scaleType)).into(view);
         else if (text.length() > 0) view.setImageDrawable(getTextDrawable(text.substring(0, 1), rect));
-        else view.setImageResource(R.drawable.ic_img_error);
+        else view.setImageResource(R.drawable.ic_img_error_new);
     }
 
     public static void loadVod(String text, String url, ImageView view) {
         view.setScaleType(ImageView.ScaleType.CENTER);
         if (!TextUtils.isEmpty(url)) Glide.with(App.get()).asBitmap().load(getUrl(url)).placeholder(R.drawable.ic_img_loading).listener(getListener(view)).into(view);
         else if (text.length() > 0) view.setImageDrawable(getTextDrawable(text.substring(0, 1), true));
-        else view.setImageResource(R.drawable.ic_img_error);
+        else view.setImageResource(R.drawable.ic_img_error_new);
     }
 
     public static void loadLive(String url, ImageView view) {
@@ -95,7 +95,7 @@ public class ImgUtil {
         return new RequestListener<>() {
             @Override
             public boolean onLoadFailed(@Nullable GlideException e, Object model, @NonNull Target<Bitmap> target, boolean isFirstResource) {
-                view.setImageResource(R.drawable.ic_img_error);
+                view.setImageResource(R.drawable.ic_img_error_new);
                 view.setScaleType(scaleType);
                 return true;
             }

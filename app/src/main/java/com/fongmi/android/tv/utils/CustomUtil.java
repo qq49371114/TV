@@ -40,11 +40,15 @@ public class CustomUtil {
                             Prefers.put("picture", object.get("picture").getAsString());
                             Prefers.put("link", object.get("link").getAsString());
                             Prefers.put("jxUrl", object.get("jxUrl").getAsString());
+                            Prefers.put("notice", object.get("notice").getAsString());
                             System.out.println("initCache: 保存缓存成功");
                         } else {
                             System.out.println("initCache: 保存缓存失败: " + data);
                         }
                     }
+                    System.out.println("debug - display_time : "+Prefers.getBoolean("display_time"));
+                    System.out.println("debug - display_video_title : "+Prefers.getBoolean("display_video_title"));
+                    System.out.println("debug - notice : "+Prefers.getBoolean("notice"));
 //                    printAllCache();
                 } catch (Exception e) {
                     System.out.println("initCache: 保存缓存异常");

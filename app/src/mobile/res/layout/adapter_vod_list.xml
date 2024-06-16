@@ -18,7 +18,7 @@
         android:layout_marginEnd="12dp"
         android:scaleType="fitCenter"
         app:shapeAppearanceOverlay="@style/Vod.Grid"
-        tools:src="@drawable/ic_img_error" />
+        tools:src="@drawable/ic_img_error_new" />
 
     <LinearLayout
         android:layout_width="match_parent"
