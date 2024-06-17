@@ -77,7 +77,10 @@ public abstract class AppDatabase extends RoomDatabase {
     }
 
     private static AppDatabase create(Context context) {
-        return Room.databaseBuilder(context, AppDatabase.class, NAME).addMigrations(Migrations.MIGRATION_30_31).addMigrations(Migrations.MIGRATION_31_32).allowMainThreadQueries().fallbackToDestructiveMigration().build();
+        return Room.databaseBuilder(context, AppDatabase.class, NAME)
+                .addMigrations(Migrations.MIGRATION_30_31)
+                .addMigrations(Migrations.MIGRATION_31_32)
+                .allowMainThreadQueries().fallbackToDestructiveMigration().build();
     }
 
     public abstract KeepDao getKeepDao();
