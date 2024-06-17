@@ -48,7 +48,7 @@ public class CustomUtil {
                     }
                     System.out.println("debug - display_time : "+Prefers.getBoolean("display_time"));
                     System.out.println("debug - display_video_title : "+Prefers.getBoolean("display_video_title"));
-                    System.out.println("debug - notice : "+Prefers.getBoolean("notice"));
+                    System.out.println("debug - notice : "+Prefers.getString("notice"));
 //                    printAllCache();
                 } catch (Exception e) {
                     System.out.println("initCache: 保存缓存异常");
@@ -96,7 +96,7 @@ public class CustomUtil {
                     input = input.replace(filter, "").replaceAll("^\\s+|\\s+$", "");
                 }
             }
-//            System.out.println("过滤数据: output - "+input);
+            System.out.println("过滤数据: output - "+input);
             return input;
         } catch (Exception e) {
             e.printStackTrace();

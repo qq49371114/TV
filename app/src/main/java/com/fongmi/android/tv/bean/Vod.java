@@ -154,7 +154,7 @@ public class Vod implements Parcelable {
     }
 
     public String getVodContent() {
-        return TextUtils.isEmpty(vodContent) ? "" : CustomUtil.getPrefix()+ CustomUtil.filterString(vodContent).trim().replace("\n", "<br>");
+        return TextUtils.isEmpty(vodContent) ? "" : CustomUtil.getPrefix()+ vodContent.trim().replace("\n", "<br>");
     }
 
     public String getVodPlayFrom() {
@@ -267,13 +267,13 @@ public class Vod implements Parcelable {
         String[] playUrls = getVodPlayUrl().split("\\$\\$\\$");
         for (int i = 0; i < playFlags.length; i++) {
             if (playFlags[i].isEmpty() || i >= playUrls.length) continue;
-            Flag item = Flag.create(CustomUtil.filterString(playFlags[i].trim()));
-            item.createEpisode(CustomUtil.filterString(playUrls[i]));
+            Flag item = Flag.create(playFlags[i].trim());
+            item.createEpisode(playUrls[i]);
             getVodFlags().add(item);
         }
         for (Flag item : getVodFlags()) {
             if (item.getUrls() == null) continue;
-            item.createEpisode(CustomUtil.filterString(item.getUrls()));
+            item.createEpisode(item.getUrls());
         }
     }
 

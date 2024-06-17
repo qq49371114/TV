@@ -11,6 +11,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.player.extractor.Thunder;
+import com.fongmi.android.tv.utils.CustomUtil;
 import com.fongmi.android.tv.utils.Jx;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -127,6 +128,9 @@ public class SiteViewModel extends ViewModel {
                 Spider spider = VodConfig.get().getSpider(site);
                 String detailContent = spider.detailContent(Arrays.asList(id));
                 SpiderDebug.log(detailContent);
+                System.out.println("DEBUG - detailContent before: "+detailContent);
+                detailContent = CustomUtil.filterString(detailContent);
+                System.out.println("DEBUG - detailContent after: "+detailContent);
                 VodConfig.get().setRecent(site);
                 Result result = Result.fromJson(detailContent);
                 if (!result.getList().isEmpty()) result.getList().get(0).setVodFlags();
