@@ -43,7 +43,7 @@ import com.fongmi.android.tv.impl.LiveCallback;
 import com.fongmi.android.tv.impl.PassCallback;
 import com.fongmi.android.tv.impl.SubtitleCallback;
 import com.fongmi.android.tv.model.LiveViewModel;
-import com.fongmi.android.tv.player.ExoUtil;
+import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.ui.base.BaseActivity;
@@ -61,7 +61,6 @@ import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Traffic;
-import com.fongmi.android.tv.utils.Util;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -150,6 +149,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
         mR4 = this::hideUI;
         Server.get().start();
         setRecyclerView();
+        setSubtitleView();
         setVideoView();
         setDisplayView();
         setViewModel();
@@ -211,14 +211,19 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
     private void setVideoView() {
         mPlayers.set(getExo(), getIjk());
         setScale(Setting.getLiveScale());
-        setSubtitle(Setting.getSubtitle());
         mBinding.control.invert.setActivated(Setting.isInvert());
         mBinding.control.across.setActivated(Setting.isAcross());
         mBinding.control.change.setActivated(Setting.isChange());
         findViewById(R.id.timeBar).setNextFocusUpId(R.id.player);
+        mBinding.control.home.setVisibility(LiveConfig.isOnly() ? View.GONE : View.VISIBLE);
+    }
+
+    private void setSubtitleView() {
+        setSubtitle(Setting.getSubtitle());
         getExo().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
         getIjk().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
-        mBinding.control.home.setVisibility(LiveConfig.isOnly() ? View.GONE : View.VISIBLE);
+        getExo().getSubtitleView().setApplyEmbeddedStyles(!Setting.isCaption());
+        getIjk().getSubtitleView().setApplyEmbeddedStyles(!Setting.isCaption());
     }
 
     private void setDisplayView() {
@@ -420,7 +425,11 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
     }
 
     private void onDecode() {
-        mPlayers.toggleDecode();
+        onDecode(true);
+    }
+
+    private void onDecode(boolean save) {
+        mPlayers.toggleDecode(save);
         mPlayers.set(getExo(), getIjk());
         setDecodeView();
         fetch();
@@ -491,6 +500,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
 
     private void hideControl() {
         mBinding.control.getRoot().setVisibility(View.GONE);
+        mBinding.widget.top.setVisibility(View.GONE);
         App.removeCallbacks(mR1);
     }
 
@@ -583,7 +593,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
 
     @Override
     public void onItemClick(Channel item) {
-        if (item.getData().getList().size() > 0 && item.isSelected() && mChannel != null) {
+        if (item.getData().getList().size() > 0 && item.isSelected() && mChannel != null && mChannel.equals(item)) {
             showEpg(item);
         } else {
             mGroup.setPosition(mBinding.channel.getSelectedPosition());
@@ -609,6 +619,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
         mViewModel.getUrl(mChannel, item);
         setActivated(item);
         mPlayers.clear();
+        mPlayers.stop();
         showProgress();
         hideEpg();
     }
@@ -673,6 +684,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
         LiveConfig.get().setKeep(mChannel);
         mViewModel.getUrl(mChannel);
         mPlayers.clear();
+        mPlayers.stop();
         showProgress();
     }
 
@@ -701,6 +713,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
     @Override
     public void setLive(Live item) {
         LiveConfig.get().setHome(item);
+        mPlayers.reset();
         mPlayers.stop();
         resetAdapter();
         hideControl();
@@ -775,13 +788,14 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
-        if (event.getCode() / 1000 == 4 && mPlayers.isExo() && Players.isHard(Players.EXO)) onDecode();
+        if (event.getCode() / 1000 == 4 && mPlayers.isExo() && mPlayers.isHard()) onDecode(false);
         else if (mPlayers.addRetry() > event.getRetry()) onError(event);
         else fetch();
     }
 
     private void onError(ErrorEvent event) {
         showError(event.getMsg());
+        mPlayers.reset();
         mPlayers.stop();
         startFlow();
     }
@@ -918,14 +932,12 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
 
     @Override
     public void onKeyUp() {
-        if (!mPlayers.isVod()) prevChannel();
-        else showControl(mBinding.control.player);
+        prevChannel();
     }
 
     @Override
     public void onKeyDown() {
-        if (!mPlayers.isVod()) nextChannel();
-        else showControl(mBinding.control.player);
+        nextChannel();
     }
 
     @Override

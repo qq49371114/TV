@@ -59,7 +59,7 @@ import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.SubtitleCallback;
 import com.fongmi.android.tv.model.SiteViewModel;
-import com.fongmi.android.tv.player.ExoUtil;
+import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.player.danmu.Parser;
@@ -85,7 +85,6 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Sniffer;
 import com.fongmi.android.tv.utils.Traffic;
-import com.fongmi.android.tv.utils.Util;
 import com.github.bassaer.library.MDColor;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Trans;
@@ -293,6 +292,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private void setEpisodeSelectedPosition(int position) {
         getEpisodeView().setSelectedPosition(position);
         if (hasKeyEvent) return;
+        if (isFullscreen()) return;
         getEpisodeView().postDelayed(() -> {
             View selectedItem = getEpisodeView().getLayoutManager().findViewByPosition(position);
             View focusedView = getCurrentFocus();
@@ -329,6 +329,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         setBackground(false);
         setRecyclerView();
         setEpisodeView();
+        setSubtitleView();
         setVideoView();
         setDisplayView();
         setDanmuView();
@@ -448,10 +449,15 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     private void setVideoView() {
         mPlayers.set(getExo(), getIjk());
+        mBinding.control.reset.setText(ResUtil.getStringArray(R.array.select_reset)[Setting.getReset()]);
+    }
+
+    private void setSubtitleView() {
+        setSubtitle(16);
         getExo().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
         getIjk().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
-        mBinding.control.reset.setText(ResUtil.getStringArray(R.array.select_reset)[Setting.getReset()]);
-        setSubtitle(16);
+        getExo().getSubtitleView().setApplyEmbeddedStyles(!Setting.isCaption());
+        getIjk().getSubtitleView().setApplyEmbeddedStyles(!Setting.isCaption());
     }
 
     private void setDanmuViewSettings() {
@@ -527,6 +533,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         getIntent().putExtra("id", item.getVodId());
         mBinding.scroll.scrollTo(0, 0);
         mClock.setCallback(null);
+        mPlayers.reset();
         mPlayers.stop();
         getDetail();
     }
@@ -543,6 +550,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mViewModel.playerContent(getKey(), flag.getFlag(), episode.getUrl());
         updateHistory(episode, replay);
         mPlayers.clear();
+        mPlayers.stop();
         showProgress();
         hidePreview();
         hideCenter();
@@ -700,7 +708,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         if (episode == null || episode.isActivated()) return;
         if (Setting.getFlag() == 1) {
             episode.setActivated(true);
-            getEpisodeView().requestFocus();
+            if (!isFullscreen()) getEpisodeView().requestFocus();
             setEpisodeSelectedPosition(getEpisodePosition());
             episode.setActivated(false);
         } else {
@@ -889,6 +897,11 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         showDanmu();
     }
 
+    private void showDanmu() {
+        if (Setting.isDanmu()) mBinding.danmaku.show();
+        else mBinding.danmaku.hide();
+    }
+
     private void onDanmuAdd() {
         int line = Setting.getDanmuLine(3);
         line = Math.min(line + 1, 15);
@@ -903,11 +916,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         Setting.putDanmuLine(line);
         mBinding.control.danmu.setText(line + ResUtil.getString(R.string.lines));
         setDanmuViewSettings();
-    }
-
-    private void showDanmu() {
-        if (Setting.isDanmu()) mBinding.danmaku.show();
-        else mBinding.danmaku.hide();
     }
 
     private void onEpisodes() {
@@ -1055,7 +1063,11 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void onDecode() {
-        mPlayers.toggleDecode();
+        onDecode(true);
+    }
+
+    private void onDecode(boolean save) {
+        mPlayers.toggleDecode(save);
         mPlayers.set(getExo(), getIjk());
         setDecodeView();
         onRefresh();
@@ -1114,6 +1126,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void hideInfo() {
+        mBinding.widget.info.setVisibility(View.GONE);
         showDisplayInfo();
     }
 
@@ -1204,7 +1217,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
             public void onLoadFailed(@Nullable Drawable error) {
                 getExo().setDefaultArtwork(error);
                 getIjk().setDefaultArtwork(error);
-                hideProgress();
                 hidePreview();
             }
 
@@ -1401,7 +1413,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
         if (isBackground()) return;
-        if (event.getCode() / 1000 == 4 && mPlayers.isExo() && Players.isHard(Players.EXO)) onDecode();
+        if (event.getCode() / 1000 == 4 && mPlayers.isExo() && mPlayers.isHard()) onDecode(false);
         else if (mPlayers.addRetry() > event.getRetry()) onError(event);
         else onRefresh();
     }
@@ -1410,6 +1422,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         Track.delete(getHistoryKey());
         showError(event.getMsg());
         mClock.setCallback(null);
+        mPlayers.reset();
         mPlayers.stop();
         startFlow();
     }
