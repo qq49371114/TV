@@ -27,7 +27,7 @@ public class Jx {
                 App.post(() -> Notify.show("公瑾TV: 广告解析服务解析成功"));
             } else {
                 // Extract message if available, otherwise use generic error message
-                String message = object.getString("msg");
+                String message = object.containsKey("msg")? object.getString("msg"): object.getString("detail");
                 System.out.println(object);
                 App.post(() -> Notify.show("公瑾TV: "+message));
             }
@@ -73,7 +73,7 @@ public class Jx {
                         App.post(() -> Notify.show("公瑾TV: 广告解析服务解析成功"));
                     } else {
                         // 如果存在消息，则提取，否则使用通用错误消息
-                        String message = object.getString("msg");
+                        String message = object.containsKey("msg")? object.getString("msg"): object.getString("detail");
                         System.out.println(object);
                         App.post(() -> Notify.show("公瑾TV: "+message));
                     }
