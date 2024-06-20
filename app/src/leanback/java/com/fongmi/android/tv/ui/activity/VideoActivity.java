@@ -1128,6 +1128,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void hideInfo() {
+        mBinding.widget.info.setVisibility(View.GONE);
         showDisplayInfo();
     }
 
