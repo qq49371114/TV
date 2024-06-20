@@ -59,7 +59,7 @@ import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.SubtitleCallback;
 import com.fongmi.android.tv.model.SiteViewModel;
-import com.fongmi.android.tv.player.ExoUtil;
+import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.player.danmu.Parser;
@@ -294,6 +294,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private void setEpisodeSelectedPosition(int position) {
         getEpisodeView().setSelectedPosition(position);
         if (hasKeyEvent) return;
+        if (isFullscreen()) return;
         getEpisodeView().postDelayed(() -> {
             View selectedItem = getEpisodeView().getLayoutManager().findViewByPosition(position);
             View focusedView = getCurrentFocus();
@@ -321,7 +322,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mFrameParams = mBinding.video.getLayoutParams();
         mClock = Clock.create(mBinding.display.clock);
         mDanmakuContext = DanmakuContext.create();
-        mPlayers = new Players().init(this);
+        mPlayers = Players.create(this);
         mBroken = new ArrayList<>();
         mR1 = this::hideControl;
         mR2 = this::updateFocus;
@@ -534,6 +535,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         getIntent().putExtra("id", item.getVodId());
         mBinding.scroll.scrollTo(0, 0);
         mClock.setCallback(null);
+        mPlayers.reset();
         mPlayers.stop();
         getDetail();
     }
@@ -550,6 +552,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mViewModel.playerContent(getKey(), flag.getFlag(), episode.getUrl());
         updateHistory(episode, replay);
         mPlayers.clear();
+        mPlayers.stop();
         showProgress();
         setMetadata();
         hidePreview();
@@ -710,7 +713,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         if (episode == null || episode.isActivated()) return;
         if (Setting.getFlag() == 1) {
             episode.setActivated(true);
-            getEpisodeView().requestFocus();
+            if (!isFullscreen()) getEpisodeView().requestFocus();
             setEpisodeSelectedPosition(getEpisodePosition());
             episode.setActivated(false);
         } else {
@@ -899,6 +902,11 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         showDanmu();
     }
 
+    private void showDanmu() {
+        if (Setting.isDanmu()) mBinding.danmaku.show();
+        else mBinding.danmaku.hide();
+    }
+
     private void onDanmuAdd() {
         int line = Setting.getDanmuLine(3);
         line = Math.min(line + 1, 15);
@@ -913,11 +921,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         Setting.putDanmuLine(line);
         mBinding.control.danmu.setText(line + ResUtil.getString(R.string.lines));
         setDanmuViewSettings();
-    }
-
-    private void showDanmu() {
-        if (Setting.isDanmu()) mBinding.danmaku.show();
-        else mBinding.danmaku.hide();
     }
 
     private void onEpisodes() {
@@ -1213,16 +1216,13 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                 getExo().setDefaultArtwork(resource);
                 getIjk().setDefaultArtwork(resource);
                 showPreview(resource);
-                setMetadata();
             }
 
             @Override
             public void onLoadFailed(@Nullable Drawable error) {
                 getExo().setDefaultArtwork(error);
                 getIjk().setDefaultArtwork(error);
-                hideProgress();
                 hidePreview();
-                setMetadata();
             }
 
             @Override
@@ -1417,11 +1417,10 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void setMetadata() {
-        String logo = mHistory == null ? "" : mHistory.getVodPic();
-        String title = mHistory == null ? getName() : mHistory.getVodName();
-        String artist = mEpisodeAdapter.size() == 0 ? "" : getEpisode().getName();
-        artist = title.equals(artist) ? "" : getString(R.string.play_now, artist);
-        mPlayers.setMetadata(title, artist, logo, mBinding.exo);
+        String title = mHistory.getVodName();
+        String episode = getEpisode().getName();
+        String artist = title.equals(episode) ? "" : getString(R.string.play_now, episode);
+        mPlayers.setMetadata(title, artist, mHistory.getVodPic());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -1453,6 +1452,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         Track.delete(getHistoryKey());
         showError(event.getMsg());
         mClock.setCallback(null);
+        mPlayers.reset();
         mPlayers.stop();
         startFlow();
     }

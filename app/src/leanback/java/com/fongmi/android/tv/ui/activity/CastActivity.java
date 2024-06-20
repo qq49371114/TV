@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
-import android.support.v4.media.MediaMetadataCompat;
 import android.view.KeyEvent;
 import android.view.View;
 
@@ -36,7 +35,7 @@ import com.fongmi.android.tv.event.ErrorEvent;
 import com.fongmi.android.tv.event.PlayerEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.SubtitleCallback;
-import com.fongmi.android.tv.player.ExoUtil;
+import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownCast;
@@ -93,7 +92,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
         bindService(new Intent(this, DLNARendererService.class), this, Context.BIND_AUTO_CREATE);
         mClock = Clock.create(mBinding.widget.clock);
         mKeyDown = CustomKeyDownCast.create(this);
-        mPlayers = new Players().init(this);
+        mPlayers = Players.create(this);
         mParser = new DIDLParser();
         mR1 = this::hideControl;
         mR2 = this::setTraffic;
@@ -360,7 +359,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     }
 
     private void setMetadata() {
-        mPlayers.setMetadata(mBinding.widget.title.getText().toString(), "", "", mBinding.exo);
+        mPlayers.setMetadata(mBinding.widget.title.getText().toString(), "", "");
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -392,6 +391,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
 
     private void onStopped() {
         setState(RenderState.STOPPED);
+        mPlayers.reset();
         mPlayers.stop();
     }
 

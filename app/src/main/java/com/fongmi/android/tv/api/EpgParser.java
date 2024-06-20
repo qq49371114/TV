@@ -64,7 +64,7 @@ public class EpgParser {
         SimpleDateFormat formatDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         SimpleDateFormat formatFull = new SimpleDateFormat("yyyyMMddHHmmss Z", Locale.getDefault());
         String today = formatDate.format(new Date());
-        Tv tv = new Persister().read(Tv.class, Path.read(file));
+        Tv tv = new Persister().read(Tv.class, Path.read(file), false);
         for (Group group : live.getGroups()) for (Channel channel : group.getChannel()) exist.add(channel.getTvgName());
         for (Tv.Channel channel : tv.getChannel()) mapping.put(channel.getId(), channel.getDisplayName());
         for (Tv.Programme programme : tv.getProgramme()) {
