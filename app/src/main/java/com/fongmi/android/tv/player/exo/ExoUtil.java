@@ -103,10 +103,10 @@ public class ExoUtil {
         boolean m3u8Ad = uri.toString().contains(".m3u8") && (Setting.isRemoveAd() || Sniffer.getRegex(uri).size() > 0);
         if (m3u8Ad) uri = Uri.parse(Server.get().getAddress(true).concat("/m3u8?url=").concat(URLEncoder.encode(uri.toString())));
         MediaItem.Builder builder = new MediaItem.Builder().setUri(uri);
+        builder.setAllowChunklessPreparation(decode == Players.HARD);
         builder.setRequestMetadata(getRequestMetadata(headers, uri));
         builder.setSubtitleConfigurations(getSubtitleConfigs(subs));
         if (drm != null) builder.setDrmConfiguration(drm.get());
-        builder.setAllowChunklessPreparation(decode == Players.HARD);
         if (mimeType != null) builder.setMimeType(mimeType);
         builder.setForceUseRtpTcp(Setting.getRtsp() == 1);
         builder.setAds(Arrays.asList("9999"));

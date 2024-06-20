@@ -153,7 +153,7 @@
     <string name="error_play_next">已经是最后一集了！</string>
     <string name="error_play_prev">已经是第一集了！</string>
     <string name="error_play_parse">播放地址解析失败</string>
-    <string name="error_play_url">播放地址加载失败</string>
+    <string name="error_play_url">播放地址加载失败\n错误代码：<xliff:g name="name">%s</xliff:g></string>
     <string name="error_play_flag">暂无线路数据</string>
     <string name="error_play_timeout">连接超时</string>
     <string name="error_detail">暂无播放数据</string>

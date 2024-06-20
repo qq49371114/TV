@@ -8,9 +8,11 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.media3.common.AudioAttributes;
+import androidx.media3.common.C;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.util.EventLogger;
 import androidx.media3.ui.PlayerView;
 
 import com.fongmi.android.tv.App;
@@ -62,14 +64,15 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     public static final int SOFT = 0;
     public static final int HARD = 1;
 
+    private final StringBuilder builder;
+    private final Formatter formatter;
+    private final Runnable runnable;
+
     private Map<String, String> headers;
     private IjkVideoView ijkPlayer;
     private DanmakuView danmuView;
-    private StringBuilder builder;
-    private Formatter formatter;
     private ExoPlayer exoPlayer;
     private ParseJob parseJob;
-    private Runnable runnable;
     private String format;
     private String url;
     private Sub sub;
@@ -79,6 +82,10 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     private int player;
     private int error;
     private int retry;
+
+    public static Players create(Activity activity) {
+        return new Players(activity);
+    }
 
     public static boolean isExo(int type) {
         return type == EXO;
@@ -100,13 +107,13 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         return player == SYS || player == IJK;
     }
 
-    public Players init() {
+    private Players(Activity activity) {
         player = Setting.getPlayer();
         decode = Setting.getDecode(player);
         builder = new StringBuilder();
         runnable = ErrorEvent::timeout;
         formatter = new Formatter(builder, Locale.getDefault());
-        return this;
+        position = C.TIME_UNSET;
     }
 
     public void set(PlayerView exo, IjkVideoView ijk) {
@@ -119,6 +126,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     private void setupExo(PlayerView view) {
         exoPlayer = new ExoPlayer.Builder(App.get()).setLoadControl(ExoUtil.buildLoadControl()).setTrackSelector(ExoUtil.buildTrackSelector()).setRenderersFactory(ExoUtil.buildRenderersFactory(decode)).setMediaSourceFactory(ExoUtil.buildMediaSourceFactory()).build();
         exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, true);
+        exoPlayer.addAnalyticsListener(new EventLogger());
         exoPlayer.setHandleAudioBecomingNoisy(true);
         view.setRender(Setting.getRender());
         exoPlayer.setPlayWhenReady(true);
@@ -140,7 +148,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     public void setSub(Sub sub) {
         this.sub = sub;
         if (isIjk()) return;
-        setMediaSource(headers, url);
+        setMediaSource();
     }
 
     public ExoPlayer exo() {
@@ -164,6 +172,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     public void setPlayer(int player) {
+        if (this.player != player) reset();
         if (this.player != player) stop();
         this.player = player;
         this.decode = getDecode(player);
@@ -182,15 +191,17 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     public void reset() {
+        position = C.TIME_UNSET;
         removeTimeoutCheck();
-        this.error = 0;
-        this.retry = 0;
         stopParse();
+        error = 0;
+        retry = 0;
     }
 
     public void clear() {
-        this.headers = null;
-        this.url = null;
+        headers = null;
+        format = null;
+        url = null;
     }
 
     public int addRetry() {
@@ -467,16 +478,16 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         parseJob = null;
     }
 
+    private void setMediaSource() {
+        setMediaSource(headers, url, format, null, new ArrayList<>(), Constant.TIMEOUT_PLAY);
+    }
+
     public void setMediaSource(String url) {
         setMediaSource(new HashMap<>(), url);
     }
 
     private void setMediaSource(Map<String, String> headers, String url) {
         setMediaSource(headers, url, null, null, new ArrayList<>(), Constant.TIMEOUT_PLAY);
-    }
-
-    private void setMediaSource(Map<String, String> headers, String url, String format) {
-        setMediaSource(headers, url, format, null, new ArrayList<>(), Constant.TIMEOUT_PLAY);
     }
 
     private void setMediaSource(Channel channel, int timeout) {
@@ -488,7 +499,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     private void setMediaSource(Map<String, String> headers, String url, String format, Drm drm, List<Sub> subs, int timeout) {
-        if (isIjk() && ijkPlayer != null) ijkPlayer.setMediaSource(IjkUtil.getSource(headers, url), position);
+        if (isIjk() && ijkPlayer != null) ijkPlayer.setMediaSource(IjkUtil.getSource(this.headers = checkUa(headers), this.url = url), position);
         if (isExo() && exoPlayer != null) exoPlayer.setMediaItem(ExoUtil.getMediaItem(this.headers = checkUa(headers), UrlUtil.uri(this.url = url), ExoUtil.getMimeType(this.format = format, error), drm, checkSub(subs), decode), position);
         if (isExo() && exoPlayer != null) exoPlayer.prepare();
         Logger.t(TAG).d(error + "," + url);
