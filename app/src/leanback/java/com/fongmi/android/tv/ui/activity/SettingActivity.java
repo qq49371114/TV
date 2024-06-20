@@ -54,7 +54,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SettingActivity extends BaseActivity implements RestoreCallback, ConfigCallback, SiteCallback, LiveCallback, DohCallback, ProxyCallback, JxtokenCallback {
+public class SettingActivity extends BaseActivity implements ConfigCallback, SiteCallback, LiveCallback, DohCallback, ProxyCallback, JxtokenCallback {
 
     private ActivitySettingBinding mBinding;
     private String[] backup;
@@ -353,7 +353,6 @@ public class SettingActivity extends BaseActivity implements RestoreCallback, Co
         return true;
     }
 
-    @Override
     public void restore(File file) {
         PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> AppDatabase.restore(file, new Callback() {
             @Override
