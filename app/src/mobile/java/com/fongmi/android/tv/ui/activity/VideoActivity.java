@@ -63,6 +63,7 @@ import com.fongmi.android.tv.event.PlayerEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.SubtitleCallback;
 import com.fongmi.android.tv.model.SiteViewModel;
+import com.fongmi.android.tv.player.Download;
 import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.player.Source;
@@ -95,6 +96,7 @@ import com.fongmi.android.tv.utils.PiP;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Sniffer;
 import com.fongmi.android.tv.utils.Traffic;
+import com.fongmi.android.tv.utils.UrlUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.fongmi.android.tv.utils.CustomUtil;
 import com.github.bassaer.library.MDColor;
@@ -129,6 +131,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private Observer<Result> mObserveDetail;
     private Observer<Result> mObservePlayer;
     private Observer<Result> mObserveSearch;
+    private Observer<Result> mObserveDownload;
     private DanmakuContext mDanmakuContext;
     private EpisodeAdapter mEpisodeAdapter;
     private QualityAdapter mQualityAdapter;
@@ -307,6 +310,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.swipeLayout.setEnabled(false);
         mObserveDetail = this::setDetail;
         mObservePlayer = this::setPlayer;
+        mObserveDownload = this::setDownload;
         mObserveSearch = this::setSearch;
         mPlayers = Players.create(this);
         mDialogs = new ArrayList<>();
@@ -337,6 +341,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.actor.setOnClickListener(view -> onActor());
         mBinding.content.setOnClickListener(view -> onContent());
         mBinding.reverse.setOnClickListener(view -> onReverse());
+        mBinding.download.setOnClickListener(view -> onDownload());
         mBinding.name.setOnLongClickListener(view -> onChange());
         mBinding.content.setOnLongClickListener(view -> onCopy());
         mBinding.control.cast.setOnClickListener(view -> onCast());
@@ -400,9 +405,9 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         getIjk().setPlayer(mPlayers.getPlayer());
         mBinding.control.action.player.setText(mPlayers.getPlayerText());
         mBinding.control.action.speed.setEnabled(mPlayers.canAdjustSpeed());
+        mBinding.control.action.speed.setText(mPlayers.setSpeed(mHistory.getSpeed()));
         getExo().setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
         getIjk().setVisibility(mPlayers.isIjk() ? View.VISIBLE : View.GONE);
-        mBinding.control.action.speed.setText(mPlayers.setSpeed(mHistory.getSpeed()));
         if (mControlDialog != null && mControlDialog.isVisible()) mControlDialog.updatePlayer();
     }
 
@@ -419,7 +424,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void setSubtitleView() {
-        setSubtitle(14);
+        setSubtitle(Setting.getSubtitle());
         getExo().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
         getIjk().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
         getExo().getSubtitleView().setApplyEmbeddedStyles(!Setting.isCaption());
@@ -469,9 +474,14 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mViewModel.result.observeForever(mObserveDetail);
         mViewModel.player.observeForever(mObservePlayer);
         mViewModel.search.observeForever(mObserveSearch);
+        mViewModel.download.observeForever(mObserveDownload);
         mViewModel.episode.observe(this, episode -> {
             onItemClick(episode);
             hideSheet();
+        });
+        mViewModel.ep.observe(this, episode -> {
+            Download.get().title(mBinding.name.getText() + "-" + episode.getName());
+            mViewModel.download(getKey(), getFlag().getFlag(), episode.getUrl());
         });
     }
 
@@ -614,9 +624,13 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mQualityAdapter.addAll(result);
     }
 
+    private void setDownload(Result result) {
+        Download.get().result(result).start(this);
+    }
+
     private void checkDanmu(String danmu) {
         mBinding.danmaku.release();
-        if (!Setting.isDanmuLoad()) return;
+        if (!Setting.isDanmuLoad() || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode())) return;
         mBinding.danmaku.setVisibility(danmu.isEmpty() ? View.GONE : View.VISIBLE);
         if (danmu.length() > 0) App.execute(() -> mBinding.danmaku.prepare(new Parser(danmu), mDanmakuContext));
     }
@@ -713,6 +727,10 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void onMore() {
         EpisodeGridDialog.create().reverse(mHistory.isRevSort()).episodes(mEpisodeAdapter.getItems()).show(this);
+    }
+
+    private void onDownload() {
+        EpisodeGridDialog.create().reverse(mHistory.isRevSort()).episodes(mEpisodeAdapter.getItems()).download(true).show(this);
     }
 
     private void onActor() {
@@ -979,7 +997,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.control.full.setVisibility(View.GONE);
         mDanmakuContext.setScaleTextSize(1.0f * Setting.getDanmuSize());
         setRotate(mPlayers.isPortrait(), true);
-        setSubtitle(Setting.getSubtitle());
         Util.hideSystemUI(this);
         App.post(mR3, 2000);
         hideControl();
@@ -994,7 +1011,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mDanmakuContext.setScaleTextSize(0.8f * Setting.getDanmuSize());
         setRotate(false, false);
         App.post(mR3, 2000);
-        setSubtitle(14);
         hideControl();
     }
 
@@ -1678,8 +1694,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Override
     public void onShare(CharSequence title) {
-        if (IDMUtil.downloadFile(this, mPlayers.getUrl(), title.toString(), mPlayers.getHeaders(), false, false)) return;
-        mPlayers.share(this, title);
+        boolean idm = IDMUtil.downloadFile(this, UrlUtil.fixDownloadUrl(mPlayers.getUrl()), title.toString(), mPlayers.getHeaders(), false, false);
+        if (!idm) mPlayers.share(this, title);
         setRedirect(true);
     }
 
@@ -1703,13 +1719,16 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         if (isInPictureInPictureMode) {
             PlaybackService.start(mPlayers);
             mBinding.danmaku.hide();
+            enterFullscreen();
             setSubtitle(10);
             hideControl();
             hideSheet();
         } else {
             showDanmu();
             setForeground(true);
+            exitFullscreen();
             PlaybackService.stop();
+            setSubtitle(Setting.getSubtitle());
             if (isStop()) finish();
         }
     }

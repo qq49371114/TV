@@ -627,7 +627,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
             if (isEmpty()) return;
             Intent intent = new Intent(Intent.ACTION_SEND);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.putExtra(Intent.EXTRA_TEXT, getUrl());
+            intent.putExtra(Intent.EXTRA_TEXT, UrlUtil.fixDownloadUrl(getUrl()));
             intent.putExtra("extra_headers", getHeaderBundle());
             intent.putExtra("title", title);
             intent.putExtra("name", title);
