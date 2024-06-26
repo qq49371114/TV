@@ -1,7 +1,6 @@
 package com.fongmi.android.tv.api.config;
 
 import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 
 import com.bumptech.glide.Glide;
@@ -24,7 +23,6 @@ import java.io.FileOutputStream;
 
 public class WallConfig {
 
-    private Drawable drawable;
     private Config config;
     private boolean sync;
 
@@ -42,12 +40,6 @@ public class WallConfig {
 
     public static String getDesc() {
         return get().getConfig().getDesc();
-    }
-
-    public static Drawable drawable(File file) {
-        if (get().drawable != null) return get().drawable;
-        get().setDrawable(Drawable.createFromPath(file.getAbsolutePath()));
-        return get().drawable;
     }
 
     public static void load(Config config, Callback callback) {
@@ -72,10 +64,6 @@ public class WallConfig {
 
     public Config getConfig() {
         return config == null ? Config.wall() : config;
-    }
-
-    public void setDrawable(Drawable drawable) {
-        this.drawable = drawable;
     }
 
     public void load(Callback callback) {

@@ -13,8 +13,8 @@ android {
         minSdk 21
         //noinspection ExpiredTargetSdkVersion
         targetSdk 28
-        versionCode 239
-        versionName "2.3.9"
+        versionCode 241
+        versionName "2.4.1"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
@@ -100,6 +100,7 @@ dependencies {
     pythonImplementation project(':chaquo')
     implementation project(':media-lib-datasource-okhttp')
     implementation project(':media-lib-datasource-rtmp')
+    implementation project(':media-lib-decoder-ffmpeg')
     implementation project(':media-lib-decoder-av1')
     implementation project(':media-lib-exoplayer')
     implementation project(':media-lib-exoplayer-dash')
@@ -111,7 +112,7 @@ dependencies {
     implementation 'androidx.media:media:1.7.0'
     implementation 'androidx.room:room-runtime:2.6.1'
     implementation 'cat.ereza:customactivityoncrash:2.4.0'
-    implementation ('com.github.anilbeesetti.nextlib:nextlib-media3ext:0.7.1') { exclude group: 'androidx.media3', module: 'media3-exoplayer' }
+    implementation('com.github.anilbeesetti.nextlib:nextlib-media3ext:0.7.1') { exclude group: 'androidx.media3', module: 'media3-exoplayer' }
     implementation 'com.github.bassaer:materialdesigncolors:1.0.0'
     implementation 'com.github.bumptech.glide:glide:4.16.0'
     implementation 'com.github.bumptech.glide:annotations:4.16.0'

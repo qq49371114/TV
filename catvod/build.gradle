@@ -23,4 +23,5 @@ dependencies {
     api 'com.orhanobut:logger:2.2.0'
     api 'com.squareup.okhttp3:okhttp:' + okhttpVersion
     api 'com.squareup.okhttp3:okhttp-dnsoverhttps:' + okhttpVersion
+    api 'com.squareup.okhttp3:logging-interceptor:' + okhttpVersion
 }

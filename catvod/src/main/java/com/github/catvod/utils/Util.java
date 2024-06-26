@@ -25,17 +25,34 @@ import java.util.Enumeration;
 public class Util {
 
     public static final String CHROME = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36";
+    public static final int URL_SAFE = Base64.DEFAULT | Base64.URL_SAFE | Base64.NO_WRAP;
 
     public static String base64(String s) {
         return base64(s.getBytes());
     }
 
     public static String base64(byte[] bytes) {
-        return Base64.encodeToString(bytes, Base64.DEFAULT | Base64.NO_WRAP);
+        return base64(bytes, Base64.DEFAULT | Base64.NO_WRAP);
+    }
+
+    public static String base64(String s, int flags) {
+        return base64(s.getBytes(), flags);
+    }
+
+    public static String base64(byte[] bytes, int flags) {
+        return Base64.encodeToString(bytes, flags);
+    }
+
+    public static byte[] decode(String s) {
+        return decode(s, Base64.DEFAULT | Base64.NO_WRAP);
+    }
+
+    public static byte[] decode(String s, int flags) {
+        return Base64.decode(s, flags);
     }
 
     public static String basic(String userInfo) {
-        return "Basic " + base64(userInfo);
+        return "Basic " + base64(userInfo, Base64.NO_WRAP);
     }
 
     public static byte[] hex2byte(String s) {

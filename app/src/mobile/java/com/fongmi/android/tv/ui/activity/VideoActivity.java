@@ -63,7 +63,6 @@ import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.SubtitleCallback;
 import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.player.Players;
-import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.ui.adapter.EpisodeAdapter;
@@ -279,10 +278,10 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mFrameParams = mBinding.video.getLayoutParams();
         mBinding.progressLayout.showProgress();
         mBinding.swipeLayout.setEnabled(false);
-        mPlayers = new Players().init(this);
         mObserveDetail = this::setDetail;
         mObservePlayer = this::setPlayer;
         mObserveSearch = this::setSearch;
+        mPlayers = Players.create(this);
         mDialogs = new ArrayList<>();
         mBroken = new ArrayList<>();
         mClock = Clock.create();
@@ -366,18 +365,25 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void setVideoView() {
-        mPlayers.set(mBinding.exo);
-        mBinding.exo.setVisibility(View.VISIBLE);
+        mPlayers.setup(mBinding.exo);
+        if (isPort() && ResUtil.isLand(this)) enterFullscreen();
         mBinding.control.action.decode.setText(mPlayers.getDecodeText());
         mBinding.control.action.speed.setEnabled(mPlayers.canAdjustSpeed());
         mBinding.control.action.reset.setText(ResUtil.getStringArray(R.array.select_reset)[Setting.getReset()]);
         mBinding.video.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> mPiP.update(getActivity(), view));
-        if (mControlDialog != null && mControlDialog.isVisible()) mControlDialog.setPlayer();
-        if (isPort() && ResUtil.isLand(this)) enterFullscreen();
+    }
+
+
+    private void setVideoView(boolean isInPictureInPictureMode) {
+        if (isInPictureInPictureMode) {
+            mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
+        } else {
+            mBinding.video.setLayoutParams(mFrameParams);
+        }
     }
 
     private void setSubtitleView() {
-        mBinding.exo.getSubtitleView().setFixedTextSize(Dimension.SP, 14);
+        setSubtitle(Setting.getSubtitle());
         mBinding.exo.getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
         mBinding.exo.getSubtitleView().setApplyEmbeddedStyles(!Setting.isCaption());
     }
@@ -565,7 +571,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @Override
     public void onItemClick(Result result) {
         try {
-            result.setUrl(Source.get().fetch(result));
             mPlayers.start(result, isUseParse(), getSite().isChangeable() ? getSite().getTimeout() : -1);
         } catch (Exception e) {
             ErrorEvent.extract(e.getMessage());
@@ -766,8 +771,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void onDecode() {
-        mPlayers.toggleDecode();
-        mPlayers.set(mBinding.exo);
+        mPlayers.toggleDecode(mBinding.exo);
         setR1Callback();
         setDecode();
         onRefresh();
@@ -841,7 +845,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         setRequestedOrientation(mPlayers.isPortrait() ? ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         mBinding.control.full.setVisibility(View.GONE);
         setRotate(mPlayers.isPortrait(), true);
-        setSubtitle(Setting.getSubtitle());
         Util.hideSystemUI(this);
         App.post(mR3, 2000);
         hideControl();
@@ -855,7 +858,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.video.setLayoutParams(mFrameParams);
         setRotate(false, false);
         App.post(mR3, 2000);
-        setSubtitle(14);
         hideControl();
     }
 
@@ -1144,9 +1146,16 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
         if (isRedirect()) return;
-        if (event.getCode() / 1000 == 4 && Players.isHard()) onDecode();
-        else if (mPlayers.error()) onError(event);
+        if (mPlayers.error()) checkError(event);
         else onRefresh();
+    }
+
+    private void checkError(ErrorEvent event) {
+        if (mPlayers.isHard() && event.getCode() / 1000 == 4) {
+            onDecode();
+        } else {
+            onError(event);
+        }
     }
 
     private void onError(ErrorEvent event) {
@@ -1490,6 +1499,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @Override
     public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode);
+        if (!isFullscreen()) setVideoView(isInPictureInPictureMode);
         if (isInPictureInPictureMode) {
             PlaybackService.start(mPlayers);
             setSubtitle(10);
@@ -1498,6 +1508,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         } else {
             setForeground(true);
             PlaybackService.stop();
+            setSubtitle(Setting.getSubtitle());
             if (isStop()) finish();
         }
     }
@@ -1505,8 +1516,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        if (isAutoRotate() && isPort() && newConfig.orientation == 1 && !isRotate()) exitFullscreen();
-        if (isAutoRotate() && isPort() && newConfig.orientation == 2) enterFullscreen();
+        if (isAutoRotate() && isPort() && newConfig.orientation == Configuration.ORIENTATION_PORTRAIT && !isRotate()) exitFullscreen();
+        if (isAutoRotate() && isPort() && newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) enterFullscreen();
         if (isFullscreen()) Util.hideSystemUI(this);
     }
 

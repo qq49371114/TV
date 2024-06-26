@@ -58,7 +58,6 @@ import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.SubtitleCallback;
 import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.player.Players;
-import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.ui.adapter.QualityAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
@@ -277,7 +276,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mFrameParams = mBinding.video.getLayoutParams();
         mClock = Clock.create(mBinding.widget.clock);
         mKeyDown = CustomKeyDownVod.create(this);
-        mPlayers = new Players().init(this);
+        mPlayers = Players.create(this);
         mBroken = new ArrayList<>();
         mR1 = this::hideControl;
         mR2 = this::updateFocus;
@@ -373,8 +372,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void setVideoView() {
-        mPlayers.set(mBinding.exo);
-        mBinding.exo.setVisibility(View.VISIBLE);
+        mPlayers.setup(mBinding.exo);
         mBinding.control.decode.setText(mPlayers.getDecodeText());
         mBinding.control.speed.setEnabled(mPlayers.canAdjustSpeed());
         mBinding.control.reset.setText(ResUtil.getStringArray(R.array.select_reset)[Setting.getReset()]);
@@ -584,7 +582,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     private void setQualityActivated(Result result) {
         try {
-            result.setUrl(Source.get().fetch(result));
             mPlayers.start(result, isUseParse(), getSite().isChangeable() ? getSite().getTimeout() : -1);
         } catch (Exception e) {
             ErrorEvent.extract(e.getMessage());
@@ -842,8 +839,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void onDecode() {
-        mPlayers.toggleDecode();
-        mPlayers.set(mBinding.exo);
+        mPlayers.toggleDecode(mBinding.exo);
         setDecode();
         onRefresh();
     }
@@ -1134,9 +1130,16 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
         if (isBackground()) return;
-        if (event.getCode() / 1000 == 4 && Players.isHard()) onDecode();
-        else if (mPlayers.error()) onError(event);
+        if (mPlayers.error()) checkError(event);
         else onRefresh();
+    }
+
+    private void checkError(ErrorEvent event) {
+        if (mPlayers.isHard() && event.getCode() / 1000 == 4) {
+            onDecode();
+        } else {
+            onError(event);
+        }
     }
 
     private void onError(ErrorEvent event) {

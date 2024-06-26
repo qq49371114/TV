@@ -123,7 +123,7 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
     protected void initView() {
         mClock = Clock.create(mBinding.widget.clock);
         mKeyDown = CustomKeyDownLive.create(this);
-        mPlayers = new Players().init(this);
+        mPlayers = Players.create(this);
         mHides = new ArrayList<>();
         mR0 = this::setActivated;
         mR1 = this::hideControl;
@@ -177,9 +177,8 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
     }
 
     private void setVideoView() {
-        mPlayers.set(mBinding.exo);
+        mPlayers.setup(mBinding.exo);
         setScale(Setting.getLiveScale());
-        mBinding.exo.setVisibility(View.VISIBLE);
         findViewById(R.id.timeBar).setNextFocusUpId(R.id.player);
         mBinding.control.invert.setActivated(Setting.isInvert());
         mBinding.control.across.setActivated(Setting.isAcross());
@@ -253,7 +252,6 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
 
     private void setGroup(Live live) {
         List<Group> items = new ArrayList<>();
-        items.add(Group.create(R.string.keep));
         for (Group group : live.getGroups()) (group.isHidden() ? mHides : items).add(group);
         mGroupAdapter.setItems(items, null);
         setPosition(LiveConfig.get().find(items));
@@ -271,7 +269,7 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
         int padding = ResUtil.dp2px(60);
         if (group.isKeep()) group.setWidth(0);
         if (group.getWidth() == 0) for (Channel item : group.getChannel()) group.setWidth(Math.max(group.getWidth(), (item.getLogo().isEmpty() ? 0 : logo) + ResUtil.getTextWidth(item.getNumber() + item.getName(), 16)));
-        mBinding.channel.getLayoutParams().width = group.getWidth() == 0 ? 0 : Math.min(group.getWidth() + padding, ResUtil.getScreenWidth() / 3);
+        mBinding.channel.getLayoutParams().width = group.getWidth() == 0 ? 0 : Math.min(group.getWidth() + padding, ResUtil.getScreenWidth() / 2);
         return group;
     }
 
@@ -280,13 +278,13 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
         if (epg.getList().isEmpty()) return;
         int minWidth = ResUtil.getTextWidth(epg.getList().get(0).getTime(), 16);
         if (epg.getWidth() == 0) for (EpgData item : epg.getList()) epg.setWidth(Math.max(epg.getWidth(), ResUtil.getTextWidth(item.getTitle(), 16)));
-        mBinding.widget.epgData.getLayoutParams().width = epg.getWidth() == 0 ? 0 : Math.min(Math.max(epg.getWidth(), minWidth) + padding, ResUtil.getScreenWidth() / 3);
+        mBinding.widget.epgData.getLayoutParams().width = epg.getWidth() == 0 ? 0 : Math.min(Math.max(epg.getWidth(), minWidth) + padding, ResUtil.getScreenWidth() / 2);
     }
 
     private void setPosition(int[] position) {
         if (position[0] == -1) return;
-        if (mGroupAdapter.size() == 1) return;
-        if (position[0] >= mGroupAdapter.size()) return;
+        int size = mGroupAdapter.size();
+        if (size == 1 || position[0] >= size) return;
         mGroup = (Group) mGroupAdapter.get(position[0]);
         mBinding.group.setSelectedPosition(position[0]);
         mGroup.setPosition(position[1]);
@@ -385,8 +383,7 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
     }
 
     private void onDecode() {
-        mPlayers.toggleDecode();
-        mPlayers.set(mBinding.exo);
+        mPlayers.toggleDecode(mBinding.exo);
         setDecode();
         fetch();
     }
@@ -410,7 +407,7 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
 
     @Override
     public void showEpg(Channel item) {
-        if (mChannel == null || mChannel.getData().getList().isEmpty() || mEpgDataAdapter.size() == 0 || !mChannel.equals(item)) return;
+        if (mChannel == null || mChannel.getData().getList().isEmpty() || mEpgDataAdapter.size() == 0 || !mChannel.equals(item) || !mChannel.getGroup().equals(mGroup)) return;
         mBinding.widget.epgData.setSelectedPosition(mChannel.getData().getSelected());
         mBinding.widget.epg.setVisibility(View.VISIBLE);
         mBinding.widget.epg.requestFocus();
@@ -530,7 +527,7 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
 
     @Override
     public void onItemClick(Channel item) {
-        if (item.getData().getList().size() > 0 && item.isSelected() && mChannel != null && mChannel.equals(item)) {
+        if (item.getData().getList().size() > 0 && item.isSelected() && mChannel != null && mChannel.equals(item) && mChannel.getGroup().equals(mGroup)) {
             showEpg(item);
         } else {
             mGroup.setPosition(mBinding.channel.getSelectedPosition());
@@ -551,14 +548,13 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
 
     @Override
     public void onItemClick(EpgData item) {
-        if (item.isFuture() || !mChannel.hasCatchup()) return;
-        Notify.show(getString(R.string.play_ready, item.getTitle()));
-        mViewModel.getUrl(mChannel, item);
-        setActivated(item);
-        mPlayers.clear();
-        mPlayers.stop();
-        showProgress();
-        hideEpg();
+        if (item.isSelected()) {
+            fetch(item);
+        } else if (mChannel.hasCatchup()) {
+            Notify.show(getString(R.string.play_ready, item.getTitle()));
+            setActivated(item);
+            fetch(item);
+        }
     }
 
     private void addKeep(Channel item) {
@@ -612,6 +608,14 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
 
     private void setEpg(Epg epg) {
         if (mChannel != null && mChannel.getTvgName().equals(epg.getKey())) setEpg();
+    }
+
+    private void fetch(EpgData item) {
+        if (mChannel == null) return;
+        mViewModel.getUrl(mChannel, item);
+        mPlayers.clear();
+        mPlayers.stop();
+        hideEpg();
     }
 
     private void fetch() {
@@ -722,9 +726,16 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
-        if (event.getCode() / 1000 == 4 && Players.isHard()) onDecode();
-        else if (mPlayers.error()) onError(event);
+        if (mPlayers.error()) checkError(event);
         else fetch();
+    }
+
+    private void checkError(ErrorEvent event) {
+        if (mPlayers.isHard() && event.getCode() / 1000 == 4) {
+            onDecode();
+        } else {
+            onError(event);
+        }
     }
 
     private void onError(ErrorEvent event) {

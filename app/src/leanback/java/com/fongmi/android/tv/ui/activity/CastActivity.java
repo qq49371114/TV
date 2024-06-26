@@ -81,7 +81,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
         bindService(new Intent(this, DLNARendererService.class), this, Context.BIND_AUTO_CREATE);
         mClock = Clock.create(mBinding.widget.clock);
         mKeyDown = CustomKeyDownCast.create(this);
-        mPlayers = new Players().init(this);
+        mPlayers = Players.create(this);
         mParser = new DIDLParser();
         mR1 = this::hideControl;
         mR2 = this::setTraffic;
@@ -126,16 +126,15 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     }
 
     private void start() {
-        mPlayers.setMediaSource(mAction.getCurrentURI());
+        mPlayers.setMediaItem(mAction.getCurrentURI());
         showProgress();
         setMetadata();
         hideCenter();
     }
 
     private void setVideoView() {
-        mPlayers.set(mBinding.exo);
+        mPlayers.setup(mBinding.exo);
         setScale(scale = Setting.getScale());
-        mBinding.exo.setVisibility(View.VISIBLE);
         findViewById(R.id.timeBar).setNextFocusUpId(R.id.reset);
         mBinding.control.speed.setText(mPlayers.getSpeedText());
         mBinding.control.decode.setText(mPlayers.getDecodeText());
@@ -195,8 +194,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     }
 
     private void onDecode() {
-        mPlayers.toggleDecode();
-        mPlayers.set(mBinding.exo);
+        mPlayers.toggleDecode(mBinding.exo);
         setDecode();
         onReset();
     }
@@ -340,9 +338,16 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
-        if (event.getCode() / 1000 == 4 && Players.isHard()) onDecode();
-        else if (mPlayers.error()) onError(event);
+        if (mPlayers.error()) checkError(event);
         else onReset();
+    }
+
+    private void checkError(ErrorEvent event) {
+        if (mPlayers.isHard() && event.getCode() / 1000 == 4) {
+            onDecode();
+        } else {
+            onError(event);
+        }
     }
 
     private void onError(ErrorEvent event) {

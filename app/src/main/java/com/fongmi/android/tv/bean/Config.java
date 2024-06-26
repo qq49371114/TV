@@ -9,6 +9,8 @@ import androidx.room.PrimaryKey;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.db.AppDatabase;
+import com.fongmi.android.tv.utils.FileUtil;
+import com.github.catvod.utils.Path;
 import com.github.catvod.utils.Prefers;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
@@ -192,6 +194,7 @@ public class Config {
     }
 
     public static void delete(String url, int type) {
+        if (type == 2) Path.clear(FileUtil.getWall(0));
         if (type == 2) AppDatabase.get().getConfigDao().delete(type);
         else AppDatabase.get().getConfigDao().delete(url, type);
     }

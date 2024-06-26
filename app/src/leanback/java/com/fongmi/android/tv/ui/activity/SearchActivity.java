@@ -33,6 +33,7 @@ import com.github.catvod.net.OkHttp;
 import com.google.common.net.HttpHeaders;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.List;
 
 import okhttp3.Call;
@@ -113,7 +114,7 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
 
     private void getSuggest(String text) {
         mBinding.hint.setText(R.string.search_suggest);
-        OkHttp.newCall("https://suggest.video.iqiyi.com/?if=mobile&key=" + text).enqueue(new Callback() {
+        OkHttp.newCall("https://suggest.video.iqiyi.com/?if=mobile&key=" + URLEncoder.encode(text)).enqueue(new Callback() {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (mBinding.keyword.getText().toString().trim().isEmpty()) return;
