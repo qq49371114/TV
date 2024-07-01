@@ -1,5 +1,7 @@
 package com.fongmi.android.tv.player;
 
+import com.fongmi.android.tv.bean.Channel;
+import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.player.extractor.BiliBili;
 import com.fongmi.android.tv.player.extractor.Force;
 import com.fongmi.android.tv.player.extractor.JianPian;
