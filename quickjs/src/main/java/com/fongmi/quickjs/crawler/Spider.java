@@ -2,8 +2,6 @@ package com.fongmi.quickjs.crawler;
 
 import android.content.Context;
 
-import androidx.media3.common.util.UriUtil;
-
 import com.fongmi.quickjs.bean.Res;
 import com.fongmi.quickjs.method.Async;
 import com.fongmi.quickjs.method.Console;
@@ -13,6 +11,7 @@ import com.fongmi.quickjs.utils.JSUtil;
 import com.fongmi.quickjs.utils.Module;
 import com.github.catvod.utils.Asset;
 import com.github.catvod.utils.Json;
+import com.github.catvod.utils.UriUtil;
 import com.github.catvod.utils.Util;
 import com.whl.quickjs.wrapper.JSArray;
 import com.whl.quickjs.wrapper.JSMethod;
