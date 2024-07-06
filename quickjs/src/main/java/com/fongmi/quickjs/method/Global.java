@@ -2,7 +2,6 @@ package com.fongmi.quickjs.method;
 
 import androidx.annotation.Keep;
 import androidx.annotation.NonNull;
-import androidx.media3.common.util.UriUtil;
 
 import com.fongmi.quickjs.bean.Req;
 import com.fongmi.quickjs.utils.Connect;
@@ -11,6 +10,7 @@ import com.fongmi.quickjs.utils.JSUtil;
 import com.fongmi.quickjs.utils.Parser;
 import com.github.catvod.Proxy;
 import com.github.catvod.utils.Trans;
+import com.github.catvod.utils.UriUtil;
 import com.orhanobut.logger.Logger;
 import com.whl.quickjs.wrapper.JSArray;
 import com.whl.quickjs.wrapper.JSFunction;

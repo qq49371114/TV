@@ -307,7 +307,10 @@ public class Action implements Process {
                 @Override
                 public void success() {
                     App.post(() -> Notify.progress(App.activity()));
-                    App.post(() -> initConfig(), 3000);
+                    App.post(() -> {
+                        AppDatabase.reset();
+                        initConfig();
+                    }, 3000);
                 }
             });
             temp.delete();

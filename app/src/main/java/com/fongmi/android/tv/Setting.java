@@ -322,6 +322,14 @@ public class Setting {
         Prefers.put("backup_mode", auto);
     }
 
+    public static boolean isZhuyin() {
+        return Prefers.getBoolean("zhuyin");
+    }
+
+    public static void putZhuyin(boolean zhuyin) {
+        Prefers.put("zhuyin", zhuyin);
+    }
+
     public static float getThumbnail() {
         return 0.3f * getQuality() + 0.4f;
     }

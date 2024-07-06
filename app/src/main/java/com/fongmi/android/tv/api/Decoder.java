@@ -2,7 +2,6 @@ package com.fongmi.android.tv.api;
 
 import android.util.Base64;
 
-import androidx.media3.common.util.UriUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Asset;
@@ -34,9 +33,9 @@ public class Decoder {
     }
 
     private static String fix(String url, String data) {
-        if (url.startsWith("file") || url.startsWith("clan") || url.startsWith("assets")) url = UrlUtil.convert(url);
-        if (data.contains("../")) data = data.replace("../", UriUtil.resolve(url, "../"));
-        if (data.contains("./")) data = data.replace("./", UriUtil.resolve(url, "./"));
+        if (url.startsWith("file") || url.startsWith("assets")) url = UrlUtil.convert(url);
+        if (data.contains("../")) data = data.replace("../", UrlUtil.resolve(url, "../"));
+        if (data.contains("./")) data = data.replace("./", UrlUtil.resolve(url, "./"));
         return data;
     }
 

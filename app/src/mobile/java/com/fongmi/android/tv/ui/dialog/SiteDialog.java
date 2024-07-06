@@ -1,7 +1,10 @@
 package com.fongmi.android.tv.ui.dialog;
 
 import android.app.Activity;
+import android.text.Editable;
 import android.view.LayoutInflater;
+import android.view.View;
+import android.view.inputmethod.EditorInfo;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
@@ -11,6 +14,7 @@ import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.DialogSiteBinding;
 import com.fongmi.android.tv.impl.SiteCallback;
 import com.fongmi.android.tv.ui.adapter.SiteAdapter;
+import com.fongmi.android.tv.ui.custom.CustomTextListener;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -63,6 +67,7 @@ public class SiteDialog implements SiteAdapter.OnClickListener {
 
     public void show() {
         setRecyclerView();
+        setSearchView();
         setDialog();
     }
 
@@ -78,6 +83,26 @@ public class SiteDialog implements SiteAdapter.OnClickListener {
         if (adapter.getItemCount() == 0) return;
         dialog.getWindow().setDimAmount(0);
         dialog.show();
+    }
+
+    private void setSearchView() {
+        binding.keyword.setOnEditorActionListener((textView, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) searchSite();
+            return true;
+        });
+        binding.keyword.addTextChangedListener(new CustomTextListener() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                searchSite();
+            }
+        });
+        binding.search.setOnClickListener(v -> searchSite());
+        if (adapter.getItemCount() < 10) binding.searchInput.setVisibility(View.GONE);
+    }
+
+    private void searchSite() {
+        String keyword = binding.keyword.getText().toString().trim();
+        adapter.keyword(keyword);
     }
 
     @Override

@@ -2,10 +2,9 @@ package com.fongmi.quickjs.utils;
 
 import android.text.TextUtils;
 
-import androidx.media3.common.util.UriUtil;
-
 import com.fongmi.quickjs.bean.Cache;
 import com.fongmi.quickjs.bean.Info;
+import com.github.catvod.utils.UriUtil;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;

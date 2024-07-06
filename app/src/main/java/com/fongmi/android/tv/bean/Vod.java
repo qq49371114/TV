@@ -21,8 +21,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.fongmi.android.tv.utils.CustomUtil;
-
 @Root(strict = false)
 public class Vod implements Parcelable {
 
@@ -154,15 +152,15 @@ public class Vod implements Parcelable {
     }
 
     public String getVodContent() {
-        return TextUtils.isEmpty(vodContent) ? "" : CustomUtil.getPrefix()+ CustomUtil.filterString(vodContent).trim().replace("\n", "<br>");
+        return TextUtils.isEmpty(vodContent) ? "" : vodContent.trim().replace("\n", "<br>");
     }
 
     public String getVodPlayFrom() {
-        return TextUtils.isEmpty(vodPlayFrom) ? "" : CustomUtil.getPrefix()+vodPlayFrom;
+        return TextUtils.isEmpty(vodPlayFrom) ? "" : vodPlayFrom;
     }
 
     public String getVodPlayUrl() {
-        return TextUtils.isEmpty(vodPlayUrl) ? "" : CustomUtil.getPrefix()+vodPlayUrl;
+        return TextUtils.isEmpty(vodPlayUrl) ? "" : vodPlayUrl;
     }
 
     public String getVodTag() {
@@ -242,12 +240,12 @@ public class Vod implements Parcelable {
     }
 
     public String getVodPic(String pic) {
-        if (getVodPic().isEmpty()) setVodPic(pic);
+        if (!TextUtils.isEmpty(pic)) setVodPic(pic);
         return getVodPic();
     }
 
     public String getVodName(String name) {
-        if (getVodName().isEmpty()) setVodName(name);
+        if (!TextUtils.isEmpty(name)) setVodName(name);
         return getVodName();
     }
 
@@ -258,7 +256,7 @@ public class Vod implements Parcelable {
         this.typeName = Trans.s2t(typeName);
         this.vodRemarks = Trans.s2t(vodRemarks);
         if (vodActor != null) this.vodActor = Sniffer.CLICKER.matcher(vodActor).find() ? vodActor : Trans.s2t(vodActor);
-        if (vodContent != null) this.vodContent = Sniffer.CLICKER.matcher(vodContent).find() ? vodContent : Trans.s2t(vodContent); 
+        if (vodContent != null) this.vodContent = Sniffer.CLICKER.matcher(vodContent).find() ? vodContent : Trans.s2t(vodContent);
         if (vodDirector != null) this.vodDirector = Sniffer.CLICKER.matcher(vodDirector).find() ? vodDirector : Trans.s2t(vodDirector);
     }
 
@@ -267,13 +265,13 @@ public class Vod implements Parcelable {
         String[] playUrls = getVodPlayUrl().split("\\$\\$\\$");
         for (int i = 0; i < playFlags.length; i++) {
             if (playFlags[i].isEmpty() || i >= playUrls.length) continue;
-            Flag item = Flag.create(CustomUtil.filterString(playFlags[i].trim()));
-            item.createEpisode(CustomUtil.filterString(playUrls[i]));
+            Flag item = Flag.create(playFlags[i].trim());
+            item.createEpisode(playUrls[i]);
             getVodFlags().add(item);
         }
         for (Flag item : getVodFlags()) {
             if (item.getUrls() == null) continue;
-            item.createEpisode(CustomUtil.filterString(item.getUrls()));
+            item.createEpisode(item.getUrls());
         }
     }
 

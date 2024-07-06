@@ -8,19 +8,23 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.databinding.AdapterKeyboardIconBinding;
 import com.fongmi.android.tv.databinding.AdapterKeyboardTextBinding;
 
 import java.util.Arrays;
 import java.util.List;
 
+
 public class KeyboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
+    private final List<Object> enList = Arrays.asList(R.drawable.ic_keyboard_remote, R.drawable.ic_keyboard_left, R.drawable.ic_keyboard_right, R.drawable.ic_keyboard_back, R.drawable.ic_keyboard_search, R.drawable.ic_setting_home, R.drawable.ic_keyboard, "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
+    private final List<Object> twList = Arrays.asList(R.drawable.ic_keyboard_remote, R.drawable.ic_keyboard_left, R.drawable.ic_keyboard_right, R.drawable.ic_keyboard_back, R.drawable.ic_keyboard_search, R.drawable.ic_setting_home, R.drawable.ic_keyboard, "ㄅ", "ㄆ", "ㄇ", "ㄈ", "ㄉ", "ㄊ", "ㄋ", "ㄌ", "ㄍ", "ㄎ", "ㄏ", "ㄐ", "ㄑ", "ㄒ", "ㄓ", "ㄔ", "ㄕ", "ㄖ", "ㄗ", "ㄘ", "ㄙ", "ㄧ", "ㄨ", "ㄩ", "ㄚ", "ㄛ", "ㄜ", "ㄝ", "ㄞ", "ㄟ", "ㄠ", "ㄡ", "ㄢ", "ㄣ", "ㄤ", "ㄥ", "ㄦ", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
     private final OnClickListener mListener;
-    private final List<Object> mItems;
+    private List<Object> mItems;
 
     public KeyboardAdapter(OnClickListener listener) {
-        this.mItems = Arrays.asList(R.drawable.ic_keyboard_remote, R.drawable.ic_keyboard_left, R.drawable.ic_keyboard_right, R.drawable.ic_keyboard_back, R.drawable.ic_keyboard_search, R.drawable.ic_setting_home, "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
+        this.mItems = Setting.isZhuyin() ? twList : enList;
         this.mListener = listener;
     }
 
@@ -31,6 +35,12 @@ public class KeyboardAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         void onIconClick(int resId);
 
         boolean onLongClick(int resId);
+    }
+
+    public void toggle() {
+        Setting.putZhuyin(!Setting.isZhuyin());
+        this.mItems = Setting.isZhuyin() ? twList : enList;
+        notifyDataSetChanged();
     }
 
     @Override
