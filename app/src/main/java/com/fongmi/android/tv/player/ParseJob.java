@@ -200,19 +200,21 @@ public class ParseJob implements ParseCallback {
 
     @Override
     public void onParseSuccess(Map<String, String> headers, String url, String from) {
-        App.post(() -> {
-            System.out.println("onParseSuccess: " + url);
-            if (url.contains(".m3u8") && !url.contains("www.lintech.work")){
-                String jxToken = Prefers.getString("jxToken");
-                Jx.getUrl(jxToken, url, new Jx.UrlCallback() {
-                    @Override
-                    public void onUrlProcessed(String url) {
-                        // 在这里处理解析后的URL
-                        System.out.println("onParseSuccess 解析后的URL: " + url);
-                    }
-                });
+        String finalUrl;
+        if (url.contains(".m3u8")  && !url.contains("www.lintech.work")) {
+            String jxToken = Prefers.getString("jxToken");
+            if (!jxToken.isEmpty()) {
+                finalUrl = Jx.getUrl(jxToken, url);
+            } else {
+                finalUrl = url;
+                System.out.println("公瑾TV: 缺失jxToken, 无法启动广告过滤");
             }
-            if (callback != null) callback.onParseSuccess(headers, url, from);
+        } else {
+            finalUrl = url;
+        }
+        App.post(() -> {
+            System.out.println("onParseSuccess: " + finalUrl);
+            if (callback != null) callback.onParseSuccess(headers, finalUrl, from);
             stop();
         });
     }

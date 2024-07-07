@@ -16,7 +16,7 @@ public class Jx {
             String response = OkHttp.string(String.format(jxUrl, jxToken, realPlayUrl));
             if (response.isEmpty()) {
                 System.out.println("公瑾TV - 解析服务返回空, 不处理!");
-                return  realPlayUrl;
+                return realPlayUrl;
             }
             com.alibaba.fastjson.JSONObject object = com.alibaba.fastjson.JSONObject.parseObject(response);
 
@@ -52,7 +52,7 @@ public class Jx {
                 try {
                     String jxUrl = Prefers.getString("jxUrl");
                     System.out.println("公瑾TV - jxUrl: " + jxUrl);
-                    if (jxUrl.isEmpty()) {
+                    if (jxUrl.isEmpty() || jxToken.isEmpty()) {
                         callback.onUrlProcessed(resultUrl);
                         return;
                     }
@@ -77,11 +77,13 @@ public class Jx {
                         System.out.println(object);
                         App.post(() -> Notify.show("公瑾TV: "+message));
                     }
-                    System.out.println("公瑾TV - realPlayUrl: " + resultUrl);
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                 } finally {
-                    callback.onUrlProcessed(resultUrl);
+                    String finalResultUrl = resultUrl;
+                    System.out.println("公瑾TV - realPlayUrl: " + finalResultUrl);
+                    App.post(() -> Notify.show("公瑾TV: "+ finalResultUrl));
+                    callback.onUrlProcessed(finalResultUrl);
                 }
             }
         }).start();
