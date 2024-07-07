@@ -9,6 +9,7 @@ import android.view.inputmethod.EditorInfo;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
+import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.DialogSiteBinding;
@@ -97,7 +98,7 @@ public class SiteDialog implements SiteAdapter.OnClickListener {
             }
         });
         binding.search.setOnClickListener(v -> searchSite());
-        if (adapter.getItemCount() < 10) binding.searchInput.setVisibility(View.GONE);
+        if (adapter.getItemCount() < 10 || !Setting.isSiteSearch()) binding.searchInput.setVisibility(View.GONE);
     }
 
     private void searchSite() {

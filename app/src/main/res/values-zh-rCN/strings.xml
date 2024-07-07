@@ -88,6 +88,7 @@
     <string name="setting_home_menu_key">首页菜单键</string>
     <string name="setting_home_site_lock">首页源锁定</string>
     <string name="setting_incognito">无痕模式</string>
+    <string name="setting_site_search">站源搜索</string>
     <string name="setting_remove_ad">AI去广告</string>
     <string name="setting_small_window_back_key">小窗返回键</string>
     <string name="setting_home_display_name">首页显示站源</string>
@@ -309,11 +310,6 @@
         <item>选择音轨</item>
         <item>选择视轨</item>
         <item>选择字幕</item>
-    </string-array>
-
-    <string-array name="select_rtsp">
-        <item>UDP</item>
-        <item>TCP</item>
     </string-array>
 
 </resources>

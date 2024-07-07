@@ -510,6 +510,14 @@ public class Setting {
         return Prefers.getInt("parse_webview", 0);
     }
 
+    public static boolean isSiteSearch() {
+        return Prefers.getBoolean("site_search", false);
+    }
+
+    public static void putSiteSearch(boolean search) {
+        Prefers.put("site_search", search);
+    }
+
     public static boolean isRemoveAd() {
         return Prefers.getBoolean("remove_ad", false);
     }

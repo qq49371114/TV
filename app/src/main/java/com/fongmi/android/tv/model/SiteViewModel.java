@@ -20,7 +20,6 @@ import com.fongmi.android.tv.bean.Url;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.exception.ExtractException;
 import com.fongmi.android.tv.player.Source;
-import com.fongmi.android.tv.player.extractor.Thunder;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Sniffer;
 import com.github.catvod.crawler.Spider;
@@ -33,12 +32,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
@@ -133,15 +129,15 @@ public class SiteViewModel extends ViewModel {
                 VodConfig.get().setRecent(site);
                 Result result = Result.fromJson(detailContent);
                 if (!result.getList().isEmpty()) result.getList().get(0).setVodFlags();
-                if (!result.getList().isEmpty()) checkThunder(result.getList().get(0).getVodFlags());
+                if (!result.getList().isEmpty()) Source.get().parse(result.getList().get(0).getVodFlags());
                 return result;
             } else if (site.isEmpty() && "push_agent".equals(key)) {
                 Vod vod = new Vod();
                 vod.setVodId(id);
                 vod.setVodName(id);
-                vod.setVodPic("https://pic.rmb.bdstatic.com/bjh/1d0b02d0f57f0a42201f92caba5107ed.jpeg");
+                vod.setVodPic(ResUtil.getString(R.string.push_image));
                 vod.setVodFlags(Flag.create(ResUtil.getString(R.string.push), ResUtil.getString(R.string.play), id));
-                checkThunder(vod.getVodFlags());
+                Source.get().parse(vod.getVodFlags());
                 return Result.vod(vod);
             } else {
                 ArrayMap<String, String> params = new ArrayMap<>();
@@ -151,7 +147,7 @@ public class SiteViewModel extends ViewModel {
                 SpiderDebug.log(detailContent);
                 Result result = Result.fromType(site.getType(), detailContent);
                 if (!result.getList().isEmpty()) result.getList().get(0).setVodFlags();
-                if (!result.getList().isEmpty()) checkThunder(result.getList().get(0).getVodFlags());
+                if (!result.getList().isEmpty()) Source.get().parse(result.getList().get(0).getVodFlags());
                 return result;
             }
         });
@@ -285,28 +281,6 @@ public class SiteViewModel extends ViewModel {
         String response = OkHttp.newCall(site.getApi(), site.getHeaders(), params).execute().body().string();
         result.setList(Result.fromType(site.getType(), response).getList());
         return result;
-    }
-
-    private void checkThunder(List<Flag> flags) throws Exception {
-        for (Flag flag : flags) {
-            ExecutorService executor = Executors.newFixedThreadPool(Constant.THREAD_POOL * 2);
-            for (Future<List<Episode>> future : executor.invokeAll(getThunder(flag), 30, TimeUnit.SECONDS)) flag.getEpisodes().addAll(future.get());
-            executor.shutdownNow();
-        }
-    }
-
-    private List<Thunder.Parser> getThunder(Flag flag) {
-        List<Thunder.Parser> items = new ArrayList<>();
-        Iterator<Episode> iterator = flag.getEpisodes().iterator();
-        while (iterator.hasNext()) addThunder(iterator, items);
-        return items;
-    }
-
-    private void addThunder(Iterator<Episode> iterator, List<Thunder.Parser> items) {
-        String url = iterator.next().getUrl();
-        if (!Sniffer.isThunder(url)) return;
-        items.add(Thunder.Parser.get(url));
-        iterator.remove();
     }
 
     private void post(Site site, Result result) {

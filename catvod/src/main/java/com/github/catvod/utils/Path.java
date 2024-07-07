@@ -94,7 +94,7 @@ public class Path {
     }
 
     public static File jpa() {
-        return mkdir(new File(cache() + File.separator + "jpa"));
+        return mkdir(new File(thunderCache() + File.separator + "jpa"));
     }
 
     public static File thunder() {
