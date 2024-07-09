@@ -3,6 +3,7 @@ package com.fongmi.android.tv.utils;
 import android.net.Uri;
 
 import com.fongmi.android.tv.server.Server;
+import com.github.catvod.utils.UriUtil;
 import com.google.common.net.HttpHeaders;
 
 public class UrlUtil {
@@ -32,6 +33,10 @@ public class UrlUtil {
     public static String path(Uri uri) {
         String path = uri.getPath();
         return path == null ? "" : path.trim();
+    }
+
+    public static String resolve(String baseUri, String referenceUri) {
+        return UriUtil.resolve(baseUri, referenceUri);
     }
 
     public static String convert(String url) {

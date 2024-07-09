@@ -8,6 +8,8 @@ import androidx.room.RoomDatabase;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Setting;
+import com.fongmi.android.tv.api.config.LiveConfig;
+import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Device;
 import com.fongmi.android.tv.bean.History;
@@ -46,6 +48,7 @@ public abstract class AppDatabase extends RoomDatabase {
     }
 
     public static void backup() {
+        if (!VodConfig.hasUrl() && !LiveConfig.hasUrl()) return;
         if (Setting.getBackupMode() == 0) backup(new com.fongmi.android.tv.impl.Callback());
     }
 

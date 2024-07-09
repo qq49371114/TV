@@ -361,9 +361,8 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     private Map<String, String> checkUa(Map<String, String> headers) {
-        if (Setting.getUa().isEmpty()) return headers;
         for (Map.Entry<String, String> header : headers.entrySet()) if (HttpHeaders.USER_AGENT.equalsIgnoreCase(header.getKey())) return headers;
-        headers.put(HttpHeaders.USER_AGENT, Setting.getUa());
+        headers.put(HttpHeaders.USER_AGENT, Setting.getUa().isEmpty() ? ExoUtil.getUa() : Setting.getUa());
         return headers;
     }
 

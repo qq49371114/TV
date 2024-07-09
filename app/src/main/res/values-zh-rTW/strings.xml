@@ -184,9 +184,4 @@
         <item>選擇字幕</item>
     </string-array>
 
-    <string-array name="select_rtsp">
-        <item>UDP</item>
-        <item>TCP</item>
-    </string-array>
-
 </resources>

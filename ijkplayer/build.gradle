@@ -19,5 +19,6 @@ android {
 
 dependencies {
     implementation project(':catvod')
-    implementation project(':media-lib-ui')
+    implementation(ext: 'aar', name: 'lib-ui-release', group: 'fongmi', version: 'release')
+    implementation(ext: 'aar', name: 'lib-common-release', group: 'fongmi', version: 'release')
 }

@@ -118,7 +118,7 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
 
             @Override
             public void error(String msg) {
-                if (TextUtils.isEmpty(msg) && AppDatabase.getBackup().exists()) showDialog();
+                if (TextUtils.isEmpty(msg) && AppDatabase.getBackup().exists() && !VodConfig.hasUrl() && !LiveConfig.hasUrl()) showDialog();
                 RefreshEvent.config();
                 StateEvent.empty();
                 Notify.show(msg);

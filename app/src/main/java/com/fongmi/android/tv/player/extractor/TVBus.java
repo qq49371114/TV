@@ -42,7 +42,7 @@ public class TVBus implements Source.Extractor, Listener {
     }
 
     private void onCheck() throws Exception {
-        if (hls.startsWith("-")) throw new ExtractException("Error Code : " + hls);
+        if (hls.startsWith("-")) throw new ExtractException("Error code: " + hls);
     }
 
     private void onWait() throws InterruptedException {

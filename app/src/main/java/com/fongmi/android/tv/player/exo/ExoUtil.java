@@ -12,6 +12,7 @@ import androidx.media3.common.MimeTypes;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.TrackSelectionOverride;
 import androidx.media3.common.Tracks;
+import androidx.media3.common.util.Util;
 import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.LoadControl;
@@ -22,6 +23,7 @@ import androidx.media3.exoplayer.trackselection.TrackSelector;
 import androidx.media3.ui.CaptionStyleCompat;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.BuildConfig;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.bean.Drm;
 import com.fongmi.android.tv.bean.Sub;
@@ -34,6 +36,10 @@ import java.util.Locale;
 import java.util.Map;
 
 public class ExoUtil {
+
+    public static String getUa() {
+        return Util.getUserAgent(App.get(), BuildConfig.APPLICATION_ID);
+    }
 
     public static LoadControl buildLoadControl() {
         return new DefaultLoadControl(Setting.getBuffer());
