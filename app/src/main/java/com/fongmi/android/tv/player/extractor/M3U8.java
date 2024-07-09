@@ -1,15 +1,14 @@
 package com.fongmi.android.tv.player.extractor;
 
 import android.content.Context;
-import android.os.SystemClock;
+
 
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.bean.DownloadTask;
 import com.fongmi.android.tv.player.DownloadSource;
-import com.github.catvod.net.OkHttp;
 import com.github.jadehh.m3u8.M3U8Class;
 import com.github.jadehh.m3u8.M3U8Module;
-import com.orhanobut.logger.Logger;
+
 
 
 import java.util.ArrayList;
@@ -28,7 +27,7 @@ public class M3U8 implements DownloadSource.Extractor {
     }
     @Override
     public boolean downloadMatch(String scheme, String host,String url) {
-        if ( ("http".equals(scheme) || "https".equals(scheme) ) && url.endsWith(".m3u8")) return true ;
+        if ( ("http".equals(scheme) || "https".equals(scheme) ) && url.contains(".m3u8")) return true ;
         else return false;
     }
 
@@ -42,16 +41,22 @@ public class M3U8 implements DownloadSource.Extractor {
         return null;
     }
 
-    @Override
-    public List<DownloadTask> startDownload(String name, String url, String thumbPath) {
+
+    private DownloadTask  download(String url){
         DownloadTask task = new DownloadTask();
-        if (name.length() == 0) name = "m3u8_video.mp4";
         task.setTaskId(m3u8.startDownload(url));
         task.setTaskType(Constant.M3U8_DOWNLOAD_TYPE);
-        task.setFileName(name);
         task.setUrl(url);
-        task.setThumbnailPath(thumbPath);
         task.setTaskStatus(Constant.DOWNLOAD_CONNECTION);
+        return task;
+    }
+
+    @Override
+    public List<DownloadTask> startDownload(String name, String url, String thumbPath) {
+        DownloadTask task = download(url);
+        task.setThumbnailPath(thumbPath);
+        if (name.length() == 0) name = "m3u8_video.mp4";
+        task.setFileName(name);
         List <DownloadTask> tasks = new ArrayList<>();
         tasks.add(task);
         return tasks;
@@ -64,10 +69,10 @@ public class M3U8 implements DownloadSource.Extractor {
             task.setTaskStatus(Constant.DOWNLOAD_SUCCESS);
             task.setFileSize(task.getDownloadSize());
         }
-        else if (m3U8Module.getTaskType() == 3 && task.getTaskStatus() != Constant.DOWNLOAD_CONNECTION){
-            task.setTaskStatus(Constant.DOWNLOAD_STOP);
-        }
+        else if(m3U8Module.getTaskType() == 3 && task.getTaskStatus() != Constant.DOWNLOAD_CONNECTION) task.setTaskStatus(Constant.DOWNLOAD_STOP);
+        else if(m3U8Module.getTaskType() == 2) task.setTaskStatus(Constant.DOWNLOAD_STOP);
         else if (m3U8Module.getTaskType() == 4) task.setTaskStatus(Constant.DOWNLOAD_LOADING);
+        else if (m3U8Module.getTaskType() == 0) task.setTaskStatus(Constant.DOWNLOAD_FAIL);
         task.setLocalPath(m3U8Module.getFilePath());
         task.setDownloadSpeed(m3U8Module.getSpeed());
         task.setDownloadSize(m3U8Module.getDownloadSize());
@@ -77,17 +82,10 @@ public class M3U8 implements DownloadSource.Extractor {
     }
 
 
-    public long getFileSize(int percent, long downloadSize) {
-        if (percent > 0 ){
-            return downloadSize / percent * 100;
-        }
-        return 0;
-    }
-
     @Override
     public List<DownloadTask> resumeDownload(DownloadTask task) {
-        m3u8.resumeDownload(task.getTaskId());
         task.setTaskStatus(Constant.DOWNLOAD_CONNECTION);
+        m3u8.resumeDownload(task.getTaskId());
         List <DownloadTask> tasks = new ArrayList<>();
         tasks.add(task);
         return tasks;

@@ -65,7 +65,6 @@ public final class M3U8ThreadTaskAdapter extends AbsThreadTaskAdapter {
     try {
       URL url = ConnectionHelp.handleUrl(getThreadConfig().url, mHttpTaskOption);
       conn = ConnectionHelp.handleConnection(url, mHttpTaskOption);
-      conn.setConnectTimeout(10000);
       ALog.d(TAG, String.format("分片【%s】开始下载", getThreadRecord().threadId));
 
       if (mHttpTaskOption.isChunked()) {
@@ -93,15 +92,15 @@ public final class M3U8ThreadTaskAdapter extends AbsThreadTaskAdapter {
       handleConn(conn);
     } catch (MalformedURLException e) {
       fail(new AriaM3U8Exception(
-          String.format("分片【%s】下载失败，下载链接: %s，filePath: %s, url: %s", getThreadRecord().threadId,getThreadRecord().tsUrl,
+          String.format("分片【%s】下载失败，URL错误，下载链接: %s，filePath: %s, url: %s", getThreadRecord().threadId,getThreadRecord().tsUrl,
               getThreadConfig().tempFile.getPath(), getEntity().getUrl()), e), false);
     } catch (IOException e) {
       fail(new AriaM3U8Exception(
-          String.format("分片【%s】下载失败，下载链接: %s，filePath: %s, url: %s", getThreadRecord().threadId,getThreadRecord().tsUrl,
+          String.format("分片【%s】下载失败，IO错误，下载链接: %s，filePath: %s, url: %s", getThreadRecord().threadId,getThreadRecord().tsUrl,
               getThreadConfig().tempFile.getPath(), getEntity().getUrl()), e), true);
     } catch (Exception e) {
       fail(new AriaM3U8Exception(
-          String.format("分片【%s】下载失败，下载链接: %s，filePath: %s, url: %s", getThreadRecord().threadId,getThreadRecord().tsUrl,
+          String.format("分片【%s】下载失败，其他错误，下载链接: %s，filePath: %s, url: %s", getThreadRecord().threadId,getThreadRecord().tsUrl,
               getThreadConfig().tempFile.getPath(), getEntity().getUrl()), e), false);
     } finally {
       try {

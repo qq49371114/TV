@@ -98,7 +98,7 @@ public class DownloadSource {
 
     private String download(Download download){
         if (AppDatabase.get().getDownloadTaskDao().find(download.getUrl()).size() > 0){
-          return ResUtil.getString(R.string.download_exists);
+            return ResUtil.getString(R.string.download_exists);
         }else{
             Extractor extractor = getExtractor(download.getUrl());
             if (extractor != null) {

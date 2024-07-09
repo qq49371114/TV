@@ -2,14 +2,13 @@ package com.fongmi.android.tv.player.extractor;
 
 import android.net.Uri;
 
-import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.bean.DownloadTask;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.player.DownloadSource;
 import com.fongmi.android.tv.player.Source;
 import com.github.catvod.utils.Path;
-import com.orhanobut.logger.Logger;
+
 import com.p2p.P2PClass;
 
 import java.net.URLDecoder;
