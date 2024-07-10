@@ -542,6 +542,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     private void setFlagActivated(Flag item) {
         if (mFlagAdapter.size() == 0 || item.isActivated()) return;
+        if (mFlagAdapter.indexOf(item) == -1) item.setFlag(((Flag) mFlagAdapter.get(0)).getFlag());
         for (int i = 0; i < mFlagAdapter.size(); i++) ((Flag) mFlagAdapter.get(i)).setActivated(item);
         mBinding.flag.setSelectedPosition(mFlagAdapter.indexOf(item));
         notifyItemChanged(mBinding.flag, mFlagAdapter);

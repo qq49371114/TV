@@ -5,7 +5,7 @@ plugins {
 android {
     namespace 'com.fongmi.android.tv'
 
-    compileSdk 34
+    compileSdk 35
     flavorDimensions = ["mode", "api", "abi"]
 
     defaultConfig {

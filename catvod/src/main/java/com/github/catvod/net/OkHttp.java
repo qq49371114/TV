@@ -9,6 +9,7 @@ import com.github.catvod.bean.Doh;
 import com.github.catvod.net.interceptor.RequestInterceptor;
 import com.github.catvod.net.interceptor.ResponseInterceptor;
 import com.github.catvod.utils.Path;
+import com.google.common.collect.ImmutableList;
 
 import java.net.ProxySelector;
 import java.security.SecureRandom;
@@ -28,6 +29,7 @@ import okhttp3.FormBody;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.dnsoverhttps.DnsOverHttps;
@@ -151,7 +153,7 @@ public class OkHttp {
 
     private static OkHttpClient.Builder getBuilder() {
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.NONE);
-        OkHttpClient.Builder builder = new OkHttpClient.Builder().cookieJar(OkCookieJar.get()).addInterceptor(new RequestInterceptor()).addNetworkInterceptor(new ResponseInterceptor()).addNetworkInterceptor(logging).connectTimeout(TIMEOUT, TimeUnit.MILLISECONDS).readTimeout(TIMEOUT, TimeUnit.MILLISECONDS).writeTimeout(TIMEOUT, TimeUnit.MILLISECONDS).dns(dns()).hostnameVerifier((hostname, session) -> true).followRedirects(true).sslSocketFactory(getSSLContext().getSocketFactory(), trustAllCertificates());
+        OkHttpClient.Builder builder = new OkHttpClient.Builder().protocols(ImmutableList.of(Protocol.HTTP_1_1, Protocol.HTTP_2)).cookieJar(OkCookieJar.get()).addInterceptor(new RequestInterceptor()).addNetworkInterceptor(new ResponseInterceptor()).addNetworkInterceptor(logging).connectTimeout(TIMEOUT, TimeUnit.MILLISECONDS).readTimeout(TIMEOUT, TimeUnit.MILLISECONDS).writeTimeout(TIMEOUT, TimeUnit.MILLISECONDS).dns(dns()).hostnameVerifier((hostname, session) -> true).followRedirects(true).sslSocketFactory(getSSLContext().getSocketFactory(), trustAllCertificates());
         builder.proxySelector(get().proxy ? selector() : defaultSelector);
         return builder;
     }

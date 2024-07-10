@@ -6,7 +6,7 @@ plugins {
 android {
     namespace 'com.fongmi.chaquo'
 
-    compileSdk 34
+    compileSdk 35
     flavorDimensions = ["abi"]
 
     defaultConfig {
