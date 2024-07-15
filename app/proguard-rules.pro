@@ -100,3 +100,19 @@
 -dontwarn com.tencent.smtt.**
 -keep class com.tencent.smtt.** { *; }
 -keep class com.tencent.tbs.** { *; }
+
+# test
+-dontwarn org.glassfish.jersey.internal.spi.AutoDiscoverable
+-dontwarn org.javamoney.moneta.Money
+-dontwarn org.joda.time.DateTime
+-dontwarn org.joda.time.DateTimeZone
+-dontwarn org.joda.time.Duration
+-dontwarn org.joda.time.Instant
+-dontwarn org.joda.time.LocalDate
+-dontwarn org.joda.time.LocalDateTime
+-dontwarn org.joda.time.LocalTime
+-dontwarn org.joda.time.Period
+-dontwarn org.joda.time.ReadablePartial
+-dontwarn org.joda.time.format.DateTimeFormat
+-dontwarn org.joda.time.format.DateTimeFormatter
+-dontwarn springfox.documentation.spring.web.json.Json
