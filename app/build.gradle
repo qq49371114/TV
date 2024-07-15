@@ -5,7 +5,7 @@ plugins {
 android {
     namespace 'com.fongmi.android.tv'
 
-    compileSdk 34
+    compileSdk 35
     flavorDimensions = ["mode", "api", "abi"]
 
     defaultConfig {
@@ -13,8 +13,8 @@ android {
         minSdk 21
         //noinspection ExpiredTargetSdkVersion
         targetSdk 28
-        versionCode 1035
-        versionName "10.3.5"
+        versionCode 1036
+        versionName "10.3.6"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]

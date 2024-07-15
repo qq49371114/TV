@@ -188,8 +188,10 @@ public class Util {
 
     public static void restartApp(Activity activity) {
         Intent intent = activity.getBaseContext().getPackageManager().getLaunchIntentForPackage(activity.getBaseContext().getPackageName());
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        activity.startActivity(intent);
+        ComponentName componentName = intent.getComponent();
+        Intent mainIntent = Intent.makeRestartActivityTask(componentName);
+        activity.startActivity(mainIntent);
+        Runtime.getRuntime().exit(0);
     }
 
 }

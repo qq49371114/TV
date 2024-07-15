@@ -330,6 +330,14 @@ public class Setting {
         Prefers.put("backup_mode", auto);
     }
 
+    public static boolean isZhuyin() {
+        return Prefers.getBoolean("zhuyin");
+    }
+
+    public static void putZhuyin(boolean zhuyin) {
+        Prefers.put("zhuyin", zhuyin);
+    }
+
     public static float getThumbnail() {
         return 0.3f * getQuality() + 0.4f;
     }
@@ -508,6 +516,14 @@ public class Setting {
 
     public static int getParseWebView() {
         return Prefers.getInt("parse_webview", 0);
+    }
+
+    public static boolean isSiteSearch() {
+        return Prefers.getBoolean("site_search", false);
+    }
+
+    public static void putSiteSearch(boolean search) {
+        Prefers.put("site_search", search);
     }
 
     public static boolean isRemoveAd() {

@@ -242,7 +242,7 @@ public class Vod implements Parcelable {
     }
 
     public String getVodPic(String pic) {
-        if (getVodPic().isEmpty()) setVodPic(pic);
+        if (!TextUtils.isEmpty(pic)) setVodPic(pic);
         return getVodPic();
     }
 
