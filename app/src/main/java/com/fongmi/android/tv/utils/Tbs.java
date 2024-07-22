@@ -6,6 +6,7 @@ import android.os.Environment;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
+import com.fongmi.android.tv.impl.X5WebViewCallback;
 import com.fongmi.android.tv.server.Server;
 import com.github.catvod.utils.Path;
 import com.orhanobut.logger.Logger;
@@ -74,22 +75,12 @@ public class Tbs {
         if (file.exists()) file.delete();
     }
 
-    public static void install() {
+    public static void install(X5WebViewCallback callback) {
         boolean canLoadX5 = QbSdk.canLoadX5(App.get());
         if (canLoadX5) return;
         HashMap map = new HashMap();
         map.put(TbsCoreSettings.TBS_SETTINGS_USE_PRIVATE_CLASSLOADER, true);
         QbSdk.initTbsSettings(map);
-        QbSdk.PreInitCallback callback = new QbSdk.PreInitCallback() {
-            @Override
-            public void onViewInitFinished(boolean finished) {
-                if (finished) Notify.show(R.string.x5webview_enabled);
-            }
-
-            @Override
-            public void onCoreInitFinished() {
-            }
-        };
         TbsListener tbsListener = new TbsListener() {
 
             /**
@@ -106,9 +97,8 @@ public class Tbs {
             @Override
             public void onInstallFinish(int stateCode) {
                 Logger.t(TAG).d("onInstallFinish:" + stateCode);
-                if (stateCode == TbsCommonCode.INSTALL_SUCCESS) {
-                    QbSdk.initX5Environment(App.get(), callback);
-                }
+                if (stateCode == TbsCommonCode.INSTALL_SUCCESS) callback.onX5Success();
+                else callback.onX5Error();
             }
 
             /**

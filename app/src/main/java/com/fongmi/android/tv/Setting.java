@@ -210,6 +210,14 @@ public class Setting {
         Prefers.put("site_mode", mode);
     }
 
+    public static int getSyncMode() {
+        return Prefers.getInt("sync_mode");
+    }
+
+    public static void putSyncMode(int mode) {
+        Prefers.put("sync_mode", mode);
+    }
+
     public static boolean isBootLive() {
         return Prefers.getBoolean("boot_live");
     }

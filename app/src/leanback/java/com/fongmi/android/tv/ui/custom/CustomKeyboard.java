@@ -22,7 +22,8 @@ public class CustomKeyboard implements KeyboardAdapter.OnClickListener {
     }
 
     private void initView() {
-        binding.keyboard.setHasFixedSize(true);
+        binding.keyboard.setItemAnimator(null);
+        binding.keyboard.setHasFixedSize(false);
         binding.keyboard.addItemDecoration(new SpaceItemDecoration(6, 8));
         binding.keyboard.setAdapter(adapter = new KeyboardAdapter(this));
     }
@@ -43,11 +44,6 @@ public class CustomKeyboard implements KeyboardAdapter.OnClickListener {
         StringBuilder sb = new StringBuilder(binding.keyword.getText().toString());
         int cursor = binding.keyword.getSelectionStart();
         switch (resId) {
-            case R.drawable.ic_keyboard:
-                binding.keyword.requestFocus();
-                adapter.toggle();
-                binding.keyboard.postDelayed(() -> binding.keyboard.findViewHolderForLayoutPosition(6).itemView.requestFocus(), 0);
-                break;
             case R.drawable.ic_setting_home:
                 callback.showDialog();
                 break;
@@ -68,6 +64,9 @@ public class CustomKeyboard implements KeyboardAdapter.OnClickListener {
                 sb.deleteCharAt(cursor - 1);
                 binding.keyword.setText(sb.toString());
                 binding.keyword.setSelection(cursor - 1);
+                break;
+            case R.drawable.ic_keyboard:
+                adapter.toggle();
                 break;
         }
     }

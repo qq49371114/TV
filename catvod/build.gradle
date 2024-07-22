@@ -5,7 +5,7 @@ plugins {
 android {
     namespace 'com.github.catvod.crawler'
 
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         minSdk 21
@@ -14,6 +14,7 @@ android {
 }
 
 dependencies {
+    api 'androidx.media3:media3-common:' + media3Version
     api 'androidx.annotation:annotation:' + annotationVersion
     api 'androidx.preference:preference:1.2.1'
     api 'com.google.code.gson:gson:' + gsonVersion
@@ -21,12 +22,4 @@ dependencies {
     api 'com.orhanobut:logger:2.2.0'
     api 'com.squareup.okhttp3:okhttp:' + okhttpVersion
     api 'com.squareup.okhttp3:okhttp-dnsoverhttps:' + okhttpVersion
-    api('com.google.guava:guava:33.2.1-android') {
-        exclude group: 'com.google.code.findbugs', module: 'jsr305'
-        exclude group: 'org.checkerframework', module: 'checker-compat-qual'
-        exclude group: 'org.checkerframework', module: 'checker-qual'
-        exclude group: 'com.google.errorprone', module: 'error_prone_annotations'
-        exclude group: 'com.google.j2objc', module: 'j2objc-annotations'
-        exclude group: 'org.codehaus.mojo', module: 'animal-sniffer-annotations'
-    }
 }

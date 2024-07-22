@@ -252,7 +252,7 @@ public class SettingCustomActivity extends BaseActivity implements MenuKeyCallba
         int index = 1;
         Setting.putParseWebView(index);
         mBinding.parseWebviewText.setText(parseWebview[index]);
-        App.post(() -> Util.restartApp(this), 5000);
+        App.post(() -> Util.restartApp(this), 500);
     }
 
     @Override

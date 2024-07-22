@@ -106,6 +106,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     private boolean stop;
     private boolean lock;
     private int toggleCount;
+    private int errorCount;
     private int passCount;
     private PiP mPiP;
 
@@ -831,6 +832,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
             case Player.STATE_READY:
                 setMetadata();
                 resetToggle();
+                resetError();
                 hideProgress();
                 mPlayers.reset();
                 setTrackVisible(true);
@@ -860,7 +862,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
-        if (event.getCode() / 1000 == 4 && mPlayers.isExo() && mPlayers.isHard()) onDecode(false);
+        if (addErrorCount() > 20) onErrorEnd(event);
+        else if (event.getCode() / 1000 == 4 && mPlayers.isExo() && mPlayers.addCount() <= 1) onDecode(false);
         else if (mPlayers.addRetry() > event.getRetry()) checkError(event);
         else fetch();
     }
@@ -881,10 +884,19 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         fetch();
     }
 
-    private void onError(ErrorEvent event) {
+    private void onErrorEnd(ErrorEvent event) {
+        onErrorPlayer(event);
+        resetError();
+    }
+
+    private void onErrorPlayer(ErrorEvent event) {
         showError(event.getMsg());
         mPlayers.reset();
         mPlayers.stop();
+    }
+
+    private void onError(ErrorEvent event) {
+        onErrorPlayer(event);
         startFlow();
     }
 
@@ -1030,6 +1042,14 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
         this.toggleCount = 0;
     }
 
+    public int addErrorCount() {
+        return ++errorCount;
+    }
+
+    public void resetError() {
+        this.errorCount = 0;
+    }
+
     private void stopService() {
         PlaybackService.stop();
     }
@@ -1158,8 +1178,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
             hideUI();
         } else {
             hideInfo();
+            stopService();
             setForeground(true);
-            PlaybackService.stop();
             setSubtitle(Setting.getSubtitle());
             if (isStop()) finish();
         }
@@ -1231,6 +1251,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        stopService();
         mClock.release();
         mPlayers.release();
         PlaybackService.stop();

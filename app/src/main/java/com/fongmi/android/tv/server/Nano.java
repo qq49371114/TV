@@ -6,6 +6,7 @@ import com.fongmi.android.tv.bean.Device;
 import com.fongmi.android.tv.server.process.Action;
 import com.fongmi.android.tv.server.process.Cache;
 import com.fongmi.android.tv.server.process.Local;
+import com.fongmi.android.tv.server.process.Media;
 import com.fongmi.android.tv.server.process.Process;
 import com.github.catvod.utils.Asset;
 import com.github.catvod.utils.Util;
@@ -35,6 +36,7 @@ public class Nano extends NanoHTTPD {
         process.add(new Action());
         process.add(new Cache());
         process.add(new Local());
+        process.add(new Media());
     }
 
     public static Response success() {

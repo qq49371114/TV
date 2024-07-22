@@ -40,3 +40,6 @@ class Runner():
 
     def manualVideoCheck(self):
         return self.spider.manualVideoCheck()
+
+    def destroy(self):
+        return self.spider.destroy()

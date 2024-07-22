@@ -1,10 +1,12 @@
 package com.fongmi.android.tv.server;
 
+import com.fongmi.android.tv.player.Players;
 import com.github.catvod.Proxy;
 import com.github.catvod.utils.Util;
 
 public class Server {
 
+    private Players player;
     private Nano nano;
     private int port;
 
@@ -22,6 +24,14 @@ public class Server {
 
     public int getPort() {
         return port;
+    }
+
+    public Players getPlayer() {
+        return player;
+    }
+
+    public void setPlayer(Players player) {
+        this.player = player;
     }
 
     public String getAddress() {

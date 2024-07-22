@@ -123,25 +123,25 @@ public class Action implements Process {
     }
 
     private void onCast(Map<String, String> params) {
-        Config config = Config.find(params.get("url"), 0);
+        Config config = Config.objectFrom(params.get("config"));
         Device device = Device.objectFrom(params.get("device"));
         History history = History.objectFrom(params.get("history"));
-        CastEvent.post(config, device, history);
+        CastEvent.post(Config.find(config), device, history);
     }
 
     private void onSync(Map<String, String> params) {
-        boolean sync = Objects.equals(params.get("mode"), "0");
         boolean keep = Objects.equals(params.get("type"), "keep");
+        boolean force = Objects.equals(params.get("force"), "true");
         boolean history = Objects.equals(params.get("type"), "history");
-        Device device = Device.objectFrom(params.get("device"));
-        if (params.get("device") != null && sync) {
+        String mode = Objects.requireNonNullElse(params.get("mode"), "0");
+        if (params.get("device") != null && (mode.equals("0") || mode.equals("2"))) {
+            Device device = Device.objectFrom(params.get("device"));
             if (history) sendHistory(device, params);
             else if (keep) sendKeep(device);
         }
-        if (history) {
-            syncHistory(params);
-        } else if (keep) {
-            syncKeep(params);
+        if (mode.equals("0") || mode.equals("1")) {
+            if (history) syncHistory(params, force);
+            else if (keep) syncKeep(params, force);
         }
     }
 
@@ -170,10 +170,10 @@ public class Action implements Process {
 
     private void sendHistory(Device device, Map<String, String> params) {
         try {
-            String url = Objects.requireNonNullElse(params.get("url"), VodConfig.getUrl());
+            Config config = Config.find(Config.objectFrom(params.get("config")));
             FormBody.Builder body = new FormBody.Builder();
-            body.add("url", url);
-            body.add("targets", App.gson().toJson(History.get(Config.find(url, 0).getId())));
+            body.add("config", config.toString());
+            body.add("targets", App.gson().toJson(History.get(config.getId())));
             OkHttp.newCall(OkHttp.client(Constant.TIMEOUT_SYNC), device.getIp().concat("/action?do=sync&mode=0&type=history"), body.build()).execute();
         } catch (Exception e) {
             App.post(() -> Notify.show(e.getMessage()));
@@ -191,14 +191,11 @@ public class Action implements Process {
         }
     }
 
-    public void syncHistory(Map<String, String> params) {
-        String url = params.get("url");
-        if (TextUtils.isEmpty(url)) return;
-        Config config = Config.find(url, 0);
-        boolean replace = Objects.equals(params.get("mode"), "1");
+    public void syncHistory(Map<String, String> params, boolean force) {
+        Config config = Config.find(Config.objectFrom(params.get("config")));
         List<History> targets = History.arrayFrom(params.get("targets"));
         if (VodConfig.get().getConfig().equals(config)) {
-            if (replace) History.delete(config.getId());
+            if (force) History.delete(config.getId());
             History.sync(targets);
         } else {
             VodConfig.load(config, getCallback(targets));
@@ -221,14 +218,13 @@ public class Action implements Process {
         };
     }
 
-    private void syncKeep(Map<String, String> params) {
-        List<Config> configs = Config.arrayFrom(params.get("configs"));
+    private void syncKeep(Map<String, String> params, boolean force) {
         List<Keep> targets = Keep.arrayFrom(params.get("targets"));
-        boolean replace = Objects.equals(params.get("mode"), "1");
+        List<Config> configs = Config.arrayFrom(params.get("configs"));
         if (TextUtils.isEmpty(VodConfig.getUrl()) && configs.size() > 0) {
-            VodConfig.load(Config.find(configs.get(0), 0), getCallback(configs, targets));
+            VodConfig.load(Config.find(configs.get(0)), getCallback(configs, targets));
         } else {
-            if (replace) Keep.deleteAll();
+            if (force) Keep.deleteAll();
             Keep.sync(configs, targets);
         }
     }

@@ -7,19 +7,19 @@ import com.fongmi.android.tv.player.Players;
 
 public class SessionCallback extends MediaSessionCompat.Callback {
 
-    private final Players players;
+    private final Players player;
 
-    public static SessionCallback create(Players players) {
-        return new SessionCallback(players);
+    public static SessionCallback create(Players player) {
+        return new SessionCallback(player);
     }
 
-    private SessionCallback(Players players) {
-        this.players = players;
+    private SessionCallback(Players player) {
+        this.player = player;
     }
 
     @Override
     public void onSeekTo(long pos) {
-        players.seekTo(pos);
+        player.seekTo(pos);
     }
 
     @Override

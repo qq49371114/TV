@@ -23,7 +23,7 @@ public class JsLoader {
     }
 
     public void clear() {
-        for (Spider spider : spiders.values()) spider.destroy();
+        for (Spider spider : spiders.values()) App.execute(spider::destroy);
         jarLoader.clear();
         spiders.clear();
     }

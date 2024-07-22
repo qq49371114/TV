@@ -83,17 +83,17 @@ public class ParserImpl implements Parser {
     private VideoInfo parseVideoAndroid(String videoId, YoutubeCallback<VideoInfo> callback) throws YoutubeException {
         String url = "https://youtubei.googleapis.com/youtubei/v1/player?key=" + ANDROID_APIKEY;
         String body = "{" +
-                      "  \"videoId\": \"" + videoId + "\"," +
-                      "  \"context\": {" +
-                      "    \"client\": {" +
-                      "      \"hl\": \"en\"," +
-                      "      \"gl\": \"US\"," +
-                      "      \"clientName\": \"ANDROID_TESTSUITE\"," +
-                      "      \"clientVersion\": \"1.9\"," +
-                      "      \"androidSdkVersion\": 31" +
-                      "    }" +
-                      "  }" +
-                      "}";
+                "  \"videoId\": \"" + videoId + "\"," +
+                "  \"context\": {" +
+                "    \"client\": {" +
+                "      \"hl\": \"en\"," +
+                "      \"gl\": \"US\"," +
+                "      \"clientName\": \"ANDROID_TESTSUITE\"," +
+                "      \"clientVersion\": \"1.9\"," +
+                "      \"androidSdkVersion\": 31" +
+                "    }" +
+                "  }" +
+                "}";
         RequestWebpage request = new RequestWebpage(url, "POST", body).header("Content-Type", "application/json");
         Response<String> response = downloader.downloadWebpage(request);
         if (!response.ok()) {
@@ -424,11 +424,11 @@ public class ParserImpl implements Parser {
         }
         String html = response.data();
         try {
-            JsonObject content;
+            JsonObject content = new JsonObject();
             JsonObject jsonResponse = JsonParser.parseString(html).getAsJsonObject();
             if (jsonResponse.has("continuationContents")) {
                 content = jsonResponse.getAsJsonObject("continuationContents").getAsJsonObject("playlistVideoListContinuation");
-            } else {
+            } else if (jsonResponse.has("onResponseReceivedActions")) {
                 content = jsonResponse.getAsJsonArray("onResponseReceivedActions").get(0).getAsJsonObject().getAsJsonObject("appendContinuationItemsAction");
             }
             populatePlaylist(content, videos, clientVersion);
