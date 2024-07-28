@@ -122,7 +122,7 @@ public class ConfigDialog implements DialogInterface.OnDismissListener {
                 return "";
         }
     }
-    
+
     private String getName() {
         switch (type) {
             case 0:
