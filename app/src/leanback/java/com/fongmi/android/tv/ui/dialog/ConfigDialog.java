@@ -21,7 +21,6 @@ import com.fongmi.android.tv.event.ServerEvent;
 import com.fongmi.android.tv.impl.ConfigCallback;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.ui.custom.CustomTextListener;
-import com.fongmi.android.tv.utils.CustomUtil;
 import com.fongmi.android.tv.utils.QRCode;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
@@ -81,15 +80,11 @@ public class ConfigDialog implements DialogInterface.OnDismissListener {
     }
 
     private void initView() {
-        String address = Server.get().getAddress();
-//        binding.text.setText(url = getUrl());
-        if (TextUtils.isEmpty(getName())) {
-            binding.text.setText(url = getUrl());
-        }
+        binding.text.setText(url = getUrl());
         binding.text.setSelection(TextUtils.isEmpty(url) ? 0 : url.length());
         binding.positive.setText(edit ? R.string.dialog_edit : R.string.dialog_positive);
-        binding.code.setImageBitmap(QRCode.getBitmap(address, 200, 0));
-        binding.info.setText(ResUtil.getString(R.string.push_info, address).replace("，", "\n"));
+        binding.code.setImageBitmap(QRCode.getBitmap(Server.get().getAddress(3), 200, 0));
+        binding.info.setText(ResUtil.getString(R.string.push_info, Server.get().getAddress()).replace("，", "\n"));
         binding.storage.setVisibility(PermissionX.isGranted(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) ? View.GONE : View.VISIBLE);
     }
 
@@ -148,10 +143,7 @@ public class ConfigDialog implements DialogInterface.OnDismissListener {
         String name = binding.name.getText().toString().trim();
         String text = UrlUtil.fixUrl(binding.text.getText().toString().trim());
         if (edit) Config.find(url, type).url(text).update();
-        if (text.isEmpty()) {
-            url = CustomUtil.getSource();
-            Config.find(url, 1).name(CustomUtil.getTitle()).update();
-        }
+        if (text.isEmpty()) Config.delete(url, type);
         if (name.isEmpty()) callback.setConfig(Config.find(text, type));
         else callback.setConfig(Config.find(text, name, type));
         dialog.dismiss();
