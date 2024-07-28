@@ -73,7 +73,6 @@ public class LiveConfig {
         return true;
     }
 
-
     public static void load(Config config, Callback callback) {
         get().clear().config(config).load(callback);
     }
@@ -103,6 +102,10 @@ public class LiveConfig {
 
     public void load() {
         if (isEmpty()) load(new Callback());
+    }
+
+    public void load(Callback callback) {
+        App.execute(() -> loadConfig(callback));
     }
 
     private void loadConfig(Callback callback) {
