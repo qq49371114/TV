@@ -218,6 +218,14 @@ public class Setting {
         Prefers.put("site_mode", mode);
     }
 
+    public static int getSyncMode() {
+        return Prefers.getInt("sync_mode");
+    }
+
+    public static void putSyncMode(int mode) {
+        Prefers.put("sync_mode", mode);
+    }
+
     public static boolean isBootLive() {
         return Prefers.getBoolean("boot_live");
     }
@@ -256,6 +264,14 @@ public class Setting {
 
     public static void putUpdate(boolean update) {
         Prefers.put("update", update);
+    }
+
+    public static boolean isPlayWithOthers() {
+        return Prefers.getBoolean("play_with_others", false);
+    }
+
+    public static void putPlayWithOthers(boolean play) {
+        Prefers.put("play_with_others", play);
     }
 
     public static boolean isDanmu() {

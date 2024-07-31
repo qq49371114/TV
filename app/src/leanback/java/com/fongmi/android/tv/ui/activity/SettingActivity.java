@@ -316,6 +316,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
     public void setProxy(String proxy) {
         Source.get().stop();
         Setting.putProxy(proxy);
+        OkHttp.selector().clear();
         OkHttp.get().setProxy(proxy);
         Notify.progress(getActivity());
         VodConfig.load(Config.vod(), getCallback());

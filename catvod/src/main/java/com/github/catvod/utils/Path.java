@@ -129,6 +129,10 @@ public class Path {
         return new File(js(), name);
     }
 
+    public static File py(String name) {
+        return new File(py(), name);
+    }
+
     public static File jar(String name) {
         return new File(jar(), Util.md5(name).concat(".jar"));
     }

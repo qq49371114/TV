@@ -38,3 +38,7 @@ class Trigger():
     @staticmethod
     def manualVideoCheck(sp_obj):
         return sp_obj.manualVideoCheck()
+
+    @staticmethod
+    def destroy(sp_obj):
+        return sp_obj.destroy()

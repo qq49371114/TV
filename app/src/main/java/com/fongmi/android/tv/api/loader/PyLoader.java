@@ -24,7 +24,7 @@ public class PyLoader {
     }
 
     public void clear() {
-        for (Spider spider : spiders.values()) spider.destroy();
+        for (Spider spider : spiders.values()) App.execute(spider::destroy);
         spiders.clear();
     }
 
@@ -42,8 +42,8 @@ public class PyLoader {
     public Spider getSpider(String key, String api, String ext) {
         try {
             if (spiders.containsKey(key)) return spiders.get(key);
-            Method method = loader.getClass().getMethod("spider", Context.class, String.class, String.class);
-            Spider spider = (Spider) method.invoke(loader, App.get(), key, api);
+            Method method = loader.getClass().getMethod("spider", Context.class, String.class);
+            Spider spider = (Spider) method.invoke(loader, App.get(), api);
             spider.init(App.get(), ext);
             spiders.put(key, spider);
             return spider;

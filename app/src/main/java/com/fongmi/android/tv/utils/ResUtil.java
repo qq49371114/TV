@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
@@ -117,6 +118,10 @@ public class ResUtil {
 
     public static String[] getStringArray(@ArrayRes int resId) {
         return App.get().getResources().getStringArray(resId);
+    }
+
+    public static TypedArray getTypedArray(@ArrayRes int resId) {
+        return App.get().getResources().obtainTypedArray(resId);
     }
 
     public static Drawable getDrawable(@DrawableRes int resId) {

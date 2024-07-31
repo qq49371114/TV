@@ -77,8 +77,12 @@ public class VodConfig {
         return get().getSites().indexOf(get().getHome());
     }
 
+    public static boolean hasUrl() {
+        return getUrl() != null && getUrl().length() > 0;
+    }
+
     public static boolean hasParse() {
-        return get().getParses().size() > 0;
+        return !get().getParses().isEmpty();
     }
 
     public static void load(Config config, Callback callback) {
@@ -323,7 +327,7 @@ public class VodConfig {
     }
 
     public void setRules(List<Rule> rules) {
-        for (Rule rule : rules) if ("proxy".equals(rule.getName())) OkHttp.selector().setHosts(rule.getHosts());
+        for (Rule rule : rules) if ("proxy".equals(rule.getName())) OkHttp.selector().addAll(rule.getHosts());
         rules.remove(Rule.create("proxy"));
         this.rules = rules;
     }

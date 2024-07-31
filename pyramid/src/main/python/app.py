@@ -4,22 +4,23 @@ from importlib.machinery import SourceFileLoader
 import json
 
 
-def spider(cache, key, api):
+def spider(cache, api):
     name = os.path.basename(api)
     path = cache + '/' + name
-    downloadFile(path, api)
+    download(path, api)
+    name = name.split('.')[0]
     return SourceFileLoader(name, path).load_module().Spider()
 
 
-def downloadFile(name, api):
+def download(path, api):
     if api.startswith('http'):
-        writeFile(name, redirect(api).content)
+        writeFile(path, redirect(api).content)
     else:
-        writeFile(name, str.encode(api))
+        writeFile(path, str.encode(api))
 
 
-def writeFile(name, content):
-    with open(name, 'wb') as f:
+def writeFile(path, content):
+    with open(path, 'wb') as f:
         f.write(content)
 
 
@@ -33,6 +34,16 @@ def redirect(url):
 
 def str2json(content):
     return json.loads(content)
+
+
+def getDependence(ru):
+    result = ru.getDependence()
+    return result
+
+
+def getName(ru):
+    result = ru.getName()
+    return result
 
 
 def init(ru, extend):
@@ -84,6 +95,10 @@ def searchContentPage(ru, key, quick, pg):
 def localProxy(ru, param):
     result = ru.localProxy(str2json(param))
     return result
+
+
+def destroy(ru):
+    ru.destroy()
 
 
 def run():

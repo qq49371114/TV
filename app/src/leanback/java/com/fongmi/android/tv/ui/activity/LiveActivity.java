@@ -92,6 +92,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
     private Runnable mR4;
     private Clock mClock;
     private int toggleCount;
+    private int errorCount;
     private int count;
 
     public static void start(Context context) {
@@ -209,7 +210,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
     }
 
     private void setVideoView() {
-        mPlayers.set(getExo(), getIjk());
+        mPlayers.init(getExo(), getIjk());
         setScale(Setting.getLiveScale());
         mBinding.control.invert.setActivated(Setting.isInvert());
         mBinding.control.across.setActivated(Setting.isAcross());
@@ -429,7 +430,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
 
     private void onDecode(boolean save) {
         mPlayers.toggleDecode(save);
-        mPlayers.set(getExo(), getIjk());
+        mPlayers.init(getExo(), getIjk());
         setDecodeView();
         fetch();
     }
@@ -767,6 +768,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
                 break;
             case Player.STATE_READY:
                 resetToggle();
+                resetError();
                 setMetadata();
                 hideProgress();
                 mPlayers.reset();
@@ -795,7 +797,8 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
-        if (event.getCode() / 1000 == 4 && mPlayers.isExo() && mPlayers.isHard()) onDecode(false);
+        if (addErrorCount() > 20) onErrorEnd(event);
+        else if (event.isDecode() && mPlayers.canToggleDecode()) onDecode(false);
         else if (mPlayers.addRetry() > event.getRetry()) checkError(event);
         else fetch();
     }
@@ -816,10 +819,19 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
         fetch();
     }
 
-    private void onError(ErrorEvent event) {
+    private void onErrorEnd(ErrorEvent event) {
+        onErrorPlayer(event);
+        resetError();
+    }
+
+    private void onErrorPlayer(ErrorEvent event) {
         showError(event.getMsg());
         mPlayers.reset();
         mPlayers.stop();
+    }
+
+    private void onError(ErrorEvent event) {
+        onErrorPlayer(event);
         startFlow();
     }
 
@@ -886,6 +898,14 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, GroupP
 
     public void resetToggle() {
         this.toggleCount = 0;
+    }
+
+    public int addErrorCount() {
+        return ++errorCount;
+    }
+
+    public void resetError() {
+        this.errorCount = 0;
     }
 
     @Override

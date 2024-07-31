@@ -10,24 +10,25 @@ import com.fongmi.android.tv.bean.Depot;
 import com.fongmi.android.tv.bean.Group;
 import com.fongmi.android.tv.bean.Keep;
 import com.fongmi.android.tv.bean.Live;
+import com.fongmi.android.tv.bean.Rule;
+import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.utils.CustomUtil;
 import com.fongmi.android.tv.utils.Notify;
-import com.fongmi.android.tv.App;
-import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.Setting;
-import com.fongmi.android.tv.db.AppDatabase;
-import com.fongmi.android.tv.ui.activity.LiveActivity;
+import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class LiveConfig {
 
     private List<Live> lives;
+    private List<Rule> rules;
+    private List<String> ads;
     private Config config;
     private boolean sync;
     private Live home;
@@ -75,6 +76,9 @@ public class LiveConfig {
 
     public LiveConfig init() {
         this.home = null;
+        this.ads = new ArrayList<>();
+        this.rules = new ArrayList<>();
+        this.lives = new ArrayList<>();
         return config(Config.live());
     }
 
@@ -86,8 +90,10 @@ public class LiveConfig {
     }
 
     public LiveConfig clear() {
-        getLives().clear();
         this.home = null;
+        this.ads.clear();
+        this.rules.clear();
+        this.lives.clear();
         return this;
     }
 
@@ -125,8 +131,7 @@ public class LiveConfig {
     private void parseText(String text, Callback callback) {
         Live live = new Live(config.getUrl()).sync();
         LiveParser.text(live, text);
-        getLives().remove(live);
-        getLives().add(live);
+        lives.add(live);
         setHome(live, true);
         App.post(callback::success);
     }
@@ -151,15 +156,33 @@ public class LiveConfig {
     }
 
     private void parseConfig(JsonObject object, Callback callback) {
-        List<JsonElement> lives = Json.safeListElement(object, "lives");
-        if (lives.size() > 0) for (JsonElement element : lives) add(Live.objectFrom(element).check());
-        for (Live live : getLives()) if (live.getName().equals(config.getHome())) setHome(live, true);
-        if (home == null) setHome(getLives().isEmpty() ? new Live() : getLives().get(0), true);
-        if (callback != null) App.post(callback::success);
+        try {
+            initLive(object);
+            initOther(object);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        } finally {
+            if (callback != null) App.post(callback::success);
+        }
     }
 
-    private void add(Live live) {
-        if (!getLives().contains(live)) getLives().add(live.sync());
+    private void initLive(JsonObject object) {
+        for (JsonElement element : Json.safeListElement(object, "lives")) {
+            Live live = Live.objectFrom(element);
+            if (lives.contains(live)) continue;
+            lives.add(live.sync());
+        }
+        for (Live live : lives) {
+            if (live.getName().equals(config.getHome())) {
+                setHome(live, true);
+            }
+        }
+    }
+
+    private void initOther(JsonObject object) {
+        if (home == null) setHome(lives.isEmpty() ? new Live() : lives.get(0), true);
+        setRules(Rule.arrayFrom(object.getAsJsonArray("rules")));
+        setAds(Json.safeListString(object, "ads"));
     }
 
     private void bootLive() {
@@ -213,6 +236,24 @@ public class LiveConfig {
 
     public boolean needSync(String url) {
         return sync || TextUtils.isEmpty(config.getUrl()) || url.equals(config.getUrl());
+    }
+
+    public List<Rule> getRules() {
+        return rules == null ? Collections.emptyList() : rules;
+    }
+
+    public void setRules(List<Rule> rules) {
+        for (Rule rule : rules) if ("proxy".equals(rule.getName())) OkHttp.selector().addAll(rule.getHosts());
+        rules.remove(Rule.create("proxy"));
+        this.rules = rules;
+    }
+
+    public List<String> getAds() {
+        return ads == null ? Collections.emptyList() : ads;
+    }
+
+    private void setAds(List<String> ads) {
+        this.ads = ads;
     }
 
     public List<Live> getLives() {

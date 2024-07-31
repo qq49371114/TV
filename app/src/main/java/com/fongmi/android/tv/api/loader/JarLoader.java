@@ -36,7 +36,7 @@ public class JarLoader {
     }
 
     public void clear() {
-        for (Spider spider : spiders.values()) spider.destroy();
+        for (Spider spider : spiders.values()) App.execute(spider::destroy);
         loaders.clear();
         methods.clear();
         spiders.clear();

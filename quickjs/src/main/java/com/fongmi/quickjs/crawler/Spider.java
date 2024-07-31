@@ -126,6 +126,11 @@ public class Spider extends com.github.catvod.crawler.Spider {
 
     @Override
     public void destroy() {
+        try {
+            call("destroy");
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
         submit(() -> {
             executor.shutdownNow();
             ctx.destroy();

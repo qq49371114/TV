@@ -26,6 +26,7 @@ import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
+import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.impl.ParseCallback;
@@ -204,7 +205,9 @@ public class CustomWebView extends WebView implements DialogInterface.OnDismissL
 
     private boolean isAd(String host) {
         for (String ad : VodConfig.get().getAds()) if (host.contains(ad)) return true;
+        for (String ad : LiveConfig.get().getAds()) if (host.contains(ad)) return true;
         for (String ad : VodConfig.get().getAds()) if (Pattern.compile(ad).matcher(host).find()) return true;
+        for (String ad : LiveConfig.get().getAds()) if (Pattern.compile(ad).matcher(host).find()) return true;
         return false;
     }
 

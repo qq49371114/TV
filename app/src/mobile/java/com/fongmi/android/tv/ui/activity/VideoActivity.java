@@ -58,6 +58,7 @@ import com.fongmi.android.tv.bean.CastVideo;
 import com.fongmi.android.tv.databinding.ActivityVideoBinding;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.event.ActionEvent;
+import com.fongmi.android.tv.event.CastEvent;
 import com.fongmi.android.tv.event.ErrorEvent;
 import com.fongmi.android.tv.event.PlayerEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
@@ -86,6 +87,7 @@ import com.fongmi.android.tv.ui.dialog.DanmuDialog;
 import com.fongmi.android.tv.ui.dialog.EpisodeGridDialog;
 import com.fongmi.android.tv.ui.dialog.EpisodeListDialog;
 import com.fongmi.android.tv.ui.dialog.InfoDialog;
+import com.fongmi.android.tv.ui.dialog.ReceiveDialog;
 import com.fongmi.android.tv.ui.dialog.TrackDialog;
 import com.fongmi.android.tv.utils.Clock;
 import com.fongmi.android.tv.utils.FileChooser;
@@ -157,6 +159,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private boolean stop;
     private boolean lock;
     private int toggleCount;
+    private int errorCount;
     private Runnable mR0;
     private Runnable mR1;
     private Runnable mR2;
@@ -184,6 +187,10 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         start(activity, key, id, name, pic, null, true);
     }
 
+    public static void download(Activity activity, String id, String name, String pic) {
+        start(activity, "push_agent", id, name, pic, null, false, true);
+    }
+
     public static void start(Activity activity, String url) {
         start(activity, "push_agent", url, url, null);
     }
@@ -197,7 +204,12 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     public static void start(Activity activity, String key, String id, String name, String pic, String mark, boolean collect) {
+        start(activity, key, id, name, pic, mark, collect, false);
+    }
+
+    public static void start(Activity activity, String key, String id, String name, String pic, String mark, boolean collect, boolean download) {
         Intent intent = new Intent(activity, VideoActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.putExtra("download", download);
         intent.putExtra("collect", collect);
         intent.putExtra("mark", mark);
         intent.putExtra("name", name);
@@ -265,6 +277,10 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private boolean isFromCollect() {
         return getIntent().getBooleanExtra("collect", false);
+    }
+
+    private boolean isFromDownload() {
+        return getIntent().getBooleanExtra("download", false);
     }
 
     private boolean isAutoRotate() {
@@ -417,7 +433,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void setVideoView() {
-        mPlayers.set(getExo(), getIjk());
+        mPlayers.init(getExo(), getIjk());
         if (isPort() && ResUtil.isLand(this)) enterFullscreen();
         mBinding.control.action.reset.setText(ResUtil.getStringArray(R.array.select_reset)[Setting.getReset()]);
         mBinding.video.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> mPiP.update(getActivity(), view));
@@ -545,6 +561,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void setDetail(Vod item) {
         mBinding.progressLayout.showContent();
+        if (isFromDownload()) item.setVodName("");
+        if (isFromDownload()) item.setVodPic("");
         mBinding.video.setTag(item.getVodPic(getPic()));
         mBinding.name.setText(item.getVodName(getName()));
         Downloader.get().image(item.getVodPic());
@@ -907,7 +925,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void onDecode(boolean save) {
         mPlayers.toggleDecode(save);
-        mPlayers.set(getExo(), getIjk());
+        mPlayers.init(getExo(), getIjk());
         setDecodeView();
         setR1Callback();
         onRefresh();
@@ -1246,6 +1264,12 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onCastEvent(CastEvent event) {
+        if (isRedirect()) return;
+        ReceiveDialog.create().event(event).show(this);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
     public void onActionEvent(ActionEvent event) {
         if (isRedirect()) return;
         if (ActionEvent.PLAY.equals(event.getAction()) || ActionEvent.PAUSE.equals(event.getAction())) {
@@ -1297,6 +1321,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                 checkRotate();
                 setMetadata();
                 resetToggle();
+                resetError();
                 hideProgress();
                 mPlayers.reset();
                 setDefaultTrack();
@@ -1354,7 +1379,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
         if (isRedirect()) return;
-        if (event.getCode() / 1000 == 4 && mPlayers.isExo() && mPlayers.isHard()) onDecode(false);
+        if (addErrorCount() > 20) onErrorEnd(event);
+        else if (event.isDecode() && mPlayers.canToggleDecode()) onDecode(false);
         else if (mPlayers.addRetry() > event.getRetry()) checkError(event);
         else onRefresh();
     }
@@ -1376,13 +1402,22 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         onRefresh();
     }
 
-    private void onError(ErrorEvent event) {
+    private void onErrorEnd(ErrorEvent event) {
+        onErrorPlayer(event);
+        resetError();
+    }
+
+    private void onErrorPlayer(ErrorEvent event) {
         mBinding.swipeLayout.setEnabled(true);
         Track.delete(getHistoryKey());
         showError(event.getMsg());
         mClock.setCallback(null);
         mPlayers.reset();
         mPlayers.stop();
+    }
+
+    private void onError(ErrorEvent event) {
+        onErrorPlayer(event);
         startFlow();
     }
 
@@ -1600,6 +1635,14 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         this.toggleCount = 0;
     }
 
+    public int addErrorCount() {
+        return ++errorCount;
+    }
+
+    public void resetError() {
+        this.errorCount = 0;
+    }
+
     private void notifyItemChanged(RecyclerView.Adapter<?> adapter) {
         adapter.notifyItemRangeChanged(0, adapter.getItemCount());
     }
@@ -1734,8 +1777,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
             hideSheet();
         } else {
             showDanmu();
+            stopService();
             setForeground(true);
-            PlaybackService.stop();
             setSubtitle(Setting.getSubtitle());
             if (isStop()) finish();
         }
@@ -1807,6 +1850,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     protected void onDestroy() {
         super.onDestroy();
         stopSearch();
+        stopService();
         mClock.release();
         mPlayers.release();
         Timer.get().reset();

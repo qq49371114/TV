@@ -35,6 +35,7 @@ import com.fongmi.android.tv.event.PlayerEvent;
 import com.fongmi.android.tv.impl.ParseCallback;
 import com.fongmi.android.tv.impl.SessionCallback;
 import com.fongmi.android.tv.player.exo.ExoUtil;
+import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -86,16 +87,23 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
 
     private long position;
     private int decode;
+    private int count;
     private int player;
     private int error;
     private int retry;
 
     public static Players create(Activity activity) {
-        return new Players(activity);
+        Players player = new Players(activity);
+        Server.get().setPlayer(player);
+        return player;
     }
 
     public static boolean isExo(int type) {
         return type == EXO;
+    }
+
+    public static boolean isHard(int decode) {
+        return decode == HARD;
     }
 
     public boolean isHard() {
@@ -132,16 +140,16 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         MediaControllerCompat.setMediaController(activity, session.getController());
     }
 
-    public void set(PlayerView exo, IjkVideoView ijk) {
+    public void init(PlayerView exo, IjkVideoView ijk) {
         releaseExo();
         releaseIjk();
-        setupExo(exo);
-        setupIjk(ijk);
+        initExo(exo);
+        initIjk(ijk);
     }
 
-    private void setupExo(PlayerView view) {
+    private void initExo(PlayerView view) {
         exoPlayer = new ExoPlayer.Builder(App.get()).setLoadControl(ExoUtil.buildLoadControl()).setTrackSelector(ExoUtil.buildTrackSelector()).setRenderersFactory(ExoUtil.buildRenderersFactory(decode)).setMediaSourceFactory(ExoUtil.buildMediaSourceFactory()).build();
-        exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, true);
+        exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, !Setting.isPlayWithOthers());
         exoPlayer.addAnalyticsListener(new EventLogger());
         exoPlayer.setHandleAudioBecomingNoisy(true);
         exoPlayer.setPlayWhenReady(true);
@@ -149,7 +157,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         view.setPlayer(exoPlayer);
     }
 
-    private void setupIjk(IjkVideoView view) {
+    private void initIjk(IjkVideoView view) {
         ijkPlayer = view.render(Setting.getRender()).decode(decode);
         ijkPlayer.addListener(this);
         ijkPlayer.setPlayer(player);
@@ -213,10 +221,15 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         this.position = position;
     }
 
+    public boolean canToggleDecode() {
+        return isExo() && ++count <= 1;
+    }
+
     public void reset() {
         position = C.TIME_UNSET;
         removeTimeoutCheck();
         stopParse();
+        count = 0;
         error = 0;
         retry = 0;
     }
@@ -228,8 +241,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     public int addRetry() {
-        ++retry;
-        return retry;
+        return ++retry;
     }
 
     public String stringToTime(long time) {
@@ -426,6 +438,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         if (isIjk()) releaseIjk();
         if (haveDanmu()) danmuView.release();
         removeTimeoutCheck();
+        Server.get().setPlayer(null);
         App.execute(() -> Source.get().stop());
     }
 
@@ -698,13 +711,14 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     @Override
     public void onPlaybackStateChanged(int state) {
         switch (state) {
+            case Player.STATE_IDLE:
             case Player.STATE_READY:
-                PlayerEvent.ready();
+            case Player.STATE_ENDED:
+                PlayerEvent.state(state);
                 break;
             case Player.STATE_BUFFERING:
-            case Player.STATE_ENDED:
-            case Player.STATE_IDLE:
                 PlayerEvent.state(state);
+                setPlaybackState(PlaybackStateCompat.STATE_BUFFERING);
                 break;
         }
     }
@@ -718,7 +732,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
             case IMediaPlayer.MEDIA_INFO_BUFFERING_END:
             case IMediaPlayer.MEDIA_INFO_VIDEO_SEEK_RENDERING_START:
             case IMediaPlayer.MEDIA_INFO_AUDIO_SEEK_RENDERING_START:
-                PlayerEvent.ready();
+                PlayerEvent.state(Player.STATE_READY);
                 break;
         }
     }
@@ -732,7 +746,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
 
     @Override
     public void onPrepared(IMediaPlayer mp) {
-        PlayerEvent.ready();
+        PlayerEvent.state(Player.STATE_READY);
     }
 
     @Override

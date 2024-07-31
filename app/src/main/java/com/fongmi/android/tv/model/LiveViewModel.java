@@ -1,5 +1,7 @@
 package com.fongmi.android.tv.model;
 
+import android.net.Uri;
+
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -22,6 +24,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.TimeZone;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -59,6 +62,7 @@ public class LiveViewModel extends ViewModel {
     public void getLive(Live item) {
         execute(LIVE, () -> {
             VodConfig.get().setRecent(item.getJar());
+            setTimeZone(item.getEpg());
             LiveParser.start(item);
             verify(item);
             return item;
@@ -92,6 +96,16 @@ public class LiveViewModel extends ViewModel {
             item.setUrl(item.getCatchup().format(item.getCurrent(), data));
             return item;
         });
+    }
+
+    private void setTimeZone(String url) {
+        try {
+            if (!url.contains("serverTimeZone=")) return;
+            TimeZone timeZone = TimeZone.getTimeZone(Uri.parse(url).getQueryParameter("serverTimeZone"));
+            formatDate.setTimeZone(timeZone);
+            formatTime.setTimeZone(timeZone);
+        } catch (Exception ignored) {
+        }
     }
 
     private void verify(Live item) {
