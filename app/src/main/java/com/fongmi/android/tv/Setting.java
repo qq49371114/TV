@@ -258,6 +258,14 @@ public class Setting {
         Prefers.put("update", update);
     }
 
+    public static boolean isPlayWithOthers() {
+        return Prefers.getBoolean("play_with_others", false);
+    }
+
+    public static void putPlayWithOthers(boolean play) {
+        Prefers.put("play_with_others", play);
+    }
+
     public static boolean isDanmu() {
         return Prefers.getBoolean("danmu");
     }

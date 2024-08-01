@@ -235,7 +235,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
     }
 
     private void setVideoView() {
-        mPlayers.set(getExo(), getIjk());
+        mPlayers.init(getExo(), getIjk());
         setScale(Setting.getLiveScale());
         mBinding.control.action.invert.setActivated(Setting.isInvert());
         mBinding.control.action.across.setActivated(Setting.isAcross());
@@ -468,7 +468,7 @@ public class LiveActivity extends BaseActivity implements Clock.Callback, Custom
 
     private void onDecode(boolean save) {
         mPlayers.toggleDecode(save);
-        mPlayers.set(getExo(), getIjk());
+        mPlayers.init(getExo(), getIjk());
         setDecodeView();
         setR1Callback();
         fetch();

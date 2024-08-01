@@ -240,12 +240,12 @@ public class Vod implements Parcelable {
     }
 
     public String getVodPic(String pic) {
-        if (!TextUtils.isEmpty(pic)) setVodPic(pic);
+        if (getVodPic().isEmpty()) setVodPic(pic);
         return getVodPic();
     }
 
     public String getVodName(String name) {
-        if (!TextUtils.isEmpty(name)) setVodName(name);
+        if (getVodName().isEmpty()) setVodName(name);
         return getVodName();
     }
 

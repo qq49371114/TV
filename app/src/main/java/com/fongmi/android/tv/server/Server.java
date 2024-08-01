@@ -43,7 +43,7 @@ public class Server {
     }
 
     public String getAddress(String path) {
-        return getAddress(true) + "/" + path;
+        return getAddress(true) + path;
     }
 
     public String getAddress(boolean local) {

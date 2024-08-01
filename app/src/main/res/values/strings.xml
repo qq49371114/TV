@@ -39,7 +39,7 @@
     <string name="play_time">Time</string>
     <string name="play_netspeed">Net Speed</string>
     <string name="play_duration">Duration</string>
-    <string name="play_mini_progress">Mini Progress</string>
+    <string name="play_mini_progress">Mini</string>
     <string name="play_video_title">Title</string>
     <string name="play_danmu">Danmu</string>
     <string name="play_display">Display</string>
@@ -113,6 +113,7 @@
     <string name="player_scale">Scale</string>
     <string name="player_caption">Caption style</string>
     <string name="player_subtitle">Subtitle size</string>
+    <string name="player_play_with_others">Play with others</string>
     <string name="player_danmu_load">Danmu load</string>
     <string name="player_danmu_speed">Danmu speed</string>
     <string name="player_danmu_size">Danmu size</string>
