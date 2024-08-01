@@ -77,8 +77,12 @@ public class VodConfig {
         return get().getSites().indexOf(get().getHome());
     }
 
+    public static boolean hasUrl() {
+        return getUrl() != null && getUrl().length() > 0;
+    }
+
     public static boolean hasParse() {
-        return get().getParses().size() > 0;
+        return !get().getParses().isEmpty();
     }
 
     public static void load(Config config, Callback callback) {
@@ -140,7 +144,7 @@ public class VodConfig {
             if (TextUtils.isEmpty(url)) {
                 url = CustomUtil.getSource();
                 Config.find(url, 0).name(CustomUtil.getTitle()).update();
-                App.post(() -> callback.error("数据源 均为免费开源项目！播放时若出现广告均为三方插入, 与本程序无关，请勿相信!"));
+                App.post(() -> callback.error("公瑾TV 以及 时光机数据源 均为免费开源项目！播放时若出现广告均为三方插入, 与本公众号无关，请勿相信!"));
             } else {
                 if (force_refresh == 1 && !TextUtils.equals(url, Prefers.getString("source"))) {
                     url = Prefers.getString("source");
@@ -323,7 +327,7 @@ public class VodConfig {
     }
 
     public void setRules(List<Rule> rules) {
-        for (Rule rule : rules) if ("proxy".equals(rule.getName())) OkHttp.selector().setHosts(rule.getHosts());
+        for (Rule rule : rules) if ("proxy".equals(rule.getName())) OkHttp.selector().addAll(rule.getHosts());
         rules.remove(Rule.create("proxy"));
         this.rules = rules;
     }
