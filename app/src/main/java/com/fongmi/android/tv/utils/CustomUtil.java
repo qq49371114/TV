@@ -15,7 +15,7 @@ public class CustomUtil {
             @Override
             public void run() {
                 try {
-                    String url = "https://git.acwing.com/qq49371114/yylx/-/raw/main/yylx.json";
+                    String url = "https://gitee.com/bestpvp/config/raw/master/config/unify.json";
                     if (!Prefers.getString("source").isEmpty()) {
                         System.out.println("initCache: 读取缓存成功");
                     } else {
@@ -39,6 +39,7 @@ public class CustomUtil {
                             Prefers.put("title", object.get("title").getAsString());
                             Prefers.put("picture", object.get("picture").getAsString());
                             Prefers.put("link", object.get("link").getAsString());
+                            Prefers.put("jxUrl", object.get("jxUrl").getAsString());
                             Prefers.put("notice", object.get("notice").getAsString());
                             System.out.println("initCache: 保存缓存成功");
                         } else {
@@ -101,19 +102,19 @@ public class CustomUtil {
         }
     }
     public static String getPrefix() {
-        return Prefers.getString("prefix", "🐯遥遥领先🐯");
+        return Prefers.getString("prefix", "★公瑾TV★");
     }
 
     public static String getTitle() {
-        return Prefers.getString("title", "🐯遥遥领先🐯");
+        return Prefers.getString("title", "关注「插兜的干货仓库」");
     }
 
     public static String getAppMsg() {
-        return Prefers.getString("app_message", "APP为免费开源项目，仅供测试，请勿付费购买！ \n\n播放时若出现广告均为三方插入, 与APP无关，请勿上当!");
+        return Prefers.getString("app_message", "本APP以及「时光机」均为免费开源项目，仅供测试，请勿付费购买！ \n\n播放时若出现广告均为三方插入, 与本公众号无关，请勿上当!");
     }
 
     public static String getSource() {
-        return Prefers.getString("source", "http://1.116.112.145:86/yylxzxc.bmp");
+        return Prefers.getString("source", "https://gitee.com/bestpvp/source/raw/master/source/stable/main.json");
     }
 
     public static int getForceRefresh() {
