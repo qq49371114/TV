@@ -10,6 +10,7 @@ import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.impl.ParseCallback;
 import com.fongmi.android.tv.ui.custom.CustomWebView;
 import com.fongmi.android.tv.utils.Jx;
+import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
@@ -200,18 +201,28 @@ public class ParseJob implements ParseCallback {
 
     @Override
     public void onParseSuccess(Map<String, String> headers, String url, String from) {
+        System.out.println("onParseSuccess: 原始 url -> "+url);
         String finalUrl;
         if (url.contains(".m3u8")  && !url.contains("www.lintech.work")) {
-            String jxToken = Prefers.getString("jxToken");
-            if (!jxToken.isEmpty()) {
-                finalUrl = Jx.getUrl(jxToken, url);
+            if (Prefers.getBoolean("remove_ad")){
+                String jxToken = Prefers.getString("jxToken");
+                if (!jxToken.isEmpty()) {
+                    finalUrl = Jx.getUrl(jxToken, url);
+                } else {
+                    finalUrl = url;
+                    System.out.println("公瑾TV: 缺失jxToken, 无法启动广告过滤");
+                }
             } else {
                 finalUrl = url;
-                System.out.println("公瑾TV: 缺失jxToken, 无法启动广告过滤");
+                App.post(() -> {
+                    System.out.println("公瑾TV: 时光机解析服务未开启");
+                    Notify.show("公瑾TV: 时光机解析服务未开启");
+                });
             }
         } else {
             finalUrl = url;
         }
+        System.out.println("onParseSuccess: jx url -> "+finalUrl);
         App.post(() -> {
             System.out.println("onParseSuccess: " + finalUrl);
             if (callback != null) callback.onParseSuccess(headers, finalUrl, from);

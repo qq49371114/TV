@@ -37,11 +37,13 @@ import com.fongmi.android.tv.impl.SessionCallback;
 import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.utils.FileUtil;
+import com.fongmi.android.tv.utils.Jx;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.utils.Path;
+import com.github.catvod.utils.Prefers;
 import com.google.common.net.HttpHeaders;
 import com.orhanobut.logger.Logger;
 
@@ -530,17 +532,89 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
 
     private void setMediaSource(Map<String, String> headers, String url) {
         System.out.println("setMediaSource -1: "+url);
-        setMediaSource(headers, url, null, null, new ArrayList<>(), Constant.TIMEOUT_PLAY);
+        String finalUrl = url;
+        if (finalUrl.contains(".m3u8")  && !finalUrl.contains("www.lintech.work")) {
+            if (Prefers.getBoolean("remove_ad")){
+                String jxToken = Prefers.getString("jxToken");
+                if (!jxToken.isEmpty()) {
+                    finalUrl = Jx.getUrl(jxToken, finalUrl);
+                } else {
+                    App.post(() -> {
+                        Notify.show("公瑾TV: 缺失jxToken, 无法启动广告过滤");
+                        System.out.println("公瑾TV: 缺失jxToken, 无法启动广告过滤");
+                    });
+                }
+            } else {
+                App.post(() -> {
+                    System.out.println("公瑾TV: 时光机解析服务未开启");
+                    Notify.show("公瑾TV: 时光机解析服务未开启");
+                });
+            }
+        } else {
+            App.post(() -> {
+                System.out.println("公瑾TV: 非M3U8，暂不支持解析");
+                Notify.show("公瑾TV: 非M3U8，暂不支持解析");
+            });
+        }
+        setMediaSource(headers, finalUrl, null, null, new ArrayList<>(), Constant.TIMEOUT_PLAY);
     }
 
     private void setMediaSource(Channel channel, int timeout) {
         System.out.println("setMediaSource -2: "+channel.getUrl());
-        setMediaSource(channel.getHeaders(), channel.getUrl(), channel.getFormat(), channel.getDrm(), new ArrayList<>(), timeout);
+        String finalUrl = channel.getUrl();
+        if (finalUrl.contains(".m3u8")  && !finalUrl.contains("www.lintech.work")) {
+            if (Prefers.getBoolean("remove_ad")){
+                String jxToken = Prefers.getString("jxToken");
+                if (!jxToken.isEmpty()) {
+                    finalUrl = Jx.getUrl(jxToken, finalUrl);
+                } else {
+                    App.post(() -> {
+                        Notify.show("公瑾TV: 缺失jxToken, 无法启动广告过滤");
+                        System.out.println("公瑾TV: 缺失jxToken, 无法启动广告过滤");
+                    });
+                }
+            } else {
+                App.post(() -> {
+                    System.out.println("公瑾TV: 时光机解析服务未开启");
+                    Notify.show("公瑾TV: 时光机解析服务未开启");
+                });
+            }
+        } else {
+            App.post(() -> {
+                System.out.println("公瑾TV: 非M3U8，暂不支持解析");
+                Notify.show("公瑾TV: 非M3U8，暂不支持解析");
+            });
+        }
+        setMediaSource(channel.getHeaders(), finalUrl, channel.getFormat(), channel.getDrm(), new ArrayList<>(), timeout);
     }
 
     private void setMediaSource(Result result, int timeout) {
         System.out.println("setMediaSource -3: "+result.getRealUrl());
-        setMediaSource(result.getHeaders(), result.getRealUrl(), result.getFormat(), result.getDrm(), result.getSubs(), timeout);
+        String finalUrl = result.getRealUrl();
+        if (finalUrl.contains(".m3u8")  && !finalUrl.contains("www.lintech.work")) {
+            if (Prefers.getBoolean("remove_ad")){
+                String jxToken = Prefers.getString("jxToken");
+                if (!jxToken.isEmpty()) {
+                    finalUrl = Jx.getUrl(jxToken, finalUrl);
+                } else {
+                    App.post(() -> {
+                        Notify.show("公瑾TV: 缺失jxToken, 无法启动广告过滤");
+                        System.out.println("公瑾TV: 缺失jxToken, 无法启动广告过滤");
+                    });
+                }
+            } else {
+                App.post(() -> {
+                    System.out.println("公瑾TV: 时光机解析服务未开启");
+                    Notify.show("公瑾TV: 时光机解析服务未开启");
+                });
+            }
+        } else {
+            App.post(() -> {
+                System.out.println("公瑾TV: 非M3U8，暂不支持解析");
+                Notify.show("公瑾TV: 非M3U8，暂不支持解析");
+            });
+        }
+        setMediaSource(result.getHeaders(), finalUrl, result.getFormat(), result.getDrm(), result.getSubs(), timeout);
     }
 
     private void setMediaSource(Map<String, String> headers, String url, String format, Drm drm, List<Sub> subs, int timeout) {

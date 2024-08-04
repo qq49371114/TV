@@ -26,6 +26,7 @@ import com.fongmi.android.tv.ui.dialog.X5WebViewDialog;
 import com.fongmi.android.tv.utils.LanguageUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Util;
+import com.github.catvod.utils.Prefers;
 import com.github.catvod.utils.Shell;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.permissionx.guolindev.PermissionX;
@@ -195,6 +196,7 @@ public class SettingCustomActivity extends BaseActivity implements MenuKeyCallba
     private void setRemoveAd(View view) {
         Setting.putRemoveAd(!Setting.isRemoveAd());
         mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
+        System.out.println(Prefers.getBoolean("remove_ad"));
     }
 
     private void setCacheDir(View view) {
