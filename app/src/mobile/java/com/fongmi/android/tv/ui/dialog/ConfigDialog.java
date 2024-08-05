@@ -132,7 +132,7 @@ public class ConfigDialog {
 //        if (url.isEmpty()) Config.delete(ori, type);
         if (url.isEmpty()) {
 //            url = "assets://js/main.json";
-            url = "http://1.116.112.145:86/yylxnz.zip";
+            url = "http://47.109.61.116:86/yylxnz.zip";
             Config.find(url, 1).name("🐯遥遥领先🐯").update();
         }
         callback.setConfig(Config.find(url, type));
