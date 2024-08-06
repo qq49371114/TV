@@ -10,7 +10,7 @@ public class Github {
 
 //    public static final String URL = "https://raw.gitmirror.com/bestpvp/config/main/";
 //    public static final String URL = "https://gitee.com/bestpvp/config/raw/master/";
-    public static final String URL = "https://ghproxy.liuzhicong.com/https://raw.githubusercontent.com/bestpvp/config/main/";
+    public static final String URL = "http://47.109.61.116:86";
 
 
     private static String getUrl(String path, String name) {
