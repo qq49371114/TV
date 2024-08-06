@@ -210,13 +210,13 @@ public class ParseJob implements ParseCallback {
                     finalUrl = Jx.getUrl(jxToken, url);
                 } else {
                     finalUrl = url;
-                    System.out.println("公瑾TV: 缺失jxToken, 无法启动广告过滤");
+                    System.out.println("影视: 缺失jxToken, 无法启动广告过滤");
                 }
             } else {
                 finalUrl = url;
                 App.post(() -> {
-                    System.out.println("公瑾TV: 时光机解析服务未开启");
-                    Notify.show("公瑾TV: 时光机解析服务未开启");
+                    System.out.println("影视: 解析服务未开启");
+                    Notify.show("影视: 解析服务未开启");
                 });
             }
         } else {

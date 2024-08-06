@@ -540,20 +540,20 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
                     finalUrl = Jx.getUrl(jxToken, finalUrl);
                 } else {
                     App.post(() -> {
-                        Notify.show("公瑾TV: 缺失jxToken, 无法启动广告过滤");
-                        System.out.println("公瑾TV: 缺失jxToken, 无法启动广告过滤");
+                        Notify.show("影视: 缺失jxToken, 无法启动广告过滤");
+                        System.out.println("影视: 缺失jxToken, 无法启动广告过滤");
                     });
                 }
             } else {
                 App.post(() -> {
-                    System.out.println("公瑾TV: 时光机解析服务未开启");
-                    Notify.show("公瑾TV: 时光机解析服务未开启");
+                    System.out.println("影视: 时光机解析服务未开启");
+                    Notify.show("影视: 时光机解析服务未开启");
                 });
             }
         } else {
             App.post(() -> {
-                System.out.println("公瑾TV: 非M3U8，暂不支持解析");
-                Notify.show("公瑾TV: 非M3U8，暂不支持解析");
+                System.out.println("影视: 非M3U8，暂不支持解析");
+                Notify.show("影视: 非M3U8，暂不支持解析");
             });
         }
         setMediaSource(headers, finalUrl, null, null, new ArrayList<>(), Constant.TIMEOUT_PLAY);
@@ -569,20 +569,20 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
                     finalUrl = Jx.getUrl(jxToken, finalUrl);
                 } else {
                     App.post(() -> {
-                        Notify.show("公瑾TV: 缺失jxToken, 无法启动广告过滤");
-                        System.out.println("公瑾TV: 缺失jxToken, 无法启动广告过滤");
+                        Notify.show("影视: 缺失jxToken, 无法启动广告过滤");
+                        System.out.println("影视: 缺失jxToken, 无法启动广告过滤");
                     });
                 }
             } else {
                 App.post(() -> {
-                    System.out.println("公瑾TV: 时光机解析服务未开启");
-                    Notify.show("公瑾TV: 时光机解析服务未开启");
+                    System.out.println("影视: 解析服务未开启");
+                    Notify.show("影视: 解析服务未开启");
                 });
             }
         } else {
             App.post(() -> {
-                System.out.println("公瑾TV: 非M3U8，暂不支持解析");
-                Notify.show("公瑾TV: 非M3U8，暂不支持解析");
+                System.out.println("影视: 非M3U8，暂不支持解析");
+                Notify.show("影视: 非M3U8，暂不支持解析");
             });
         }
         setMediaSource(channel.getHeaders(), finalUrl, channel.getFormat(), channel.getDrm(), new ArrayList<>(), timeout);
@@ -598,20 +598,20 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
                     finalUrl = Jx.getUrl(jxToken, finalUrl);
                 } else {
                     App.post(() -> {
-                        Notify.show("公瑾TV: 缺失jxToken, 无法启动广告过滤");
-                        System.out.println("公瑾TV: 缺失jxToken, 无法启动广告过滤");
+                        Notify.show("影视: 缺失jxToken, 无法启动广告过滤");
+                        System.out.println("影视: 缺失jxToken, 无法启动广告过滤");
                     });
                 }
             } else {
                 App.post(() -> {
-                    System.out.println("公瑾TV: 时光机解析服务未开启");
-                    Notify.show("公瑾TV: 时光机解析服务未开启");
+                    System.out.println("影视: 解析服务未开启");
+                    Notify.show("影视: 解析服务未开启");
                 });
             }
         } else {
             App.post(() -> {
-                System.out.println("公瑾TV: 非M3U8，暂不支持解析");
-                Notify.show("公瑾TV: 非M3U8，暂不支持解析");
+                System.out.println("影视: 非M3U8，暂不支持解析");
+                Notify.show("影视: 非M3U8，暂不支持解析");
             });
         }
         setMediaSource(result.getHeaders(), finalUrl, result.getFormat(), result.getDrm(), result.getSubs(), timeout);
