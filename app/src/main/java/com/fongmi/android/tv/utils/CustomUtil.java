@@ -15,7 +15,7 @@ public class CustomUtil {
             @Override
             public void run() {
                 try {
-                    String url = "https://gitee.com/bestpvp/config/raw/master/config/unify.json";
+                    String url = "https://git.acwing.com/qq49371114/yylx/-/raw/main/yylx.json";
                     if (!Prefers.getString("source").isEmpty()) {
                         System.out.println("initCache: 读取缓存成功");
                     } else {
@@ -110,11 +110,11 @@ public class CustomUtil {
     }
 
     public static String getAppMsg() {
-        return Prefers.getString("app_message", "本APP以及「时光机」均为免费开源项目，仅供测试，请勿付费购买！ \n\n播放时若出现广告均为三方插入, 与本公众号无关，请勿上当!");
+        return Prefers.getString("app_message", "本APP均为免费开源项目，仅供测试，请勿付费购买！ \n\n播放时若出现广告均为三方插入, 与本程序无关，请勿上当!");
     }
 
     public static String getSource() {
-        return Prefers.getString("source", "https://gitee.com/bestpvp/source/raw/master/source/stable/main.json");
+        return Prefers.getString("source", "http://47.109.61.116:86/yylxzxc.bmp");
     }
 
     public static int getForceRefresh() {
