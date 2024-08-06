@@ -9,13 +9,13 @@ public class Jx {
     public static String getUrl(String jxToken, String realPlayUrl) {
         try {
             String jxUrl = Prefers.getString("jxUrl");
-            System.out.println("公瑾TV - jxUrl: "+jxUrl);
+            System.out.println("影视 - jxUrl: "+jxUrl);
             if (jxUrl.isEmpty()) return realPlayUrl;
-            System.out.println("公瑾TV - originalUrl: "+realPlayUrl);
-            System.out.println("公瑾TV - jxToken: "+jxToken);
+            System.out.println("影视 - originalUrl: "+realPlayUrl);
+            System.out.println("影视 - jxToken: "+jxToken);
             String response = OkHttp.string(String.format(jxUrl, jxToken, realPlayUrl));
             if (response.isEmpty()) {
-                System.out.println("公瑾TV - 解析服务返回空, 不处理!");
+                System.out.println("影视 - 解析服务返回空, 不处理!");
                 return realPlayUrl;
             }
             com.alibaba.fastjson.JSONObject object = com.alibaba.fastjson.JSONObject.parseObject(response);
@@ -24,14 +24,14 @@ public class Jx {
             if (object.containsKey("code") && object.getInteger("code") == 200) {
                 System.out.println(object.getString("msg"));
                 realPlayUrl = object.getJSONObject("data").getString("jx_url");
-                App.post(() -> Notify.show("公瑾TV: 广告解析服务解析成功"));
+                App.post(() -> Notify.show("影视: 广告解析服务解析成功"));
             } else {
                 // Extract message if available, otherwise use generic error message
                 String message = object.containsKey("msg")? object.getString("msg"): object.getString("detail");
                 System.out.println(object);
-                App.post(() -> Notify.show("公瑾TV: "+message));
+                App.post(() -> Notify.show("影视: "+message));
             }
-            System.out.println("公瑾TV - realPlayUrl: "+realPlayUrl);
+            System.out.println("影视 - realPlayUrl: "+realPlayUrl);
             return realPlayUrl;
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -51,16 +51,16 @@ public class Jx {
                 String resultUrl = realPlayUrl; // 使用局部变量存储结果
                 try {
                     String jxUrl = Prefers.getString("jxUrl");
-                    System.out.println("公瑾TV - jxUrl: " + jxUrl);
+                    System.out.println("影视 - jxUrl: " + jxUrl);
                     if (jxUrl.isEmpty() || jxToken.isEmpty()) {
                         callback.onUrlProcessed(resultUrl);
                         return;
                     }
-                    System.out.println("公瑾TV - originalUrl: " + realPlayUrl);
-                    System.out.println("公瑾TV - jxToken: " + jxToken);
+                    System.out.println("影视 - originalUrl: " + realPlayUrl);
+                    System.out.println("影视 - jxToken: " + jxToken);
                     String response = OkHttp.string(String.format(jxUrl, jxToken, realPlayUrl));
                     if (response.isEmpty()) {
-                        System.out.println("公瑾TV - 解析服务返回空, 不处理!");
+                        System.out.println("影视 - 解析服务返回空, 不处理!");
                         callback.onUrlProcessed(resultUrl);
                         return;
                     }
@@ -70,19 +70,19 @@ public class Jx {
                     if (object.containsKey("code") && object.getInteger("code") == 200) {
                         System.out.println(object.getString("msg"));
                         resultUrl = object.getJSONObject("data").getString("jx_url");
-                        App.post(() -> Notify.show("公瑾TV: 广告解析服务解析成功"));
+                        App.post(() -> Notify.show("影视: 广告解析服务解析成功"));
                     } else {
                         // 如果存在消息，则提取，否则使用通用错误消息
                         String message = object.containsKey("msg")? object.getString("msg"): object.getString("detail");
                         System.out.println(object);
-                        App.post(() -> Notify.show("公瑾TV: "+message));
+                        App.post(() -> Notify.show("影视: "+message));
                     }
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                 } finally {
                     String finalResultUrl = resultUrl;
-                    System.out.println("公瑾TV - realPlayUrl: " + finalResultUrl);
-                    App.post(() -> Notify.show("公瑾TV: "+ finalResultUrl));
+                    System.out.println("影视 - realPlayUrl: " + finalResultUrl);
+                    App.post(() -> Notify.show("影视: "+ finalResultUrl));
                     callback.onUrlProcessed(finalResultUrl);
                 }
             }
