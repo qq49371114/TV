@@ -144,7 +144,7 @@ public class VodConfig {
             if (TextUtils.isEmpty(url)) {
                 url = CustomUtil.getSource();
                 Config.find(url, 0).name(CustomUtil.getTitle()).update();
-                App.post(() -> callback.error("公瑾TV 以及 时光机数据源 均为免费开源项目！播放时若出现广告均为三方插入, 与本公众号无关，请勿相信!"));
+                App.post(() -> callback.error("影视接口数据源 均为免费开源项目！播放时若出现广告均为三方插入, 与程序无关，请勿相信!"));
             } else {
                 if (force_refresh == 1 && !TextUtils.equals(url, Prefers.getString("source"))) {
                     url = Prefers.getString("source");
