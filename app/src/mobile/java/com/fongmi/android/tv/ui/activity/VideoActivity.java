@@ -925,9 +925,9 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void onDecode(boolean save) {
         mPlayers.toggleDecode(save);
         mPlayers.init(getExo(), getIjk());
+        mPlayers.setMediaSource();
         setDecodeView();
         setR1Callback();
-        onRefresh();
     }
 
     private void onEnding() {
@@ -1349,6 +1349,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
             onReset(true);
         } else {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            checkPlayImg(false);
             checkNext();
         }
     }
@@ -1379,9 +1380,15 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     public void onErrorEvent(ErrorEvent event) {
         if (isRedirect()) return;
         if (addErrorCount() > 20) onErrorEnd(event);
-        else if (event.isDecode() && mPlayers.canToggleDecode()) onDecode(false);
         else if (mPlayers.addRetry() > event.getRetry()) checkError(event);
+        else if (event.isDecode() && mPlayers.canToggleDecode()) onDecode(false);
+        else if (event.isFormat() && mPlayers.isExo()) onErrorFormat(event);
         else onRefresh();
+    }
+
+    private void onErrorFormat(ErrorEvent event) {
+        mPlayers.setFormat(ExoUtil.getMimeType(event.getCode()));
+        mPlayers.setMediaSource();
     }
 
     private void checkError(ErrorEvent event) {

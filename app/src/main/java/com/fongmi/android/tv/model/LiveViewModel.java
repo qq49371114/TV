@@ -10,7 +10,6 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.EpgParser;
 import com.fongmi.android.tv.api.LiveParser;
 import com.fongmi.android.tv.api.config.LiveConfig;
-import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Channel;
 import com.fongmi.android.tv.bean.Epg;
 import com.fongmi.android.tv.bean.EpgData;
@@ -61,9 +60,8 @@ public class LiveViewModel extends ViewModel {
 
     public void getLive(Live item) {
         execute(LIVE, () -> {
-            VodConfig.get().setRecent(item.getJar());
+            LiveParser.start(item.recent());
             setTimeZone(item.getEpg());
-            LiveParser.start(item);
             verify(item);
             return item;
         });

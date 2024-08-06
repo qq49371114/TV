@@ -25,7 +25,6 @@ import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.bean.Drm;
 import com.fongmi.android.tv.bean.Sub;
-import com.fongmi.android.tv.player.Players;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,14 +81,17 @@ public class ExoUtil {
         return MimeTypes.APPLICATION_SUBRIP;
     }
 
-    public static String getMimeType(String format, int errorCode) {
-        if (format != null) return format;
+    public static String getMimeType(int errorCode) {
         if (errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED || errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED || errorCode == PlaybackException.ERROR_CODE_IO_UNSPECIFIED) return MimeTypes.APPLICATION_M3U8;
         return null;
     }
 
     public static int getRetry(int errorCode) {
-        return errorCode >= PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED && errorCode <= PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED || errorCode == PlaybackException.ERROR_CODE_IO_UNSPECIFIED ? 2 : errorCode > 999 ? 1 : 0;
+        if (errorCode == PlaybackException.ERROR_CODE_IO_UNSPECIFIED) return 2;
+        if (errorCode == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED) return 2;
+        if (errorCode >= PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED && errorCode <= PlaybackException.ERROR_CODE_DECODING_FORMAT_UNSUPPORTED) return 2;
+        if (errorCode >= PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED && errorCode <= PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED) return 2;
+        return 1;
     }
 
     public static MediaItem getMediaItem(Map<String, String> headers, Uri uri, String mimeType, Drm drm, List<Sub> subs, int decode) {

@@ -320,6 +320,11 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private Callback getCallback(String success) {
         return new Callback() {
             @Override
+            public void success(String result) {
+                Notify.show(result);
+            }
+
+            @Override
             public void success() {
                 checkAction(getIntent());
                 RefreshEvent.video();

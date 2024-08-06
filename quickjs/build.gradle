@@ -19,7 +19,7 @@ android {
 
 dependencies {
     implementation project(':catvod')
-    implementation 'org.jsoup:jsoup:' + jsoupVersion
+    implementation 'org.jsoup:jsoup:1.15.3'
     implementation 'wang.harlon.quickjs:wrapper-java:1.0.0'
     implementation 'net.sourceforge.streamsupport:android-retrofuture:1.7.4'
     implementation(ext: 'aar', name: 'quickjs', group: 'fongmi', version: 'release')

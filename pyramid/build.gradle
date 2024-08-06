@@ -16,7 +16,10 @@ android {
             version "3.8"
             pip {
                 install "lxml"
+                install "ujson"
+                install "pyquery"
                 install "requests"
+                install "jsonpath"
                 install 'pycryptodome'
                 install 'beautifulsoup4'
             }

@@ -74,22 +74,21 @@ def detailContent(ru, array):
     return formatJo
 
 
+def searchContent(ru, key, quick, pg="1"):
+    result = ru.searchContent(key, quick, pg)
+    formatJo = json.dumps(result, ensure_ascii=False)
+    return formatJo
+
+
 def playerContent(ru, flag, id, vipFlags):
     result = ru.playerContent(flag, id, str2json(vipFlags))
     formatJo = json.dumps(result, ensure_ascii=False)
     return formatJo
 
 
-def searchContent(ru, key, quick):
-    result = ru.searchContent(key, quick)
-    formatJo = json.dumps(result, ensure_ascii=False)
-    return formatJo
-
-
-def searchContentPage(ru, key, quick, pg):
-    result = ru.searchContentPage(key, quick, pg)
-    formatJo = json.dumps(result, ensure_ascii=False)
-    return formatJo
+def liveContent(ru):
+    result = ru.liveContent()
+    return result
 
 
 def localProxy(ru, param):

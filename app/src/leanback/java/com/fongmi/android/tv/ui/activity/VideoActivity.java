@@ -1073,8 +1073,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private void onDecode(boolean save) {
         mPlayers.toggleDecode(save);
         mPlayers.init(getExo(), getIjk());
+        mPlayers.setMediaSource();
         setDecodeView();
-        onRefresh();
     }
 
     private void onTrack(View view) {
@@ -1428,9 +1428,15 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     public void onErrorEvent(ErrorEvent event) {
         if (isBackground()) return;
         if (addErrorCount() > 20) onErrorEnd(event);
-        else if (event.isDecode() && mPlayers.canToggleDecode()) onDecode(false);
         else if (mPlayers.addRetry() > event.getRetry()) checkError(event);
+        else if (event.isDecode() && mPlayers.canToggleDecode()) onDecode(false);
+        else if (event.isFormat() && mPlayers.isExo()) onErrorFormat(event);
         else onRefresh();
+    }
+
+    private void onErrorFormat(ErrorEvent event) {
+        mPlayers.setFormat(ExoUtil.getMimeType(event.getCode()));
+        mPlayers.setMediaSource();
     }
 
     private void checkError(ErrorEvent event) {

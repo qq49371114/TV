@@ -335,6 +335,11 @@ public class Action implements Process {
     private Callback getCallback() {
         return new Callback() {
             @Override
+            public void success(String result) {
+                Notify.show(result);
+            }
+
+            @Override
             public void success() {
                 Notify.dismiss();
                 RefreshEvent.history();

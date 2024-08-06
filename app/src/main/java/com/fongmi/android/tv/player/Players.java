@@ -81,15 +81,16 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     private DanmakuView danmuView;
     private ExoPlayer exoPlayer;
     private ParseJob parseJob;
+    private List<Sub> subs;
     private String format;
     private String url;
+    private Drm drm;
     private Sub sub;
 
     private long position;
     private int decode;
     private int count;
     private int player;
-    private int error;
     private int retry;
 
     public static Players create(Activity activity) {
@@ -168,12 +169,6 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         danmuView = view;
     }
 
-    public void setSub(Sub sub) {
-        this.sub = sub;
-        if (isIjk()) return;
-        setMediaSource();
-    }
-
     public ExoPlayer exo() {
         return exoPlayer;
     }
@@ -182,16 +177,26 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         return ijkPlayer;
     }
 
-    public Map<String, String> getHeaders() {
-        return headers == null ? new HashMap<>() : checkUa(headers);
+    public MediaSessionCompat getSession() {
+        return session;
     }
 
     public String getUrl() {
         return url;
     }
 
-    public MediaSessionCompat getSession() {
-        return session;
+    public Map<String, String> getHeaders() {
+        return headers == null ? new HashMap<>() : headers;
+    }
+
+    public void setSub(Sub sub) {
+        this.sub = sub;
+        if (isIjk()) return;
+        setMediaSource();
+    }
+
+    public void setFormat(String format) {
+        this.format = format;
     }
 
     public void setMetadata(MediaMetadataCompat metadata) {
@@ -230,13 +235,14 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         removeTimeoutCheck();
         stopParse();
         count = 0;
-        error = 0;
         retry = 0;
     }
 
     public void clear() {
         headers = null;
         format = null;
+        subs = null;
+        drm = null;
         url = null;
     }
 
@@ -520,8 +526,8 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         parseJob = null;
     }
 
-    private void setMediaSource() {
-        setMediaSource(headers, url, format, null, new ArrayList<>(), Constant.TIMEOUT_PLAY);
+    public void setMediaSource() {
+        setMediaSource(headers, url, format, drm, subs, Constant.TIMEOUT_PLAY);
     }
 
     public void setMediaSource(String url) {
@@ -542,11 +548,11 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
 
     private void setMediaSource(Map<String, String> headers, String url, String format, Drm drm, List<Sub> subs, int timeout) {
         if (isIjk() && ijkPlayer != null) ijkPlayer.setMediaSource(IjkUtil.getSource(this.headers = checkUa(headers), this.url = url), position);
-        if (isExo() && exoPlayer != null) exoPlayer.setMediaItem(ExoUtil.getMediaItem(this.headers = checkUa(headers), UrlUtil.uri(this.url = url), ExoUtil.getMimeType(this.format = format, error), drm, checkSub(subs), decode), position);
+        if (isExo() && exoPlayer != null) exoPlayer.setMediaItem(ExoUtil.getMediaItem(this.headers = checkUa(headers), UrlUtil.uri(this.url = url), this.format = format, this.drm = drm, checkSub(this.subs = subs), decode), position);
         if (isExo() && exoPlayer != null) exoPlayer.prepare();
-        Logger.t(TAG).d(error + "," + url);
         App.post(runnable, timeout);
         PlayerEvent.prepare();
+        Logger.t(TAG).d(url);
     }
 
     private void removeTimeoutCheck() {
@@ -702,7 +708,8 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     @Override
     public void onPlayerError(@NonNull PlaybackException error) {
         setPlaybackState(PlaybackStateCompat.STATE_ERROR);
-        ErrorEvent.url(ExoUtil.getRetry(this.error = error.errorCode), error.errorCode);
+        Logger.t(TAG).e(error.errorCode + "," + url);
+        ErrorEvent.url(ExoUtil.getRetry(error.errorCode), error.errorCode);
     }
 
     @Override

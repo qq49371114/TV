@@ -3,8 +3,6 @@ package com.fongmi.android.tv.api.loader;
 import android.content.Context;
 
 import com.fongmi.android.tv.App;
-import com.fongmi.android.tv.api.config.VodConfig;
-import com.fongmi.android.tv.bean.Site;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.crawler.SpiderNull;
 
@@ -53,15 +51,10 @@ public class PyLoader {
         }
     }
 
-    private Spider find(Map<String, String> params) {
-        if (!params.containsKey("siteKey")) return spiders.get(recent);
-        Site site = VodConfig.get().getSite(params.get("siteKey"));
-        return site.isEmpty() ? new SpiderNull() : VodConfig.get().getSpider(site);
-    }
-
     public Object[] proxyInvoke(Map<String, String> params) {
         try {
-            return find(params).proxyLocal(params);
+            if (!params.containsKey("siteKey")) return spiders.get(recent).proxyLocal(params);
+            return BaseLoader.get().getSpider(params).proxyLocal(params);
         } catch (Throwable e) {
             e.printStackTrace();
             return null;

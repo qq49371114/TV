@@ -158,7 +158,7 @@ public class Util {
 
     public static boolean isTvBox() {
         PackageManager pm = App.get().getPackageManager();
-        if (Configuration.UI_MODE_TYPE_TELEVISION == ((UiModeManager) App.get().getSystemService(Context.UI_MODE_SERVICE)).getCurrentModeType()) {
+        if (!pm.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN) && !pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
             return true;
         }
         if (pm.hasSystemFeature("amazon.hardware.fire_tv")) {

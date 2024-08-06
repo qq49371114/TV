@@ -69,6 +69,10 @@ public class ErrorEvent {
         return code / 1000 == 4;
     }
 
+    public boolean isFormat() {
+        return code / 1000 == 3;
+    }
+
     public String getMsg() {
         if (type == Type.URL) return ResUtil.getString(R.string.error_play_url, code);
         if (type == Type.FLAG) return ResUtil.getString(R.string.error_play_flag);
