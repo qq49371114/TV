@@ -137,7 +137,6 @@ public class SiteViewModel extends ViewModel {
                 System.out.println("DEBUG - detailContent before: "+detailContent);
                 detailContent = CustomUtil.filterString(detailContent);
                 System.out.println("DEBUG - detailContent after: "+detailContent);
-                VodConfig.get().setRecent(site);
                 Result result = Result.fromJson(detailContent);
                 if (!result.getList().isEmpty()) result.getList().get(0).setVodFlags();
                 if (!result.getList().isEmpty()) Source.get().parse(result.getList().get(0).getVodFlags());
