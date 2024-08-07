@@ -543,7 +543,7 @@ public class Setting {
     }
 
     public static boolean isRemoveAd() {
-        return Prefers.getBoolean("remove_ad", true);
+        return Prefers.getBoolean("remove_ad", false);
     }
 
     public static void putRemoveAd(boolean remove) {

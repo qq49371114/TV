@@ -201,30 +201,24 @@ public class ParseJob implements ParseCallback {
 
     @Override
     public void onParseSuccess(Map<String, String> headers, String url, String from) {
-        System.out.println("onParseSuccess: 原始 url -> "+url);
-        String finalUrl;
-        if (url.contains(".m3u8")  && !url.contains("www.lintech.work")) {
-            if (Prefers.getBoolean("remove_ad")){
-                String jxToken = Prefers.getString("jxToken");
-                if (!jxToken.isEmpty()) {
-                    finalUrl = Jx.getUrl(jxToken, url);
-                } else {
-                    finalUrl = url;
-                    System.out.println("公瑾TV: 缺失jxToken, 无法启动广告过滤");
-                }
-            } else {
-                finalUrl = url;
-                App.post(() -> {
-                    System.out.println("公瑾TV: 时光机解析服务未开启");
-                    Notify.show("公瑾TV: 时光机解析服务未开启");
-                });
-            }
-        } else {
-            finalUrl = url;
-        }
-        System.out.println("onParseSuccess: jx url -> "+finalUrl);
         App.post(() -> {
-            System.out.println("onParseSuccess: " + finalUrl);
+            String finalUrl = url;
+            System.out.println("onParseSuccess: original url -> "+finalUrl);
+//            if (Prefers.getBoolean("remove_ad")){
+//                if (finalUrl.contains(".m3u8")  && !finalUrl.contains("www.lintech.work")) {
+//                    String jxToken = Prefers.getString("jxToken");
+//                    if (!jxToken.isEmpty()) {
+//                        finalUrl = Jx.getUrl(jxToken, finalUrl);
+//                    } else {
+//                        Notify.show("公瑾TV: 缺失jxToken, 无法启动广告过滤");
+//                        System.out.println("公瑾TV: 缺失jxToken, 无法启动广告过滤");
+//                    }
+//                } else {
+//                    System.out.println("公瑾TV: 解析完成");
+//                    Notify.show("公瑾TV: 解析完成");
+//                }
+//            }
+//            System.out.println("onParseSuccess: jx url -> "+finalUrl);
             if (callback != null) callback.onParseSuccess(headers, finalUrl, from);
             stop();
         });

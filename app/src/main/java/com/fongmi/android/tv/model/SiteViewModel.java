@@ -178,20 +178,6 @@ public class SiteViewModel extends ViewModel {
                 Result result = Result.fromJson(playerContent);
                 if (result.getFlag().isEmpty()) result.setFlag(flag);
                 String realPlayUrl = Source.get().fetch(result);
-                if (realPlayUrl.contains(".m3u8")  && !realPlayUrl.contains("www.lintech.work")) {
-                    if (Prefers.getBoolean("remove_ad")){
-                        String jxToken = Prefers.getString("jxToken");
-                        if (!jxToken.isEmpty()) {
-                            realPlayUrl = Jx.getUrl(jxToken, realPlayUrl);
-                        } else {
-                            Notify.show("公瑾TV: 缺失jxToken, 无法启动广告过滤");
-                            System.out.println("公瑾TV: 缺失jxToken, 无法启动广告过滤");
-                        }
-                    } else {
-                        System.out.println("公瑾TV: 时光机解析服务未开启");
-                        Notify.show("公瑾TV: 时光机解析服务未开启");
-                    }
-                }
                 result.setUrl(realPlayUrl);
                 result.setHeader(site.getHeader());
                 result.setKey(key);
