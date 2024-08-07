@@ -1,7 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools" xmlns:xliff="http://schemas.android.com/apk/res-auto" tools:ignore="MissingTranslation">
 
     <!-- App -->
-    <string name="app_name">公瑾TV</string>
+    <string name="app_name">影视</string>
     <string name="app_exit">Press back again to exit</string>
 
     <!-- Vod -->
@@ -151,7 +151,7 @@
     <string name="dialog_restore">Restore backup data?</string>
     <string name="dialog_restore_msg">Config, history and setting will be restored.</string>
     <string name="dialog_welcome_title">公众号:插兜的干货仓库</string>
-    <string name="dialog_welcome_message">\n本APP以及「时光机」均为免费开源项目，仅供测试，请勿付费购买！\n\n播放时若出现广告均为三方插入, 与本公众号无关，请勿上当!</string>
+    <string name="dialog_welcome_message">\n本APP接口均为免费开源项目，仅供测试，请勿付费购买！\n\n播放时若出现广告均为三方插入, 与本程序无关，请勿上当!</string>
 
     <!-- Error -->
     <string name="error_config_get">Configuration get failed</string>
@@ -201,7 +201,7 @@
     <string name="tvDes">This APP and "Time Machine" are free and open-source projects, only for testing, please do not pay to buy!\n\nIf the advertisement appears during playback, it is inserted by three parties, and has nothing to do with this official account, please do not be fooled!\n</string>
     <string name="vodHomeDes">Return to lines home</string>
     <string name="vodHistoryDes">Return to lines History</string>
-    <string name="jxtokenText">解析token: 用于广告过滤, 公众号免费领取</string>
+    <string name="jxtokenText">解析token: 用于广告过滤,</string>
 
     <string-array name="select_backup">
         <item>Auto</item>
