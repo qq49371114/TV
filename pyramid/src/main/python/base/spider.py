@@ -28,7 +28,6 @@ class Spider(metaclass=ABCMeta):
     def homeContent(self, filter):
         pass
 
-    @abstractmethod
     def homeVideoContent(self):
         pass
 
@@ -41,35 +40,29 @@ class Spider(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def searchContent(self, key, quick):
-        pass
-
-    @abstractmethod
-    def searchContentPage(self, key, quick, pg):
+    def searchContent(self, key, quick, pg="1"):
         pass
 
     @abstractmethod
     def playerContent(self, flag, id, vipFlags):
         pass
 
-    @abstractmethod
+    def liveContent(self):
+        pass
+
     def localProxy(self, param):
         pass
 
-    @abstractmethod
     def isVideoFormat(self, url):
         pass
 
-    @abstractmethod
     def manualVideoCheck(self):
         pass
 
-    @abstractmethod
-    def getName(self):
+    def destroy(self):
         pass
 
-    @abstractmethod
-    def destroy(self):
+    def getName(self):
         pass
 
     def getDependence(self):

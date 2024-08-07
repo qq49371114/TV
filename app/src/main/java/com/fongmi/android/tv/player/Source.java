@@ -7,6 +7,7 @@ import com.fongmi.android.tv.bean.Flag;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.player.extractor.Force;
 import com.fongmi.android.tv.player.extractor.JianPian;
+import com.fongmi.android.tv.player.extractor.Proxy;
 import com.fongmi.android.tv.player.extractor.Push;
 import com.fongmi.android.tv.player.extractor.TVBus;
 import com.fongmi.android.tv.player.extractor.Thunder;
@@ -39,6 +40,7 @@ public class Source {
         extractors = new ArrayList<>();
         extractors.add(new Force());
         extractors.add(new JianPian());
+        extractors.add(new Proxy());
         extractors.add(new Push());
         extractors.add(new Thunder());
         extractors.add(new TVBus());

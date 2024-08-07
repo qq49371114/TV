@@ -131,6 +131,11 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
     private Callback getCallback() {
         return new Callback() {
             @Override
+            public void success(String result) {
+                Notify.show(result);
+            }
+
+            @Override
             public void success() {
                 checkAction(getIntent());
                 RefreshEvent.config();
