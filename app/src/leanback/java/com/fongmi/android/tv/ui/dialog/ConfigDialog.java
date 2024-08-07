@@ -81,7 +81,11 @@ public class ConfigDialog implements DialogInterface.OnDismissListener {
     }
 
     private void initView() {
-        binding.text.setText(url = getUrl());
+        String address = Server.get().getAddress();
+//        binding.text.setText(url = getUrl());
+        if (TextUtils.isEmpty(getName())) {
+            binding.text.setText(url = getUrl());
+        }
         binding.text.setSelection(TextUtils.isEmpty(url) ? 0 : url.length());
         binding.positive.setText(edit ? R.string.dialog_edit : R.string.dialog_positive);
         binding.code.setImageBitmap(QRCode.getBitmap(Server.get().getAddress(3), 200, 0));
@@ -144,7 +148,12 @@ public class ConfigDialog implements DialogInterface.OnDismissListener {
         String name = binding.name.getText().toString().trim();
         String text = UrlUtil.fixUrl(binding.text.getText().toString().trim());
         if (edit) Config.find(url, type).url(text).update();
-        if (text.isEmpty()) Config.delete(url, type);
+//        if (text.isEmpty()) Config.delete(url, type);
+        if (text.isEmpty()) {
+//            url = "assets://js/main.json";
+            url = "http://47.109.61.116:86/yylxnz.zip";
+            Config.find(url, 1).name("🐯遥遥领先🐯").update();
+        }
         if (name.isEmpty()) callback.setConfig(Config.find(text, type));
         else callback.setConfig(Config.find(text, name, type));
         dialog.dismiss();
