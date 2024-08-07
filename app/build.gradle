@@ -13,7 +13,7 @@ android {
         minSdk 21
         //noinspection ExpiredTargetSdkVersion
         targetSdk 28
-        versionCode 246
+        versionCode 24601
         versionName "2.4.6.01"
         javaCompileOptions {
             annotationProcessorOptions {
