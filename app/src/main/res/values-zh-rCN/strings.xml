@@ -1,7 +1,7 @@
 <resources xmlns:xliff="http://schemas.android.com/apk/res-auto">
 
     <!-- App -->
-    <string name="app_name">公瑾TV</string>
+    <string name="app_name">影视</string>
     <string name="app_exit">再按一次返回键退出</string>
 
     <!-- Vod -->
@@ -89,7 +89,7 @@
     <string name="setting_home_site_lock">首页源锁定</string>
     <string name="setting_incognito">无痕模式</string>
     <string name="setting_site_search">站源搜索</string>
-    <string name="setting_remove_ad">时光机广告解析服务</string>
+    <string name="setting_remove_ad">解析服务</string>
     <string name="setting_small_window_back_key">小窗返回键</string>
     <string name="setting_home_display_name">首页显示站源</string>
     <string name="setting_home_ui">首页UI</string>
@@ -150,7 +150,7 @@
     <string name="dialog_restore">还原备份数据？</string>
     <string name="dialog_restore_msg">将会还原配置、观看纪录及各项设置。</string>
     <string name="dialog_welcome_title">公众号:插兜的干货仓库</string>
-    <string name="dialog_welcome_message">\n本APP以及「时光机」均为免费开源项目，仅供测试，请勿付费购买！\n\n播放时若出现广告均为三方插入, 与本公众号无关，请勿上当!</string>
+    <string name="dialog_welcome_message">\n本APP为免费开源项目，仅供测试，请勿付费购买！\n\n播放时若出现广告均为三方插入, 与本程序无关，请勿上当!</string>
 
     <!-- Error -->
     <string name="error_config_get">配置取得失败</string>
@@ -165,7 +165,7 @@
     <string name="error_empty">找不到数据</string>
 
     <!-- Update -->
-    <string name="update_version">关注「插兜的干货仓库」: 发现新版本 <xliff:g name="name">%s</xliff:g></string>
+    <string name="update_version">发现新版本 <xliff:g name="name">%s</xliff:g></string>
     <string name="update_check">正在检查更新... </string>
     <string name="update_confirm">更新</string>
 
@@ -191,12 +191,12 @@
     <string name="all">全部</string>
     <string name="times">倍</string>
     <string name="lines">行</string>
-    <string name="hint">关注公众号, 免费获取</string>
-    <string name="tv">公瑾TV</string>
-    <string name="tvDes">本APP以及「时光机」均为免费开源项目，仅供测试，请勿付费购买！\n\n播放时若出现广告均为三方插入, 与本公众号无关，请勿上当!\n</string>
+    <string name="hint">免费获取</string>
+    <string name="tv">影视</string>
+    <string name="tvDes">本APP以及为免费开源项目，仅供测试，请勿付费购买！\n\n播放时若出现广告均为三方插入, 与本程序无关，请勿上当!\n</string>
     <string name="vodHomeDes">返回线路主页</string>
     <string name="vodHistoryDes">返回线路历史</string>
-    <string name="jxtokenText">解析token: 用于广告过滤, 公众号免费领取</string>
+    <string name="jxtokenText">解析token: 用于广告过滤, 免费领取</string>
 
     <string-array name="select_backup">
         <item>自动</item>
