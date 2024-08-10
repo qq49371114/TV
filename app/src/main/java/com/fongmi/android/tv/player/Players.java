@@ -5,6 +5,8 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -36,16 +38,20 @@ import com.fongmi.android.tv.impl.ParseCallback;
 import com.fongmi.android.tv.impl.SessionCallback;
 import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.server.Server;
+import com.fongmi.android.tv.utils.CustomUtil;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Jx;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.fongmi.android.tv.utils.Util;
+import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
 import com.github.catvod.utils.Prefers;
 import com.google.common.net.HttpHeaders;
 import com.orhanobut.logger.Logger;
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -529,44 +535,68 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     public void setMediaSource() {
-        String finalUrl = url;
-        System.out.println("setMediaSource -0: "+finalUrl);
-        finalUrl = jxURL(finalUrl);
-        setMediaSource(headers, url, format, drm, subs, Constant.TIMEOUT_PLAY);
+        System.out.println("setMediaSource -0: "+url);
+        fetchUrl(url, new Callback() {
+            @Override
+            public void onResult(String finalUrl) {
+                // 更新 finalUrl
+                setMediaSource(headers, finalUrl, format, drm, subs, Constant.TIMEOUT_PLAY);
+            }
+        });
     }
 
     public void setMediaSource(String url) {
-        String finalUrl = url;
-        System.out.println("setMediaSource -00: "+finalUrl);
-        finalUrl = jxURL(finalUrl);
-        setMediaSource(new HashMap<>(), finalUrl);
+        System.out.println("setMediaSource -00: "+ url);
+        fetchUrl(url, new Callback() {
+            @Override
+            public void onResult(String finalUrl) {
+                // 更新 finalUrl
+                setMediaSource(new HashMap<>(), finalUrl);            }
+        });
     }
 
     private void setMediaSource(Map<String, String> headers, String url) {
         String finalUrl = url;
         System.out.println("setMediaSource -1: "+finalUrl);
 //        finalUrl = jxURL(finalUrl);
-        setMediaSource(headers, finalUrl, null, null, new ArrayList<>(), Constant.TIMEOUT_PLAY);
+        fetchUrl(finalUrl, new Callback() {
+            @Override
+            public void onResult(String finalUrl) {
+                // 更新 finalUrl
+                setMediaSource(headers, finalUrl, null, null, new ArrayList<>(), Constant.TIMEOUT_PLAY);
+            }
+        });
     }
 
     private void setMediaSource(Channel channel, int timeout) {
         String finalUrl = channel.getUrl();
         System.out.println("setMediaSource -2: "+finalUrl);
-        finalUrl = jxURL(finalUrl);
-        setMediaSource(channel.getHeaders(), finalUrl, channel.getFormat(), channel.getDrm(), new ArrayList<>(), timeout);
+//        finalUrl = jxURL(finalUrl);
+        fetchUrl(finalUrl, new Callback() {
+            @Override
+            public void onResult(String finalUrl) {
+                // 更新 finalUrl
+                setMediaSource(channel.getHeaders(), finalUrl, channel.getFormat(), channel.getDrm(), new ArrayList<>(), timeout);
+            }
+        });
     }
 
     private void setMediaSource(Result result, int timeout) {
         String finalUrl = result.getRealUrl();
         System.out.println("setMediaSource -3: "+finalUrl);
-//        finalUrl = jxURL(finalUrl);
-        setMediaSource(result.getHeaders(), finalUrl, result.getFormat(), result.getDrm(), result.getSubs(), timeout);
+        fetchUrl(finalUrl, new Callback() {
+            @Override
+            public void onResult(String finalUrl) {
+                // 更新 finalUrl
+                setMediaSource(result.getHeaders(), finalUrl, result.getFormat(), result.getDrm(), result.getSubs(), timeout);
+            }
+        });
     }
 
     private void setMediaSource(Map<String, String> headers, String url, String format, Drm drm, List<Sub> subs, int timeout) {
         String finalUrl = url;
         System.out.println("setMediaSource -4: "+finalUrl);
-        finalUrl = jxURL(finalUrl);
+//        finalUrl = jxURL(finalUrl);
         if (isIjk() && ijkPlayer != null) ijkPlayer.setMediaSource(IjkUtil.getSource(this.headers = checkUa(headers), this.url = finalUrl), position);
         if (isExo() && exoPlayer != null) exoPlayer.setMediaItem(ExoUtil.getMediaItem(this.headers = checkUa(headers), UrlUtil.uri(this.url = finalUrl), this.format = format, this.drm = drm, checkSub(this.subs = subs), decode), position);
         if (isExo() && exoPlayer != null) exoPlayer.prepare();
@@ -821,5 +851,41 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
             }
         }
         return finalUrl;
+    }
+
+    public interface Callback {
+        void onResult(String result);
+    }
+
+    public static void fetchUrl(String initialUrl, Callback callback) {
+        if (Prefers.getBoolean("remove_ad")) {
+            if (initialUrl.contains(".m3u8") && !initialUrl.contains("www.lintech.work")) {
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        String jxToken = Prefers.getString("jxToken");
+                        final String resultUrl = Jx.getUrl(jxToken, initialUrl);
+
+                        // 使用 Handler 将结果传回主线程
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (callback != null) {
+                                    System.out.println("时光机解析成功: "+ resultUrl);
+                                    callback.onResult(resultUrl);
+                                }
+                            }
+                        });
+                    }
+                });
+                thread.start();
+            }
+        }
+
+        // 如果前面的条件不满足，返回 initialUrl
+        if (callback != null) {
+            System.out.println("时光机解析条件不满足: "+initialUrl);
+            callback.onResult(initialUrl);
+        }
     }
 }
