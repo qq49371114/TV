@@ -594,11 +594,9 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     private void setMediaSource(Map<String, String> headers, String url, String format, Drm drm, List<Sub> subs, int timeout) {
-        String finalUrl = url;
-        System.out.println("setMediaSource -4: "+finalUrl);
-//        finalUrl = jxURL(finalUrl);
-        if (isIjk() && ijkPlayer != null) ijkPlayer.setMediaSource(IjkUtil.getSource(this.headers = checkUa(headers), this.url = finalUrl), position);
-        if (isExo() && exoPlayer != null) exoPlayer.setMediaItem(ExoUtil.getMediaItem(this.headers = checkUa(headers), UrlUtil.uri(this.url = finalUrl), this.format = format, this.drm = drm, checkSub(this.subs = subs), decode), position);
+        System.out.println("setMediaSource -4: "+ url);
+        if (isIjk() && ijkPlayer != null) ijkPlayer.setMediaSource(IjkUtil.getSource(this.headers = checkUa(headers), this.url = url), position);
+        if (isExo() && exoPlayer != null) exoPlayer.setMediaItem(ExoUtil.getMediaItem(this.headers = checkUa(headers), UrlUtil.uri(this.url = url), this.format = format, this.drm = drm, checkSub(this.subs = subs), decode), position);
         if (isExo() && exoPlayer != null) exoPlayer.prepare();
         App.post(runnable, timeout);
         PlayerEvent.prepare();
