@@ -829,35 +829,15 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     public void drawingFinished() {
     }
 
-    public String jxURL(String finalUrl){
-        if (Prefers.getBoolean("remove_ad")){
-            if (finalUrl.contains(".m3u8")  && !finalUrl.contains("www.lintech.work")) {
-                String jxToken = Prefers.getString("jxToken");
-                if (!jxToken.isEmpty()) {
-                    finalUrl = Jx.getUrl(jxToken, finalUrl);
-                } else {
-                    App.post(() -> {
-                        Notify.show("公瑾TV: 缺失jxToken, 无法启动广告过滤");
-                        System.out.println("公瑾TV: 缺失jxToken, 无法启动广告过滤");
-                    });
-                }
-            } else {
-                App.post(() -> {
-                    System.out.println("公瑾TV: 解析完成");
-                    Notify.show("公瑾TV: 解析完成");
-                });
-            }
-        }
-        return finalUrl;
-    }
-
     public interface Callback {
         void onResult(String result);
     }
 
     public static void fetchUrl(String initialUrl, Callback callback) {
+        System.out.println("解析开关: "+Prefers.getBoolean("remove_ad"));
         if (Prefers.getBoolean("remove_ad")) {
             if (initialUrl.contains(".m3u8") && !initialUrl.contains("www.lintech.work")) {
+                System.out.println("时光机开始解析: "+initialUrl);
                 Thread thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -869,7 +849,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
                             @Override
                             public void run() {
                                 if (callback != null) {
-                                    System.out.println("时光机解析成功: "+ resultUrl);
+                                    System.out.println("时光机解析完成: "+ resultUrl);
                                     callback.onResult(resultUrl);
                                 }
                             }
@@ -877,13 +857,19 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
                     }
                 });
                 thread.start();
+            } else {
+                // 如果前面的条件不满足，返回 initialUrl
+                if (callback != null) {
+                    System.out.println("时光机解析条件不满足: "+initialUrl);
+                    callback.onResult(initialUrl);
+                }
             }
-        }
-
-        // 如果前面的条件不满足，返回 initialUrl
-        if (callback != null) {
-            System.out.println("时光机解析条件不满足: "+initialUrl);
-            callback.onResult(initialUrl);
+        } else {
+            // 如果前面的条件不满足，返回 initialUrl
+            if (callback != null) {
+                System.out.println("时光机解析条件不满足: "+initialUrl);
+                callback.onResult(initialUrl);
+            }
         }
     }
 }
