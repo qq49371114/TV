@@ -158,11 +158,11 @@ public class Vod implements Parcelable {
     }
 
     public String getVodPlayFrom() {
-        return TextUtils.isEmpty(vodPlayFrom) ? "" : CustomUtil.getPrefix()+vodPlayFrom;
+        return TextUtils.isEmpty(vodPlayFrom) ? "" : vodPlayFrom;
     }
 
     public String getVodPlayUrl() {
-        return TextUtils.isEmpty(vodPlayUrl) ? "" : CustomUtil.getPrefix()+vodPlayUrl;
+        return TextUtils.isEmpty(vodPlayUrl) ? "" : vodPlayUrl;
     }
 
     public String getVodTag() {

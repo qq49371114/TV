@@ -16,6 +16,7 @@ public class CustomUtil {
             public void run() {
                 try {
                     String url = "https://gitee.com/bestpvp/config/raw/master/config/unify.json";
+                    System.out.println("remove_ad: "+Prefers.getBoolean("remove_ad"));
                     if (!Prefers.getString("source").isEmpty()) {
                         System.out.println("initCache: 读取缓存成功");
                     } else {
