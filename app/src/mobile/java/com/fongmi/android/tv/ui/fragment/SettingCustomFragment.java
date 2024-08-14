@@ -50,7 +50,7 @@ public class SettingCustomFragment extends BaseFragment {
         mBinding.aggregatedSearchText.setText(getSwitch(Setting.isAggregatedSearch()));
         mBinding.homeDisplayNameText.setText(getSwitch(Setting.isHomeDisplayName()));
         mBinding.siteSearchText.setText(getSwitch(Setting.isSiteSearch()));
-        mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
+//        mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
         mBinding.languageText.setText((lang = ResUtil.getStringArray(R.array.select_language))[Setting.getLanguage()]);
         mBinding.configCacheText.setText((configCache = ResUtil.getStringArray(R.array.select_config_cache))[Setting.getConfigCache()]);
     }
@@ -64,7 +64,7 @@ public class SettingCustomFragment extends BaseFragment {
         mBinding.aggregatedSearch.setOnClickListener(this::setAggregatedSearch);
         mBinding.homeDisplayName.setOnClickListener(this::setHomeDisplayName);
         mBinding.siteSearch.setOnClickListener(this::setSiteSearch);
-        mBinding.removeAd.setOnClickListener(this::setRemoveAd);
+//        mBinding.removeAd.setOnClickListener(this::setRemoveAd);
         mBinding.language.setOnClickListener(this::setLanguage);
         mBinding.configCache.setOnClickListener(this::setConfigCache);
         mBinding.reset.setOnClickListener(this::onReset);
@@ -118,10 +118,10 @@ public class SettingCustomFragment extends BaseFragment {
         mBinding.siteSearchText.setText(getSwitch(Setting.isSiteSearch()));
     }
 
-    private void setRemoveAd(View view) {
-        Setting.putRemoveAd(!Setting.isRemoveAd());
-        mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
-    }
+//    private void setRemoveAd(View view) {
+//        Setting.putRemoveAd(!Setting.isRemoveAd());
+//        mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
+//    }
 
     private void setLanguage(View view) {
         new MaterialAlertDialogBuilder(getActivity()).setTitle(R.string.setting_language).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(lang, Setting.getLanguage(), (dialog, which) -> {

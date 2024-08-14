@@ -45,6 +45,7 @@ import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
+import com.github.catvod.utils.Prefers;
 import com.permissionx.guolindev.PermissionX;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -91,7 +92,18 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.backupText.setText((backup = ResUtil.getStringArray(R.array.select_backup))[Setting.getBackupMode()]);
         mBinding.jxtokenText.setText(Setting.getJxtoken());
         mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
+        mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
         setCacheText();
+    }
+
+    private String getSwitch(boolean value) {
+        return getString(value ? R.string.setting_on : R.string.setting_off);
+    }
+
+    private void setRemoveAd(View view) {
+        Setting.putRemoveAd(!Setting.isRemoveAd());
+        mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
+        System.out.println(Prefers.getBoolean("remove_ad"));
     }
 
     private void setCacheText() {
@@ -131,6 +143,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.custom.setOnClickListener(this::onCustom);
         mBinding.doh.setOnClickListener(this::setDoh);
         mBinding.about.setOnClickListener(this::onAbout);
+        mBinding.removeAd.setOnClickListener(this::setRemoveAd);
     }
 
     @Override

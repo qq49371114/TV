@@ -74,7 +74,7 @@ public class SettingCustomActivity extends BaseActivity implements MenuKeyCallba
         mBinding.homeUIText.setText((homeUI = ResUtil.getStringArray(R.array.select_home_ui))[Setting.getHomeUI()]);
         mBinding.homeHistoryText.setText(getSwitch(Setting.isHomeHistory()));
         mBinding.cacheDirText.setText(Setting.getThunderCacheDir());
-        mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
+//        mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
         mBinding.languageText.setText((ResUtil.getStringArray(R.array.select_language))[Setting.getLanguage()]);
         mBinding.parseWebviewText.setText((parseWebview = ResUtil.getStringArray(R.array.select_parse_webview))[Setting.getParseWebView()]);
         mBinding.configCacheText.setText((configCache = ResUtil.getStringArray(R.array.select_config_cache))[Setting.getConfigCache()]);
@@ -97,7 +97,7 @@ public class SettingCustomActivity extends BaseActivity implements MenuKeyCallba
         mBinding.homeUI.setOnClickListener(this::setHomeUI);
         mBinding.homeButtons.setOnClickListener(this::onHomeButtons);
         mBinding.homeHistory.setOnClickListener(this::setHomeHistory);
-        mBinding.removeAd.setOnClickListener(this::setRemoveAd);
+//        mBinding.removeAd.setOnClickListener(this::setRemoveAd);
         mBinding.setLanguage.setOnClickListener(this::setLanguage);
         mBinding.parseWebview.setOnClickListener(this::setParseWebview);
         mBinding.configCache.setOnClickListener(this::setConfigCache);
@@ -193,11 +193,11 @@ public class SettingCustomActivity extends BaseActivity implements MenuKeyCallba
         mBinding.homeHistoryText.setText(getSwitch(Setting.isHomeHistory()));
     }
 
-    private void setRemoveAd(View view) {
-        Setting.putRemoveAd(!Setting.isRemoveAd());
-        mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
-        System.out.println(Prefers.getBoolean("remove_ad"));
-    }
+//    private void setRemoveAd(View view) {
+//        Setting.putRemoveAd(!Setting.isRemoveAd());
+//        mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
+//        System.out.println(Prefers.getBoolean("remove_ad"));
+//    }
 
     private void setCacheDir(View view) {
         PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> {

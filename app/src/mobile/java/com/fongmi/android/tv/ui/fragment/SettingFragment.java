@@ -52,6 +52,7 @@ import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
+import com.github.catvod.utils.Prefers;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.permissionx.guolindev.PermissionX;
 
@@ -104,6 +105,7 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
         mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
         mBinding.proxyText.setText(UrlUtil.scheme(Setting.getProxy()));
         mBinding.jxtokenText.setText(Setting.getJxtoken());
+        mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
         setCacheText();
     }
 
@@ -145,6 +147,17 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
         mBinding.doh.setOnClickListener(this::setDoh);
         mBinding.custom.setOnClickListener(this::onCustom);
         mBinding.about.setOnClickListener(this::onAbout);
+        mBinding.removeAd.setOnClickListener(this::setRemoveAd);
+    }
+
+    private String getSwitch(boolean value) {
+        return getString(value ? R.string.setting_on : R.string.setting_off);
+    }
+
+    private void setRemoveAd(View view) {
+        Setting.putRemoveAd(!Setting.isRemoveAd());
+        System.out.println("remove_ad: "+Prefers.getBoolean("remove_ad"));
+        mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
     }
 
     @Override
