@@ -1,5 +1,9 @@
 package com.fongmi.android.tv.utils;
 
+import android.os.Handler;
+import android.os.Looper;
+
+import com.fongmi.android.tv.player.Players;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Prefers;
 
@@ -10,50 +14,36 @@ import com.google.gson.JsonParser;
 
 public class CustomUtil {
 
-    public static void initCache() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    String url = "https://gitee.com/bestpvp/config/raw/master/config/unify.json";
-                    System.out.println("remove_ad: "+Prefers.getBoolean("remove_ad"));
-                    if (!Prefers.getString("source").isEmpty()) {
-                        System.out.println("initCache: 读取缓存成功");
-                    } else {
-                        System.out.println("initCache: 请求接口: " + url);
-                        String data = OkHttp.string(url);
-                        if (!data.isEmpty()) {
-                            JsonObject object = JsonParser.parseString(data).getAsJsonObject();
-                            Prefers.put("force_refresh", object.get("force_refresh").getAsInt());
-                            Prefers.put("source", object.get("source").getAsString());
-//                            Prefers.put("app_show_dialog", object.get("app_show_dialog").getAsBoolean());
-//                            Prefers.put("jar_show_dialog", object.get("jar_show_dialog").getAsBoolean());
-//                            Prefers.put("app_require_password", object.get("app_require_password").getAsBoolean());
-//                            Prefers.put("jar_require_password", object.get("jar_require_password").getAsBoolean());
-//                            Prefers.put("app_password", object.get("app_password").getAsString());
-//                            Prefers.put("jar_password", object.get("jar_password").getAsString());
-//                            Prefers.put("universal_password", object.get("universal_password").getAsString());
-                            Prefers.put("app_message", object.get("app_message").getAsString());
-//                            Prefers.put("jar_message", object.get("jar_message").getAsString());
-                            Prefers.put("filter", object.getAsJsonArray("filter").toString());
-                            Prefers.put("prefix", object.get("prefix").getAsString());
-                            Prefers.put("title", object.get("title").getAsString());
-//                            Prefers.put("picture", object.get("picture").getAsString());
-//                            Prefers.put("link", object.get("link").getAsString());
-                            Prefers.put("jxUrl", object.get("jxUrl").getAsString());
-//                            Prefers.put("notice", object.get("notice").getAsString());
-                            System.out.println("initCache: 保存缓存成功");
-                        } else {
-                            System.out.println("initCache: 保存缓存失败: " + data);
-                        }
-                    }
-//                    printAllCache();
-                } catch (Exception e) {
-                    System.out.println("initCache: 保存缓存异常");
-                }
-            }
-        }).start();
-    }
+//    public static void initCache() {
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                try {
+//                    String url = "https://gitee.com/bestpvp/config/raw/master/config/unify.json";
+//                    System.out.println("initCache: 请求接口: " + url);
+//                    String data = OkHttp.string(url);
+//                    if (!data.isEmpty()) {
+//                        JsonObject object = JsonParser.parseString(data).getAsJsonObject();
+//                        Prefers.put("force_refresh", object.get("force_refresh").getAsInt());
+//                        Prefers.put("source", object.get("source").getAsString());
+//                        Prefers.put("app_message", object.get("app_message").getAsString());
+//                        Prefers.put("filter", object.getAsJsonArray("filter").toString());
+//                        Prefers.put("prefix", object.get("prefix").getAsString());
+//                        Prefers.put("title", object.get("title").getAsString());
+//                        Prefers.put("jxUrl", object.get("jxUrl").getAsString());
+//                        System.out.println("source: "+Prefers.getString("source"));
+//                        System.out.println("title: "+Prefers.getString("title"));
+//                        System.out.println("initCache: 保存缓存成功");
+//                    } else {
+//                        System.out.println("initCache: 保存缓存失败: " + data);
+//                    }
+////                    printAllCache();
+//                } catch (Exception e) {
+//                    System.out.println("initCache: 保存缓存异常");
+//                }
+//            }
+//        }).start();
+//    }
 
     public static void clearCache(){
         JsonArray keysToDelete = new JsonArray();
@@ -80,7 +70,6 @@ public class CustomUtil {
         Prefers.printAllEntries();
     }
 
-
     public static String filterString(String input) {
         try {
 //            System.out.println("过滤数据: input - "+input);
@@ -102,23 +91,51 @@ public class CustomUtil {
             return input;
         }
     }
+
     public static String getPrefix() {
-        return Prefers.getString("prefix", "★公瑾TV★");
+        return Prefers.getString("prefix", "");
     }
 
     public static String getTitle() {
-        return Prefers.getString("title", "关注「插兜的干货仓库」");
+        return Prefers.getString("title", "");
     }
 
     public static String getAppMsg() {
-        return Prefers.getString("app_message", "本APP以及「时光机」均为免费开源项目，仅供测试，请勿付费购买！ \n\n播放时若出现广告均为三方插入, 与本公众号无关，请勿上当!");
+        return Prefers.getString("app_message", "");
     }
 
     public static String getSource() {
-        return Prefers.getString("source", "https://gitee.com/bestpvp/source/raw/master/source/stable/main.json");
+        return Prefers.getString("source", "");
     }
 
     public static int getForceRefresh() {
         return Prefers.getInt("force_refresh", -1);
     }
+
+    public interface Callback {
+        void onResult(String result);
+    }
+
+    public static void initCache(CustomUtil.Callback callback) {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String url = "https://gitee.com/bestpvp/config/raw/master/config/unify.json";
+                System.out.println("initCache: 请求接口: " + url);
+                String data = OkHttp.string(url);
+
+                // 使用 Handler 将结果传回主线程
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (callback != null) {
+                            callback.onResult(data);
+                        }
+                    }
+                });
+            }
+        });
+        thread.start();
+    }
+
 }

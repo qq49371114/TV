@@ -45,6 +45,8 @@ import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.utils.Prefers;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.navigation.NavigationBarView;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -71,13 +73,12 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
 //        Updater.get().release().start(this);
         initFragment(savedInstanceState);
         Server.get().start();
-        CustomUtil.initCache();
         initConfig();
         showDialog(this);
     }
 
     private void showDialog(Context context) {
-        if (!Prefers.getBoolean("welcome_dialog")) {
+        if (!Prefers.getBoolean("welcome_dialog") && !CustomUtil.getAppMsg().isEmpty()) {
             new MaterialAlertDialogBuilder(context)
                     .setTitle(CustomUtil.getTitle())
                     .setMessage(CustomUtil.getAppMsg())
@@ -123,9 +124,33 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
     }
 
     private void initConfig() {
-        WallConfig.get().init();
-        LiveConfig.get().init().load();
-        VodConfig.get().init().load(getCallback(), true, CustomUtil.getForceRefresh());
+        CustomUtil.initCache(new CustomUtil.Callback() {
+            @Override
+            public void onResult(String data) {
+                if (!data.isEmpty()) {
+                    JsonObject object = JsonParser.parseString(data).getAsJsonObject();
+                    Prefers.put("force_refresh", object.get("force_refresh").getAsInt());
+                    Prefers.put("source", object.get("source").getAsString());
+                    Prefers.put("app_message", object.get("app_message").getAsString());
+                    Prefers.put("filter", object.getAsJsonArray("filter").toString());
+                    Prefers.put("prefix", object.get("prefix").getAsString());
+                    Prefers.put("title", object.get("title").getAsString());
+                    Prefers.put("jxUrl", object.get("jxUrl").getAsString());
+                    Prefers.put("remove_ad", true);
+                    System.out.println("source: "+Prefers.getString("source"));
+                    System.out.println("title: "+Prefers.getString("title"));
+                    System.out.println("remove_ad: "+Prefers.getBoolean("remove_ad"));
+                    System.out.println("initCache: 保存缓存成功");
+                } else {
+                    System.out.println("initCache: 保存缓存失败: " + data);
+                }
+                WallConfig.get().init();
+                LiveConfig.get().init().load();
+                VodConfig.get().init().load(getCallback(), true, CustomUtil.getForceRefresh());
+            }
+        });
+
+
     }
 
     private Callback getCallback() {

@@ -39,6 +39,7 @@ import com.fongmi.android.tv.ui.dialog.JxtokenDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.ProxyDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
+import com.fongmi.android.tv.utils.CustomUtil;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -93,6 +94,8 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.jxtokenText.setText(Setting.getJxtoken());
         mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
         mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
+        mBinding.headerTv.setText(CustomUtil.getPrefix());
+        mBinding.headerTvDes.setText(CustomUtil.getAppMsg());
         setCacheText();
     }
 

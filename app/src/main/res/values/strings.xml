@@ -150,8 +150,8 @@
     <string name="dialog_reset_app_data">All app data will be reset, and app will be shutdown.</string>
     <string name="dialog_restore">Restore backup data?</string>
     <string name="dialog_restore_msg">Config, history and setting will be restored.</string>
-    <string name="dialog_welcome_title">公众号:插兜的干货仓库</string>
-    <string name="dialog_welcome_message">\n本APP以及「时光机」均为免费开源项目，仅供测试，请勿付费购买！\n\n播放时若出现广告均为三方插入, 与本公众号无关，请勿上当!</string>
+<!--    <string name="dialog_welcome_title">公众号:插兜的干货仓库</string>-->
+<!--    <string name="dialog_welcome_message">\n本APP以及「时光机」均为免费开源项目，仅供测试，请勿付费购买！\n\n播放时若出现广告均为三方插入, 与本公众号无关，请勿上当!</string>-->
 
     <!-- Error -->
     <string name="error_config_get">Configuration get failed</string>

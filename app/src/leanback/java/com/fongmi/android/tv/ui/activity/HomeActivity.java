@@ -8,6 +8,7 @@ import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.fongmi.android.tv.utils.CustomUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -77,6 +78,8 @@ import com.permissionx.guolindev.PermissionX;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -122,13 +125,13 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         setViewModel();
         setHomeType();
         setPager();
-        CustomUtil.initCache();
+//        CustomUtil.initCache();
         initConfig();
         showDialog(this);
     }
 
     private void showDialog(Context context) {
-        if (!Prefers.getBoolean("welcome_dialog")) {
+        if (!Prefers.getBoolean("welcome_dialog") && !CustomUtil.getAppMsg().isEmpty()) {
             new MaterialAlertDialogBuilder(context)
                     .setTitle(CustomUtil.getTitle())
                     .setMessage(CustomUtil.getAppMsg())
@@ -330,11 +333,33 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     public void initConfig() {
-        if (isLoading()) return;
-        WallConfig.get().init();
-        LiveConfig.get().init().load();
-        VodConfig.get().init().load(getCallback(""), true, CustomUtil.getForceRefresh());
-        setLoading(true);
+        CustomUtil.initCache(new CustomUtil.Callback() {
+            @Override
+            public void onResult(String data) {
+                if (!data.isEmpty()) {
+                    JsonObject object = JsonParser.parseString(data).getAsJsonObject();
+                    Prefers.put("force_refresh", object.get("force_refresh").getAsInt());
+                    Prefers.put("source", object.get("source").getAsString());
+                    Prefers.put("app_message", object.get("app_message").getAsString());
+                    Prefers.put("filter", object.getAsJsonArray("filter").toString());
+                    Prefers.put("prefix", object.get("prefix").getAsString());
+                    Prefers.put("title", object.get("title").getAsString());
+                    Prefers.put("jxUrl", object.get("jxUrl").getAsString());
+                    Prefers.put("remove_ad", true);
+                    System.out.println("source: "+Prefers.getString("source"));
+                    System.out.println("title: "+Prefers.getString("title"));
+                    System.out.println("remove_ad: "+Prefers.getBoolean("remove_ad"));
+                    System.out.println("initCache: 保存缓存成功");
+                } else {
+                    System.out.println("initCache: 保存缓存失败: " + data);
+                }
+                if (isLoading()) return;
+                WallConfig.get().init();
+                LiveConfig.get().init().load();
+                VodConfig.get().init().load(getCallback(""), true, CustomUtil.getForceRefresh());
+                setLoading(true);
+            }
+        });
     }
 
     private Callback getCallback(String success) {

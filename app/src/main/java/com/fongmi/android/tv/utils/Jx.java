@@ -14,10 +14,10 @@ public class Jx {
             if (jxUrl.isEmpty()) return realPlayUrl;
             // 对 URL 进行编码
             String enCodeUrl = URLEncoder.encode(realPlayUrl, "UTF-8");
-            System.out.println("公瑾TV - jxUrl: "+String.format(jxUrl, jxToken, enCodeUrl));
+            System.out.println("jxUrl: "+String.format(jxUrl, jxToken, enCodeUrl));
             String response = OkHttp.string(String.format(jxUrl, jxToken, enCodeUrl));
             if (response.isEmpty()) {
-                System.out.println("公瑾TV - 解析服务返回空, 不处理!");
+                System.out.println("解析服务返回空, 不处理!");
                 return realPlayUrl;
             }
             com.alibaba.fastjson.JSONObject object = com.alibaba.fastjson.JSONObject.parseObject(response);
@@ -29,9 +29,9 @@ public class Jx {
             } else {
                 // Extract message if available, otherwise use generic error message
                 String message = object.containsKey("msg")? object.getString("msg"): object.getString("detail");
-                App.post(() -> Notify.show("公瑾TV: "+message));
+                App.post(() -> Notify.show(message));
             }
-            System.out.println("公瑾TV - outPutUrl: "+realPlayUrl);
+            System.out.println("outPutUrl: "+realPlayUrl);
             return realPlayUrl;
         } catch (Exception e) {
             System.out.println(e.getMessage());
