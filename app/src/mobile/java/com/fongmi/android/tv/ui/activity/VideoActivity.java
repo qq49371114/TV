@@ -270,6 +270,11 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         return mBinding.ijk;
     }
 
+    private Drawable getDefaultArtwork() {
+        if (mPlayers.isExo()) return getExo().getDefaultArtwork();
+        return getIjk().getDefaultArtwork();
+    }
+
     private boolean isReplay() {
         return Setting.getReset() == 1;
     }
@@ -1373,7 +1378,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         String title = mHistory.getVodName();
         String episode = getEpisode().getName();
         String artist = title.equals(episode) ? "" : getString(R.string.play_now, episode);
-        mPlayers.setMetadata(title, artist, mHistory.getVodPic());
+        mPlayers.setMetadata(title, artist, mHistory.getVodPic(), getDefaultArtwork());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

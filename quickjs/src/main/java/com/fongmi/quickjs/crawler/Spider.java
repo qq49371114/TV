@@ -133,13 +133,14 @@ public class Spider extends com.github.catvod.crawler.Spider {
         }
         submit(() -> {
             executor.shutdownNow();
+            jsObject.release();
             ctx.destroy();
         });
     }
 
     private void initializeJS() throws Exception {
         submit(() -> {
-            if (ctx == null) createCtx();
+            createCtx();
             createObj();
             return null;
         }).get();
@@ -166,14 +167,13 @@ public class Spider extends com.github.catvod.crawler.Spider {
     }
 
     private void createObj() {
-        String jsEval = "__jsEvalReturn";
         String spider = "__JS_SPIDER__";
         String global = "globalThis." + spider;
         String content = Module.get().fetch(api);
-        if (content.startsWith("//bb")) ctx.execute(Module.get().bb(content));
-        else ctx.evaluateModule(content.replace(spider, global), api);
+        boolean bb = content.startsWith("//bb");
+        cat = bb || content.contains("__jsEvalReturn");
+        if (!bb) ctx.evaluateModule(content.replace(spider, global), api);
         ctx.evaluateModule(String.format(Asset.read("js/lib/spider.js"), api));
-        if (content.startsWith("//bb") || content.contains(jsEval)) cat = true;
         jsObject = (JSObject) ctx.getProperty(ctx.getGlobalObject(), spider);
     }
 

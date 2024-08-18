@@ -109,6 +109,12 @@ http://127.0.0.1:9978/action?do=refresh&type=detail
 http://127.0.0.1:9978/action?do=refresh&type=player
 ```  
 
+刷新直播
+
+```
+http://127.0.0.1:9978/action?do=refresh&type=live
+```
+
 推送字幕
 
 ```

@@ -44,34 +44,16 @@ public class Action implements Process {
     @Override
     public NanoHTTPD.Response doResponse(NanoHTTPD.IHTTPSession session, String path, Map<String, String> files) {
         Map<String, String> params = session.getParms();
-        switch (Objects.requireNonNullElse(params.get("do"), "")) {
-            case "search":
-                onSearch(params);
-                return Nano.success();
-            case "push":
-                onPush(params);
-                return Nano.success();
-            case "setting":
-                onSetting(params);
-                return Nano.success();
-            case "file":
-                onFile(params);
-                return Nano.success();
-            case "refresh":
-                onRefresh(params);
-                return Nano.success();
-            case "cast":
-                onCast(params);
-                return Nano.success();
-            case "sync":
-                onSync(params);
-                return Nano.success();
-            case "transmit":
-                onTransmit(params, files);
-                return Nano.success();
-            default:
-                return Nano.error(null);
-        }
+        String param = params.get("do");
+        if ("file".equals(param)) onFile(params);
+        else if ("push".equals(param)) onPush(params);
+        else if ("cast".equals(param)) onCast(params);
+        else if ("sync".equals(param)) onSync(params);
+        else if ("search".equals(param)) onSearch(params);
+        else if ("setting".equals(param)) onSetting(params);
+        else if ("refresh".equals(param)) onRefresh(params);
+        else if ("transmit".equals(param)) onTransmit(params, files);
+        return Nano.success();
     }
 
     private void onSearch(Map<String, String> params) {
@@ -106,20 +88,11 @@ public class Action implements Process {
         String type = params.get("type");
         String path = params.get("path");
         if (TextUtils.isEmpty(type)) return;
-        switch (type) {
-            case "detail":
-                RefreshEvent.detail();
-                break;
-            case "player":
-                RefreshEvent.player();
-                break;
-            case "danmaku":
-                RefreshEvent.danmaku(path);
-                break;
-            case "subtitle":
-                RefreshEvent.subtitle(path);
-                break;
-        }
+        if ("live".equals(type)) RefreshEvent.live();
+        else if ("detail".equals(type)) RefreshEvent.detail();
+        else if ("player".equals(type)) RefreshEvent.player();
+        else if ("danmaku".equals(type)) RefreshEvent.danmaku(path);
+        else if ("subtitle".equals(type)) RefreshEvent.subtitle(path);
     }
 
     private void onCast(Map<String, String> params) {
@@ -147,25 +120,11 @@ public class Action implements Process {
 
     private void onTransmit(Map<String, String> params, Map<String, String> files) {
         String type = params.get("type");
-        switch (type) {
-            case "apk":
-                apk(params, files);
-                break;
-            case "vod_config":
-                vodConfig(params);
-                break;
-            case "wall_config":
-                wallConfig(params, files);
-                break;
-            case "push_restore":
-                pushRestore(params, files);
-                break;
-            case "pull_restore":
-                pullRestore(params, files);
-                break;
-            default:
-                break;
-        }
+        if ("apk".equals(type)) apk(params, files);
+        else if ("vod_config".equals(type)) vodConfig(params);
+        else if ("wall_config".equals(type)) wallConfig(params, files);
+        else if ("push_restore".equals(type)) pushRestore(params, files);
+        else if ("pull_restore".equals(type)) pullRestore(params, files);
     }
 
     private void sendHistory(Device device, Map<String, String> params) {

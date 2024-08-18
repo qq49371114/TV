@@ -13,8 +13,8 @@ android {
         minSdk 21
         //noinspection ExpiredTargetSdkVersion
         targetSdk 28
-        versionCode 246
-        versionName "2.4.6"
+        versionCode 247
+        versionName "2.4.7"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
@@ -119,6 +119,7 @@ dependencies {
     implementation 'androidx.room:room-runtime:2.6.1'
     implementation 'androidx.media:media:1.7.0'
     implementation 'cat.ereza:customactivityoncrash:2.4.0'
+    implementation('com.github.anilbeesetti.nextlib:nextlib-media3ext:0.8.2') { exclude group: 'androidx.media3', module: 'media3-exoplayer' }
     implementation 'com.github.bassaer:materialdesigncolors:1.0.0'
     implementation 'com.github.bumptech.glide:glide:4.16.0'
     implementation 'com.github.bumptech.glide:annotations:4.16.0'
@@ -146,7 +147,6 @@ dependencies {
     implementation(ext: 'aar', name: 'dlna-core-release', group: 'fongmi', version: 'release')
     implementation(ext: 'aar', name: 'dlna-dmc-release', group: 'fongmi', version: 'release')
     implementation(ext: 'aar', name: 'dlna-dmr-release', group: 'fongmi', version: 'release')
-    implementation(ext: 'aar', name: 'media3ext-release', group: 'fongmi', version: 'release')
     leanbackImplementation 'androidx.leanback:leanback:1.2.0-alpha04'
     leanbackImplementation 'com.github.hedzr:android-file-chooser:v1.2.0-final'
     leanbackImplementation 'me.jessyan:autosize:1.2.1'

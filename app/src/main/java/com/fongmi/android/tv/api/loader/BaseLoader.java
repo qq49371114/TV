@@ -2,8 +2,11 @@ package com.fongmi.android.tv.api.loader;
 
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
+import com.fongmi.android.tv.bean.Live;
+import com.fongmi.android.tv.bean.Site;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.crawler.SpiderNull;
+import com.github.catvod.utils.Util;
 
 import org.json.JSONObject;
 
@@ -49,10 +52,10 @@ public class BaseLoader {
 
     public Spider getSpider(Map<String, String> params) {
         if (!params.containsKey("siteKey")) return new SpiderNull();
-        boolean live = params.containsKey("live") && "true".equals(params.get("live"));
-        boolean vod = !params.containsKey("live") || "false".equals(params.get("live"));
-        if (live) return LiveConfig.get().getLive(params.get("siteKey")).spider();
-        if (vod) return VodConfig.get().getSite(params.get("siteKey")).spider();
+        Live live = LiveConfig.get().getLive(params.get("siteKey"));
+        Site site = VodConfig.get().getSite(params.get("siteKey"));
+        if (!site.isEmpty()) return site.spider();
+        if (!live.isEmpty()) return live.spider();
         return new SpiderNull();
     }
 
@@ -73,6 +76,10 @@ public class BaseLoader {
         } else {
             return jarLoader.proxyInvoke(params);
         }
+    }
+
+    public void parseJar(String jar) {
+        jarLoader.parseJar(Util.md5(jar), jar);
     }
 
     public JSONObject jsonExt(String key, LinkedHashMap<String, String> jxs, String url) throws Throwable {
