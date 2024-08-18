@@ -125,7 +125,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         setViewModel();
         setHomeType();
         setPager();
-//        CustomUtil.initCache();
         initConfig();
         showDialog(this);
     }
@@ -346,9 +345,11 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                     Prefers.put("title", object.get("title").getAsString());
                     Prefers.put("jxUrl", object.get("jxUrl").getAsString());
                     Prefers.put("remove_ad", true);
+                    Prefers.put("upgrade", object.get("upgrade").getAsString());
                     System.out.println("source: "+Prefers.getString("source"));
                     System.out.println("title: "+Prefers.getString("title"));
                     System.out.println("remove_ad: "+Prefers.getBoolean("remove_ad"));
+                    System.out.println("upgrade: "+Prefers.getString("upgrade"));
                     System.out.println("initCache: 保存缓存成功");
                 } else {
                     System.out.println("initCache: 保存缓存失败: " + data);

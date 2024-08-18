@@ -14,37 +14,6 @@ import com.google.gson.JsonParser;
 
 public class CustomUtil {
 
-//    public static void initCache() {
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                try {
-//                    String url = "https://gitee.com/bestpvp/config/raw/master/config/unify.json";
-//                    System.out.println("initCache: 请求接口: " + url);
-//                    String data = OkHttp.string(url);
-//                    if (!data.isEmpty()) {
-//                        JsonObject object = JsonParser.parseString(data).getAsJsonObject();
-//                        Prefers.put("force_refresh", object.get("force_refresh").getAsInt());
-//                        Prefers.put("source", object.get("source").getAsString());
-//                        Prefers.put("app_message", object.get("app_message").getAsString());
-//                        Prefers.put("filter", object.getAsJsonArray("filter").toString());
-//                        Prefers.put("prefix", object.get("prefix").getAsString());
-//                        Prefers.put("title", object.get("title").getAsString());
-//                        Prefers.put("jxUrl", object.get("jxUrl").getAsString());
-//                        System.out.println("source: "+Prefers.getString("source"));
-//                        System.out.println("title: "+Prefers.getString("title"));
-//                        System.out.println("initCache: 保存缓存成功");
-//                    } else {
-//                        System.out.println("initCache: 保存缓存失败: " + data);
-//                    }
-////                    printAllCache();
-//                } catch (Exception e) {
-//                    System.out.println("initCache: 保存缓存异常");
-//                }
-//            }
-//        }).start();
-//    }
-
     public static void clearCache(){
         JsonArray keysToDelete = new JsonArray();
         keysToDelete.add("force_refresh");
