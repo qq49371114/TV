@@ -13,7 +13,7 @@ dependencyResolutionManagement {
         jcenter()
         google()
         flatDir {
-            dirs "$rootDir/app/libs"
+            dirs "$rootDir/app/libs", "$rootDir/quickjs/libs"
         }
         maven {
             url "https://jitpack.io"

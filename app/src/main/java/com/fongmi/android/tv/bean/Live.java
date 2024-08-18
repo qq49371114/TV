@@ -1,6 +1,5 @@
 package com.fongmi.android.tv.bean;
 
-import android.net.Uri;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -22,7 +21,6 @@ import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 
-import java.io.File;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -135,11 +133,6 @@ public class Live {
     }
 
     public Live() {
-    }
-
-    public Live(String url) {
-        this.name = url.startsWith("file") ? new File(url).getName() : Uri.parse(url).getLastPathSegment();
-        this.url = url;
     }
 
     public Live(@NonNull String name, String url) {
