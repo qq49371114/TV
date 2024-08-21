@@ -32,6 +32,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.C;
+import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
@@ -57,6 +58,7 @@ import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.ActivityVideoBinding;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.event.ActionEvent;
+import com.fongmi.android.tv.event.CastEvent;
 import com.fongmi.android.tv.event.ErrorEvent;
 import com.fongmi.android.tv.event.PlayerEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
@@ -80,6 +82,7 @@ import com.fongmi.android.tv.ui.dialog.ControlDialog;
 import com.fongmi.android.tv.ui.dialog.EpisodeGridDialog;
 import com.fongmi.android.tv.ui.dialog.EpisodeListDialog;
 import com.fongmi.android.tv.ui.dialog.InfoDialog;
+import com.fongmi.android.tv.ui.dialog.ReceiveDialog;
 import com.fongmi.android.tv.ui.dialog.TrackDialog;
 import com.fongmi.android.tv.utils.Clock;
 import com.fongmi.android.tv.utils.FileChooser;
@@ -365,14 +368,13 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void setVideoView() {
-        mPlayers.setup(mBinding.exo);
+        mPlayers.init(mBinding.exo);
         if (isPort() && ResUtil.isLand(this)) enterFullscreen();
         mBinding.control.action.decode.setText(mPlayers.getDecodeText());
         mBinding.control.action.speed.setEnabled(mPlayers.canAdjustSpeed());
         mBinding.control.action.reset.setText(ResUtil.getStringArray(R.array.select_reset)[Setting.getReset()]);
         mBinding.video.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> mPiP.update(getActivity(), view));
     }
-
 
     private void setVideoView(boolean isInPictureInPictureMode) {
         if (isInPictureInPictureMode) {
@@ -1045,6 +1047,12 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onCastEvent(CastEvent event) {
+        if (isRedirect()) return;
+        ReceiveDialog.create().event(event).show(this);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
     public void onActionEvent(ActionEvent event) {
         if (isRedirect()) return;
         if (ActionEvent.PLAY.equals(event.getAction()) || ActionEvent.PAUSE.equals(event.getAction())) {
@@ -1118,6 +1126,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
             onReset(true);
         } else {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            checkPlayImg(false);
             checkNext();
         }
     }
@@ -1140,22 +1149,23 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         String title = mHistory.getVodName();
         String episode = getEpisode().getName();
         String artist = title.equals(episode) ? "" : getString(R.string.play_now, episode);
-        mPlayers.setMetadata(title, artist, mHistory.getVodPic());
+        mPlayers.setMetadata(title, artist, mHistory.getVodPic(), mBinding.exo.getDefaultArtwork());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
         if (isRedirect()) return;
-        if (mPlayers.error()) checkError(event);
+        if (mPlayers.retried()) onError(event);
+        else if (event.isExo()) onCheck(event);
         else onRefresh();
     }
 
-    private void checkError(ErrorEvent event) {
-        if (mPlayers.isHard() && event.getCode() / 1000 == 4) {
-            onDecode();
-        } else {
-            onError(event);
-        }
+    private void onCheck(ErrorEvent event) {
+        if (event.getCode() == PlaybackException.ERROR_CODE_IO_UNSPECIFIED || event.getCode() >= PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED && event.getCode() <= PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED) mPlayers.setFormat(ExoUtil.getMimeType(event.getCode()));
+        else if (event.getCode() == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) mPlayers.seekTo(C.TIME_UNSET);
+        else mPlayers.toggleDecode(mBinding.exo);
+        mPlayers.setMediaItem();
+        setDecode();
     }
 
     private void onError(ErrorEvent event) {
@@ -1281,6 +1291,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void onPlay() {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        if (mPlayers.isEnd()) mPlayers.seekTo(mHistory.getOpening());
         checkPlayImg(true);
         mPlayers.play();
     }
@@ -1401,7 +1412,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @Override
     public void onSpeedUp() {
         if (!mPlayers.isPlaying() || !mPlayers.canAdjustSpeed()) return;
-        mBinding.control.action.speed.setText(mPlayers.setSpeed(mPlayers.getSpeed() < 3 ? 3 : 5));
+        mBinding.control.action.speed.setText(mPlayers.setSpeed(Setting.getSpeed()));
         mBinding.widget.speed.startAnimation(ResUtil.getAnim(R.anim.forward));
         mBinding.widget.speed.setVisibility(View.VISIBLE);
     }
@@ -1506,8 +1517,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
             hideControl();
             hideSheet();
         } else {
+            stopService();
             setForeground(true);
-            PlaybackService.stop();
             setSubtitle(Setting.getSubtitle());
             if (isStop()) finish();
         }
@@ -1579,6 +1590,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     protected void onDestroy() {
         super.onDestroy();
         stopSearch();
+        stopService();
         mClock.release();
         mPlayers.release();
         Timer.get().reset();

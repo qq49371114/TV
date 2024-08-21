@@ -12,9 +12,13 @@ import com.google.gson.internal.LazilyParsedNumber;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 public class Prefers {
+
+    private static final List<String> floats = Arrays.asList("speed");
 
     private static SharedPreferences getPrefers() {
         return PreferenceManager.getDefaultSharedPreferences(Init.context());
@@ -104,6 +108,10 @@ public class Prefers {
     }
 
     private static Object convert(Map.Entry<String, ?> entry) {
-        return entry.getValue();
+        if (floats.contains(entry.getKey())) {
+            return Float.parseFloat(entry.getValue().toString());
+        } else {
+            return entry.getValue();
+        }
     }
 }

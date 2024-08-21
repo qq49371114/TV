@@ -209,6 +209,8 @@ public class TrackNameProvider {
                 return "TX3G";
             case MimeTypes.APPLICATION_DVBSUBS:
                 return "DVB";
+            case MimeTypes.APPLICATION_MEDIA3_CUES:
+                return "CUES";
             default:
                 return mimeType;
         }

@@ -22,12 +22,11 @@ public class TVBus implements Source.Extractor, Listener {
     }
 
     private void init(Core core) {
-        App.get().setHook(core.hook());
+        App.get().setHook(core.getHook());
         tvcore = new TVCore(core.getSo());
         tvcore.auth(core.getAuth()).broker(core.getBroker());
         tvcore.name(core.getName()).pass(core.getPass());
         tvcore.serv(0).play(8902).mode(1).listener(this);
-        App.get().setHook(false);
         tvcore.init();
     }
 
@@ -35,6 +34,7 @@ public class TVBus implements Source.Extractor, Listener {
     public String fetch(String url) throws Exception {
         if (core != null && !core.equals(LiveConfig.get().getHome().getCore())) change();
         if (tvcore == null) init(core = LiveConfig.get().getHome().getCore());
+        App.get().setHook(null);
         tvcore.start(url);
         onWait();
         onCheck();

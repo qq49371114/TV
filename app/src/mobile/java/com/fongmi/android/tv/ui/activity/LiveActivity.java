@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.C;
+import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.viewbinding.ViewBinding;
 
@@ -39,6 +40,7 @@ import com.fongmi.android.tv.databinding.ActivityLiveBinding;
 import com.fongmi.android.tv.event.ActionEvent;
 import com.fongmi.android.tv.event.ErrorEvent;
 import com.fongmi.android.tv.event.PlayerEvent;
+import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.LiveCallback;
 import com.fongmi.android.tv.impl.PassCallback;
@@ -200,7 +202,7 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
     }
 
     private void setVideoView() {
-        mPlayers.setup(mBinding.exo);
+        mPlayers.init(mBinding.exo);
         setScale(Setting.getLiveScale());
         mBinding.control.action.invert.setActivated(Setting.isInvert());
         mBinding.control.action.across.setActivated(Setting.isAcross());
@@ -700,6 +702,7 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
 
     @Override
     public void setLive(Live item) {
+        if (item.isActivated()) item.getGroups().clear();
         LiveConfig.get().setHome(item);
         mPlayers.reset();
         mPlayers.stop();
@@ -745,6 +748,18 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onRefreshEvent(RefreshEvent event) {
+        switch (event.getType()) {
+            case LIVE:
+                setLive(getHome());
+                break;
+            case PLAYER:
+                fetch();
+                break;
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
     public void onPlayerEvent(PlayerEvent event) {
         switch (event.getState()) {
             case 0:
@@ -780,21 +795,22 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
     private void setMetadata() {
         String title = mBinding.widget.name.getText().toString();
         String artist = mBinding.widget.play.getText().toString();
-        mPlayers.setMetadata(title, artist, mChannel.getLogo());
+        mPlayers.setMetadata(title, artist, mChannel.getLogo(), mBinding.exo.getDefaultArtwork());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
-        if (mPlayers.error()) checkError(event);
+        if (mPlayers.retried()) onError(event);
+        else if (event.isExo()) onCheck(event);
         else fetch();
     }
 
-    private void checkError(ErrorEvent event) {
-        if (mPlayers.isHard() && event.getCode() / 1000 == 4) {
-            onDecode();
-        } else {
-            onError(event);
-        }
+    private void onCheck(ErrorEvent event) {
+        if (event.getCode() == PlaybackException.ERROR_CODE_IO_UNSPECIFIED || event.getCode() >= PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED && event.getCode() <= PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED) mPlayers.setFormat(ExoUtil.getMimeType(event.getCode()));
+        else if (event.getCode() == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) mPlayers.seekTo(C.TIME_UNSET);
+        else mPlayers.toggleDecode(mBinding.exo);
+        mPlayers.setMediaItem();
+        setDecode();
     }
 
     private void onError(ErrorEvent event) {
@@ -806,12 +822,7 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
 
     private void startFlow() {
         if (!Setting.isChange()) return;
-        if (!mChannel.isLast()) {
-            nextLine(true);
-        } else if (isGone(mBinding.recycler)) {
-            mChannel.setLine(0);
-            nextChannel();
-        }
+        if (!mChannel.isLast()) nextLine(true);
     }
 
     private boolean prevGroup() {
@@ -949,7 +960,7 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
     @Override
     public void onSpeedUp() {
         if (mPlayers.isLive() || !mPlayers.isPlaying() || !mPlayers.canAdjustSpeed()) return;
-        mBinding.control.action.speed.setText(mPlayers.setSpeed(mPlayers.getSpeed() < 3 ? 3 : 5));
+        mBinding.control.action.speed.setText(mPlayers.setSpeed(Setting.getSpeed()));
         mBinding.widget.speed.startAnimation(ResUtil.getAnim(R.anim.forward));
         mBinding.widget.speed.setVisibility(View.VISIBLE);
     }
@@ -1065,8 +1076,8 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
             hideUI();
         } else {
             hideInfo();
+            stopService();
             setForeground(true);
-            PlaybackService.stop();
             setSubtitle(Setting.getSubtitle());
             if (isStop()) finish();
         }
@@ -1138,9 +1149,9 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        stopService();
         mClock.release();
         mPlayers.release();
-        PlaybackService.stop();
         App.removeCallbacks(mR0, mR1, mR2, mR3);
         mViewModel.url.removeObserver(mObserveUrl);
         mViewModel.epg.removeObserver(mObserveEpg);

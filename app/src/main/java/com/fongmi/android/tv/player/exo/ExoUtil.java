@@ -1,5 +1,8 @@
 package com.fongmi.android.tv.player.exo;
 
+import static androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON;
+import static androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER;
+
 import android.content.Context;
 import android.graphics.Color;
 import android.net.Uri;
@@ -14,6 +17,7 @@ import androidx.media3.common.TrackSelectionOverride;
 import androidx.media3.common.Tracks;
 import androidx.media3.common.util.Util;
 import androidx.media3.exoplayer.DefaultLoadControl;
+import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.LoadControl;
 import androidx.media3.exoplayer.RenderersFactory;
@@ -52,7 +56,7 @@ public class ExoUtil {
     }
 
     public static RenderersFactory buildRenderersFactory(int decode) {
-        return new NextRenderersFactory(App.get(), decode);
+        return new DefaultRenderersFactory(App.get()).setEnableDecoderFallback(true).setExtensionRendererMode(Players.isHard(decode) ? EXTENSION_RENDERER_MODE_ON : EXTENSION_RENDERER_MODE_PREFER);
     }
 
     public static MediaSource.Factory buildMediaSourceFactory() {
@@ -89,15 +93,10 @@ public class ExoUtil {
         return MimeTypes.APPLICATION_SUBRIP;
     }
 
-    public static String getMimeType(String format, int errorCode) {
-        if (format != null) return format;
+    public static String getMimeType(int errorCode) {
         if (errorCode == PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED || errorCode == PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED) return MimeTypes.APPLICATION_OCTET;
         if (errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED || errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED || errorCode == PlaybackException.ERROR_CODE_IO_UNSPECIFIED) return MimeTypes.APPLICATION_M3U8;
         return null;
-    }
-
-    public static int getRetry(int errorCode) {
-        return errorCode >= PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED && errorCode <= PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED || errorCode == PlaybackException.ERROR_CODE_IO_UNSPECIFIED ? 2 : errorCode > 999 ? 1 : 0;
     }
 
     public static MediaItem getMediaItem(Map<String, String> headers, Uri uri, String mimeType, Drm drm, List<Sub> subs, int decode) {

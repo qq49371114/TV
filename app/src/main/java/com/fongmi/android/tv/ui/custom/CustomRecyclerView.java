@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.utils.ResUtil;
 
 public class CustomRecyclerView extends RecyclerView {
 
@@ -30,6 +31,10 @@ public class CustomRecyclerView extends RecyclerView {
     public CustomRecyclerView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init(context, attrs);
+    }
+
+    public void setMaxHeight(int maxHeight) {
+        this.maxHeight = ResUtil.dp2px(maxHeight);
     }
 
     private void init(Context context, AttributeSet attrs) {

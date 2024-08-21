@@ -257,6 +257,14 @@ public class Setting {
         Prefers.put("zhuyin", zhuyin);
     }
 
+    public static float getSpeed() {
+        return Math.min(Math.max(Prefers.getFloat("speed", 3), 2), 5);
+    }
+
+    public static void putSpeed(float speed) {
+        Prefers.put("speed", speed);
+    }
+
     public static float getThumbnail() {
         return 0.3f * getQuality() + 0.4f;
     }

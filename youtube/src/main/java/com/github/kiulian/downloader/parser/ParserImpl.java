@@ -424,11 +424,11 @@ public class ParserImpl implements Parser {
         }
         String html = response.data();
         try {
-            JsonObject content;
+            JsonObject content = new JsonObject();
             JsonObject jsonResponse = JsonParser.parseString(html).getAsJsonObject();
             if (jsonResponse.has("continuationContents")) {
                 content = jsonResponse.getAsJsonObject("continuationContents").getAsJsonObject("playlistVideoListContinuation");
-            } else {
+            } else if (jsonResponse.has("onResponseReceivedActions")) {
                 content = jsonResponse.getAsJsonArray("onResponseReceivedActions").get(0).getAsJsonObject().getAsJsonObject("appendContinuationItemsAction");
             }
             populatePlaylist(content, videos, clientVersion);

@@ -1,16 +1,14 @@
 package com.fongmi.android.tv.bean;
 
-import android.content.pm.PackageInfo;
-import android.content.pm.Signature;
 import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
 
 import com.fongmi.android.tv.utils.UrlUtil;
-import com.fongmi.hook.PackageManager;
+import com.fongmi.hook.Hook;
 import com.google.gson.annotations.SerializedName;
 
-public class Core extends PackageManager {
+public class Core {
 
     @SerializedName("auth")
     private String auth;
@@ -61,15 +59,8 @@ public class Core extends PackageManager {
         return TextUtils.isEmpty(so) ? "" : so;
     }
 
-    public boolean hook() {
-        return getPkg().length() > 0 && getSign().length() > 0;
-    }
-
-    @Override
-    public PackageInfo getPackageInfo(String packageName, int flags) {
-        PackageInfo info = super.getPackageInfo(packageName, flags);
-        info.signatures = new Signature[]{new Signature(getSign())};
-        return info;
+    public Hook getHook() {
+        return !getPkg().isEmpty() && !getSign().isEmpty() ? new Hook(getSign(), getPkg()) : null;
     }
 
     @Override

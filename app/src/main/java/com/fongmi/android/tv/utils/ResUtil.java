@@ -1,6 +1,5 @@
 package com.fongmi.android.tv.utils;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -8,15 +7,10 @@ import android.content.res.TypedArray;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.Display;
-import android.view.KeyCharacterMap;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.view.ViewConfiguration;
-import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
@@ -34,23 +28,13 @@ public class ResUtil {
         return App.get().getResources().getDisplayMetrics();
     }
 
-    public static WindowManager getWindowManager(Context context) {
-        return (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-    }
-
     public static boolean hasNavigationBar(Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            Display display = getWindowManager(context).getDefaultDisplay();
-            Point size = new Point();
-            Point realSize = new Point();
-            display.getSize(size);
-            display.getRealSize(realSize);
-            return realSize.x != size.x || realSize.y != size.y;
-        } else {
-            boolean menu = ViewConfiguration.get(context).hasPermanentMenuKey();
-            boolean back = KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_BACK);
-            return !(menu || back);
-        }
+        Display display = getDisplay(context);
+        Point size = new Point();
+        Point realSize = new Point();
+        display.getSize(size);
+        display.getRealSize(realSize);
+        return realSize.x != size.x || realSize.y != size.y;
     }
 
     public static int getNavigationBarHeight(Context context) {
@@ -132,8 +116,8 @@ public class ResUtil {
         return AnimationUtils.loadAnimation(App.get(), resId);
     }
 
-    public static Display getDisplay(Activity activity) {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ? activity.getDisplay() : activity.getWindowManager().getDefaultDisplay();
+    public static Display getDisplay(Context context) {
+        return ContextCompat.getDisplayOrDefault(context);
     }
 
     public static int getTextWidth(String content, int size) {

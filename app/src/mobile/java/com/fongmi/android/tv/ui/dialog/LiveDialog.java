@@ -2,6 +2,7 @@ package com.fongmi.android.tv.ui.dialog;
 
 import android.app.Activity;
 import android.view.LayoutInflater;
+import android.view.WindowManager;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
@@ -12,6 +13,7 @@ import com.fongmi.android.tv.databinding.DialogLiveBinding;
 import com.fongmi.android.tv.impl.LiveCallback;
 import com.fongmi.android.tv.ui.adapter.LiveAdapter;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
+import com.fongmi.android.tv.utils.ResUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class LiveDialog implements LiveAdapter.OnClickListener {
@@ -20,6 +22,7 @@ public class LiveDialog implements LiveAdapter.OnClickListener {
     private DialogLiveBinding binding;
     private LiveAdapter adapter;
     private AlertDialog dialog;
+    private boolean full;
 
     public static LiveDialog create(Activity activity) {
         return new LiveDialog(activity);
@@ -31,6 +34,7 @@ public class LiveDialog implements LiveAdapter.OnClickListener {
 
     private LiveDialog(Activity activity) {
         this.callback = (LiveCallback) activity;
+        this.full = true;
         init(activity);
     }
 
@@ -61,10 +65,14 @@ public class LiveDialog implements LiveAdapter.OnClickListener {
         binding.recycler.setHasFixedSize(true);
         binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 8));
         binding.recycler.post(() -> binding.recycler.scrollToPosition(LiveConfig.getHomeIndex()));
+        if (full) binding.recycler.setMaxHeight(264);
     }
 
     private void setDialog() {
         if (adapter.getItemCount() == 0) return;
+        WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
+        if (full) params.width = (int) (ResUtil.getScreenWidth() * 0.5f);
+        dialog.getWindow().setAttributes(params);
         dialog.getWindow().setDimAmount(0);
         dialog.show();
     }

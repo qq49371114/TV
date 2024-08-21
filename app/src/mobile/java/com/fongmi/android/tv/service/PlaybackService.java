@@ -3,8 +3,10 @@ package com.fongmi.android.tv.service;
 import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
+import android.content.pm.ServiceInfo;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.v4.media.MediaMetadataCompat;
 
@@ -14,6 +16,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.ServiceCompat;
 import androidx.core.content.ContextCompat;
 import androidx.media.app.NotificationCompat.MediaStyle;
 import androidx.media.session.MediaButtonReceiver;
@@ -39,11 +42,11 @@ import java.util.Objects;
 public class PlaybackService extends Service {
 
     private final Map<String, Bitmap> cache = new HashMap<>();
-    private static Players players;
+    private static Players player;
 
-    public static void start(Players players) {
+    public static void start(Players player) {
         ContextCompat.startForegroundService(App.get(), new Intent(App.get(), PlaybackService.class));
-        PlaybackService.players = players;
+        PlaybackService.player = player;
     }
 
     public static void stop() {
@@ -51,11 +54,11 @@ public class PlaybackService extends Service {
     }
 
     private boolean isNull() {
-        return Objects.isNull(players) || Objects.isNull(players.getSession());
+        return Objects.isNull(player) || Objects.isNull(player.getSession());
     }
 
     private boolean nonNull() {
-        return Objects.nonNull(players) && Objects.nonNull(players.getSession());
+        return Objects.nonNull(player) && Objects.nonNull(player.getSession());
     }
 
     private NotificationManagerCompat getManager() {
@@ -67,12 +70,12 @@ public class PlaybackService extends Service {
     }
 
     private NotificationCompat.Action getPlayPauseAction() {
-        if (nonNull() && players.isPlaying()) return buildNotificationAction(R.drawable.ic_notify_pause, androidx.media3.ui.R.string.exo_controls_pause_description, ActionEvent.PAUSE);
+        if (nonNull() && player.isPlaying()) return buildNotificationAction(R.drawable.ic_notify_pause, androidx.media3.ui.R.string.exo_controls_pause_description, ActionEvent.PAUSE);
         return buildNotificationAction(R.drawable.ic_notify_play, androidx.media3.ui.R.string.exo_controls_play_description, ActionEvent.PLAY);
     }
 
     private MediaMetadataCompat getMetadata() {
-        return isNull() ? null : players.getSession().getController().getMetadata();
+        return isNull() ? null : player.getSession().getController().getMetadata();
     }
 
     private String getTitle() {
@@ -120,8 +123,8 @@ public class PlaybackService extends Service {
         builder.setSmallIcon(R.drawable.ic_logo);
         builder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
         builder.setDeleteIntent(ActionReceiver.getPendingIntent(this, ActionEvent.STOP));
-        if (nonNull()) builder.setContentIntent(players.getSession().getController().getSessionActivity());
-        if (nonNull()) builder.setStyle(new MediaStyle().setMediaSession(players.getSession().getSessionToken()));
+        if (nonNull()) builder.setContentIntent(player.getSession().getController().getSessionActivity());
+        if (nonNull()) builder.setStyle(new MediaStyle().setMediaSession(player.getSession().getSessionToken()));
         addAction(builder);
         setArtwork(builder);
         return builder.build();
@@ -155,8 +158,9 @@ public class PlaybackService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (nonNull()) MediaButtonReceiver.handleIntent(players.getSession(), intent);
-        startForeground(Notify.ID, buildNotification());
+        if (nonNull()) MediaButtonReceiver.handleIntent(player.getSession(), intent);
+        int type = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK : 0;
+        ServiceCompat.startForeground(this, Notify.ID, buildNotification(), type);
         return START_NOT_STICKY;
     }
 

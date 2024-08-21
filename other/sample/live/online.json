@@ -38,7 +38,7 @@
       "boot": false,
       "pass": true,
       "url": "https://github.com/live.txt",
-      "epg": "https://epg.112114.xyz/?ch={name}&date={date}",
+      "epg": "https://epg.112114.xyz/?ch={name}&date={date}&serverTimeZone=Asia/Shanghai",
       "logo": "https://epg.112114.xyz/logo/{name}.png",
       "header": {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
@@ -57,9 +57,30 @@
       "url": "https://github.com/live.json"
     },
     {
-      "name": "Proxy",
-      "type": 2,
-      "url": "proxy://do=live&type=today"
+      "name": "Spider-JS",
+      "type": 3,
+      "api": "https://github.com/live.js",
+      "ext": ""
+    },
+    {
+      "name": "Spider-JSWithList",
+      "type": 3,
+      "api": "https://github.com/live.js",
+      "url": "https://github.com/live.txt",
+      "ext": ""
+    },
+    {
+      "name": "Spider-Python",
+      "type": 3,
+      "api": "https://github.com/live.py",
+      "ext": ""
+    },
+    {
+      "name": "Spider-PythonWithList",
+      "type": 3,
+      "api": "https://github.com/live.py",
+      "url": "https://github.com/live.txt",
+      "ext": ""
     }
   ]
 }

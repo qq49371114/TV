@@ -38,7 +38,7 @@
       "boot": false,
       "pass": true,
       "url": "file://Download/live.txt",
-      "epg": "https://epg.112114.xyz/?ch={name}&date={date}",
+      "epg": "https://epg.112114.xyz/?ch={name}&date={date}&serverTimeZone=Asia/Shanghai",
       "logo": "https://epg.112114.xyz/logo/{name}.png",
       "header": {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
@@ -55,6 +55,32 @@
       "name": "JSON",
       "type": 1,
       "url": "file://Download/live.json"
+    },
+    {
+      "name": "Spider-JS",
+      "type": 3,
+      "api": "./live.js",
+      "ext": ""
+    },
+    {
+      "name": "Spider-JSWithList",
+      "type": 3,
+      "api": "./live.js",
+      "url": "./live.txt",
+      "ext": ""
+    },
+    {
+      "name": "Spider-Python",
+      "type": 3,
+      "api": "./live.py",
+      "ext": ""
+    },
+    {
+      "name": "Spider-PythonWithList",
+      "type": 3,
+      "api": "./live.py",
+      "url": "./live.txt",
+      "ext": ""
     }
   ]
 }

@@ -62,10 +62,9 @@ public class SiteViewModel extends ViewModel {
         execute(result, () -> {
             Site site = VodConfig.get().getHome();
             if (site.getType() == 3) {
-                Spider spider = VodConfig.get().getSpider(site);
+                Spider spider = site.recent().spider();
                 String homeContent = spider.homeContent(true);
                 SpiderDebug.log(homeContent);
-                VodConfig.get().setRecent(site);
                 Result result = Result.fromJson(homeContent);
                 if (result.getList().size() > 0) return result;
                 String homeVideoContent = spider.homeVideoContent();
@@ -90,10 +89,9 @@ public class SiteViewModel extends ViewModel {
         execute(result, () -> {
             Site site = VodConfig.get().getSite(key);
             if (site.getType() == 3) {
-                Spider spider = VodConfig.get().getSpider(site);
+                Spider spider = site.recent().spider();
                 String categoryContent = spider.categoryContent(tid, page, filter, extend);
                 SpiderDebug.log(categoryContent);
-                VodConfig.get().setRecent(site);
                 return Result.fromJson(categoryContent);
             } else {
                 ArrayMap<String, String> params = new ArrayMap<>();
@@ -113,10 +111,9 @@ public class SiteViewModel extends ViewModel {
         execute(result, () -> {
             Site site = VodConfig.get().getSite(key);
             if (site.getType() == 3) {
-                Spider spider = VodConfig.get().getSpider(site);
+                Spider spider = site.recent().spider();
                 String detailContent = spider.detailContent(Arrays.asList(id));
                 SpiderDebug.log(detailContent);
-                VodConfig.get().setRecent(site);
                 Result result = Result.fromJson(detailContent);
                 if (!result.getList().isEmpty()) result.getList().get(0).setVodFlags();
                 if (!result.getList().isEmpty()) Source.get().parse(result.getList().get(0).getVodFlags());
@@ -126,7 +123,7 @@ public class SiteViewModel extends ViewModel {
                 vod.setVodId(id);
                 vod.setVodName(id);
                 vod.setVodPic(ResUtil.getString(R.string.push_image));
-                vod.setVodFlags(Flag.create(ResUtil.getString(R.string.push), ResUtil.getString(R.string.play), id));
+                vod.setVodFlags(Flag.create(ResUtil.getString(R.string.push), id));
                 Source.get().parse(vod.getVodFlags());
                 return Result.vod(vod);
             } else {
@@ -148,10 +145,9 @@ public class SiteViewModel extends ViewModel {
             Source.get().stop();
             Site site = VodConfig.get().getSite(key);
             if (site.getType() == 3) {
-                Spider spider = VodConfig.get().getSpider(site);
+                Spider spider = site.recent().spider();
                 String playerContent = spider.playerContent(flag, id, VodConfig.get().getFlags());
                 SpiderDebug.log(playerContent);
-                VodConfig.get().setRecent(site);
                 Result result = Result.fromJson(playerContent);
                 if (result.getFlag().isEmpty()) result.setFlag(flag);
                 result.setUrl(Source.get().fetch(result));
@@ -195,8 +191,7 @@ public class SiteViewModel extends ViewModel {
 
     public void searchContent(Site site, String keyword, boolean quick) throws Throwable {
         if (site.getType() == 3) {
-            Spider spider = VodConfig.get().getSpider(site);
-            String searchContent = spider.searchContent(Trans.t2s(keyword), quick);
+            String searchContent = site.spider().searchContent(Trans.t2s(keyword), quick);
             SpiderDebug.log(site.getName() + "," + searchContent);
             post(site, Result.fromJson(searchContent));
         } else {
@@ -212,8 +207,7 @@ public class SiteViewModel extends ViewModel {
     public void searchContent(Site site, String keyword, String page) {
         execute(result, () -> {
             if (site.getType() == 3) {
-                Spider spider = VodConfig.get().getSpider(site);
-                String searchContent = spider.searchContent(Trans.t2s(keyword), false, page);
+                String searchContent = site.spider().searchContent(Trans.t2s(keyword), false, page);
                 SpiderDebug.log(site.getName() + "," + searchContent);
                 Result result = Result.fromJson(searchContent);
                 for (Vod vod : result.getList()) vod.setSite(site);

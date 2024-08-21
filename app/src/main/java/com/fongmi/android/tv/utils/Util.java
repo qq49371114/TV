@@ -169,7 +169,7 @@ public class Util {
             return true;
         }
         if (Build.VERSION.SDK_INT < 30) {
-            if (!pm.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {
+            if (!pm.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN) && !pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
                 return true;
             }
             if (pm.hasSystemFeature("android.hardware.hdmi.cec")) {

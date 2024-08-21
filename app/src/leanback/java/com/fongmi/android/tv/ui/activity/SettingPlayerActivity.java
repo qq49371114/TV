@@ -11,17 +11,22 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.databinding.ActivitySettingPlayerBinding;
 import com.fongmi.android.tv.impl.BufferCallback;
+import com.fongmi.android.tv.impl.SpeedCallback;
 import com.fongmi.android.tv.impl.SubtitleCallback;
 import com.fongmi.android.tv.impl.UaCallback;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.dialog.BufferDialog;
+import com.fongmi.android.tv.ui.dialog.SpeedDialog;
 import com.fongmi.android.tv.ui.dialog.SubtitleDialog;
 import com.fongmi.android.tv.ui.dialog.UaDialog;
 import com.fongmi.android.tv.utils.ResUtil;
 
-public class SettingPlayerActivity extends BaseActivity implements UaCallback, BufferCallback, SubtitleCallback {
+import java.text.DecimalFormat;
+
+public class SettingPlayerActivity extends BaseActivity implements UaCallback, BufferCallback, SpeedCallback, SubtitleCallback {
 
     private ActivitySettingPlayerBinding mBinding;
+    private DecimalFormat format;
     private String[] caption;
     private String[] render;
     private String[] scale;
@@ -43,9 +48,11 @@ public class SettingPlayerActivity extends BaseActivity implements UaCallback, B
     @Override
     protected void initView() {
         setVisible();
+        format = new DecimalFormat("0.#");
         mBinding.render.requestFocus();
         mBinding.uaText.setText(Setting.getUa());
         mBinding.tunnelText.setText(getSwitch(Setting.isTunnel()));
+        mBinding.speedText.setText(format.format(Setting.getSpeed()));
         mBinding.bufferText.setText(String.valueOf(Setting.getBuffer()));
         mBinding.subtitleText.setText(String.valueOf(Setting.getSubtitle()));
         mBinding.rtspText.setText((rtsp = ResUtil.getStringArray(R.array.select_rtsp))[Setting.getRtsp()]);
@@ -59,6 +66,7 @@ public class SettingPlayerActivity extends BaseActivity implements UaCallback, B
         mBinding.ua.setOnClickListener(this::onUa);
         mBinding.rtsp.setOnClickListener(this::setRtsp);
         mBinding.scale.setOnClickListener(this::setScale);
+        mBinding.speed.setOnClickListener(this::onSpeed);
         mBinding.buffer.setOnClickListener(this::onBuffer);
         mBinding.render.setOnClickListener(this::setRender);
         mBinding.tunnel.setOnClickListener(this::setTunnel);
@@ -91,6 +99,16 @@ public class SettingPlayerActivity extends BaseActivity implements UaCallback, B
         int index = Setting.getScale();
         Setting.putScale(index = index == scale.length - 1 ? 0 : ++index);
         mBinding.scaleText.setText(scale[index]);
+    }
+
+    private void onSpeed(View view) {
+        SpeedDialog.create(this).show();
+    }
+
+    @Override
+    public void setSpeed(float speed) {
+        mBinding.speedText.setText(format.format(speed));
+        Setting.putSpeed(speed);
     }
 
     private void onBuffer(View view) {

@@ -170,6 +170,11 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
     private Callback getCallback() {
         return new Callback() {
             @Override
+            public void success(String result) {
+                Notify.show(result);
+            }
+
+            @Override
             public void success() {
                 setConfig();
             }
@@ -331,6 +336,7 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
     public void setProxy(String proxy) {
         Source.get().stop();
         Setting.putProxy(proxy);
+        OkHttp.selector().clear();
         OkHttp.get().setProxy(proxy);
         Notify.progress(getActivity());
         VodConfig.load(Config.vod(), getCallback());

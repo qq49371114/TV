@@ -13,6 +13,7 @@ import androidx.annotation.Dimension;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.media3.common.C;
+import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.viewbinding.ViewBinding;
 
@@ -133,7 +134,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     }
 
     private void setVideoView() {
-        mPlayers.setup(mBinding.exo);
+        mPlayers.init(mBinding.exo);
         setScale(scale = Setting.getScale());
         findViewById(R.id.timeBar).setNextFocusUpId(R.id.reset);
         mBinding.control.speed.setText(mPlayers.getSpeedText());
@@ -333,21 +334,22 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     }
 
     private void setMetadata() {
-        mPlayers.setMetadata(mBinding.widget.title.getText().toString(), "", "");
+        mPlayers.setMetadata(mBinding.widget.title.getText().toString(), "", "", mBinding.exo.getDefaultArtwork());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
-        if (mPlayers.error()) checkError(event);
+        if (mPlayers.retried()) onError(event);
+        else if (event.isExo()) onCheck(event);
         else onReset();
     }
 
-    private void checkError(ErrorEvent event) {
-        if (mPlayers.isHard() && event.getCode() / 1000 == 4) {
-            onDecode();
-        } else {
-            onError(event);
-        }
+    private void onCheck(ErrorEvent event) {
+        if (event.getCode() == PlaybackException.ERROR_CODE_IO_UNSPECIFIED || event.getCode() >= PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED && event.getCode() <= PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED) mPlayers.setFormat(ExoUtil.getMimeType(event.getCode()));
+        else if (event.getCode() == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) mPlayers.seekTo(C.TIME_UNSET);
+        else mPlayers.toggleDecode(mBinding.exo);
+        mPlayers.setMediaItem();
+        setDecode();
     }
 
     private void onError(ErrorEvent event) {
@@ -463,7 +465,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     @Override
     public void onSpeedUp() {
         if (!mPlayers.isPlaying() || !mPlayers.canAdjustSpeed()) return;
-        mBinding.control.speed.setText(mPlayers.setSpeed(mPlayers.getSpeed() < 3 ? 3 : 5));
+        mBinding.control.speed.setText(mPlayers.setSpeed(Setting.getSpeed()));
         mBinding.widget.speed.startAnimation(ResUtil.getAnim(R.anim.forward));
         mBinding.widget.speed.setVisibility(View.VISIBLE);
     }

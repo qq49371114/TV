@@ -6,4 +6,4 @@
     android:layout_height="wrap_content"
     android:padding="24dp"
     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-    app:maxHeight="264dp" />
+    app:maxHeight="376dp" />

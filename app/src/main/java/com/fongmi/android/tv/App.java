@@ -12,9 +12,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.os.HandlerCompat;
 
-import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.ui.activity.CrashActivity;
 import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.hook.Hook;
 import com.github.catvod.Init;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
@@ -36,11 +36,11 @@ public class App extends Application {
     private static App instance;
     private Activity activity;
     private final Gson gson;
-    private boolean hook;
+    private Hook hook;
 
     public App() {
         instance = this;
-        executor = Executors.newFixedThreadPool(Constant.THREAD_POOL * 2);
+        executor = Executors.newFixedThreadPool(Constant.THREAD_POOL);
         handler = HandlerCompat.createAsync(Looper.getMainLooper());
         gson = new Gson();
     }
@@ -78,7 +78,7 @@ public class App extends Application {
         for (Runnable r : runnable) get().handler.removeCallbacks(r);
     }
 
-    public void setHook(boolean hook) {
+    public void setHook(Hook hook) {
         this.hook = hook;
     }
 
@@ -148,13 +148,11 @@ public class App extends Application {
 
     @Override
     public PackageManager getPackageManager() {
-        if (!hook) return getBaseContext().getPackageManager();
-        return LiveConfig.get().getHome().getCore();
+        return hook != null ? hook : getBaseContext().getPackageManager();
     }
 
     @Override
     public String getPackageName() {
-        if (!hook) return getBaseContext().getPackageName();
-        return LiveConfig.get().getHome().getCore().getPkg();
+        return hook != null ? hook.getPackageName() : getBaseContext().getPackageName();
     }
 }

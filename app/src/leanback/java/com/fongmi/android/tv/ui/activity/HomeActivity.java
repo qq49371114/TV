@@ -173,6 +173,11 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private Callback getCallback() {
         return new Callback() {
             @Override
+            public void success(String result) {
+                Notify.show(result);
+            }
+
+            @Override
             public void success() {
                 mBinding.progressLayout.showContent();
                 checkAction(getIntent());
