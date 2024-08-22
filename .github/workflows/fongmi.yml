@@ -18,7 +18,7 @@ jobs:
       - name: Set up JDK and Gradle
         uses: actions/setup-java@v2
         with:
-          java-version: '17'
+          java-version: '11'
           distribution: 'adopt'
 
       - name: Release Apk Sign
