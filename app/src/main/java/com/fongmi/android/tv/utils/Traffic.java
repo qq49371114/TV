@@ -13,8 +13,8 @@ public class Traffic {
     private static final DecimalFormat format = new DecimalFormat("#.0");
     private static final String UNIT_KB = " KB/s";
     private static final String UNIT_MB = " MB/s";
-    private static long lastTotalRxBytes = 0;
-    private static long lastTimeStamp = 0;
+    private static long lastTotalRxBytes;
+    private static long lastTimeStamp;
 
     public static void setSpeed(TextView view) {
         if (unsupported()) return;
@@ -27,8 +27,8 @@ public class Traffic {
     }
 
     private static String getSpeed() {
-        long nowTotalRxBytes = TrafficStats.getTotalRxBytes() / 1024;
         long nowTimeStamp = System.currentTimeMillis();
+        long nowTotalRxBytes = TrafficStats.getTotalRxBytes() / 1024;
         long speed = (nowTotalRxBytes - lastTotalRxBytes) * 1000 / Math.max(nowTimeStamp - lastTimeStamp, 1);
         lastTimeStamp = nowTimeStamp;
         lastTotalRxBytes = nowTotalRxBytes;

@@ -104,6 +104,11 @@ public class Spider extends com.github.catvod.crawler.Spider {
     }
 
     @Override
+    public String action(String action) {
+        return app.callAttr("action", obj, action).toString();
+    }
+
+    @Override
     public void destroy() {
         app.callAttr("destroy", obj);
     }

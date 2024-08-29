@@ -41,5 +41,8 @@ class Runner():
     def manualVideoCheck(self):
         return self.spider.manualVideoCheck()
 
+    def action(self, action):
+        return self.spider.action(action)
+
     def destroy(self):
-        return self.spider.destroy()
+        self.spider.destroy()
