@@ -44,6 +44,7 @@ import com.fongmi.android.tv.ui.dialog.ProxyDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.ui.dialog.TransmitActionDialog;
 import com.fongmi.android.tv.ui.dialog.TransmitDialog;
+import com.fongmi.android.tv.utils.CustomUtil;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
@@ -102,7 +103,7 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
         mBinding.versionText.setText(BuildConfig.VERSION_NAME);
         mBinding.backupText.setText((backup = ResUtil.getStringArray(R.array.select_backup))[Setting.getBackupMode()]);
-        mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
+        mBinding.aboutText.setText(CustomUtil.getTitle());
         mBinding.proxyText.setText(UrlUtil.scheme(Setting.getProxy()));
         mBinding.jxtokenText.setText(Setting.getJxtoken());
         mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
@@ -294,7 +295,7 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
     }
 
     private void onAbout(View view) {
-        mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
+        mBinding.aboutText.setText(CustomUtil.getTitle());
     }
 
     private void onVersion(View view) {

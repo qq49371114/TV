@@ -130,13 +130,22 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void showDialog(Context context) {
-        if (!Prefers.getBoolean("welcome_dialog") && !CustomUtil.getAppMsg().isEmpty()) {
+        int showCount = Prefers.getInt("welcome_dialog_count", 0);
+        if (showCount < 3 && !CustomUtil.getAppMsg().isEmpty()) {
             new MaterialAlertDialogBuilder(context)
                     .setTitle(CustomUtil.getTitle())
                     .setMessage(CustomUtil.getAppMsg())
-                    .setPositiveButton("我已了解", (dialog, which) -> {
+                    .setPositiveButton("请确认", (dialog, which) -> {
                         System.out.println("App - 欢迎弹窗");
-                        Prefers.put("welcome_dialog", true);
+                        // 增加弹出次数
+                        Prefers.put("welcome_dialog_count", showCount + 1);
+                        int lastCount = 3 - (showCount + 1);
+                        if (lastCount > 0){
+                            Notify.show("您已确认，该弹窗还会弹出:" + lastCount +"次");
+                        } else{
+                            Notify.show("您已再三确认，谢谢！");
+                        }
+
                     }).show();
         } else {
             System.out.println("App - 无需弹窗");
@@ -226,7 +235,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     public void homeContent() {
         mResult = Result.empty();
         String title = getHome().getName();
-        mBinding.title.setText(title.isEmpty() ? ResUtil.getString(R.string.app_name) : title);
+        mBinding.title.setText(title.isEmpty() ? CustomUtil.getPrefix() : title);
         if (getHome().getKey().isEmpty()) return;
         mFocus = getCurrentFocus();
         getHomeFragment().mBinding.progressLayout.showProgress();

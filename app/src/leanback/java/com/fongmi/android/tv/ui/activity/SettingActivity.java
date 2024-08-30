@@ -92,7 +92,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.proxyText.setText(UrlUtil.scheme(Setting.getProxy()));
         mBinding.backupText.setText((backup = ResUtil.getStringArray(R.array.select_backup))[Setting.getBackupMode()]);
         mBinding.jxtokenText.setText(Setting.getJxtoken());
-        mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
+        mBinding.aboutText.setText(CustomUtil.getTitle());
         mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
         mBinding.headerTv.setText(CustomUtil.getPrefix());
         mBinding.headerTvDes.setText(CustomUtil.getAppMsg());
@@ -312,7 +312,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
     }
 
     private void onAbout(View view) {
-        mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
+        mBinding.aboutText.setText(CustomUtil.getTitle());
     }
 
     private void setDoh(View view) {
