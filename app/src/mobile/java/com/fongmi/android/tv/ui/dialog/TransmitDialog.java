@@ -80,7 +80,7 @@ public class TransmitDialog extends BaseDialog implements DeviceAdapter.OnClickL
     public TransmitDialog jxTokenConfig() {
         type = "push_jxtoken";
         FormBody.Builder body = new FormBody.Builder();
-        if (Setting.getJxtoken() != null) body.add("jxToken", Setting.getJxtoken());
+        if (Setting.getJxtoken() != null) body.add("jx_token", Setting.getJxtoken());
         requestBody = body.build();
         return this;
     }

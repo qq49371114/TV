@@ -27,11 +27,11 @@ public class Setting {
     }
 
     public static String getJxtoken() {
-        return Prefers.getString("jxToken");
+        return Prefers.getString("jx_token");
     }
 
     public static void putJxtoken(String jxToken) {
-        Prefers.put("jxToken", jxToken);
+        Prefers.put("jx_token", jxToken);
     }
 
     public static String getKeep() {

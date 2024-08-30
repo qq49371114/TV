@@ -231,7 +231,7 @@ public class Action implements Process {
     }
 
     private void jxTokenConfig(Map<String, String> params) {
-        String jxToken = params.get("jxToken");
+        String jxToken = params.get("jx_token");
         if (TextUtils.isEmpty(jxToken)) return;
 
         // Display progress indicator

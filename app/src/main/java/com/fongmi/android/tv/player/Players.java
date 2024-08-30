@@ -853,7 +853,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
                 Thread thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        String jxToken = Prefers.getString("jxToken");
+                        String jxToken = Prefers.getString("jx_token");
                         final String resultUrl = Jx.getUrl(jxToken, initialUrl);
 
                         // 使用 Handler 将结果传回主线程
