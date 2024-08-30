@@ -75,6 +75,9 @@ public class Vod implements Parcelable {
     @SerializedName("vod_tag")
     private String vodTag;
 
+    @SerializedName("action")
+    private String action;
+
     @SerializedName("cate")
     private Cate cate;
 
@@ -169,6 +172,10 @@ public class Vod implements Parcelable {
         return TextUtils.isEmpty(vodTag) ? "" : vodTag;
     }
 
+    public String getAction() {
+        return TextUtils.isEmpty(action) ? "" : action;
+    }
+
     public Cate getCate() {
         return cate;
     }
@@ -231,6 +238,10 @@ public class Vod implements Parcelable {
 
     public boolean isFolder() {
         return "folder".equals(getVodTag()) || getCate() != null;
+    }
+
+    public boolean isAction() {
+        return !getAction().isEmpty();
     }
 
     public boolean isManga() {
@@ -305,6 +316,7 @@ public class Vod implements Parcelable {
         dest.writeString(this.vodPlayFrom);
         dest.writeString(this.vodPlayUrl);
         dest.writeString(this.vodTag);
+        dest.writeString(this.action);
         dest.writeInt(this.land);
         dest.writeInt(this.circle);
         dest.writeFloat(this.ratio);
@@ -328,6 +340,7 @@ public class Vod implements Parcelable {
         this.vodPlayFrom = in.readString();
         this.vodPlayUrl = in.readString();
         this.vodTag = in.readString();
+        this.action = in.readString();
         this.land = in.readInt();
         this.circle = in.readInt();
         this.ratio = in.readFloat();

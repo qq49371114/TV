@@ -68,7 +68,7 @@ public class Source {
 
     public void parse(List<Flag> flags) throws Exception {
         for (Flag flag : flags) {
-            ExecutorService executor = Executors.newFixedThreadPool(Constant.THREAD_POOL * 2);
+            ExecutorService executor = Executors.newFixedThreadPool(Constant.THREAD_POOL);
             List<Callable<List<Episode>>> items = new ArrayList<>();
             Iterator<Episode> iterator = flag.getEpisodes().iterator();
             while (iterator.hasNext()) addCallable(iterator, items);

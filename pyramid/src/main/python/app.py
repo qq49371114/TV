@@ -100,6 +100,12 @@ def destroy(ru):
     ru.destroy()
 
 
+def action(ru, action):
+    result = ru.action(action)
+    formatJo = json.dumps(result, ensure_ascii=False)
+    return formatJo
+
+
 def run():
     pass
 
