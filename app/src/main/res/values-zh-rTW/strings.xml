@@ -197,6 +197,7 @@
     <string name="vodHomeDes">返回線路主頁</string>
     <string name="vodHistoryDes">返回線路歷史</string>
     <string name="jxtokenText">解析token: 用于广告过滤, 公众号免费领取</string>
+    <string name="reportButtonText">时光机解析未发现广告 -> 点我上报!</string>
 
     <string-array name="select_backup">
         <item>自動</item>

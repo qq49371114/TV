@@ -37,5 +37,14 @@
             android:textColor="?android:attr/textColorPrimary"
             android:textSize="14sp" />
 
+        <Button
+            android:id="@+id/reportButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/reportButtonText"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:visibility="visible"/>
+
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
