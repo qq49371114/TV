@@ -16,6 +16,7 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.databinding.DialogInfoBinding;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.Util;
+import com.github.catvod.utils.Prefers;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.IOException;
@@ -115,6 +116,15 @@ public class InfoDialog {
     }
 
     private void reportIssue() {
+
+        if (Prefers.getString("jx_token").isEmpty()) {
+            binding.getRoot().post(() -> {
+                Notify.show("未配置 jxtoken, 无法上报问题!");
+            });
+            // 使用 Handler 延迟 1 秒关闭弹窗
+            new Handler(Looper.getMainLooper()).postDelayed(() -> dialog.dismiss(), 1000);
+            return;
+        }
 
         if (!url.isEmpty() && !url.contains("127.0.0.1") && url.toLowerCase().contains("m3u8")){
             // 假设你使用的是 OkHttp
