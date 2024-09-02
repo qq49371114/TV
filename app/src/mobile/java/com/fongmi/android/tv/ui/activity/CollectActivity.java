@@ -44,6 +44,7 @@ import com.fongmi.android.tv.utils.PauseExecutor;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.net.OkHttp;
+import com.github.catvod.utils.Prefers;
 import com.google.android.flexbox.FlexDirection;
 import com.google.android.flexbox.FlexboxLayoutManager;
 
@@ -204,7 +205,11 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
     }
 
     private void getHot() {
-        mBinding.word.setText(R.string.search_hot);
+        if (Prefers.getString("jx_token").isEmpty()){
+            mBinding.word.setText(R.string.search_hot);
+        } else {
+            mBinding.word.setText(R.string.search_hot_v2);
+        }
         mWordAdapter.addAll(Hot.get(Setting.getHot()));
     }
 

@@ -10,22 +10,25 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <ImageView
+            android:layout_width="263dp"
+            android:layout_height="91dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/qrcode"
+            android:src="@drawable/qrcode" />
+
         <TextView
             android:id="@+id/title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:layout_marginBottom="8dp"
             android:linksClickable="false"
             android:textColor="?android:attr/textColorPrimary"
             android:textSize="20sp"
             android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/header"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="?android:attr/textColorPrimary"
-            android:textSize="14sp" />
 
         <TextView
             android:id="@+id/url"
@@ -37,14 +40,24 @@
             android:textColor="?android:attr/textColorPrimary"
             android:textSize="14sp" />
 
+        <TextView
+            android:id="@+id/reportTips"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/reportTips"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="14sp"
+            android:textStyle="normal" />
+
         <Button
             android:id="@+id/reportButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/reportButtonText"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="16dp"
-            android:visibility="visible"/>
+            android:text="@string/reportButtonText"
+            android:visibility="visible" />
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

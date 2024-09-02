@@ -59,6 +59,7 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.net.OkHttp;
+import com.github.catvod.utils.Prefers;
 import com.google.common.net.HttpHeaders;
 import com.permissionx.guolindev.PermissionX;
 
@@ -165,7 +166,16 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     }
 
     private void getHot() {
-        OkHttp.newCall("https://api.web.360kan.com/v1/rank?cat=1", Headers.of(HttpHeaders.REFERER, "https://www.360kan.com/rank/general")).enqueue(new Callback() {
+        String hot_url;
+        String hot_refer;
+        if (Prefers.getString("jx_token").isEmpty()){
+            hot_url = "https://api.web.360kan.com/v1/rank?cat=1";
+            hot_refer = "https://www.360kan.com/rank/general";
+        } else {
+            hot_url = "https://www.lintech.work/api/client/get_hot_search";
+            hot_refer = "https://v.qq.com/";
+        }
+        OkHttp.newCall(hot_url, Headers.of(HttpHeaders.REFERER, hot_refer)).enqueue(new Callback() {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 mHots = Hot.get(response.body().string());

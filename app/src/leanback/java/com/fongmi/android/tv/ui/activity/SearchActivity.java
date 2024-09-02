@@ -32,6 +32,7 @@ import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.utils.KeyUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.net.OkHttp;
+import com.github.catvod.utils.Prefers;
 import com.github.catvod.utils.Trans;
 import com.google.common.net.HttpHeaders;
 
@@ -103,9 +104,18 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
     }
 
     private void getHot() {
-        mBinding.hint.setText(R.string.search_hot);
-        mWordAdapter.addAll(Hot.get(Setting.getHot()));
-        OkHttp.newCall("https://api.web.360kan.com/v1/rank?cat=1", Headers.of(HttpHeaders.REFERER, "https://www.360kan.com/rank/general")).enqueue(new Callback() {
+        String hot_url;
+        String hot_refer;
+        if (Prefers.getString("jx_token").isEmpty()){
+            hot_url = "https://api.web.360kan.com/v1/rank?cat=1";
+            hot_refer = "https://www.360kan.com/rank/general";
+            mBinding.hint.setText(R.string.search_hot);
+        } else {
+            hot_url = "https://www.lintech.work/api/client/get_hot_search";
+            hot_refer = "https://v.qq.com/";
+            mBinding.hint.setText(R.string.search_hot_v2);
+        }
+        OkHttp.newCall(hot_url, Headers.of(HttpHeaders.REFERER, hot_refer)).enqueue(new Callback() {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 List<String> items = Hot.get(response.body().string());

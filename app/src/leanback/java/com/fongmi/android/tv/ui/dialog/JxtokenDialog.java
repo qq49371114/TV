@@ -78,8 +78,8 @@ public class JxtokenDialog {
         callback.setJxtoken(binding.text.getText().toString().trim());
         Setting.putJxtoken(binding.text.getText().toString().trim());
         clearJxTokenFile();
-        System.out.println("设置保存jxToken成功: "+binding.text.getText().toString().trim());
-        Notify.show("设置保存jxToken成功");
+        System.out.println("保存 jxToken 成功: "+binding.text.getText().toString().trim());
+        Notify.show("保存 jxToken 成功");
         dialog.dismiss();
     }
 

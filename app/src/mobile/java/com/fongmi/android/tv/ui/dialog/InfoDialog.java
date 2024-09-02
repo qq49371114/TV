@@ -84,15 +84,15 @@ public class InfoDialog {
     private void initView() {
         binding.title.setText(title);
         binding.url.setText(fixUrl());
-        binding.header.setText(header);
+//        binding.header.setText(header);
         binding.url.setVisibility(TextUtils.isEmpty(url) ? View.GONE : View.VISIBLE);
-        binding.header.setVisibility(TextUtils.isEmpty(header) ? View.GONE : View.VISIBLE);
+//        binding.header.setVisibility(TextUtils.isEmpty(header) ? View.GONE : View.VISIBLE);
     }
 
     private void initEvent() {
         binding.url.setOnClickListener(this::onShare);
         binding.url.setOnLongClickListener(v -> onCopy(url));
-        binding.header.setOnLongClickListener(v -> onCopy(header));
+//        binding.header.setOnLongClickListener(v -> onCopy(header));
     }
 
     private String fixUrl() {

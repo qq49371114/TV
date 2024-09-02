@@ -135,6 +135,7 @@
     <string name="search_record">History</string>
     <string name="search_suggest">Suggest</string>
     <string name="search_hot">Hot</string>
+    <string name="search_hot_v2">New Version Hot</string>
 
     <!-- Dialog -->
     <string name="dialog_edit">Edit</string>
@@ -202,7 +203,9 @@
     <string name="vodHomeDes">Return to lines home</string>
     <string name="vodHistoryDes">Return to lines History</string>
     <string name="jxtokenText">解析token: 用于广告过滤, 公众号免费领取</string>
-    <string name="reportButtonText">时光机解析未发现广告 -> 点我上报!</string>
+    <string name="reportButtonText">点我上报</string>
+    <string name="reportTips">如果使用时光机解析后，仍然无法过滤广告,点击下面的按钮上报问题.</string>
+    <string name="qrcode">关注: 插兜的干货仓库</string>
 
     <string-array name="select_backup">
         <item>Auto</item>

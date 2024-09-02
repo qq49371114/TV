@@ -358,7 +358,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                     System.out.println("source: "+Prefers.getString("source"));
                     System.out.println("title: "+Prefers.getString("title"));
                     System.out.println("remove_ad: "+Prefers.getBoolean("remove_ad"));
-                    System.out.println("upgrade: "+Prefers.getString("upgrade"));
+//                    System.out.println("upgrade: "+Prefers.getString("upgrade"));
                     System.out.println("initCache: 保存缓存成功");
                 } else {
                     System.out.println("initCache: 保存缓存失败: " + data);
