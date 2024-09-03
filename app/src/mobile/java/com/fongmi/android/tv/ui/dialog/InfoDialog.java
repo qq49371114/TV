@@ -144,7 +144,7 @@ public class InfoDialog {
 
             // 构建请求
             Request request = new Request.Builder()
-                    .url("https://www.lintech.work/api/tvbox/reportBug")
+                    .url("https://www.lintech.work/api/client/reportBug")
                     .post(requestBody)
                     .build();
 
