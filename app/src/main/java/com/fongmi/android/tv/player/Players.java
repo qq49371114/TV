@@ -539,7 +539,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
 
     public void setMediaSource() {
         System.out.println("setMediaSource -0: "+url);
-        fetchUrl(url, new Callback() {
+        fetchUrl(url, headers, new Callback() {
             @Override
             public void onResult(String finalUrl) {
                 // 更新 finalUrl
@@ -550,7 +550,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
 
     public void setMediaSource(String url) {
         System.out.println("setMediaSource -00: "+ url);
-        fetchUrl(url, new Callback() {
+        fetchUrl(url, new HashMap<>(), new Callback() {
             @Override
             public void onResult(String finalUrl) {
                 // 更新 finalUrl
@@ -562,7 +562,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         String finalUrl = url;
         System.out.println("setMediaSource -1: "+finalUrl);
 //        finalUrl = jxURL(finalUrl);
-        fetchUrl(finalUrl, new Callback() {
+        fetchUrl(finalUrl, headers, new Callback() {
             @Override
             public void onResult(String finalUrl) {
                 // 更新 finalUrl
@@ -575,7 +575,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         String finalUrl = channel.getUrl();
         System.out.println("setMediaSource -2: "+finalUrl);
 //        finalUrl = jxURL(finalUrl);
-        fetchUrl(finalUrl, new Callback() {
+        fetchUrl(finalUrl, channel.getHeaders(), new Callback() {
             @Override
             public void onResult(String finalUrl) {
                 // 更新 finalUrl
@@ -587,7 +587,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     private void setMediaSource(Result result, int timeout) {
         String finalUrl = result.getRealUrl();
         System.out.println("setMediaSource -3: "+finalUrl);
-        fetchUrl(finalUrl, new Callback() {
+        fetchUrl(finalUrl, result.getHeaders(), new Callback() {
             @Override
             public void onResult(String finalUrl) {
                 // 更新 finalUrl
@@ -846,7 +846,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         void onResult(String result);
     }
 
-    public static void fetchUrl(String initialUrl, Callback callback) {
+    public static void fetchUrl(String initialUrl, Map<String, String> header, Callback callback) {
         System.out.println("解析开关: "+Prefers.getBoolean("remove_ad"));
         if (Prefers.getBoolean("remove_ad")) {
             if (initialUrl.contains(".m3u8") && !initialUrl.contains("www.lintech.work")) {
@@ -855,7 +855,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
                     @Override
                     public void run() {
                         String jxToken = Prefers.getString("jx_token");
-                        final String resultUrl = Jx.getUrl(jxToken, initialUrl);
+                        final String resultUrl = Jx.getUrl(jxToken, initialUrl, header);
 
                         // 使用 Handler 将结果传回主线程
                         new Handler(Looper.getMainLooper()).post(new Runnable() {
