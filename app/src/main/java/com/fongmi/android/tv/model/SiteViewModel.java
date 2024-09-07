@@ -108,6 +108,7 @@ public class SiteViewModel extends ViewModel {
     }
 
     public void categoryContent(String key, String tid, String page, boolean filter, HashMap<String, String> extend) {
+        System.out.println("::categoryContent::"+" -key- "+key+" -tid- "+tid+" -page- "+page+" -filter- "+filter+" -extend- "+extend);
         execute(result, () -> {
             Site site = VodConfig.get().getSite(key);
             if (site.getType() == 3) {
@@ -130,6 +131,7 @@ public class SiteViewModel extends ViewModel {
     }
 
     public void detailContent(String key, String id) {
+        System.out.println("::detailContent::"+" -key- "+key+" -id- "+id);
         execute(result, () -> {
             Site site = VodConfig.get().getSite(key);
             if (site.getType() == 3) {
@@ -224,6 +226,7 @@ public class SiteViewModel extends ViewModel {
     }
 
     public void playerContent(String key, String flag, String id) {
+        System.out.println("::playerContent::"+" -key- "+key+" -flag- "+flag+" -id- "+id);
         executePlayer(player, key, flag, id);
     }
 
@@ -241,6 +244,7 @@ public class SiteViewModel extends ViewModel {
     }
 
     public void searchContent(Site site, String keyword, boolean quick) throws Throwable {
+        System.out.println("::searchContent::"+" -site- "+site.getName()+" -keyword- "+keyword+" -quick- "+quick);
         if (site.getType() == 3) {
             String searchContent = site.spider().searchContent(Trans.t2s(keyword), quick);
             SpiderDebug.log(site.getName() + "," + searchContent);
@@ -256,6 +260,7 @@ public class SiteViewModel extends ViewModel {
     }
 
     public void searchContent(Site site, String keyword, String page) {
+        System.out.println("::searchContent::"+" -site- "+site+" -keyword- "+keyword+" -page- "+page);
         execute(result, () -> {
             if (site.getType() == 3) {
                 String searchContent = site.spider().searchContent(Trans.t2s(keyword), false, page);

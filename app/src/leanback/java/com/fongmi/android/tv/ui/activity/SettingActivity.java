@@ -47,6 +47,8 @@ import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Prefers;
+import com.github.catvod.utils.Shell;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.permissionx.guolindev.PermissionX;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -96,7 +98,18 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
         mBinding.headerTv.setText(CustomUtil.getPrefix());
         mBinding.headerTvDes.setText(CustomUtil.getAppMsg());
+        mBinding.reset.setOnClickListener(this::onReset);
         setCacheText();
+    }
+
+    private void onReset(View view) {
+        new MaterialAlertDialogBuilder(this).setTitle(R.string.dialog_reset_app).setMessage(R.string.dialog_reset_app_data).setNegativeButton(R.string.dialog_negative, null).setPositiveButton(R.string.dialog_positive, (dialog, which) -> reset()).show();
+    }
+
+    private void reset() {
+        new Thread(() -> {
+            Shell.exec("pm clear " + App.get().getPackageName());
+        }).start();
     }
 
     private String getSwitch(boolean value) {

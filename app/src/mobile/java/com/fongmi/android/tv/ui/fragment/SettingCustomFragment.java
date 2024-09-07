@@ -67,7 +67,7 @@ public class SettingCustomFragment extends BaseFragment {
 //        mBinding.removeAd.setOnClickListener(this::setRemoveAd);
         mBinding.language.setOnClickListener(this::setLanguage);
         mBinding.configCache.setOnClickListener(this::setConfigCache);
-        mBinding.reset.setOnClickListener(this::onReset);
+//        mBinding.reset.setOnClickListener(this::onReset);
     }
 
     private void setSize(View view) {

@@ -102,7 +102,7 @@ public class SettingCustomActivity extends BaseActivity implements MenuKeyCallba
         mBinding.parseWebview.setOnClickListener(this::setParseWebview);
         mBinding.configCache.setOnClickListener(this::setConfigCache);
         mBinding.cacheDir.setOnClickListener(this::setCacheDir);
-        mBinding.reset.setOnClickListener(this::onReset);
+//        mBinding.reset.setOnClickListener(this::onReset);
     }
 
     private void setQuality(View view) {
