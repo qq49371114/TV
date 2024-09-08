@@ -15,6 +15,7 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.databinding.DialogJxtokenBinding;
 import com.fongmi.android.tv.impl.JxtokenCallback;
 import com.fongmi.android.tv.ui.custom.CustomTextListener;
+import com.github.catvod.utils.Prefers;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.BufferedWriter;
@@ -78,9 +79,8 @@ public class JxtokenDialog {
         callback.setJxtoken(binding.text.getText().toString().trim());
         Setting.putJxtoken(binding.text.getText().toString().trim());
         clearJxTokenFile();
-        System.out.println("设置保存jxToken成功: "+binding.text.getText().toString().trim());
-        Notify.show("设置保存jxToken成功");
-        dialog.dismiss();
+        System.out.println("保存 jxToken 成功: "+binding.text.getText().toString().trim());
+        Notify.show("保存 jxToken 成功");
     }
 
     private void onNegative(DialogInterface dialog, int which) {
