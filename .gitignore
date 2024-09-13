@@ -9,3 +9,5 @@ lib-*.aar
 app/mobileJavaArm64_v8a/*
 app/leanbackJavaArmeabi_v7a/*
 /local.properties
+/local.properties
+.DS_Store
