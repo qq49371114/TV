@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up JDK and Gradle
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'adopt'
@@ -45,7 +45,7 @@ jobs:
           find . -name "*.apk" -exec mv {} ${{ github.workspace }}/apk/ \;
 
       - name: Upload App To Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: com.github.tvbox.fongmibox
           path: ${{ github.workspace }}/apk/*
