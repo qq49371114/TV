@@ -13,7 +13,7 @@ jobs:
         with:
           node-version: 16  # Explicitly set Node.js version to 16
 
-      - uses: actions/checkout@v2 
+      - uses: actions/checkout@v4
 
       - name: Set up JDK and Gradle
         uses: actions/setup-java@v2
