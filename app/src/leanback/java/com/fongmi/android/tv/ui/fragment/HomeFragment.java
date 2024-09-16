@@ -14,6 +14,7 @@ import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
@@ -44,7 +45,9 @@ import com.fongmi.android.tv.ui.presenter.HeaderPresenter;
 import com.fongmi.android.tv.ui.presenter.HistoryPresenter;
 import com.fongmi.android.tv.ui.presenter.ProgressPresenter;
 import com.fongmi.android.tv.ui.presenter.VodPresenter;
+import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.github.catvod.utils.Prefers;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.common.collect.Lists;
 
@@ -240,6 +243,12 @@ public class HomeFragment extends BaseFragment implements VodPresenter.OnClickLi
                 PushActivity.start(getActivity());
                 break;
             case R.string.home_setting:
+                if (!Prefers.getString("related_jxtoken").isEmpty()){
+                    String date = Prefers.getString("related_jxtoken").substring(Math.max(0, Prefers.getString("related_jxtoken").length() - 6));
+                    String msg = "您 "+Prefers.getString("related_user")+" 的关联 jxToken 有效期至: "+date;
+                    System.out.println(msg);
+                    App.post(() -> Notify.show(msg));
+                }
                 SettingActivity.start(getActivity());
                 break;
         }

@@ -88,10 +88,14 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
                         // 增加弹出次数
                         Prefers.put("welcome_dialog_count", showCount + 1);
                         int lastCount = 3 - (showCount + 1);
+                        String related_user = "您";
+                        if (!Prefers.getString("related_user").isEmpty()){
+                            related_user = Prefers.getString("related_user")+" ";
+                        }
                         if (lastCount > 0){
-                            Notify.show("您已确认，该弹窗还会弹出:" + lastCount +"次");
+                            Notify.show(related_user+"已确认，该弹窗还会弹出:" + lastCount +"次");
                         } else{
-                            Notify.show("您已再三确认，谢谢！");
+                            Notify.show(related_user+"已再三确认，谢谢！");
                         }
 
                     }).show();
@@ -150,11 +154,12 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
                     System.out.println("source: "+Prefers.getString("source"));
                     System.out.println("title: "+Prefers.getString("title"));
                     System.out.println("remove_ad: "+Prefers.getBoolean("remove_ad"));
-//                    System.out.println("upgrade: "+Prefers.getString("upgrade"));
                     System.out.println("initCache: 保存缓存成功");
                 } else {
                     System.out.println("initCache: 保存缓存失败: " + data);
                 }
+                System.out.println("APP - related_jxtoken: "+Prefers.getString("related_jxtoken"));
+                System.out.println("APP - related_user: "+Prefers.getString("related_user"));
                 WallConfig.get().init();
                 LiveConfig.get().init().load();
                 VodConfig.get().init().load(getCallback(), true, CustomUtil.getForceRefresh());
@@ -240,7 +245,15 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         if (mBinding.navigation.getSelectedItemId() == item.getItemId()) return false;
         if (item.getItemId() == R.id.vod) return mManager.change(0);
-        if (item.getItemId() == R.id.setting) return mManager.change(1);
+        if (item.getItemId() == R.id.setting) {
+            if (!Prefers.getString("related_jxtoken").isEmpty()){
+                String date = Prefers.getString("related_jxtoken").substring(Math.max(0, Prefers.getString("related_jxtoken").length() - 6));
+                String msg = "您 "+Prefers.getString("related_user")+" 的关联 jxToken 有效期至: "+date;
+                System.out.println(msg);
+                App.post(() -> Notify.show(msg));
+            }
+            return mManager.change(1);
+        }
         if (item.getItemId() == R.id.live) return openLive();
         return false;
     }

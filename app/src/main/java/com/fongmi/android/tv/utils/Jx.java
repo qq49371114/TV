@@ -12,7 +12,7 @@ public class Jx {
     public static String getUrl(String jxToken, String realPlayUrl, Map<String, String> header) {
         try {
             String jxUrl = Prefers.getString("jxUrl");
-            if (jxUrl.isEmpty()) return realPlayUrl;
+            if (jxUrl.isEmpty() || jxToken.isEmpty()) return realPlayUrl;
             // 对 URL 进行编码
             String enCodeUrl = URLEncoder.encode(realPlayUrl, "UTF-8");
             System.out.println("jxUrl: "+String.format(jxUrl, jxToken, enCodeUrl));

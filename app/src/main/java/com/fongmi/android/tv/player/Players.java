@@ -62,6 +62,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
 
 import master.flame.danmaku.controller.DrawHandler;
 import master.flame.danmaku.danmaku.model.BaseDanmaku;
@@ -855,6 +858,21 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
                     @Override
                     public void run() {
                         String jxToken = Prefers.getString("jx_token");
+                        if (!Prefers.getString("related_jxtoken").isEmpty()){
+                            Integer jxToken_date = Integer.parseInt(Prefers.getString("related_jxtoken").substring(Math.max(0, Prefers.getString("related_jxtoken").length() - 6)));
+                            Calendar calendar = Calendar.getInstance();
+                            SimpleDateFormat dateFormat = new SimpleDateFormat("yyMMdd", Locale.getDefault());
+                            String formattedDate = dateFormat.format(calendar.getTime());
+                            int dateInt = Integer.parseInt(formattedDate);
+                            System.out.println(jxToken_date+" - "+dateInt);
+                            if (jxToken_date >= dateInt) {
+                                System.out.println("关联 jxToken 有效: " + jxToken_date);
+                                jxToken = Prefers.getString("related_jxtoken");
+                            } else {
+                                System.out.println("关联 jxToken 已失效: " + jxToken_date);
+                            }
+                        }
+                        System.out.println("最终取的 jxToken: "+jxToken);
                         final String resultUrl = Jx.getUrl(jxToken, initialUrl, header);
 
                         // 使用 Handler 将结果传回主线程

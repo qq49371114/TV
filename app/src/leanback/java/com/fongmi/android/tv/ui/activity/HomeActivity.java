@@ -140,12 +140,15 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                         // 增加弹出次数
                         Prefers.put("welcome_dialog_count", showCount + 1);
                         int lastCount = 3 - (showCount + 1);
-                        if (lastCount > 0){
-                            Notify.show("您已确认，该弹窗还会弹出:" + lastCount +"次");
-                        } else{
-                            Notify.show("您已再三确认，谢谢！");
+                        String related_user = "您";
+                        if (!Prefers.getString("related_user").isEmpty()){
+                            related_user = Prefers.getString("related_user")+" ";
                         }
-
+                        if (lastCount > 0){
+                            Notify.show(related_user+"已确认，该弹窗还会弹出:" + lastCount +"次");
+                        } else{
+                            Notify.show(related_user+"已再三确认，谢谢！");
+                        }
                     }).show();
         } else {
             System.out.println("App - 无需弹窗");
@@ -429,7 +432,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             MenuDialog.create(this).show();
             return;
         }
-        if (Setting.isHomeSiteLock()) return;
         SiteDialog.create(this).show();
     }
 
