@@ -16,6 +16,7 @@ import android.view.animation.AnimationUtils;
 
 import androidx.annotation.AnimRes;
 import androidx.annotation.ArrayRes;
+import androidx.annotation.ColorRes;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.StringRes;
 import androidx.core.content.ContextCompat;
@@ -110,6 +111,10 @@ public class ResUtil {
 
     public static Drawable getDrawable(@DrawableRes int resId) {
         return ContextCompat.getDrawable(App.get(), resId);
+    }
+
+    public static int getColor(@ColorRes int resId) {
+        return ContextCompat.getColor(App.get(), resId);
     }
 
     public static Animation getAnim(@AnimRes int resId) {

@@ -68,13 +68,19 @@ public class Util {
 
     public static CharSequence getClipText() {
         ClipboardManager manager = (ClipboardManager) App.get().getSystemService(Context.CLIPBOARD_SERVICE);
-        return manager.getText();
+        ClipData clipData = manager == null ? null : manager.getPrimaryClip();
+        if (clipData == null || clipData.getItemCount() == 0) return "";
+        return clipData.getItemAt(0).getText();
     }
 
     public static void copy(String text) {
-        ClipboardManager manager = (ClipboardManager) App.get().getSystemService(Context.CLIPBOARD_SERVICE);
-        manager.setPrimaryClip(ClipData.newPlainText("", text));
-        Notify.show(R.string.copied);
+        try {
+            ClipboardManager manager = (ClipboardManager) App.get().getSystemService(Context.CLIPBOARD_SERVICE);
+            manager.setPrimaryClip(ClipData.newPlainText("", text));
+            Notify.show(R.string.copied);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static int getDigit(String text) {

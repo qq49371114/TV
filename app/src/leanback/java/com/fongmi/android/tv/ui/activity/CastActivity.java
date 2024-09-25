@@ -9,7 +9,6 @@ import android.os.IBinder;
 import android.view.KeyEvent;
 import android.view.View;
 
-import androidx.annotation.Dimension;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.media3.common.C;
@@ -34,11 +33,11 @@ import com.fongmi.android.tv.event.ActionEvent;
 import com.fongmi.android.tv.event.ErrorEvent;
 import com.fongmi.android.tv.event.PlayerEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
-import com.fongmi.android.tv.impl.SubtitleCallback;
 import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownCast;
+import com.fongmi.android.tv.ui.dialog.SubtitleDialog;
 import com.fongmi.android.tv.ui.dialog.TrackDialog;
 import com.fongmi.android.tv.utils.Clock;
 import com.fongmi.android.tv.utils.KeyUtil;
@@ -49,7 +48,7 @@ import org.fourthline.cling.support.contentdirectory.DIDLParser;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-public class CastActivity extends BaseActivity implements CustomKeyDownCast.Listener, TrackDialog.Listener, RenderControl, ServiceConnection, Clock.Callback, SubtitleCallback {
+public class CastActivity extends BaseActivity implements CustomKeyDownCast.Listener, TrackDialog.Listener, RenderControl, ServiceConnection, Clock.Callback {
 
     private ActivityCastBinding mBinding;
     private DLNARendererService mService;
@@ -86,7 +85,6 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
         mParser = new DIDLParser();
         mR1 = this::hideControl;
         mR2 = this::setTraffic;
-        setSubtitleView();
         setVideoView();
         checkAction();
     }
@@ -95,10 +93,10 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     @SuppressLint("ClickableViewAccessibility")
     protected void initEvent() {
         mBinding.control.seek.setListener(mPlayers);
-        mBinding.control.text.setUpListener(this::onTextAdd);
-        mBinding.control.text.setDownListener(this::onTextSub);
         mBinding.control.speed.setUpListener(this::onSpeedAdd);
         mBinding.control.speed.setDownListener(this::onSpeedSub);
+        mBinding.control.text.setUpListener(this::onSubtitleClick);
+        mBinding.control.text.setDownListener(this::onSubtitleClick);
         mBinding.control.text.setOnClickListener(this::onTrack);
         mBinding.control.audio.setOnClickListener(this::onTrack);
         mBinding.control.video.setOnClickListener(this::onTrack);
@@ -136,22 +134,12 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     private void setVideoView() {
         mPlayers.init(mBinding.exo);
         setScale(scale = Setting.getScale());
+        ExoUtil.setSubtitleView(mBinding.exo);
         findViewById(R.id.timeBar).setNextFocusUpId(R.id.reset);
         mBinding.control.speed.setText(mPlayers.getSpeedText());
         mBinding.control.decode.setText(mPlayers.getDecodeText());
         mBinding.control.speed.setEnabled(mPlayers.canAdjustSpeed());
         mBinding.control.reset.setText(ResUtil.getStringArray(R.array.select_reset)[0]);
-    }
-
-    private void setSubtitleView() {
-        setSubtitle(Setting.getSubtitle());
-        mBinding.exo.getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
-        mBinding.exo.getSubtitleView().setApplyEmbeddedStyles(!Setting.isCaption());
-    }
-
-    @Override
-    public void setSubtitle(int size) {
-        mBinding.exo.getSubtitleView().setFixedTextSize(Dimension.SP, size);
     }
 
     private void setDecode() {
@@ -203,20 +191,6 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     private void onTrack(View view) {
         TrackDialog.create().player(mPlayers).type(Integer.parseInt(view.getTag().toString())).show(this);
         hideControl();
-    }
-
-    private void onTextAdd() {
-        int size = Math.min(Setting.getSubtitle() + 1, 48);
-        mBinding.control.text.setText(String.valueOf(size));
-        Setting.putSubtitle(size);
-        setSubtitle(size);
-    }
-
-    private void onTextSub() {
-        int size = Math.max(Setting.getSubtitle() - 1, 14);
-        mBinding.control.text.setText(String.valueOf(size));
-        Setting.putSubtitle(size);
-        setSubtitle(size);
     }
 
     private void onToggle() {
@@ -357,13 +331,12 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
         onStopped();
     }
 
-    private void onPaused(boolean visible) {
+    private void onPaused() {
         mBinding.widget.exoDuration.setText(mPlayers.getDurationTime());
         mBinding.widget.exoPosition.setText(mPlayers.getPositionTime(0));
         setState(RenderState.PAUSED);
-        if (visible) showInfo();
-        else hideInfo();
         mPlayers.pause();
+        showInfo();
     }
 
     private void onPlay() {
@@ -390,6 +363,12 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
 
     @Override
     public void onTrackClick(Track item) {
+    }
+
+    @Override
+    public void onSubtitleClick() {
+        App.post(this::hideControl, 200);
+        App.post(() -> SubtitleDialog.create().view(mBinding.exo.getSubtitleView()).full(true).show(this), 200);
     }
 
     @Override
@@ -424,7 +403,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
 
     @Override
     public void pause() {
-        App.post(() -> onPaused(true));
+        App.post(this::onPaused);
     }
 
     @Override
@@ -489,7 +468,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
 
     @Override
     public void onKeyCenter() {
-        if (mPlayers.isPlaying()) onPaused(true);
+        if (mPlayers.isPlaying()) onPaused();
         else onPlay();
         hideControl();
     }
@@ -514,7 +493,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     @Override
     protected void onPause() {
         super.onPause();
-        onPaused(false);
+        mPlayers.pause();
         mClock.stop();
     }
 

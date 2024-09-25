@@ -80,6 +80,6 @@ public class JianPian implements Source.Extractor, Clock.Callback {
     @Override
     public void onTimeChanged() {
         long seconds = System.currentTimeMillis() / 1000 % 60;
-        if (seconds % 30 == 0) App.execute(() -> check(80));
+        if (seconds % 30 == 0) App.execute(() -> check(60));
     }
 }

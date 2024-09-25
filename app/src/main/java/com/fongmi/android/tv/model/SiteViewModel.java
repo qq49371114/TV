@@ -45,6 +45,7 @@ public class SiteViewModel extends ViewModel {
     public MutableLiveData<Result> result;
     public MutableLiveData<Result> player;
     public MutableLiveData<Result> search;
+    public MutableLiveData<Result> action;
     private ExecutorService executor;
 
     public SiteViewModel() {
@@ -52,6 +53,7 @@ public class SiteViewModel extends ViewModel {
         this.result = new MutableLiveData<>();
         this.player = new MutableLiveData<>();
         this.search = new MutableLiveData<>();
+        this.action = new MutableLiveData<>();
     }
 
     public void setEpisode(Episode value) {
@@ -186,6 +188,15 @@ public class SiteViewModel extends ViewModel {
                 SpiderDebug.log(result.toString());
                 return result;
             }
+        });
+    }
+
+    public void action(String key, String action) {
+        execute(this.action, () -> {
+            Site site = VodConfig.get().getSite(key);
+            if (site.getType() == 3) return Result.fromJson(site.recent().spider().action(action));
+            if (site.getType() == 4) return Result.fromJson(OkHttp.string(action));
+            return Result.empty();
         });
     }
 

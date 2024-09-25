@@ -140,6 +140,7 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     public void setSub(Sub sub) {
+        setPosition(getPosition());
         this.sub = sub;
         setMediaItem();
     }
@@ -373,7 +374,7 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     private List<Sub> checkSub(List<Sub> subs) {
-        if (sub == null) return subs;
+        if (sub == null || subs.contains(sub)) return subs;
         subs.add(0, sub);
         return subs;
     }

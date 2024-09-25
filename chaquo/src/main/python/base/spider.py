@@ -57,6 +57,9 @@ class Spider(metaclass=ABCMeta):
     def manualVideoCheck(self):
         pass
 
+    def action(self, action):
+        pass
+
     def destroy(self):
         pass
 

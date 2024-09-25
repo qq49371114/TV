@@ -13,8 +13,8 @@ android {
         minSdk 21
         //noinspection ExpiredTargetSdkVersion
         targetSdk 28
-        versionCode 251
-        versionName "2.5.1"
+        versionCode 262
+        versionName "2.6.2"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
@@ -111,6 +111,7 @@ dependencies {
     implementation 'com.hierynomus:smbj:0.13.0'
     implementation 'io.antmedia:rtmp-client:3.2.0'
     implementation 'javax.servlet:javax.servlet-api:3.1.0'
+    implementation 'net.java.dev.jna:jna:5.2.0'
     implementation 'org.chromium.net:cronet-embedded:76.3809.111'
     implementation 'org.eclipse.jetty:jetty-client:8.1.22.v20160922'
     implementation('org.eclipse.jetty:jetty-server:8.1.22.v20160922') { exclude group: 'org.eclipse.jetty.orbit', module: 'javax.servlet' }
@@ -129,6 +130,7 @@ dependencies {
     implementation(ext: 'aar', name: 'thunder-release', group: 'fongmi', version: 'release')
     implementation(ext: 'aar', name: 'tvbus-release', group: 'fongmi', version: 'release')
     implementation(ext: 'aar', name: 'youtube-release', group: 'fongmi', version: 'release')
+    implementation(ext: 'aar', name: 'zlive-release', group: 'fongmi', version: 'release')
     implementation(ext: 'aar', name: 'lib-common-release', group: 'fongmi', version: 'release')
     implementation(ext: 'aar', name: 'lib-container-release', group: 'fongmi', version: 'release')
     implementation(ext: 'aar', name: 'lib-database-release', group: 'fongmi', version: 'release')
@@ -146,7 +148,7 @@ dependencies {
     implementation(ext: 'aar', name: 'lib-extractor-release', group: 'fongmi', version: 'release')
     implementation(ext: 'aar', name: 'lib-ui-release', group: 'fongmi', version: 'release')
     leanbackImplementation 'androidx.leanback:leanback:1.2.0-alpha04'
-    leanbackImplementation 'me.jessyan:autosize:1.2.1'
+    leanbackImplementation 'com.github.JessYanCoding:AndroidAutoSize:1.2.1'
     mobileImplementation 'androidx.biometric:biometric:1.1.0'
     mobileImplementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     mobileImplementation 'com.google.android.flexbox:flexbox:3.0.0'

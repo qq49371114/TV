@@ -27,6 +27,7 @@ import com.fongmi.android.tv.ui.activity.VideoActivity;
 import com.fongmi.android.tv.ui.adapter.VodAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.custom.CustomScroller;
+import com.fongmi.android.tv.utils.Notify;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -131,6 +132,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     private void setViewModel() {
         mViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
         mViewModel.result.observe(getViewLifecycleOwner(), this::setAdapter);
+        mViewModel.action.observe(getViewLifecycleOwner(), result -> Notify.show(result.getMsg()));
     }
 
     private void getHome() {
@@ -221,7 +223,9 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
 
     @Override
     public void onItemClick(Vod item) {
-        if (item.isFolder()) {
+        if (item.isAction()) {
+            mViewModel.action(getKey(), item.getAction());
+        } else if (item.isFolder()) {
             mPages.add(Page.get(item, findPosition()));
             getVideo(item.getVodId(), "1");
         } else {

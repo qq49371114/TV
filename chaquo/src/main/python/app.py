@@ -96,6 +96,12 @@ def localProxy(ru, param):
     return result
 
 
+def action(ru, action):
+    result = ru.action(action)
+    formatJo = json.dumps(result, ensure_ascii=False)
+    return formatJo
+
+
 def destroy(ru):
     ru.destroy()
 

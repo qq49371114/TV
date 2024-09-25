@@ -99,6 +99,7 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         setRecyclerView();
         setViewModel();
         showProgress();
+        setLogo();
         initHot();
         getHot();
     }

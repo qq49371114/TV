@@ -37,6 +37,7 @@ import com.fongmi.android.tv.ui.custom.CustomScroller;
 import com.fongmi.android.tv.ui.custom.CustomSelector;
 import com.fongmi.android.tv.ui.presenter.FilterPresenter;
 import com.fongmi.android.tv.ui.presenter.VodPresenter;
+import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.github.catvod.utils.Prefers;
 import com.google.common.collect.Lists;
@@ -138,6 +139,7 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
 
     private void setViewModel() {
         mViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
+        mViewModel.action.observe(getViewLifecycleOwner(), result -> Notify.show(result.getMsg()));
         mViewModel.result.observe(getViewLifecycleOwner(), result -> {
             boolean first = mScroller.first();
             int size = result.getList().size();
@@ -277,7 +279,9 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
 
     @Override
     public void onItemClick(Vod item) {
-        if (item.isFolder()) {
+        if (item.isAction()) {
+            mViewModel.action(getKey(), item.getAction());
+        } else if (item.isFolder()) {
             mPages.add(Page.get(item, mBinding.recycler.getSelectedPosition()));
             mBinding.recycler.setMoveTop(false);
             getVideo(item.getVodId(), "1");

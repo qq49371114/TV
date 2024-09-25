@@ -129,14 +129,6 @@ public class Setting {
         Prefers.put("scale_live", scale);
     }
 
-    public static int getSubtitle() {
-        return Math.min(Math.max(Prefers.getInt("subtitle", 16), 14), 48);
-    }
-
-    public static void putSubtitle(int subtitle) {
-        Prefers.put("subtitle", subtitle);
-    }
-
     public static int getBuffer() {
         return Math.min(Math.max(Prefers.getInt("buffer"), 1), 10);
     }
@@ -263,6 +255,22 @@ public class Setting {
 
     public static void putSpeed(float speed) {
         Prefers.put("speed", speed);
+    }
+
+    public static float getSubtitleTextSize() {
+        return Prefers.getFloat("subtitle_text_size");
+    }
+
+    public static void putSubtitleTextSize(float value) {
+        Prefers.put("subtitle_text_size", value);
+    }
+
+    public static float getSubtitleBottomPadding() {
+        return Prefers.getFloat("subtitle_bottom_padding");
+    }
+
+    public static void putSubtitleBottomPadding(float value) {
+        Prefers.put("subtitle_bottom_padding", value);
     }
 
     public static float getThumbnail() {

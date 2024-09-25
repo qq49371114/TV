@@ -110,6 +110,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         setViewModel();
         setAdapter();
         initConfig();
+        setLogo();
     }
 
     @Override
