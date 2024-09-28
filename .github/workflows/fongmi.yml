@@ -44,7 +44,7 @@ jobs:
           find . -name "*.apk" -exec mv {} ${{ github.workspace }}/apk/ \;
 
       - name: Upload App To Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: com.github.tvbox.gongjin
           path: ${{ github.workspace }}/apk/*
