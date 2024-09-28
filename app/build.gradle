@@ -1,3 +1,4 @@
+
 plugins {
     id 'com.android.application'
 }
@@ -77,9 +78,10 @@ android {
         }
     }
 
-    android.applicationVariants.all { variant ->
+        
+                android.applicationVariants.all { variant ->
         if (variant.buildType.name == 'release' && variant.productFlavors[0].name == 'mobile') {
-            variant.mergeAssets.doLast {
+            variant.mergeAssetsProvider.get().doLast {
                 delete(fileTree(dir: variant.mergeAssets.outputDir, includes: ['x5.tbs.apk']))
             }
         }
@@ -156,4 +158,5 @@ dependencies {
     mobileImplementation('com.journeyapps:zxing-android-embedded:4.3.0') { transitive = false }
     annotationProcessor 'androidx.room:room-compiler:2.6.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
+    implementation 'com.alibaba:fastjson:1.2.75'
 }
