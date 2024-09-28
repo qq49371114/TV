@@ -35,6 +35,7 @@
     <string name="play_prev">上集</string>
     <string name="play_episodes">選集</string>
     <string name="play_loop">循環</string>
+    <string name="report_bug">上报</string>
     <string name="play_timer">定時</string>
     <string name="play_time">時間</string>
     <string name="play_netspeed">網速</string>

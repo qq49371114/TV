@@ -72,6 +72,7 @@ import com.fongmi.android.tv.ui.dialog.DescDialog;
 import com.fongmi.android.tv.ui.dialog.EpisodeDialog;
 import com.fongmi.android.tv.ui.dialog.FileChooserDialog;
 import com.fongmi.android.tv.ui.dialog.TrackDialog;
+import com.fongmi.android.tv.ui.dialog.InfoDialog;
 import com.fongmi.android.tv.ui.presenter.ArrayPresenter;
 import com.fongmi.android.tv.ui.presenter.EpisodePresenter;
 import com.fongmi.android.tv.ui.presenter.FlagPresenter;
@@ -118,7 +119,7 @@ import okhttp3.Call;
 import okhttp3.Response;
 import tv.danmaku.ijk.media.player.ui.IjkVideoView;
 
-public class VideoActivity extends BaseActivity implements CustomKeyDownVod.Listener, TrackDialog.Listener, TrackDialog.ChooserListener, ArrayPresenter.OnClickListener, Clock.Callback, SubtitleCallback {
+public class VideoActivity extends BaseActivity implements CustomKeyDownVod.Listener, TrackDialog.Listener, TrackDialog.ChooserListener, ArrayPresenter.OnClickListener, Clock.Callback, SubtitleCallback, InfoDialog.Listener {
 
     private ActivityVideoBinding mBinding;
     private ViewGroup.LayoutParams mFrameParams;
@@ -157,6 +158,14 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private View mFocus1;
     private View mFocus2;
     private boolean hasKeyEvent;
+
+    @Override
+    public void onShare(CharSequence title) {
+    }
+
+    private void onReport() {
+        InfoDialog.create(this).title(mBinding.widget.title.getText()).headers(mPlayers.getHeaders()).url(mPlayers.getUrl()).show();
+    }
 
     public static void push(FragmentActivity activity, String text) {
         if (FileChooser.isValid(activity, Uri.parse(text))) file(activity, FileChooser.getPathFromUri(activity, Uri.parse(text)));
@@ -367,6 +376,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.control.opening.setUpListener(this::onOpeningAdd);
         mBinding.control.opening.setDownListener(this::onOpeningSub);
         mBinding.control.loop.setOnClickListener(view -> onLoop());
+        mBinding.control.report.setOnClickListener(view -> onReport());
         mBinding.control.danmu.setOnClickListener(view -> onDanmu());
         mBinding.control.danmu.setUpListener(this::onDanmuAdd);
         mBinding.control.danmu.setDownListener(this::onDanmuSub);
