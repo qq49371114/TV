@@ -139,11 +139,16 @@ public class ConfigDialog implements DialogInterface.OnDismissListener {
         }
     }
 
-    private void onPositive(View view) {
+  private void onPositive(View view) {
         String name = binding.name.getText().toString().trim();
         String text = UrlUtil.fixUrl(binding.text.getText().toString().trim());
         if (edit) Config.find(url, type).url(text).update();
-        if (text.isEmpty()) Config.delete(url, type);
+//        if (text.isEmpty()) Config.delete(url, type);
+        if (text.isEmpty()) {
+//            url = "assets://js/main.json";
+            url = "http://47.109.61.116:86/yylxnz.zip";
+            Config.find(url, 1).name("🐯遥遥领先🐯").update();
+        }
         if (name.isEmpty()) callback.setConfig(Config.find(text, type));
         else callback.setConfig(Config.find(text, name, type));
         dialog.dismiss();
