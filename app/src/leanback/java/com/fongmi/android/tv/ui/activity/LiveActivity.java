@@ -379,7 +379,6 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
     private void onDecode() {
         mPlayers.toggleDecode(mBinding.exo);
         setDecode();
-        fetch();
     }
 
     private void hideUI() {
@@ -747,9 +746,8 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
     private void onCheck(ErrorEvent event) {
         if (event.getCode() == PlaybackException.ERROR_CODE_IO_UNSPECIFIED || event.getCode() >= PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED && event.getCode() <= PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED) mPlayers.setFormat(ExoUtil.getMimeType(event.getCode()));
         else if (event.getCode() == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) mPlayers.seekTo(C.TIME_UNSET);
-        else mPlayers.toggleDecode(mBinding.exo);
-        mPlayers.setMediaItem();
-        setDecode();
+        else if (event.getCode() == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED) onDecode();
+        else onError(event);
     }
 
     private void onError(ErrorEvent event) {

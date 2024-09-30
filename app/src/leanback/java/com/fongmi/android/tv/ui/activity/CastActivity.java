@@ -185,7 +185,6 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     private void onDecode() {
         mPlayers.toggleDecode(mBinding.exo);
         setDecode();
-        onReset();
     }
 
     private void onTrack(View view) {
@@ -268,7 +267,8 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onRefreshEvent(RefreshEvent event) {
-        if (event.getType() == RefreshEvent.Type.SUBTITLE) mPlayers.setSub(Sub.from(event.getPath()));
+        if (event.getType() == RefreshEvent.Type.PLAYER) onReset();
+        else if (event.getType() == RefreshEvent.Type.SUBTITLE) mPlayers.setSub(Sub.from(event.getPath()));
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -321,9 +321,8 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     private void onCheck(ErrorEvent event) {
         if (event.getCode() == PlaybackException.ERROR_CODE_IO_UNSPECIFIED || event.getCode() >= PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED && event.getCode() <= PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED) mPlayers.setFormat(ExoUtil.getMimeType(event.getCode()));
         else if (event.getCode() == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) mPlayers.seekTo(C.TIME_UNSET);
-        else mPlayers.toggleDecode(mBinding.exo);
-        mPlayers.setMediaItem();
-        setDecode();
+        else if (event.getCode() == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED) onDecode();
+        else onError(event);
     }
 
     private void onError(ErrorEvent event) {
