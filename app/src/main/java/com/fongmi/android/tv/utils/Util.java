@@ -1,7 +1,6 @@
 package com.fongmi.android.tv.utils;
 
 import android.app.Activity;
-import android.app.UiModeManager;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
@@ -9,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.content.res.Configuration;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.IBinder;
@@ -22,6 +20,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.R;
 import com.github.catvod.Init;
 
 import java.text.SimpleDateFormat;
@@ -68,13 +67,19 @@ public class Util {
 
     public static CharSequence getClipText() {
         ClipboardManager manager = (ClipboardManager) App.get().getSystemService(Context.CLIPBOARD_SERVICE);
-        if (manager.getPrimaryClip() == null || manager.getPrimaryClip().getItemCount() == 0) return "";
-        return manager.getPrimaryClip().getItemAt(0).getText();
+        ClipData clipData = manager == null ? null : manager.getPrimaryClip();
+        if (clipData == null || clipData.getItemCount() == 0) return "";
+        return clipData.getItemAt(0).getText();
     }
 
     public static void copy(String text) {
-        ClipboardManager manager = (ClipboardManager) App.get().getSystemService(Context.CLIPBOARD_SERVICE);
-        manager.setPrimaryClip(ClipData.newPlainText("", text));
+        try {
+            ClipboardManager manager = (ClipboardManager) App.get().getSystemService(Context.CLIPBOARD_SERVICE);
+            manager.setPrimaryClip(ClipData.newPlainText("", text));
+            Notify.show(R.string.copied);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static int getDigit(String text) {
