@@ -29,15 +29,8 @@ android {
         mobile {
             dimension "mode"
         }
-        java {
-            dimension "api"
-        }
         python {
             dimension "api"
-        }
-        x86 {
-            dimension "abi"
-            ndk { abiFilters "x86" }
         }
         arm64_v8a {
             dimension "abi"
@@ -107,6 +100,7 @@ dependencies {
     implementation project(':jianpian')
     implementation project(':forcetech')
     implementation project(':ijkplayer')
+    
     implementation 'androidx.media3:media3-datasource-okhttp:' + media3Version
     implementation 'androidx.media3:media3-datasource-rtmp:' + media3Version
     implementation 'androidx.media3:media3-exoplayer:' + media3Version
