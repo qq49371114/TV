@@ -18,9 +18,9 @@ import android.view.WindowManager;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.annotation.Dimension;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.BaseGridView;
@@ -28,10 +28,8 @@ import androidx.leanback.widget.ItemBridgeAdapter;
 import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.C;
-import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.ui.PlayerView;
-import androidx.media3.ui.SubtitleView;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
@@ -60,8 +58,8 @@ import com.fongmi.android.tv.event.ErrorEvent;
 import com.fongmi.android.tv.event.PlayerEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Callback;
+import com.fongmi.android.tv.impl.SubtitleCallback;
 import com.fongmi.android.tv.model.SiteViewModel;
-import com.fongmi.android.tv.player.IjkUtil;
 import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.player.Source;
@@ -73,8 +71,6 @@ import com.fongmi.android.tv.ui.custom.CustomMovement;
 import com.fongmi.android.tv.ui.dialog.DescDialog;
 import com.fongmi.android.tv.ui.dialog.EpisodeDialog;
 import com.fongmi.android.tv.ui.dialog.FileChooserDialog;
-import com.fongmi.android.tv.ui.dialog.PlayerDialog;
-import com.fongmi.android.tv.ui.dialog.SubtitleDialog;
 import com.fongmi.android.tv.ui.dialog.TrackDialog;
 import com.fongmi.android.tv.ui.dialog.InfoDialog;
 import com.fongmi.android.tv.ui.presenter.ArrayPresenter;
@@ -96,7 +92,6 @@ import com.fongmi.android.tv.utils.CustomUtil;
 import com.github.bassaer.library.MDColor;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Trans;
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.permissionx.guolindev.PermissionX;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -124,7 +119,7 @@ import okhttp3.Call;
 import okhttp3.Response;
 import tv.danmaku.ijk.media.player.ui.IjkVideoView;
 
-public class VideoActivity extends BaseActivity implements CustomKeyDownVod.Listener, TrackDialog.Listener, TrackDialog.ChooserListener, PlayerDialog.Listener, ArrayPresenter.OnClickListener, Clock.Callback {
+public class VideoActivity extends BaseActivity implements CustomKeyDownVod.Listener, TrackDialog.Listener, TrackDialog.ChooserListener, ArrayPresenter.OnClickListener, Clock.Callback, SubtitleCallback, InfoDialog.Listener {
 
     private ActivityVideoBinding mBinding;
     private ViewGroup.LayoutParams mFrameParams;
@@ -352,6 +347,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         setBackground(false);
         setRecyclerView();
         setEpisodeView();
+        setSubtitleView();
         setVideoView();
         setDisplayView();
         setDanmuView();
@@ -371,14 +367,14 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.control.text.setOnClickListener(this::onTrack);
         mBinding.control.audio.setOnClickListener(this::onTrack);
         mBinding.control.video.setOnClickListener(this::onTrack);
+        mBinding.control.text.setUpListener(this::onTextAdd);
+        mBinding.control.text.setDownListener(this::onTextSub);
         mBinding.control.speed.setUpListener(this::onSpeedAdd);
         mBinding.control.speed.setDownListener(this::onSpeedSub);
         mBinding.control.ending.setUpListener(this::onEndingAdd);
         mBinding.control.ending.setDownListener(this::onEndingSub);
         mBinding.control.opening.setUpListener(this::onOpeningAdd);
         mBinding.control.opening.setDownListener(this::onOpeningSub);
-        mBinding.control.text.setUpListener(this::onSubtitleClick);
-        mBinding.control.text.setDownListener(this::onSubtitleClick);
         mBinding.control.loop.setOnClickListener(view -> onLoop());
         mBinding.control.report.setOnClickListener(view -> onReport());
         mBinding.control.danmu.setOnClickListener(view -> onDanmu());
@@ -472,9 +468,15 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     private void setVideoView() {
         mPlayers.init(getExo(), getIjk());
-        ExoUtil.setSubtitleView(mBinding.exo);
-        IjkUtil.setSubtitleView(mBinding.ijk);
         mBinding.control.reset.setText(ResUtil.getStringArray(R.array.select_reset)[Setting.getReset()]);
+    }
+
+    private void setSubtitleView() {
+        setSubtitle(16);
+        getExo().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
+        getIjk().getSubtitleView().setStyle(ExoUtil.getCaptionStyle());
+        getExo().getSubtitleView().setApplyEmbeddedStyles(!Setting.isCaption());
+        getIjk().getSubtitleView().setApplyEmbeddedStyles(!Setting.isCaption());
     }
 
     private void setDanmuViewSettings() {
@@ -819,13 +821,11 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void showDisplayInfo() {
-        boolean hasDialog = false;
-        for (Fragment f : getSupportFragmentManager().getFragments()) if (f instanceof BottomSheetDialogFragment) hasDialog = true;
         mBinding.display.clock.setVisibility(Setting.isDisplayTime() || isVisible(mBinding.widget.info)  ? View.VISIBLE : View.GONE);
+        mBinding.display.netspeed.setVisibility(Setting.isDisplaySpeed() && !isVisible(mBinding.control.getRoot()) ? View.VISIBLE : View.GONE);
+        mBinding.display.duration.setVisibility(Setting.isDisplayDuration() && !isVisible(mBinding.control.getRoot()) ? View.VISIBLE : View.GONE);
+        mBinding.display.progress.setVisibility(Setting.isDisplayMiniProgress() && !isVisible(mBinding.control.getRoot()) && (mPlayers.isVod()) ? View.VISIBLE : View.GONE);
         mBinding.display.titleLayout.setVisibility(Setting.isDisplayVideoTitle() && !isVisible(mBinding.control.getRoot()) ? View.VISIBLE : View.GONE);
-        mBinding.display.netspeed.setVisibility(Setting.isDisplaySpeed() && !isVisible(mBinding.control.getRoot()) && !hasDialog ? View.VISIBLE : View.GONE);
-        mBinding.display.duration.setVisibility(Setting.isDisplayDuration() && !isVisible(mBinding.control.getRoot()) && (mPlayers.isVod()) && !hasDialog ? View.VISIBLE : View.GONE);
-        mBinding.display.progress.setVisibility(Setting.isDisplayMiniProgress() && !isVisible(mBinding.control.getRoot()) && (mPlayers.isVod()) && !hasDialog ? View.VISIBLE : View.GONE);
     }
 
     private void onTimeChangeDisplaySpeed() {
@@ -869,6 +869,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
         mBinding.flag.setSelectedPosition(getFlagPosition());
         mDanmakuContext.setScaleTextSize(1.2f * Setting.getDanmuSize());
+        setSubtitle(Setting.getSubtitle());
         mKeyDown.setFull(true);
         setFullscreen(true);
         mFocus2 = null;
@@ -882,6 +883,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         getFocus1().requestFocus();
         mKeyDown.setFull(false);
         setFullscreen(false);
+        setSubtitle(16);
         mFocus2 = null;
         hideInfo();
     }
@@ -984,12 +986,12 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void onSpeedAdd() {
-        mBinding.control.speed.setText(mPlayers.addSpeed(0.25f));
+        mBinding.control.speed.setText(mPlayers.addSpeed(0.1f));
         mHistory.setSpeed(mPlayers.getSpeed());
     }
 
     private void onSpeedSub() {
-        mBinding.control.speed.setText(mPlayers.subSpeed(0.25f));
+        mBinding.control.speed.setText(mPlayers.subSpeed(0.1f));
         mHistory.setSpeed(mPlayers.getSpeed());
     }
 
@@ -1077,8 +1079,10 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void onPlayer() {
-        PlayerDialog.create().select(mPlayers.getPlayer()).title(mBinding.widget.title.getText().toString()).show(this);
-        hideControl();
+        mPlayers.togglePlayer();
+        setPlayerView();
+        setDecodeView();
+        onRefresh();
     }
 
     private void onDecode() {
@@ -1095,6 +1099,20 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private void onTrack(View view) {
         TrackDialog.create().player(mPlayers).chooser(this).vod(true).type(Integer.parseInt(view.getTag().toString())).show(this);
         hideControl();
+    }
+
+    private void onTextAdd() {
+        int size = Math.min(Setting.getSubtitle() + 1, 48);
+        mBinding.control.text.setText(String.valueOf(size));
+        Setting.putSubtitle(size);
+        setSubtitle(size);
+    }
+
+    private void onTextSub() {
+        int size = Math.max(Setting.getSubtitle() - 1, 14);
+        mBinding.control.text.setText(String.valueOf(size));
+        Setting.putSubtitle(size);
+        setSubtitle(size);
     }
 
     private void onToggle() {
@@ -1327,13 +1345,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     @Override
-    public void onSubtitleClick() {
-        App.post(this::hideControl, 200);
-        SubtitleView subtitleView = mPlayers.isIjk() ? getIjk().getSubtitleView() : getExo().getSubtitleView();
-        App.post(() -> SubtitleDialog.create().view(subtitleView).full(isFullscreen()).show(this), 200);
-    }
-
-    @Override
     public void onTimeChanged() {
         onTimeChangeDisplaySpeed();
         long position, duration;
@@ -1438,12 +1449,12 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         if (addErrorCount() > 20) onErrorEnd(event);
         else if (mPlayers.addRetry() > event.getRetry()) checkError(event);
         else if (event.isDecode() && mPlayers.canToggleDecode()) onDecode(false);
-        else if (event.isExo() && mPlayers.isExo()) onExoCheck(event);
+        else if (event.isFormat() && mPlayers.isExo()) onErrorFormat(event);
         else onRefresh();
     }
 
-    private void onExoCheck(ErrorEvent event) {
-        if (event.getCode() == PlaybackException.ERROR_CODE_IO_UNSPECIFIED || event.getCode() >= PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED && event.getCode() <= PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED) mPlayers.setFormat(ExoUtil.getMimeType(event.getCode()));
+    private void onErrorFormat(ErrorEvent event) {
+        mPlayers.setFormat(ExoUtil.getMimeType(event.getCode()));
         mPlayers.setMediaSource();
     }
 
@@ -1594,11 +1605,11 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         getDetail(item);
     }
 
-    private void onPaused() {
+    private void onPaused(boolean visible) {
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mBinding.widget.exoDuration.setText(mPlayers.getDurationTime());
         mBinding.widget.exoPosition.setText(mPlayers.getPositionTime(0));
-        if (isFullscreen()) showInfoAndCenter();
+        if (visible) showInfoAndCenter();
         else hideInfoAndCenter();
         mPlayers.pause();
     }
@@ -1782,7 +1793,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     @Override
     public void onKeyCenter() {
         if (mPlayers.isPlaying()) {
-            onPaused();
+            onPaused(true);
             hideControl(false);
         } else {
             onPlay();
@@ -1801,16 +1812,9 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     @Override
-    public void onPlayerClick(Integer item) {
-        mPlayers.setPlayer(item);
-        setPlayerView();
-        setDecodeView();
-        onRefresh();
-    }
-
-    @Override
-    public void onPlayerShare(String title) {
-        this.onChoose();
+    public void setSubtitle(int size) {
+        getExo().getSubtitleView().setFixedTextSize(Dimension.SP, size);
+        getIjk().getSubtitleView().setFixedTextSize(Dimension.SP, size);
     }
 
     @Override
@@ -1840,7 +1844,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     protected void onPause() {
         super.onPause();
         setBackground(true);
-        mPlayers.pause();
+        onPaused(false);
         mClock.stop();
     }
 

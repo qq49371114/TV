@@ -6,7 +6,8 @@
     android:fillViewport="true"
     android:paddingStart="8dp"
     android:paddingEnd="8dp"
-    android:scrollbars="none">
+    android:scrollbars="none"
+    android:visibility="visible">
 
     <LinearLayout
         android:layout_width="wrap_content"

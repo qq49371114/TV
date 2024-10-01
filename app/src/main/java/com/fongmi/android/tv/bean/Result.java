@@ -120,7 +120,6 @@ public class Result implements Parcelable {
 
     public static Result error(String msg) {
         Result result = new Result();
-        result.setParse(0);
         result.setMsg(msg);
         return result;
     }

@@ -106,10 +106,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
     }
 
     private void setFocusListener(AdapterVodBinding binding) {
-        binding.getRoot().setOnFocusChangeListener((v, hasFocus) -> {
-            binding.name.setSelected(hasFocus);
-            binding.remark.setSelected(hasFocus);
-        });
+        binding.getRoot().setOnFocusChangeListener((v, hasFocus) -> binding.name.setSelected(hasFocus));
     }
 
     private void setClickListener(View root, History item) {

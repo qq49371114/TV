@@ -10,7 +10,11 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 
+import com.alibaba.fastjson.JSON;
+import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.databinding.DialogInfoBinding;
+import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.utils.Prefers;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -102,6 +106,7 @@ public class InfoDialog {
     }
 
     private boolean onCopy(String text) {
+        Notify.show(R.string.copied);
         Util.copy(text);
         return true;
     }

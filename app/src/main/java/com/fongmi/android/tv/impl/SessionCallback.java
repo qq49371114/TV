@@ -41,9 +41,4 @@ public class SessionCallback extends MediaSessionCompat.Callback {
     public void onSkipToNext() {
         ActionEvent.send(ActionEvent.NEXT);
     }
-
-    @Override
-    public void onStop() {
-        ActionEvent.send(ActionEvent.STOP);
-    }
 }

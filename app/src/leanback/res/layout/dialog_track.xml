@@ -28,22 +28,16 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
             android:background="@drawable/selector_image"
-            android:padding="4dp"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
             android:src="@drawable/ic_action_choose"
             android:visibility="gone"
             tools:visibility="visible" />
 
         <ImageView
-            android:id="@+id/subtitle"
+            android:id="@+id/size"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/selector_image"
-            android:padding="4dp"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:src="@drawable/ic_action_subtitle"
+            android:src="@drawable/ic_action_size"
             android:visibility="gone"
             tools:visibility="visible" />
 
