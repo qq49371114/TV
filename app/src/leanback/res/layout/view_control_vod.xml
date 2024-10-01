@@ -35,6 +35,20 @@
             android:orientation="horizontal">
 
             <TextView
+                android:id="@+id/report"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/selector_text"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:nextFocusRight="@id/next"
+                android:nextFocusDown="@id/timeBar"
+                android:text="@string/report_bug"
+                android:textColor="@color/text"
+                android:textSize="14sp" />
+
+            <TextView
                 android:id="@+id/next"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -238,19 +252,6 @@
                 android:nextFocusRight="@id/next"
                 android:nextFocusDown="@id/timeBar"
                 android:text="@string/play_loop"
-                android:textColor="@color/text"
-                android:textSize="14sp" />
-
-            <TextView
-                android:id="@+id/report"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/selector_text"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:nextFocusRight="@id/next"
-                android:nextFocusDown="@id/timeBar"
-                android:text="@string/report_bug"
                 android:textColor="@color/text"
                 android:textSize="14sp" />
 
