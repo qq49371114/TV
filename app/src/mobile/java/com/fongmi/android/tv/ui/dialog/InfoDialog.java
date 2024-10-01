@@ -10,7 +10,9 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 
+import com.alibaba.fastjson.JSON;
 import com.fongmi.android.tv.databinding.DialogInfoBinding;
+import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.utils.Prefers;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
