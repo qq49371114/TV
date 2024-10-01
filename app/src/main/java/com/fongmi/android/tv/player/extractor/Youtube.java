@@ -4,6 +4,7 @@ import android.net.Uri;
 import android.util.Base64;
 
 import com.fongmi.android.tv.bean.Episode;
+import com.fongmi.android.tv.exception.ExtractException;
 import com.fongmi.android.tv.player.Source;
 import com.github.catvod.net.OkHttp;
 import com.github.kiulian.downloader.YoutubeDownloader;
@@ -48,6 +49,7 @@ public class Youtube implements Source.Extractor {
         String videoId = matcher.group();
         RequestVideoInfo request = new RequestVideoInfo(videoId);
         VideoInfo info = getDownloader().getVideoInfo(request).data();
+        if (info == null || info.details() == null) throw new ExtractException("");
         return info.details().isLive() ? info.details().liveUrl() : getMpdWithBase64(info);
     }
 
