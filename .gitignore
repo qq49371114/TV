@@ -6,3 +6,4 @@ lib-*.aar
 /media*
 /Release
 /local.properties
+.DS_Store
