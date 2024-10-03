@@ -59,13 +59,34 @@ public final class SubtitleDialog extends BaseDialog {
         if (full) for (int i = 0; i < count; i++) ((ImageView) binding.getRoot().getChildAt(i)).getDrawable().setTint(MDColor.WHITE);
     }
 
-    @Override
+     @Override
     protected void initEvent() {
-        
+        binding.up.setOnClickListener(this::onUp);
+        binding.down.setOnClickListener(this::onDown);
+        binding.large.setOnClickListener(this::onLarge);
+        binding.small.setOnClickListener(this::onSmall);
         binding.reset.setOnClickListener(this::onReset);
     }
 
-    
+    private void onUp(View view) {
+//        subtitleView.addBottomPadding(0.005f);
+//        Setting.putSubtitleBottomPadding(subtitleView.getBottomPadding());
+    }
+
+    private void onDown(View view) {
+//        subtitleView.subBottomPadding(0.005f);
+//        Setting.putSubtitleBottomPadding(subtitleView.getBottomPadding());
+    }
+
+    private void onLarge(View view) {
+//        subtitleView.addTextSize(0.002f);
+//        Setting.putSubtitleTextSize(subtitleView.getTextSize());
+    }
+
+    private void onSmall(View view) {
+//        subtitleView.subTextSize(0.002f);
+//        Setting.putSubtitleTextSize(subtitleView.getTextSize());
+    }
 
     private void onReset(View view) {
         Setting.putSubtitleTextSize(0);
