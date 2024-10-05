@@ -89,7 +89,7 @@ public class JxtokenDialog {
 
     public static void clearJxTokenFile() {
         String root = Environment.getExternalStorageDirectory().getAbsolutePath();
-        String realPath = root + "/tm/jxToken.txt";
+        String realPath = root + "/fongmi/jxToken.txt";
         File file = new File(realPath);
 
         if (!file.exists()) {
