@@ -47,7 +47,7 @@
     <string name="transmit_wall_config">推送TV墻紙</string>
     <string name="transmit_push_restore">一鍵恢復TV</string>
     <string name="transmit_pull_restore">從TV恢復</string>
-    <string name="transmit_push_jxtoken">推送jxToken到TV</string>
+    <string name="transmit_push_jxtoken">推送Token到TV</string>
     <string name="transmit_pull_restore_desc">確認從TV恢復數據嗎？</string>
 
     <!-- Hint -->
