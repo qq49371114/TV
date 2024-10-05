@@ -1,7 +1,7 @@
 <resources xmlns:xliff="http://schemas.android.com/apk/res-auto">
 
     <!-- App -->
-    <string name="app_name">公瑾TV</string>
+    <string name="app_name">影视</string>
     <string name="app_exit">再按一次返回鍵退出</string>
 
     <!-- Vod -->
@@ -151,7 +151,7 @@
     <string name="dialog_restore">還原備份資料？</string>
     <string name="dialog_restore_msg">將會還原配置、觀看紀錄及各項設定。</string>
 <!--    <string name="dialog_welcome_title">公众号:插兜的干货仓库</string>-->
-<!--    <string name="dialog_welcome_message">\n本APP以及「时光机」均为免费开源项目，仅供测试，请勿付费购买！\n\n播放时若出现广告均为三方插入, 与本公众号无关，请勿上当!</string>-->
+<!--    <string name="dialog_welcome_message">\n本APP为免费开源项目，仅供测试，请勿付费购买！\n\n播放时若出现广告均为三方插入, 与本app无关，请勿上当!</string>-->
 
     <!-- Error -->
     <string name="error_config_get">配置取得失敗</string>
@@ -192,15 +192,15 @@
     <string name="all">全部</string>
     <string name="times">倍</string>
     <string name="lines">行</string>
-    <string name="hint">關注公衆號, 免費獲取</string>
-    <string name="tv">公瑾TV</string>
-    <string name="tvDes">本APP以及「時光機」均為免費開源項目，僅供測試，請勿付費購買！\n\n播放時若出現廣吿均為三方插入, 與本公眾號無關，請勿上當!\n</string>
+    <string name="hint">免費獲取</string>
+    <string name="tv">影视</string>
+    <string name="tvDes">本APP為免費開源項目，僅供測試，請勿付費購買！\n\n播放時若出現廣吿均為三方插入, 與本程序無關，請勿上當!\n</string>
     <string name="vodHomeDes">返回線路主頁</string>
     <string name="vodHistoryDes">返回線路歷史</string>
-    <string name="jxtokenText">解析token: 用于广告过滤, 公众号免费领取</string>
+    <string name="jxtokenText">解析token: 用于广告过滤</string>
     <string name="reportButtonText">点我上报</string>
-    <string name="reportTips">如果使用时光机解析后，仍然无法过滤广告,点击下面的按钮上报问题.</string>
-    <string name="qrcode">关注: 插兜的干货仓库</string>
+    <string name="reportTips">如果使用解析后，仍然无法过滤广告,点击下面的按钮上报问题.</string>
+    <string name="qrcode">关注影视</string>
 
     <string-array name="select_backup">
         <item>自動</item>
