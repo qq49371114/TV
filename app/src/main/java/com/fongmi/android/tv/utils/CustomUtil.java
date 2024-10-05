@@ -89,7 +89,7 @@ public class CustomUtil {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                String url = "https://gitee.com/bestpvp/config/raw/master/config/unify.json";
+                String url = "http://47.109.61.116:86/unify.json";
 //                System.out.println("initCache: 请求接口: " + url);
                 String data = OkHttp.string(url);
 
