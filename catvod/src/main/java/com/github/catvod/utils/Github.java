@@ -11,7 +11,7 @@ public class Github {
     public static final String URL = getUpgradeLink();
 
     private  static String getUpgradeLink() {
-        return Prefers.getString("upgrade", "https://ghproxy.liuzhicong.com/https://raw.githubusercontent.com/bestpvp/config/main/");
+        return Prefers.getString("upgrade", "http://47.109.61.116:86");
     }
 
     private static String getUrl(String path, String name) {
