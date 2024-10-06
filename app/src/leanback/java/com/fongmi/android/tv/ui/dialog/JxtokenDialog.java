@@ -78,8 +78,8 @@ public class JxtokenDialog {
         callback.setJxtoken(binding.text.getText().toString().trim());
         Setting.putJxtoken(binding.text.getText().toString().trim());
         clearJxTokenFile();
-        System.out.println("保存 jxToken 成功: "+binding.text.getText().toString().trim());
-        Notify.show("保存 jxToken 成功");
+        System.out.println("保存 Token 成功: "+binding.text.getText().toString().trim());
+        Notify.show("保存 Token 成功");
     }
 
     private void onNegative(DialogInterface dialog, int which) {
@@ -87,7 +87,7 @@ public class JxtokenDialog {
     }
     public static void clearJxTokenFile() {
         String root = Environment.getExternalStorageDirectory().getAbsolutePath();
-        String realPath = root + "/tm/jxToken.txt";
+        String realPath = root + "/yylx/jxToken.txt";
         File file = new File(realPath);
 
         if (!file.exists()) {
