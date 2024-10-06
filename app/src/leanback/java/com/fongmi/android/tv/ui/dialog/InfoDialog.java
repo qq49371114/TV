@@ -119,7 +119,7 @@ public class InfoDialog {
 
         if (Prefers.getString("jx_token").isEmpty() && Prefers.getString("related_jxtoken").isEmpty()) {
             binding.getRoot().post(() -> {
-                Notify.show("未配置 jxtoken, 无法上报问题!");
+                Notify.show("未配置 token, 无法上报问题!");
             });
             // 使用 Handler 延迟 1 秒关闭弹窗
             new Handler(Looper.getMainLooper()).postDelayed(() -> dialog.dismiss(), 1000);
