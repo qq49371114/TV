@@ -86,6 +86,9 @@ public class SiteViewModel extends ViewModel {
             if (site.getType() == 3) {
                 Spider spider = site.recent().spider();
                 String homeContent = spider.homeContent(true);
+                System.out.println("DEBUG - homeContent before: "+homeContent);
+                homeContent = CustomUtil.filterString(homeContent);
+                System.out.println("DEBUG - homeContent after: "+homeContent);
                 SpiderDebug.log(homeContent);
                 Result result = Result.fromJson(homeContent);
                 if (result.getList().size() > 0) return result;
@@ -97,10 +100,16 @@ public class SiteViewModel extends ViewModel {
                 ArrayMap<String, String> params = new ArrayMap<>();
                 params.put("filter", "true");
                 String homeContent = call(site, params, false);
+                System.out.println("DEBUG - homeContent before: "+homeContent);
+                homeContent = CustomUtil.filterString(homeContent);
+                System.out.println("DEBUG - homeContent after: "+homeContent);
                 SpiderDebug.log(homeContent);
                 return Result.fromJson(homeContent);
             } else {
                 String homeContent = OkHttp.newCall(site.getApi(), site.getHeaders()).execute().body().string();
+                System.out.println("DEBUG - homeContent before: "+homeContent);
+                homeContent = CustomUtil.filterString(homeContent);
+                System.out.println("DEBUG - homeContent after: "+homeContent);
                 SpiderDebug.log(homeContent);
                 return fetchPic(site, Result.fromType(site.getType(), homeContent));
             }
@@ -114,6 +123,9 @@ public class SiteViewModel extends ViewModel {
             if (site.getType() == 3) {
                 Spider spider = site.recent().spider();
                 String categoryContent = spider.categoryContent(tid, page, filter, extend);
+                System.out.println("DEBUG - categoryContent before: "+categoryContent);
+                categoryContent = CustomUtil.filterString(categoryContent);
+                System.out.println("DEBUG - categoryContent after: "+categoryContent);
                 SpiderDebug.log(categoryContent);
                 return Result.fromJson(categoryContent);
             } else {
@@ -124,6 +136,9 @@ public class SiteViewModel extends ViewModel {
                 params.put("t", tid);
                 params.put("pg", page);
                 String categoryContent = call(site, params, true);
+                System.out.println("DEBUG - categoryContent before: "+categoryContent);
+                categoryContent = CustomUtil.filterString(categoryContent);
+                System.out.println("DEBUG - categoryContent after: "+categoryContent);
                 SpiderDebug.log(categoryContent);
                 return Result.fromType(site.getType(), categoryContent);
             }
@@ -158,6 +173,9 @@ public class SiteViewModel extends ViewModel {
                 params.put("ac", site.getType() == 0 ? "videolist" : "detail");
                 params.put("ids", id);
                 String detailContent = call(site, params, true);
+                System.out.println("DEBUG - detailContent before: "+detailContent);
+                detailContent = CustomUtil.filterString(detailContent);
+                System.out.println("DEBUG - detailContent after: "+detailContent);
                 SpiderDebug.log(detailContent);
                 Result result = Result.fromType(site.getType(), detailContent);
                 if (!result.getList().isEmpty()) result.getList().get(0).setVodFlags();
@@ -247,6 +265,9 @@ public class SiteViewModel extends ViewModel {
         System.out.println("::searchContent::"+" -site- "+site.getName()+" -keyword- "+keyword+" -quick- "+quick);
         if (site.getType() == 3) {
             String searchContent = site.spider().searchContent(Trans.t2s(keyword), quick);
+            System.out.println("DEBUG - searchContent before: "+searchContent);
+            searchContent = CustomUtil.filterString(searchContent);
+            System.out.println("DEBUG - categoryContent after: "+searchContent);
             SpiderDebug.log(site.getName() + "," + searchContent);
             post(site, Result.fromJson(searchContent));
         } else {
@@ -254,6 +275,9 @@ public class SiteViewModel extends ViewModel {
             params.put("wd", Trans.t2s(keyword));
             params.put("quick", String.valueOf(quick));
             String searchContent = call(site, params, true);
+            System.out.println("DEBUG - searchContent before: "+searchContent);
+            searchContent = CustomUtil.filterString(searchContent);
+            System.out.println("DEBUG - categoryContent after: "+searchContent);
             SpiderDebug.log(site.getName() + "," + searchContent);
             post(site, fetchPic(site, Result.fromType(site.getType(), searchContent)));
         }
@@ -264,6 +288,9 @@ public class SiteViewModel extends ViewModel {
         execute(result, () -> {
             if (site.getType() == 3) {
                 String searchContent = site.spider().searchContent(Trans.t2s(keyword), false, page);
+                System.out.println("DEBUG - searchContent before: "+searchContent);
+                searchContent = CustomUtil.filterString(searchContent);
+                System.out.println("DEBUG - categoryContent after: "+searchContent);
                 SpiderDebug.log(site.getName() + "," + searchContent);
                 Result result = Result.fromJson(searchContent);
                 for (Vod vod : result.getList()) vod.setSite(site);
@@ -273,6 +300,9 @@ public class SiteViewModel extends ViewModel {
                 params.put("wd", Trans.t2s(keyword));
                 params.put("pg", page);
                 String searchContent = call(site, params, true);
+                System.out.println("DEBUG - searchContent before: "+searchContent);
+                searchContent = CustomUtil.filterString(searchContent);
+                System.out.println("DEBUG - categoryContent after: "+searchContent);
                 SpiderDebug.log(site.getName() + "," + searchContent);
                 Result result = fetchPic(site, Result.fromType(site.getType(), searchContent));
                 for (Vod vod : result.getList()) vod.setSite(site);
@@ -284,7 +314,7 @@ public class SiteViewModel extends ViewModel {
     private String call(Site site, ArrayMap<String, String> params, boolean limit) throws IOException {
         Call call = fetchExt(site, params, limit).length() <= 1000 ? OkHttp.newCall(site.getApi(), site.getHeaders(), params) : OkHttp.newCall(site.getApi(), site.getHeaders(), OkHttp.toBody(params));
         return call.execute().body().string();
-    }
+    }g
 
     private String fetchExt(Site site, ArrayMap<String, String> params, boolean limit) throws IOException {
         String extend = site.getExt();

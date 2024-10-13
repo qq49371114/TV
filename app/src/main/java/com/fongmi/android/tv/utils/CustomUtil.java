@@ -49,7 +49,7 @@ public class CustomUtil {
                 for (int i = 0; i < filterListTest.size(); i++) {
                     String filter = filterListTest.get(i).getAsString();
 //                    System.out.println("过滤数据: 循环 - "+filter);
-                    input = input.replace(filter, "").replaceAll("^\\s+|\\s+$", "");
+                    input = input.replace(filter, "").replaceAll("^\\s+|\\s+$", "").trim();
                 }
             }
             System.out.println("过滤数据: output - "+input);
