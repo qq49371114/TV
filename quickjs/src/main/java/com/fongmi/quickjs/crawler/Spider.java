@@ -9,6 +9,7 @@ import com.fongmi.quickjs.method.Global;
 import com.fongmi.quickjs.method.Local;
 import com.fongmi.quickjs.utils.JSUtil;
 import com.fongmi.quickjs.utils.Module;
+import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.utils.Asset;
 import com.github.catvod.utils.Json;
 import com.github.catvod.utils.UriUtil;
@@ -177,7 +178,12 @@ public class Spider extends com.github.catvod.crawler.Spider {
         String content = Module.get().fetch(api);
         boolean bb = content.startsWith("//bb");
         cat = bb || content.contains("__jsEvalReturn");
-        if (!bb) ctx.evaluateModule(content.replace(spider, global), api);
+        if (!bb) {
+            SpiderDebug.log("quickjs 1 content: "+content.replace(spider, global));
+            ctx.evaluateModule(content.replace(spider, global), api);
+        } else {
+            SpiderDebug.log("quickjs 2 content: "+content);
+        }
         ctx.evaluateModule(String.format(Asset.read("js/lib/spider.js"), api));
         jsObject = (JSObject) ctx.getProperty(ctx.getGlobalObject(), spider);
     }

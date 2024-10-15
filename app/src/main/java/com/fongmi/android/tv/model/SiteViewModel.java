@@ -314,7 +314,7 @@ public class SiteViewModel extends ViewModel {
     private String call(Site site, ArrayMap<String, String> params, boolean limit) throws IOException {
         Call call = fetchExt(site, params, limit).length() <= 1000 ? OkHttp.newCall(site.getApi(), site.getHeaders(), params) : OkHttp.newCall(site.getApi(), site.getHeaders(), OkHttp.toBody(params));
         return call.execute().body().string();
-    }g
+    }
 
     private String fetchExt(Site site, ArrayMap<String, String> params, boolean limit) throws IOException {
         String extend = site.getExt();
