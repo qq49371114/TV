@@ -51,6 +51,9 @@ import com.google.gson.JsonParser;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 public class MainActivity extends BaseActivity implements NavigationBarView.OnItemSelectedListener {
 
     private ActivityMainBinding mBinding;
@@ -141,20 +144,32 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
             @Override
             public void onResult(String data) {
                 if (!data.isEmpty()) {
-                    JsonObject object = JsonParser.parseString(data).getAsJsonObject();
-                    Prefers.put("force_refresh", object.get("force_refresh").getAsInt());
-                    Prefers.put("source", object.get("source").getAsString());
-                    Prefers.put("app_message", object.get("app_message").getAsString());
-                    Prefers.put("filter", object.getAsJsonArray("filter").toString());
-                    Prefers.put("prefix", object.get("prefix").getAsString());
-                    Prefers.put("title", object.get("title").getAsString());
-                    Prefers.put("jxUrl", object.get("jxUrl").getAsString());
-                    Prefers.put("remove_ad", true);
-                    Prefers.put("upgrade", object.get("upgrade").getAsString());
-                    System.out.println("source: "+Prefers.getString("source"));
-                    System.out.println("title: "+Prefers.getString("title"));
-                    System.out.println("remove_ad: "+Prefers.getBoolean("remove_ad"));
-                    System.out.println("initCache: 保存缓存成功");
+                    try {
+                        JsonObject object = JsonParser.parseString(data).getAsJsonObject();
+                        Prefers.put("force_refresh", object.get("force_refresh").getAsInt());
+                        Prefers.put("source", object.get("source").getAsString());
+                        Prefers.put("app_message", object.get("app_message").getAsString());
+                        Prefers.put("filter", object.getAsJsonArray("filter").toString());
+                        Prefers.put("prefix", object.get("prefix").getAsString());
+                        Prefers.put("title", object.get("title").getAsString());
+                        Prefers.put("jxUrl", object.get("jxUrl").getAsString());
+                        Prefers.put("remove_ad", true);
+                        Prefers.put("upgrade", object.get("upgrade").getAsString());
+                        System.out.println("source: "+Prefers.getString("source"));
+                        System.out.println("title: "+Prefers.getString("title"));
+                        System.out.println("remove_ad: "+Prefers.getBoolean("remove_ad"));
+                        System.out.println("initCache: 保存缓存成功");
+                    } catch (Exception e) {
+                        // 将异常信息转换为字符串
+                        StringWriter sw = new StringWriter();
+                        PrintWriter pw = new PrintWriter(sw);
+                        e.printStackTrace(pw);
+                        String errorMessage = sw.toString(); // 捕获异常的字符串表示
+
+                        // 打印错误信息
+                        System.out.println("initCache: 动态配置解析 json 异常");
+                        System.out.println(errorMessage);
+                    }
                 } else {
                     System.out.println("initCache: 保存缓存失败: " + data);
                 }

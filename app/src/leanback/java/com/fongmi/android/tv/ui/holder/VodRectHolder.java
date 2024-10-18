@@ -1,11 +1,14 @@
 package com.fongmi.android.tv.ui.holder;
 
+import android.view.View;
+
 import androidx.annotation.NonNull;
 
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.AdapterVodRectBinding;
 import com.fongmi.android.tv.ui.base.BaseVodHolder;
 import com.fongmi.android.tv.ui.presenter.VodPresenter;
+import com.fongmi.android.tv.utils.CustomUtil;
 import com.fongmi.android.tv.utils.ImgUtil;
 
 public class VodRectHolder extends BaseVodHolder {
@@ -29,9 +32,11 @@ public class VodRectHolder extends BaseVodHolder {
     public void initView(Vod item) {
         binding.name.setText(item.getVodName());
         binding.year.setText(item.getVodYear());
-        binding.site.setText(item.getSiteName());
+//        binding.site.setText(item.getSiteName());
+        binding.site.setText(CustomUtil.getPrefix());
         binding.remark.setText(item.getVodRemarks());
-        binding.site.setVisibility(item.getSiteVisible());
+//        binding.site.setVisibility(item.getSiteVisible());
+        binding.site.setVisibility(View.VISIBLE);
         binding.year.setVisibility(item.getYearVisible());
         binding.name.setVisibility(item.getNameVisible());
         binding.remark.setVisibility(item.getRemarkVisible());

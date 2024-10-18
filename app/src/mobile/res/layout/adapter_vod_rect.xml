@@ -46,9 +46,10 @@
         android:layout_height="wrap_content"
         android:layout_above="@+id/name"
         android:background="@drawable/shape_vod_remark"
-        android:singleLine="true"
         android:textColor="@color/white"
         android:textSize="12sp"
+        android:maxLines="2"
+        android:scrollHorizontally="false"
         tools:text="1080p" />
 
     <TextView
