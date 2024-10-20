@@ -21,6 +21,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 
 public class JxtokenDialog {
 
@@ -116,7 +117,7 @@ public class JxtokenDialog {
             System.out.println("APP - 存在:" + realPath);
 
             // Clear file contents by overwriting with an empty string
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            try (BufferedWriter writer = Files.newBufferedWriter(file.toPath())) {
                 writer.write("");
             } catch (IOException e) {
                 System.out.println("APP - 清空文件失败: " + e.getMessage());
