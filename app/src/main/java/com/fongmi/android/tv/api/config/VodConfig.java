@@ -15,14 +15,10 @@ import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.utils.CustomUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.UrlUtil;
-import com.fongmi.android.tv.App;
-import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.api.Decoder;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
 import com.github.catvod.utils.Prefers;
-import com.github.catvod.utils.Util;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
@@ -126,6 +122,7 @@ public class VodConfig {
 
     private void loadConfig(Callback callback, int force_refresh) {
         try {
+            System.out.println("APP - loadConfig");
             String url = config.getUrl();
             if (TextUtils.isEmpty(url)) {
                 url = CustomUtil.getSource();
@@ -134,10 +131,16 @@ public class VodConfig {
                 App.post(() -> callback.error(CustomUtil.getAppMsg()));
             } else {
                 if (force_refresh == 1 && !TextUtils.equals(url, Prefers.getString("source"))) {
-                    url = Prefers.getString("source");
+                    url = CustomUtil.getSource();
                     System.out.println("强制刷新source: "+url);
                 }
+                if (CustomUtil.getVipLevel() > 0) {
+                    url = CustomUtil.getSourcePlus();
+                    System.out.println("APP - VIP默认加载超大杯: "+url);
+                }
             }
+            System.out.println("APP - loadConfig: "+url);
+            config.setUrl(url);
             checkJson(Json.parse(Decoder.getJson(url)).getAsJsonObject(), callback);
         } catch (Throwable e) {
             if (TextUtils.isEmpty(config.getUrl())) {
@@ -159,8 +162,15 @@ public class VodConfig {
 
     private void loadConfigCache(Callback callback) {
         int force_refresh = CustomUtil.getForceRefresh();
-        if (!TextUtils.isEmpty(config.getJson()) && config.isCache()) checkJson(Json.parse(config.getJson()).getAsJsonObject(), callback);
-        else loadConfig(callback, force_refresh);
+        int vip_level = CustomUtil.getVipLevel();
+        System.out.println("APP - 当前 url: "+config.getUrl());
+        if (!TextUtils.isEmpty(config.getJson()) && config.isCache() && (vip_level == 1 && config.getUrl().equals(CustomUtil.getSourcePlus()))) {
+            System.out.println("APP - loadConfigCache");
+            checkJson(Json.parse(config.getJson()).getAsJsonObject(), callback);
+        }
+        else {
+            loadConfig(callback, force_refresh);
+        }
     }
 
     private void checkJson(JsonObject object, Callback callback) {

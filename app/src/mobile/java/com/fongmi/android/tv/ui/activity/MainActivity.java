@@ -148,7 +148,6 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
                 if (!data.isEmpty()) {
                     try {
                         JsonObject object = JsonParser.parseString(data).getAsJsonObject();
-                        Prefers.put("force_refresh", object.get("force_refresh").getAsInt());
                         Prefers.put("source", object.get("source").getAsString());
                         Prefers.put("app_message", object.get("app_message").getAsString());
                         Prefers.put("filter", object.getAsJsonArray("filter").toString());

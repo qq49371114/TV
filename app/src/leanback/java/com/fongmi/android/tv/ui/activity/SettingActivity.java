@@ -164,6 +164,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
 
     @Override
     public void setConfig(Config config) {
+        System.out.println(config);
         if (config.getUrl().startsWith("file") && !PermissionX.isGranted(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
             PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> load(config));
         } else {

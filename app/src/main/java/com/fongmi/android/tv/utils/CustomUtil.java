@@ -3,12 +3,10 @@ package com.fongmi.android.tv.utils;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.fongmi.android.tv.player.Players;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Prefers;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 
@@ -77,8 +75,16 @@ public class CustomUtil {
         return Prefers.getString("source", "");
     }
 
+    public static String getSourcePlus() {
+        return Prefers.getString("source_plus", "");
+    }
+
     public static int getForceRefresh() {
         return Prefers.getInt("force_refresh", -1);
+    }
+
+    public static int getVipLevel() {
+        return Prefers.getInt("vip_level", -1);
     }
 
     public interface Callback {

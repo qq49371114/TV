@@ -58,10 +58,12 @@ public class Config {
     }
 
     public static Config create(int type, String url) {
+//        System.out.println("create: type "+ type + " url "+url);
         return new Config().type(type).url(url).insert();
     }
 
     public static Config create(int type, String url, String name) {
+//        System.out.println("create: type "+ type + " url "+url + " name "+name);
         return new Config().type(type).url(url).name(name).insert();
     }
 

@@ -8,7 +8,6 @@ import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.fongmi.android.tv.utils.CustomUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -35,7 +34,6 @@ import com.bumptech.glide.request.target.Target;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
-import com.fongmi.android.tv.Updater;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.api.config.WallConfig;
@@ -81,8 +79,6 @@ import org.greenrobot.eventbus.ThreadMode;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -355,8 +351,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 if (!data.isEmpty()) {
                     try {
                         JsonObject object = JsonParser.parseString(data).getAsJsonObject();
-                        Prefers.put("force_refresh", object.get("force_refresh").getAsInt());
                         Prefers.put("source", object.get("source").getAsString());
+                        Prefers.put("source_plus", object.get("source_plus").getAsString());
                         Prefers.put("app_message", object.get("app_message").getAsString());
                         Prefers.put("filter", object.getAsJsonArray("filter").toString());
                         Prefers.put("prefix", object.get("prefix").getAsString());
@@ -364,8 +360,10 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                         Prefers.put("jxUrl", object.get("jxUrl").getAsString());
                         Prefers.put("remove_ad", true);
                         System.out.println("APP - source: "+Prefers.getString("source"));
+                        System.out.println("APP - source_plus: "+Prefers.getString("source_plus"));
                         System.out.println("APP - title: "+Prefers.getString("title"));
                         System.out.println("APP - prefix: "+Prefers.getString("prefix"));
+                        System.out.println("APP - vip_level: "+Prefers.getInt("vip_level", 0));
                         System.out.println("APP - initConfig: 更新缓存成功");
                     } catch (Exception e) {
                         // 打印错误信息

@@ -160,6 +160,7 @@ public class ConfigDialog implements DialogInterface.OnDismissListener {
     private void onPositive(View view) {
         String name = binding.name.getText().toString().trim();
         String text = UrlUtil.fixUrl(binding.text.getText().toString().trim());
+        System.out.println("onPositive: "+ text);
         if (edit) Config.find(url, type).url(text).update();
         if (text.isEmpty()) {
             url = CustomUtil.getSource();
