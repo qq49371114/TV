@@ -73,11 +73,14 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
 
     @Override
     protected void initView(Bundle savedInstanceState) {
-//        Updater.get().release().start(this);
         initFragment(savedInstanceState);
         Server.get().start();
         initConfig();
         showDialog(this);
+        if (Prefers.getInt("app_upgrade", 0) > 0) {
+            System.out.println("APP - 开机检查 APP 自动更新");
+            Updater.get().release().start(this);
+        }
     }
 
     private void showDialog(Context context) {
@@ -149,15 +152,20 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
                     try {
                         JsonObject object = JsonParser.parseString(data).getAsJsonObject();
                         Prefers.put("source", object.get("source").getAsString());
+                        Prefers.put("source_plus", object.get("source_plus").getAsString());
                         Prefers.put("app_message", object.get("app_message").getAsString());
                         Prefers.put("filter", object.getAsJsonArray("filter").toString());
                         Prefers.put("prefix", object.get("prefix").getAsString());
                         Prefers.put("title", object.get("title").getAsString());
                         Prefers.put("jxUrl", object.get("jxUrl").getAsString());
+                        Prefers.put("app_upgrade", object.get("app_upgrade").getAsInt());
                         Prefers.put("remove_ad", true);
                         System.out.println("APP - source: "+Prefers.getString("source"));
+                        System.out.println("APP - source_plus: "+Prefers.getString("source_plus"));
                         System.out.println("APP - title: "+Prefers.getString("title"));
                         System.out.println("APP - prefix: "+Prefers.getString("prefix"));
+                        System.out.println("APP - vip_level: "+Prefers.getInt("vip_level", 0));
+                        System.out.println("APP - app_upgrade: "+Prefers.getInt("app_upgrade", 0));
                         System.out.println("APP - initConfig: 更新缓存成功");
                     } catch (Exception e) {
                         // 打印错误信息

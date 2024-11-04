@@ -9,6 +9,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.fongmi.android.tv.Updater;
 import com.fongmi.android.tv.utils.CustomUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -116,7 +117,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     protected void initView() {
         DLNARendererService.Companion.start(this, R.drawable.ic_logo);
         mClock = Clock.create(mBinding.clock).format("MM/dd HH:mm:ss");
-//        Updater.get().release().start(this);
         Server.get().start();
         Tbs.init();
         setTitleView();
@@ -126,6 +126,10 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         setPager();
         initConfig();
         showDialog(this);
+        if (Prefers.getInt("app_upgrade", 0) > 0) {
+            System.out.println("APP - 开机检查 APP 自动更新");
+            Updater.get().release().start(this);
+        }
     }
 
     private void showDialog(Context context) {
@@ -358,12 +362,14 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                         Prefers.put("prefix", object.get("prefix").getAsString());
                         Prefers.put("title", object.get("title").getAsString());
                         Prefers.put("jxUrl", object.get("jxUrl").getAsString());
+                        Prefers.put("app_upgrade", object.get("app_upgrade").getAsInt());
                         Prefers.put("remove_ad", true);
                         System.out.println("APP - source: "+Prefers.getString("source"));
                         System.out.println("APP - source_plus: "+Prefers.getString("source_plus"));
                         System.out.println("APP - title: "+Prefers.getString("title"));
                         System.out.println("APP - prefix: "+Prefers.getString("prefix"));
                         System.out.println("APP - vip_level: "+Prefers.getInt("vip_level", 0));
+                        System.out.println("APP - app_upgrade: "+Prefers.getInt("app_upgrade", 0));
                         System.out.println("APP - initConfig: 更新缓存成功");
                     } catch (Exception e) {
                         // 打印错误信息
