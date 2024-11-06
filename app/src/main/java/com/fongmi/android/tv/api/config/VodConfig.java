@@ -134,7 +134,7 @@ public class VodConfig {
                     url = CustomUtil.getSource();
                     System.out.println("强制刷新source: "+url);
                 }
-                if (CustomUtil.getVipLevel() > 0) {
+                if (CustomUtil.getVipLevel() > 0 && TextUtils.equals(url, CustomUtil.getSource())) {
                     url = CustomUtil.getSourcePlus();
                     System.out.println("APP - VIP默认加载超大杯: "+url);
                 }
