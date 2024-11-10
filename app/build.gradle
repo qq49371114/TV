@@ -9,12 +9,12 @@ android {
     flavorDimensions = ["mode", "api", "abi"]
 
     defaultConfig {
-        applicationId "com.gongjin.android.tv"
+        applicationId "com.yylx.android.tv"
         minSdk 21
         //noinspection ExpiredTargetSdkVersion
         targetSdk 28
-        versionCode 1061
-        versionName "10.6.1"
+        versionCode 25803
+        versionName "2.5.8.03"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
@@ -29,15 +29,8 @@ android {
         mobile {
             dimension "mode"
         }
-        java {
-            dimension "api"
-        }
         python {
             dimension "api"
-        }
-        x86 {
-            dimension "abi"
-            ndk { abiFilters "x86" }
         }
         arm64_v8a {
             dimension "abi"
