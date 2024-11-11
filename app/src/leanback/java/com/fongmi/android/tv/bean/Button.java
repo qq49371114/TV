@@ -57,7 +57,6 @@ public class Button {
 
     public static String getDefaultButtons() {
         return Setting.getHomeUI() == 0 ? "0,1,2,3,4,5,6" : "1,2,3,4,5,6";
-        return Setting.getHomeUI() == 0 ? "0,2,3,4,5,6" : "2,3,4,5,6";
 
     }
 
