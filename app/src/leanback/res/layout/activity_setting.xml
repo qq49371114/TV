@@ -14,36 +14,9 @@
         android:padding="24dp">
 
         <LinearLayout
-            android:id="@+id/header"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/headerTv"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="16dp"
-                android:text="@string/tv"
-                android:textColor="@color/white"
-                android:textSize="20sp" />
-
-            <TextView
-                android:id="@+id/headerTvDes"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="15dp"
-                android:text="@string/tvDes"
-                android:textColor="@color/white"
-                android:textSize="16sp" />
-
-        </LinearLayout>
-
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <LinearLayout
@@ -91,8 +64,7 @@
                 android:focusableInTouchMode="true"
                 android:padding="8dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/ic_setting_home"
-                android:contentDescription="@string/vodHomeDes" />
+                android:src="@drawable/ic_setting_home" />
 
             <ImageView
                 android:id="@+id/vodHistory"
@@ -103,8 +75,7 @@
                 android:focusableInTouchMode="true"
                 android:padding="8dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/ic_setting_history"
-                android:contentDescription="@string/vodHistoryDes" />
+                android:src="@drawable/ic_setting_history" />
 
         </LinearLayout>
 
@@ -112,6 +83,74 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:id="@+id/live"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:layout_weight="1"
+                android:background="@drawable/selector_item"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:layout_weight="0.3"
+                    android:text="@string/setting_live"
+                    android:textColor="@color/white"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/liveUrl"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.7"
+                    android:ellipsize="middle"
+                    android:gravity="end"
+                    android:singleLine="true"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    tools:ignore="NestedWeights"
+                    tools:text="https://" />
+
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/liveHome"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/selector_item"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_setting_home" />
+
+            <ImageView
+                android:id="@+id/liveHistory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/selector_item"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_setting_history" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <LinearLayout
@@ -176,147 +215,6 @@
                 android:src="@drawable/ic_setting_refresh" />
 
         </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-            <LinearLayout
-                android:id="@+id/removeAd"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginEnd="0dp"
-                android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:layout_weight="0.3"
-                    android:text="@string/setting_remove_ad"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
-                <TextView
-                    android:id="@+id/removeAdText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:layout_weight="0.3"
-                    android:gravity="end"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
-                    tools:text="关闭" />
-            </LinearLayout>
-        </LinearLayout>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-            <LinearLayout
-                android:id="@+id/jxtoken"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginEnd="0dp"
-                android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:layout_weight="0.3"
-                    android:text="@string/setting_jxtoken"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
-                <TextView
-                    android:id="@+id/jxtokenText"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.7"
-                    android:ellipsize="middle"
-                    android:gravity="end"
-                    android:singleLine="true"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
-                    tools:ignore="NestedWeights"
-                    tools:text="@string/jxtokenText" />
-            </LinearLayout>
-        </LinearLayout>
-
-             <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-           android:layout_marginTop="16dp"
-           android:orientation="horizontal">
-
-           <LinearLayout
-                android:id="@+id/live"
-                android:layout_width="0dp"
-               android:layout_height="wrap_content"
-               android:layout_marginEnd="16dp"
-               android:layout_weight="1"
-                android:background="@drawable/selector_item"
-               android:focusable="true"
-               android:focusableInTouchMode="true"
-               android:orientation="horizontal">
-
-               <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="16dp"
-                        android:layout_weight="0.3"
-                        android:text="@string/setting_live"
-                        android:textColor="@color/white"
-                      android:textSize="18sp" />
-
-                   <TextView
-                        android:id="@+id/liveUrl"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.7"
-                        android:ellipsize="middle"
-                        android:gravity="end"
-                        android:singleLine="true"
-                        android:textColor="@color/white"
-                        android:textSize="18sp"
-                        tools:ignore="NestedWeights"
-                        tools:text="https://" />
-
-                 </LinearLayout>
-
-                 <ImageView
-                    android:id="@+id/liveHome"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:background="@drawable/selector_item"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:padding="8dp"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/ic_setting_home" />
-
-                <ImageView
-                    android:id="@+id/liveHistory"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/selector_item"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:padding="8dp"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/ic_setting_history" />
-
-       </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -534,7 +432,7 @@
                     android:text="@string/setting_doh"
                     android:textColor="@color/white"
                     android:textSize="18sp" />
-              
+
                 <TextView
                     android:id="@+id/dohText"
                     android:layout_width="match_parent"
@@ -545,7 +443,6 @@
                     tools:text="Google" />
 
             </LinearLayout>
-
         </LinearLayout>
 
         <LinearLayout
@@ -612,36 +509,6 @@
                     tools:text="about" />
 
             </LinearLayout>
-
         </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:orientation="horizontal">
-
-            <LinearLayout
-                android:id="@+id/reset"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="@string/setting_reset"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
