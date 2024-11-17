@@ -1,10 +1,13 @@
 package com.fongmi.android.tv.utils;
 
+import static com.github.catvod.net.OkHttp.isUrlReachable;
+
 import com.fongmi.android.tv.App;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Prefers;
 
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class Jx {
@@ -13,10 +16,11 @@ public class Jx {
         try {
             String jxUrl = Prefers.getString("jxUrl");
             if (jxUrl.isEmpty() || jxToken.isEmpty()) return realPlayUrl;
+            if (!isUrlReachable(CustomUtil.CHECK_URL, 5000)) return realPlayUrl;
             // 对 URL 进行编码
             String enCodeUrl = URLEncoder.encode(realPlayUrl, "UTF-8");
             System.out.println("jxUrl: "+String.format(jxUrl, jxToken, enCodeUrl));
-            System.out.println("headers: "+header.toString());
+            System.out.println("header: "+header.toString());
             String response = OkHttp.string(String.format(jxUrl, jxToken, enCodeUrl), header);
             if (response.isEmpty()) {
                 System.out.println("解析服务返回空, 不处理!");

@@ -9,6 +9,7 @@ import com.github.catvod.net.interceptor.RequestInterceptor;
 import com.github.catvod.net.interceptor.ResponseInterceptor;
 import com.github.catvod.utils.Path;
 
+import java.io.IOException;
 import java.net.ProxySelector;
 import java.util.Map;
 import java.util.Objects;
@@ -23,6 +24,7 @@ import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.Response;
 import okhttp3.dnsoverhttps.DnsOverHttps;
 
 public class OkHttp {
@@ -145,5 +147,27 @@ public class OkHttp {
         OkHttpClient.Builder builder = new OkHttpClient.Builder().addInterceptor(new RequestInterceptor()).addNetworkInterceptor(new ResponseInterceptor()).connectTimeout(TIMEOUT, TimeUnit.MILLISECONDS).readTimeout(TIMEOUT, TimeUnit.MILLISECONDS).writeTimeout(TIMEOUT, TimeUnit.MILLISECONDS).dns(dns()).hostnameVerifier((hostname, session) -> true).followRedirects(true).sslSocketFactory(new SSLCompat(), SSLCompat.TM);
         builder.proxySelector(get().proxy ? selector() : defaultSelector);
         return builder;
+    }
+
+    // 新增的方法：检查 URL 是否可达
+    public static boolean isUrlReachable(String url, int timeout) {
+        try {
+            // 构建请求体的 Request.Builder
+            Request.Builder requestBuilder = new Request.Builder().url(url).head();
+
+            // 构建请求对象
+            Request request = requestBuilder.build();
+
+            // 发送请求并获取响应
+            Response response = client(timeout).newCall(request).execute();
+
+            // 如果状态码在 200-299 范围内，认为 URL 可达
+            System.out.println("APP - isUrlReachable: "+url+" "+response.isSuccessful());
+            return response.isSuccessful();
+        } catch (IOException e) {
+            // 如果发生异常，URL 不可达
+            System.out.println("APP - isUrlReachable: "+url+" false");
+            return false;
+        }
     }
 }

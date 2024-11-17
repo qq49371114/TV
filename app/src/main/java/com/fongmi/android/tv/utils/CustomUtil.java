@@ -1,5 +1,7 @@
 package com.fongmi.android.tv.utils;
 
+import static com.github.catvod.net.OkHttp.isUrlReachable;
+
 import android.os.Handler;
 import android.os.Looper;
 
@@ -11,6 +13,8 @@ import com.google.gson.JsonParser;
 
 
 public class CustomUtil {
+
+    public static final String CHECK_URL = "https://www.lintech.work/static/config/check.txt";
 
     public static void clearCache(){
         JsonArray keysToDelete = new JsonArray();
@@ -95,9 +99,15 @@ public class CustomUtil {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                String url = "https://www.lintech.work/static/config/unify.json";
-//                System.out.println("initCache: 请求接口: " + url);
-                String data = OkHttp.string(url);
+                String data;
+                if (isUrlReachable(CHECK_URL, 5000)) {
+                    System.out.println("APP - 时光机服务正常");
+                    String url = "https://www.lintech.work/static/config/unify.json";
+                    data = OkHttp.string(url);
+                } else {
+                    System.out.println("APP - 时光机服务离线中");
+                    data = "";
+                }
 
                 // 使用 Handler 将结果传回主线程
                 new Handler(Looper.getMainLooper()).post(new Runnable() {

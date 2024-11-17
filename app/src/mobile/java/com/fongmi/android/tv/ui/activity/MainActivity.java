@@ -1,5 +1,7 @@
 package com.fongmi.android.tv.ui.activity;
 
+import static com.github.catvod.net.OkHttp.isUrlReachable;
+
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -43,6 +45,7 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.UrlUtil;
 
 import com.github.catvod.utils.Prefers;
+import com.github.catvod.net.OkHttp;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.gson.JsonObject;
@@ -103,7 +106,6 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
                         } else{
                             Notify.show(related_user+"已再三确认，谢谢！");
                         }
-
                     }).show();
         } else {
             System.out.println("App - 无需弹窗");
