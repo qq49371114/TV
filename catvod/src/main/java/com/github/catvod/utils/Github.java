@@ -20,11 +20,11 @@ public class Github {
     }
 
     public static String getJson(boolean dev, String name) {
-        return getUrl("update/" +(dev ? "dev" : "release" : "yylx"), name + ".json");
+        return getUrl("update/" +(dev ? "dev" : "release"), name + ".json");
     }
 
     public static String getApk(boolean dev, String name) {
-        return getUrl("update/" + (dev ? "dev" : "release" : "yylx"), name);
+        return getUrl("update/" + (dev ? "dev" : "release"), name);
     }
 
     public static String getSo(String url) {
