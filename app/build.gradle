@@ -9,7 +9,7 @@ android {
     flavorDimensions = ["mode", "api", "abi"]
 
     defaultConfig {
-        applicationId "com.gongjin.android.tv"
+        applicationId "com.yylx.android.tv"
         minSdk 21
         //noinspection ExpiredTargetSdkVersion
         targetSdk 28
@@ -29,15 +29,8 @@ android {
         mobile {
             dimension "mode"
         }
-        java {
-            dimension "api"
-        }
         python {
             dimension "api"
-        }
-        x86 {
-            dimension "abi"
-            ndk { abiFilters "x86" }
         }
         arm64_v8a {
             dimension "abi"
