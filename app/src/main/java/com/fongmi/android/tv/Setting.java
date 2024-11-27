@@ -30,8 +30,16 @@ public class Setting {
         return Prefers.getString("jx_token");
     }
 
+    public static String getStoredPWD() {
+        return Prefers.getString("storedPWD");
+    }
+
     public static void putJxtoken(String jxToken) {
         Prefers.put("jx_token", jxToken);
+    }
+
+    public static void putPWD(String pwd) {
+        Prefers.put("storedPWD", pwd);
     }
 
     public static String getKeep() {

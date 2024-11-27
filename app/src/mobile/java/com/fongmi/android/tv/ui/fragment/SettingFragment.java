@@ -32,6 +32,7 @@ import com.fongmi.android.tv.impl.JxtokenCallback;
 import com.fongmi.android.tv.impl.LiveCallback;
 import com.fongmi.android.tv.impl.ProxyCallback;
 import com.fongmi.android.tv.impl.SiteCallback;
+import com.fongmi.android.tv.impl.StorePWDCallback;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.ui.activity.MainActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
@@ -41,6 +42,7 @@ import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.JxtokenDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.ProxyDialog;
+import com.fongmi.android.tv.ui.dialog.PwdDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.ui.dialog.TransmitActionDialog;
 import com.fongmi.android.tv.ui.dialog.TransmitDialog;
@@ -66,7 +68,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SettingFragment extends BaseFragment implements BackupCallback, ConfigCallback, SiteCallback, LiveCallback, ProxyCallback, JxtokenCallback {
+public class SettingFragment extends BaseFragment implements BackupCallback, ConfigCallback, SiteCallback, LiveCallback, ProxyCallback, JxtokenCallback, StorePWDCallback {
 
     private FragmentSettingBinding mBinding;
     private String[] backup;
@@ -107,6 +109,7 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
         mBinding.aboutText.setText(CustomUtil.getTitle());
         mBinding.proxyText.setText(UrlUtil.scheme(Setting.getProxy()));
         mBinding.jxtokenText.setText(Setting.getJxtoken());
+        mBinding.pwdText.setText(Setting.getStoredPWD());
         mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
         mBinding.reset.setOnClickListener(this::onReset);
         setCacheText();
@@ -138,6 +141,7 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
         mBinding.wall.setOnClickListener(this::onWall);
         mBinding.proxy.setOnClickListener(this::onProxy);
         mBinding.jxtoken.setOnClickListener(this::onJxtoken);
+        mBinding.pwdText.setOnClickListener(this::onStorePWD);
         mBinding.cache.setOnClickListener(this::onCache);
         mBinding.cache.setOnLongClickListener(this::onCacheLongClick);
         mBinding.transmit.setOnClickListener(this::onTransmit);
@@ -369,9 +373,17 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
         JxtokenDialog.create(this).show();
     }
 
+    private void onStorePWD(View view) {
+        PwdDialog.create(this).show();
+    }
+
     @Override
     public void setJxtoken(String jxToken) {
         mBinding.jxtokenText.setText(jxToken);
+    }
+
+    public void setStorePWD(String pwd) {
+        mBinding.pwdText.setText(pwd);
     }
 
     private void onCache(View view) {

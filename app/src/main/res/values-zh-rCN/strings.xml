@@ -72,7 +72,7 @@
 
     <!-- Setting -->
     <string name="setting_vod">点播</string>
-    <string name="setting_live">直播</string>
+    <string name="setting_live">直播(需自行配置)</string>
     <string name="setting_wall">壁纸</string>
     <string name="setting_player">播放设置</string>
     <string name="setting_danmu">弹幕设置</string>
@@ -97,7 +97,8 @@
     <string name="setting_home_buttons">首页按钮</string>
     <string name="setting_doh">DoH</string>
     <string name="setting_proxy">Proxy</string>
-    <string name="setting_jxtoken">JxToken</string>
+    <string name="setting_jxtoken">广告解析密钥</string>
+    <string name="setting_storedPWD">登录密钥</string>
     <string name="setting_cache">缓存</string>
     <string name="setting_backup">备份</string>
     <string name="setting_restore">恢复</string>
@@ -198,6 +199,7 @@
     <string name="vodHomeDes">返回线路主页</string>
     <string name="vodHistoryDes">返回线路历史</string>
     <string name="jxtokenText">解析token: 用于广告过滤, 公众号免费领取</string>
+    <string name="pwdText">输入密钥，公众号免费领取临时密钥</string>
     <string name="reportButtonText">点我上报</string>
     <string name="reportTips">如果使用时光机解析后，仍然无法过滤广告，点击下面的按钮上报问题。</string>
     <string name="qrcode">关注: 插兜的干货仓库</string>

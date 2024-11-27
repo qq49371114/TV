@@ -850,29 +850,31 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     public static void fetchUrl(String initialUrl, Map<String, String> header, Callback callback) {
-        System.out.println("解析开关: "+Prefers.getBoolean("remove_ad"));
+        System.out.println("APP - 解析开关: "+Prefers.getBoolean("remove_ad"));
         if (Prefers.getBoolean("remove_ad")) {
             if (initialUrl.contains(".m3u8") && !initialUrl.contains("www.lintech.work")) {
-                System.out.println("时光机开始解析: "+initialUrl);
+                System.out.println("APP - 时光机开始解析: "+initialUrl);
                 Thread thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
                         String jxToken = Prefers.getString("jx_token");
-                        if (!Prefers.getString("related_jxtoken").isEmpty()){
-                            Integer jxToken_date = Integer.parseInt(Prefers.getString("related_jxtoken").substring(Math.max(0, Prefers.getString("related_jxtoken").length() - 6)));
+                        if (jxToken.isEmpty() & !Prefers.getString("related_jxtoken").isEmpty()){
+                            int jxToken_date = Integer.parseInt(Prefers.getString("related_jxtoken").substring(Math.max(0, Prefers.getString("related_jxtoken").length() - 6)));
                             Calendar calendar = Calendar.getInstance();
                             SimpleDateFormat dateFormat = new SimpleDateFormat("yyMMdd", Locale.getDefault());
                             String formattedDate = dateFormat.format(calendar.getTime());
                             int dateInt = Integer.parseInt(formattedDate);
                             System.out.println(jxToken_date+" - "+dateInt);
                             if (jxToken_date >= dateInt) {
-                                System.out.println("关联 jxToken 有效: " + jxToken_date);
+                                System.out.println("APP - 关联 jxToken 有效: " + jxToken_date);
                                 jxToken = Prefers.getString("related_jxtoken");
                             } else {
-                                System.out.println("关联 jxToken 已失效: " + jxToken_date);
+                                System.out.println("APP - 关联 jxToken 已失效: " + jxToken_date);
                             }
+                        } else {
+                            System.out.println("APP - jxToken 以手动设置为主");
                         }
-                        System.out.println("最终取的 jxToken: "+jxToken);
+                        System.out.println("APP - 最终取的 jxToken: "+jxToken);
                         final String resultUrl = Jx.getUrl(jxToken, initialUrl, header);
 
                         // 使用 Handler 将结果传回主线程
@@ -880,7 +882,7 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
                             @Override
                             public void run() {
                                 if (callback != null) {
-                                    System.out.println("时光机解析完成: "+ resultUrl);
+                                    System.out.println("APP - 时光机解析完成: "+ resultUrl);
                                     callback.onResult(resultUrl);
                                 }
                             }

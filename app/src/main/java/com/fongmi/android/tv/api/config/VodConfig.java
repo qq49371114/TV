@@ -12,6 +12,7 @@ import com.fongmi.android.tv.bean.Parse;
 import com.fongmi.android.tv.bean.Rule;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.impl.Callback;
+import com.fongmi.android.tv.utils.AESUtil;
 import com.fongmi.android.tv.utils.CustomUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.UrlUtil;
@@ -239,8 +240,19 @@ public class VodConfig {
         if (sync) LiveConfig.get().clear().config(temp).parse(object);
     }
 
-    private void initParse(JsonObject object) {
+    private void initParse(JsonObject object) throws Exception {
         for (JsonElement element : Json.safeListElement(object, "parses")) {
+//            System.out.println(element);
+//            System.out.println(AESUtil.encrypt("http://103.117.123.51:2189/api/diy/?key=7aStrXZZdJza0cQb0e&url=", CustomUtil.KEY, CustomUtil.IV));
+            JsonObject jsonObject = element.getAsJsonObject();
+            if (jsonObject.has("superUrl") && !jsonObject.get("superUrl").getAsString().isEmpty()) {
+                System.out.println("APP - 进入超级解析模式");
+                String superUrl = jsonObject.get("superUrl").getAsString();
+//                superUrl = AESUtil.decrypt(superUrl, CustomUtil.KEY, CustomUtil.IV);
+//                System.out.println("APP - 超级解析配置中: " + superUrl);
+                jsonObject.addProperty("url", superUrl);
+            }
+//            System.out.println(element);
             Parse parse = Parse.objectFrom(element);
             if (parse.getName().equals(config.getParse()) && parse.getType() > 1) setParse(parse);
             if (!parses.contains(parse)) parses.add(parse);

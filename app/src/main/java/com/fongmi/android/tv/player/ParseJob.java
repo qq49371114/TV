@@ -11,6 +11,8 @@ import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.impl.ParseCallback;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.ui.custom.CustomWebView;
+import com.fongmi.android.tv.utils.AESUtil;
+import com.fongmi.android.tv.utils.CustomUtil;
 import com.fongmi.android.tv.utils.Jx;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.UrlUtil;
@@ -115,7 +117,16 @@ public class ParseJob implements ParseCallback {
     }
 
     private void jsonParse(Parse item, String webUrl, boolean error) throws Exception {
-        String body = OkHttp.newCall(item.getUrl() + webUrl, Headers.of(item.getHeaders())).execute().body().string();
+        String parseUrl = item.getUrl();
+        if (!parseUrl.startsWith("http")){
+            parseUrl = AESUtil.decrypt(parseUrl, CustomUtil.KEY, CustomUtil.IV);
+            if (parseUrl.contains("lyyyyt.php")){
+                webUrl = AESUtil.encrypt(webUrl, CustomUtil.KEY, CustomUtil.IV);
+            }
+        }
+        System.out.println("parseUrl: "+parseUrl+webUrl);
+        String body = OkHttp.newCall(parseUrl+webUrl, Headers.of(item.getHeaders())).execute().body().string();
+        if (!body.contains("url")) body = AESUtil.decrypt(body, CustomUtil.KEY, CustomUtil.IV);
         JsonObject object = Json.parse(body).getAsJsonObject();
         String url = Json.safeString(object, "url");
         JsonObject data = object.getAsJsonObject("data");
