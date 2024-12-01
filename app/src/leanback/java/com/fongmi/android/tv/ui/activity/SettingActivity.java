@@ -26,6 +26,7 @@ import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.ConfigCallback;
 import com.fongmi.android.tv.impl.DohCallback;
 import com.fongmi.android.tv.impl.JxtokenCallback;
+import com.fongmi.android.tv.impl.StorePWDCallback;
 import com.fongmi.android.tv.impl.LiveCallback;
 import com.fongmi.android.tv.impl.ProxyCallback;
 import com.fongmi.android.tv.impl.SiteCallback;
@@ -38,6 +39,7 @@ import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.JxtokenDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.ProxyDialog;
+import com.fongmi.android.tv.ui.dialog.PwdDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.utils.CustomUtil;
 import com.fongmi.android.tv.utils.FileUtil;
@@ -58,7 +60,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SettingActivity extends BaseActivity implements ConfigCallback, SiteCallback, LiveCallback, DohCallback, ProxyCallback, JxtokenCallback {
+public class SettingActivity extends BaseActivity implements ConfigCallback, SiteCallback, LiveCallback, DohCallback, ProxyCallback, JxtokenCallback, StorePWDCallback {
 
     private ActivitySettingBinding mBinding;
     private String[] backup;
@@ -94,6 +96,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.proxyText.setText(UrlUtil.scheme(Setting.getProxy()));
         mBinding.backupText.setText((backup = ResUtil.getStringArray(R.array.select_backup))[Setting.getBackupMode()]);
         mBinding.jxtokenText.setText(Setting.getJxtoken());
+        mBinding.pwdText.setText(Setting.getStoredPWD());
         mBinding.aboutText.setText(CustomUtil.getTitle());
         mBinding.removeAdText.setText(getSwitch(Setting.isRemoveAd()));
         mBinding.headerTv.setText(CustomUtil.getPrefix());
@@ -138,6 +141,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.wall.setOnClickListener(this::onWall);
         mBinding.proxy.setOnClickListener(this::onProxy);
         mBinding.jxtoken.setOnClickListener(this::onJxtoken);
+        mBinding.storedPWD.setOnClickListener(this::onStoredPWD);
         mBinding.cache.setOnClickListener(this::onCache);
         mBinding.cache.setOnLongClickListener(this::onCacheLongClick);
         mBinding.backup.setOnClickListener(this::onBackup);
@@ -147,7 +151,8 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.version.setOnClickListener(this::onVersion);
         mBinding.vod.setOnLongClickListener(this::onVodEdit);
         mBinding.vodHome.setOnClickListener(this::onVodHome);
-        mBinding.live.setOnLongClickListener(this::onLiveEdit);        mBinding.liveHome.setOnClickListener(this::onLiveHome);
+        mBinding.live.setOnLongClickListener(this::onLiveEdit);
+        mBinding.liveHome.setOnClickListener(this::onLiveHome);
         mBinding.wall.setOnLongClickListener(this::onWallEdit);
         mBinding.backup.setOnLongClickListener(this::onBackupMode);
         mBinding.vodHistory.setOnClickListener(this::onVodHistory);
@@ -361,9 +366,17 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         JxtokenDialog.create(this).show();
     }
 
+    private void onStoredPWD(View view) {
+        PwdDialog.create(this).show();
+    }
+
     @Override
     public void setJxtoken(String jxToken) {
         mBinding.jxtokenText.setText(jxToken);
+    }
+
+    public void setStorePWD(String pwd) {
+        mBinding.pwdText.setText(pwd);
     }
 
     private void onCache(View view) {
