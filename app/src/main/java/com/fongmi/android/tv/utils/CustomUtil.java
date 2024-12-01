@@ -15,6 +15,9 @@ import com.google.gson.JsonParser;
 public class CustomUtil {
 
     public static final String CHECK_URL = "http://47.109.61.116:86/config/check.txt";
+    public static final String UNIFY_URL = "http://47.109.61.116:86/unify.json";
+    public static final String KEY = "cd88867890abcdef1234567890amy666";
+    public static final String IV = "cdmyef1234567890";
 
     public static void clearCache(){
         JsonArray keysToDelete = new JsonArray();
@@ -100,10 +103,9 @@ public class CustomUtil {
             @Override
             public void run() {
                 String data;
-                if (isUrlReachable(CHECK_URL, 5000)) {
+                if (isUrlReachable(CHECK_URL, 1000)) {
                     System.out.println("APP - 服务正常");
-                    String url = "http://47.109.61.116:86/unify.json";
-                    data = OkHttp.string(url);
+                    data = OkHttp.string(CustomUtil.UNIFY_URL);
                 } else {
                     System.out.println("APP - 服务离线中");
                     data = "";
