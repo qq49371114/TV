@@ -72,7 +72,7 @@
 
     <!-- Setting -->
     <string name="setting_vod">點播</string>
-    <string name="setting_live">直播</string>
+    <string name="setting_live">直播(需自行配置)</string>
     <string name="setting_wall">壁紙</string>
     <string name="setting_player">播放設定</string>
     <string name="setting_danmu">彈幕設定</string>
@@ -97,7 +97,8 @@
     <string name="setting_home_buttons">首頁按鈕</string>
     <string name="setting_doh">DoH</string>
     <string name="setting_proxy">Proxy</string>
-    <string name="setting_jxtoken">JxToken</string>
+    <string name="setting_jxtoken">广告解析密鑰</string>
+    <string name="setting_storedPWD">登錄密鑰</string>
     <string name="setting_cache">暫存</string>
     <string name="setting_backup">備份</string>
     <string name="setting_restore">恢復</string>
@@ -150,8 +151,8 @@
     <string name="dialog_reset_app_data">所有數據將會被重置，App即將被關閉.</string>
     <string name="dialog_restore">還原備份資料？</string>
     <string name="dialog_restore_msg">將會還原配置、觀看紀錄及各項設定。</string>
-<!--    <string name="dialog_welcome_title">影視</string>-->
-<!--    <string name="dialog_welcome_message">\n本APP为免费开源项目，仅供测试，请勿付费购买！\n\n播放时若出现广告均为三方插入, 与本程序无关，请勿上当!</string>-->
+<!--    <string name="dialog_welcome_title">公众号:插兜的干货仓库</string>-->
+<!--    <string name="dialog_welcome_message">\n本APP以均为免费开源项目，仅供测试，请勿付费购买！\n\n播放时若出现广告均为三方插入, 与本程序无关，请勿上当!</string>-->
 
     <!-- Error -->
     <string name="error_config_get">配置取得失敗</string>
@@ -192,15 +193,16 @@
     <string name="all">全部</string>
     <string name="times">倍</string>
     <string name="lines">行</string>
-    <string name="hint">關注影視</string>
-    <string name="tv"></string>
-    <string name="tvDes">本APP為免費開源項目，僅供測試，請勿付費購買！\n\n播放時若出現廣吿均為三方插入, 與本程序無關，請勿上當!\n</string>
+    <string name="hint">關注公衆號, 免費獲取</string>
+    <string name="tv">公瑾TV</string>
+    <string name="tvDes">本APP以及「倉庫」均為免費開源項目，僅供測試，請勿付費購買！\n\n播放時若出現廣吿均為三方插入, 與本程序無關，請勿上當!\n</string>
     <string name="vodHomeDes">返回線路主頁</string>
     <string name="vodHistoryDes">返回線路歷史</string>
-    <string name="jxtokenText">解析token: 用于广告过滤</string>
-    <string name="reportButtonText">点我上报</string>
-    <string name="reportTips">如果使用解析后，仍然无法过滤广告,点击下面的按钮上报问题.</string>
-    <string name="qrcode">关注: 影視</string>
+    <string name="jxtokenText">解析token: 用於廣吿過濾,</string>
+    <string name="pwdText">輸入密鑰</string>
+    <string name="reportButtonText">點我上報</string>
+    <string name="reportTips">如果使用解析後，仍然無法過濾廣吿,點擊下面的按鈕上報問題.</string>
+    <string name="qrcode">影視</string>
 
     <string-array name="select_backup">
         <item>自動</item>
