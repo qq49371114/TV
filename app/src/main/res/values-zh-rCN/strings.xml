@@ -97,7 +97,8 @@
     <string name="setting_home_buttons">首页按钮</string>
     <string name="setting_doh">DoH</string>
     <string name="setting_proxy">Proxy</string>
-    <string name="setting_jxtoken">JxToken</string>
+    <string name="setting_jxtoken">解析密钥</string>
+    <string name="setting_storedPWD">登录密钥</string>
     <string name="setting_cache">缓存</string>
     <string name="setting_backup">备份</string>
     <string name="setting_restore">恢复</string>
@@ -151,7 +152,7 @@
     <string name="dialog_restore">还原备份数据？</string>
     <string name="dialog_restore_msg">将会还原配置、观看纪录及各项设置。</string>
 <!--    <string name="dialog_welcome_title">影视</string>-->
-<!--    <string name="dialog_welcome_message">\n本APP均为免费开源项目，仅供测试，请勿付费购买！\n\n播放时若出现广告均为三方插入, 与本程序无关，请勿上当!</string>-->
+<!--    <string name="dialog_welcome_message">\n本APP以及「仓库」均为免费开源项目，仅供测试，请勿付费购买！\n\n播放时若出现广告均为三方插入, 与本程序无关，请勿上当!</string>-->
 
     <!-- Error -->
     <string name="error_config_get">配置取得失败</string>
@@ -166,7 +167,7 @@
     <string name="error_empty">找不到数据</string>
 
     <!-- Update -->
-    <string name="update_version">影视: 发现新版本 <xliff:g name="name">%s</xliff:g></string>
+    <string name="update_version">发现新版本 <xliff:g name="name">%s</xliff:g></string>
     <string name="update_check">正在检查更新... </string>
     <string name="update_confirm">更新</string>
 
@@ -192,15 +193,16 @@
     <string name="all">全部</string>
     <string name="times">倍</string>
     <string name="lines">行</string>
-    <string name="hint">关注影视</string>
+    <string name="hint">影视app</string>
     <string name="tv">影视</string>
-    <string name="tvDes">本APP免费开源项目，仅供测试，请勿付费购买！\n\n播放时若出现广告均为三方插入, 与本程序无关，请勿上当!\n</string>
+    <string name="tvDes">本APP以及「仓库」均为免费开源项目，仅供测试，请勿付费购买！\n\n播放时若出现广告均为三方插入, 与本程序无关，请勿上当!\n</string>
     <string name="vodHomeDes">返回线路主页</string>
     <string name="vodHistoryDes">返回线路历史</string>
     <string name="jxtokenText">解析token: 用于广告过滤</string>
+    <string name="pwdText">输入密匙</string>
     <string name="reportButtonText">点我上报</string>
     <string name="reportTips">如果使用解析后，仍然无法过滤广告，点击下面的按钮上报问题。</string>
-    <string name="qrcode">关注: 影视app</string>
+    <string name="qrcode">影视</string>
 
     <string-array name="select_backup">
         <item>自动</item>
