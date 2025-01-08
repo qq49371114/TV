@@ -151,7 +151,7 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
 
     @Override
     public void onFind(List<Device> devices) {
-        if (devices.size() > 0) adapter.addAll(devices);
+        if (!devices.isEmpty()) adapter.addAll(devices);
     }
 
     @Override

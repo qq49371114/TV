@@ -47,7 +47,7 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
         if (changeSpeed && e.getAction() == MotionEvent.ACTION_UP) listener.onSpeedEnd();
         if (changeBright && e.getAction() == MotionEvent.ACTION_UP) listener.onBrightEnd();
         if (changeVolume && e.getAction() == MotionEvent.ACTION_UP) listener.onVolumeEnd();
-        return detector.onTouchEvent(e);
+        return e.getPointerCount() == 1 && detector.onTouchEvent(e);
     }
 
     public void setLock(boolean lock) {
@@ -55,7 +55,7 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
     }
 
     private boolean isEdge(MotionEvent e) {
-        return ResUtil.isEdge(e, ResUtil.dp2px(32));
+        return ResUtil.isEdge(activity, e, ResUtil.dp2px(40));
     }
 
     @Override
@@ -115,7 +115,7 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
     }
 
     private void checkSide(MotionEvent e2) {
-        int half = ResUtil.getScreenWidthNav() / 2;
+        int half = ResUtil.getScreenWidth(activity) / 2;
         if (e2.getX() > half) changeVolume = true;
         else changeBright = true;
     }

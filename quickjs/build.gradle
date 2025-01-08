@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace 'com.fongmi.quickjs'
+    namespace 'com.fongmi.android.tv.quickjs'
 
     compileSdk 35
 
@@ -19,7 +19,7 @@ android {
 
 dependencies {
     implementation project(':catvod')
-    implementation 'org.jsoup:jsoup:' + jsoupVersion
+    implementation 'org.jsoup:jsoup:1.15.3'
     implementation 'net.sourceforge.streamsupport:android-retrofuture:1.7.4'
     implementation(ext: 'jar', name: 'wrapper-java', group: 'fongmi', version: 'release')
     implementation(ext: 'aar', name: 'wrapper-android-release', group: 'fongmi', version: 'release')

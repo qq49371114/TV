@@ -3,6 +3,7 @@ package com.github.catvod.net.interceptor;
 import androidx.annotation.NonNull;
 
 import com.github.catvod.Proxy;
+import com.github.catvod.net.OkCookieJar;
 import com.github.catvod.utils.Util;
 import com.google.common.net.HttpHeaders;
 
@@ -30,6 +31,7 @@ public class RequestInterceptor implements Interceptor {
     public Response intercept(@NonNull Chain chain) throws IOException {
         Request request = chain.request();
         String url = request.url().toString();
+        OkCookieJar.sync(url, request.header(HttpHeaders.COOKIE));
         boolean local = url.contains(":" + Proxy.getPort() + "/");
         Request.Builder builder = request.newBuilder();
         if (url.contains("+") && local) builder.url(url.replace("+", "%2B"));
@@ -41,9 +43,10 @@ public class RequestInterceptor implements Interceptor {
     private void checkAuthUser(HttpUrl url, Request.Builder builder) {
         String user = url.uri().getUserInfo();
         String auth = url.queryParameter("auth");
+        String query = url.querySize() == 0 ? "?" : "&";
         if (user != null) userMap.put(url.host(), user);
         if (auth != null) authMap.put(url.host(), auth);
-        if (authMap.containsKey(url.host()) && auth == null) builder.url(url + (url.querySize() == 0 ? "?" : "&") + "auth=" + authMap.get(url.host()));
+        if (authMap.containsKey(url.host()) && auth == null) builder.url(url + query + "auth=" + authMap.get(url.host()));
         if (userMap.containsKey(url.host())) builder.header(HttpHeaders.AUTHORIZATION, Util.basic(userMap.get(url.host())));
     }
 }

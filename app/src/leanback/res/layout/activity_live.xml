@@ -18,14 +18,8 @@
             android:id="@+id/exo"
             style="@style/Player.Live"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <tv.danmaku.ijk.media.player.ui.IjkVideoView
-            android:id="@+id/ijk"
-            style="@style/Player.Live"
-            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:visibility="gone" />
+            app:surface_type="surface_view" />
 
     </FrameLayout>
 
@@ -34,13 +28,6 @@
         layout="@layout/view_widget_live"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-
-    <include
-        android:id="@+id/display"
-        layout="@layout/view_widget_display"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone" />
 
     <include
         android:id="@+id/control"

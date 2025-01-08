@@ -3,8 +3,10 @@ package com.fongmi.android.tv.service;
 import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
+import android.content.pm.ServiceInfo;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.v4.media.MediaMetadataCompat;
 
@@ -14,6 +16,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.ServiceCompat;
 import androidx.core.content.ContextCompat;
 import androidx.media.app.NotificationCompat.MediaStyle;
 import androidx.media.session.MediaButtonReceiver;
@@ -156,7 +159,8 @@ public class PlaybackService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (nonNull()) MediaButtonReceiver.handleIntent(player.getSession(), intent);
-        startForeground(Notify.ID, buildNotification());
+        int type = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK : 0;
+        ServiceCompat.startForeground(this, Notify.ID, buildNotification(), type);
         return START_NOT_STICKY;
     }
 

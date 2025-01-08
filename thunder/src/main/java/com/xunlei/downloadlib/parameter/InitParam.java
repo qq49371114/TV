@@ -10,10 +10,10 @@ public class InitParam {
 
     public String mAppKey;
     public String mAppVersion;
-    public int mPermissionLevel;
-    public int mQueryConfOnInit;
     public String mStatSavePath;
     public String mStatCfgSavePath;
+    public int mQueryConfOnInit;
+    public int mPermissionLevel;
 
     public InitParam(String path) {
         this.mAppKey = "xzNjAwMQ^^yb==0^852^083dbcff^cee25055f125a2fde";

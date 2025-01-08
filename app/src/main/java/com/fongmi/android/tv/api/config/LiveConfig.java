@@ -8,6 +8,7 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.Decoder;
 import com.fongmi.android.tv.api.LiveParser;
+import com.fongmi.android.tv.api.XtreamParser;
 import com.fongmi.android.tv.api.loader.BaseLoader;
 import com.fongmi.android.tv.bean.Channel;
 import com.fongmi.android.tv.bean.Config;
@@ -113,7 +114,8 @@ public class LiveConfig {
 
     private void loadConfig(Callback callback) {
         try {
-            parseConfig(Decoder.getJson(config.getUrl()), callback);
+            boolean xtream = XtreamParser.isApiUrl(config.getUrl());
+            parseConfig(xtream ? "" : Decoder.getJson(config.getUrl()), callback);
         } catch (Throwable e) {
             if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
             else App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
@@ -130,7 +132,7 @@ public class LiveConfig {
     }
 
     private void parseText(String text, Callback callback) {
-        Live live = new Live(parseName(config.getUrl()), config.getUrl()).sync();
+        Live live = new Live(parseName(config.getUrl()), config.getUrl()).check().sync();
         LiveParser.text(live, text);
         lives.add(live);
         setHome(live, true);
@@ -185,7 +187,7 @@ public class LiveConfig {
             live.setApi(parseApi(live.getApi()));
             live.setExt(parseExt(live.getExt()));
             live.setJar(parseJar(live, spider));
-            lives.add(live.sync());
+            lives.add(live.check().sync());
         }
         for (Live live : lives) {
             if (live.getName().equals(config.getHome())) {
@@ -226,8 +228,7 @@ public class LiveConfig {
     }
 
     public void setKeep(Channel channel) {
-        if (home == null || channel.getGroup().isHidden() || channel.getUrls().isEmpty()) return;
-        Setting.putKeep(home.getName() + AppDatabase.SYMBOL + channel.getGroup().getName() + AppDatabase.SYMBOL + channel.getName() + AppDatabase.SYMBOL + channel.getCurrent());
+        if (home != null && !channel.getGroup().isHidden()) home.keep(channel).save();
     }
 
     public void setKeep(List<Group> items) {
@@ -244,13 +245,13 @@ public class LiveConfig {
     }
 
     public int[] find(List<Group> items) {
-        String[] splits = Setting.getKeep().split(AppDatabase.SYMBOL);
-        if (splits.length < 4 || !getHome().getName().equals(splits[0])) return new int[]{1, 0};
+        String[] splits = getHome().getKeep().split(AppDatabase.SYMBOL);
+        if (splits.length < 2) return new int[]{1, 0};
         for (int i = 0; i < items.size(); i++) {
             Group group = items.get(i);
-            if (group.getName().equals(splits[1])) {
-                int j = group.find(splits[2]);
-                if (j != -1 && splits.length == 4) group.getChannel().get(j).setLine(splits[3]);
+            if (group.getName().equals(splits[0])) {
+                int j = group.find(splits[1]);
+                if (j != -1 && splits.length > 2) group.getChannel().get(j).setLine(splits[2]);
                 if (j != -1) return new int[]{i, j};
             }
         }

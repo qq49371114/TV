@@ -7,7 +7,6 @@ import android.view.View;
 
 import androidx.viewbinding.ViewBinding;
 
-import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.BuildConfig;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
@@ -21,7 +20,6 @@ import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.ActivitySettingBinding;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.event.RefreshEvent;
-import com.fongmi.android.tv.impl.BackupCallback;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.ConfigCallback;
 import com.fongmi.android.tv.impl.DohCallback;
@@ -30,12 +28,12 @@ import com.fongmi.android.tv.impl.ProxyCallback;
 import com.fongmi.android.tv.impl.SiteCallback;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.ui.base.BaseActivity;
-import com.fongmi.android.tv.ui.dialog.BackupDialog;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
 import com.fongmi.android.tv.ui.dialog.DohDialog;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.ProxyDialog;
+import com.fongmi.android.tv.ui.dialog.RestoreDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
@@ -45,21 +43,26 @@ import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
 import com.permissionx.guolindev.PermissionX;
 
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SettingActivity extends BaseActivity implements BackupCallback, ConfigCallback, SiteCallback, LiveCallback, DohCallback, ProxyCallback {
+public class SettingActivity extends BaseActivity implements ConfigCallback, SiteCallback, LiveCallback, DohCallback, ProxyCallback {
 
     private ActivitySettingBinding mBinding;
-    private String[] backup;
+    private String[] quality;
+    private String[] size;
     private int type;
 
     public static void start(Activity activity) {
         activity.startActivity(new Intent(activity, SettingActivity.class));
+    }
+
+    private String getSwitch(boolean value) {
+        return getString(value ? R.string.setting_on : R.string.setting_off);
+    }
+
+    private String getProxy(String proxy) {
+        return proxy.isEmpty() ? getString(R.string.none) : UrlUtil.scheme(proxy);
     }
 
     private int getDohIndex() {
@@ -83,12 +86,17 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
         mBinding.vodUrl.setText(VodConfig.getDesc());
         mBinding.liveUrl.setText(LiveConfig.getDesc());
         mBinding.wallUrl.setText(WallConfig.getDesc());
-        mBinding.dohText.setText(getDohList()[getDohIndex()]);
         mBinding.versionText.setText(BuildConfig.VERSION_NAME);
-        mBinding.proxyText.setText(UrlUtil.scheme(Setting.getProxy()));
-        mBinding.backupText.setText((backup = ResUtil.getStringArray(R.array.select_backup))[Setting.getBackupMode()]);
-        mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
         setCacheText();
+        setOtherText();
+    }
+
+    private void setOtherText() {
+        mBinding.dohText.setText(getDohList()[getDohIndex()]);
+        mBinding.proxyText.setText(getProxy(Setting.getProxy()));
+        mBinding.incognitoText.setText(getSwitch(Setting.isIncognito()));
+        mBinding.sizeText.setText((size = ResUtil.getStringArray(R.array.select_size))[Setting.getSize()]);
+        mBinding.qualityText.setText((quality = ResUtil.getStringArray(R.array.select_quality))[Setting.getQuality()]);
     }
 
     private void setCacheText() {
@@ -107,26 +115,24 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
         mBinding.wall.setOnClickListener(this::onWall);
         mBinding.proxy.setOnClickListener(this::onProxy);
         mBinding.cache.setOnClickListener(this::onCache);
-        mBinding.cache.setOnLongClickListener(this::onCacheLongClick);
         mBinding.backup.setOnClickListener(this::onBackup);
-        mBinding.restore.setOnClickListener(this::onRestore);
         mBinding.player.setOnClickListener(this::onPlayer);
-        mBinding.danmu.setOnClickListener(this::onDanmu);
+        mBinding.restore.setOnClickListener(this::onRestore);
         mBinding.version.setOnClickListener(this::onVersion);
         mBinding.vod.setOnLongClickListener(this::onVodEdit);
         mBinding.vodHome.setOnClickListener(this::onVodHome);
         mBinding.live.setOnLongClickListener(this::onLiveEdit);
         mBinding.liveHome.setOnClickListener(this::onLiveHome);
         mBinding.wall.setOnLongClickListener(this::onWallEdit);
-        mBinding.backup.setOnLongClickListener(this::onBackupMode);
         mBinding.vodHistory.setOnClickListener(this::onVodHistory);
         mBinding.version.setOnLongClickListener(this::onVersionDev);
         mBinding.liveHistory.setOnClickListener(this::onLiveHistory);
         mBinding.wallDefault.setOnClickListener(this::setWallDefault);
         mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
-        mBinding.custom.setOnClickListener(this::onCustom);
+        mBinding.incognito.setOnClickListener(this::setIncognito);
+        mBinding.quality.setOnClickListener(this::setQuality);
+        mBinding.size.setOnClickListener(this::setSize);
         mBinding.doh.setOnClickListener(this::setDoh);
-        mBinding.about.setOnClickListener(this::onAbout);
     }
 
     @Override
@@ -142,23 +148,23 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
         switch (config.getType()) {
             case 0:
                 Notify.progress(this);
-                VodConfig.load(config, getCallback());
+                VodConfig.load(config, getCallback(0));
                 mBinding.vodUrl.setText(config.getDesc());
                 break;
             case 1:
                 Notify.progress(this);
-                LiveConfig.load(config, getCallback());
+                LiveConfig.load(config, getCallback(1));
                 mBinding.liveUrl.setText(config.getDesc());
                 break;
             case 2:
                 Notify.progress(this);
-                WallConfig.load(config, getCallback());
+                WallConfig.load(config, getCallback(2));
                 mBinding.wallUrl.setText(config.getDesc());
                 break;
         }
     }
 
-    private Callback getCallback() {
+    private Callback getCallback(int type) {
         return new Callback() {
             @Override
             public void success(String result) {
@@ -167,32 +173,38 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
 
             @Override
             public void success() {
-                setConfig();
+                setConfig(type);
             }
 
             @Override
             public void error(String msg) {
                 Notify.show(msg);
-                setConfig();
+                setConfig(type);
             }
         };
     }
 
-    private void setConfig() {
+    private void setConfig(int type) {
         switch (type) {
             case 0:
+                setCacheText();
                 Notify.dismiss();
-                RefreshEvent.history();
-                RefreshEvent.config();
                 RefreshEvent.video();
+                RefreshEvent.config();
+                RefreshEvent.history();
+                mBinding.vodUrl.setText(VodConfig.getDesc());
+                mBinding.liveUrl.setText(LiveConfig.getDesc());
+                mBinding.wallUrl.setText(WallConfig.getDesc());
                 break;
             case 1:
+                setCacheText();
                 Notify.dismiss();
-                RefreshEvent.config();
+                mBinding.liveUrl.setText(LiveConfig.getDesc());
                 break;
             case 2:
+                setCacheText();
                 Notify.dismiss();
-                RefreshEvent.config();
+                mBinding.wallUrl.setText(WallConfig.getDesc());
                 break;
         }
     }
@@ -259,10 +271,6 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
         SettingPlayerActivity.start(this);
     }
 
-    private void onDanmu(View view) {
-        SettingDanmuActivity.start(this);
-    }
-
     private void onVersion(View view) {
         Updater.get().force().release().start(this);
     }
@@ -287,12 +295,23 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
         });
     }
 
-    private void onCustom(View view) {
-        SettingCustomActivity.start(this);
+    private void setIncognito(View view) {
+        Setting.putIncognito(!Setting.isIncognito());
+        mBinding.incognitoText.setText(getSwitch(Setting.isIncognito()));
     }
 
-    private void onAbout(View view) {
-        mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
+    private void setQuality(View view) {
+        int index = Setting.getQuality();
+        Setting.putQuality(index = index == quality.length - 1 ? 0 : ++index);
+        mBinding.qualityText.setText(quality[index]);
+        RefreshEvent.image();
+    }
+
+    private void setSize(View view) {
+        int index = Setting.getSize();
+        Setting.putSize(index = index == size.length - 1 ? 0 : ++index);
+        mBinding.sizeText.setText(size[index]);
+        RefreshEvent.size();
     }
 
     private void setDoh(View view) {
@@ -306,7 +325,7 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
         Notify.progress(getActivity());
         Setting.putDoh(doh.toString());
         mBinding.dohText.setText(doh.getName());
-        VodConfig.load(Config.vod(), getCallback());
+        VodConfig.load(Config.vod(), getCallback(0));
     }
 
     private void onProxy(View view) {
@@ -317,95 +336,55 @@ public class SettingActivity extends BaseActivity implements BackupCallback, Con
     public void setProxy(String proxy) {
         Source.get().stop();
         Setting.putProxy(proxy);
-        OkHttp.selector().clear();
         OkHttp.get().setProxy(proxy);
         Notify.progress(getActivity());
-        VodConfig.load(Config.vod(), getCallback());
-        mBinding.proxyText.setText(UrlUtil.scheme(proxy));
+        mBinding.proxyText.setText(getProxy(proxy));
+        VodConfig.load(Config.vod(), getCallback(0));
     }
 
     private void onCache(View view) {
         FileUtil.clearCache(new Callback() {
             @Override
             public void success() {
-                VodConfig.get().getConfig().json("").save();
                 setCacheText();
             }
         });
-    }
-
-    private boolean onCacheLongClick(View view) {
-        FileUtil.clearCache(new Callback() {
-            @Override
-            public void success() {
-                setCacheText();
-                Config config = VodConfig.get().getConfig().json("").save();
-                if (!config.isEmpty()) setConfig(config);
-            }
-        });
-        return true;
-    }
-
-    @Override
-    public void restore(File file) {
-        PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> AppDatabase.restore(file, new Callback() {
-            @Override
-            public void success() {
-                if (allGranted) {
-                    Notify.progress(getActivity());
-                    App.post(() -> {
-                        AppDatabase.reset();
-                        initConfig();
-                    }, 3000);
-                }
-            }
-        }));
-    }
-
-    private void onRestore(View view) {
-        PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> {
-            if (allGranted) BackupDialog.create(this).show();
-        });
-    }
-
-    private void initConfig() {
-        WallConfig.get().init();
-        LiveConfig.get().init().load();
-        VodConfig.get().init().load(getCallback());
     }
 
     private void onBackup(View view) {
         PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> AppDatabase.backup(new Callback() {
             @Override
-            public void success(String path) {
-                Notify.show(R.string.backed);
+            public void success() {
+                Notify.show(R.string.backup_success);
+            }
+
+            @Override
+            public void error() {
+                Notify.show(R.string.backup_fail);
             }
         }));
     }
 
-    private boolean onBackupMode(View view) {
-        int index = Setting.getBackupMode();
-        Setting.putBackupMode(index = index == backup.length - 1 ? 0 : ++index);
-        mBinding.backupText.setText(backup[index]);
-        return true;
+    private void onRestore(View view) {
+        PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> RestoreDialog.create(this).show(new Callback() {
+            @Override
+            public void success() {
+                Notify.show(R.string.restore_success);
+                Notify.progress(getActivity());
+                setOtherText();
+                initConfig();
+            }
+
+            @Override
+            public void error() {
+                Notify.show(R.string.restore_fail);
+            }
+        }));
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onRefreshEvent(RefreshEvent event) {
-        super.onRefreshEvent(event);
-        switch (event.getType()) {
-            case CONFIG:
-                setCacheText();
-                mBinding.vodUrl.setText(VodConfig.getDesc());
-                mBinding.liveUrl.setText(LiveConfig.getDesc());
-                mBinding.wallUrl.setText(WallConfig.getDesc());
-                break;
-        }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        RefreshEvent.history();
+    private void initConfig() {
+        WallConfig.get().init();
+        LiveConfig.get().init().load();
+        VodConfig.get().init().load(getCallback(0));
     }
 }

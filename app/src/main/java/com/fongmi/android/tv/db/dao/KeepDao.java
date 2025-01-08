@@ -10,6 +10,9 @@ import java.util.List;
 @Dao
 public abstract class KeepDao extends BaseDao<Keep> {
 
+    @Query("SELECT * FROM Keep")
+    public abstract List<Keep> findAll();
+
     @Query("SELECT * FROM Keep WHERE type = 0 ORDER BY createTime DESC")
     public abstract List<Keep> getVod();
 

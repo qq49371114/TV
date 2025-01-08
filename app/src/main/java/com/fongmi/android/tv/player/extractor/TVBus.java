@@ -1,14 +1,20 @@
 package com.fongmi.android.tv.player.extractor;
 
+import android.net.Uri;
+
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.bean.Core;
 import com.fongmi.android.tv.exception.ExtractException;
 import com.fongmi.android.tv.player.Source;
+import com.github.catvod.net.OkHttp;
+import com.github.catvod.utils.Path;
 import com.google.gson.JsonObject;
 import com.tvbus.engine.Listener;
 import com.tvbus.engine.TVCore;
+
+import java.io.File;
 
 public class TVBus implements Source.Extractor, Listener {
 
@@ -22,19 +28,29 @@ public class TVBus implements Source.Extractor, Listener {
     }
 
     private void init(Core core) {
-        App.get().setHook(core.hook());
-        tvcore = new TVCore(core.getSo());
-        tvcore.auth(core.getAuth()).broker(core.getBroker());
-        tvcore.name(core.getName()).pass(core.getPass());
-        tvcore.serv(0).play(8902).mode(1).listener(this);
-        App.get().setHook(false);
+        App.get().setHook(core.getHook());
+        tvcore = new TVCore(getPath(core.getSo())).listener(this);
+        tvcore.auth(core.getAuth()).name(core.getName()).pass(core.getPass());
+        tvcore.domain(core.getDomain()).broker(core.getBroker()).serv(0).play(8902).mode(1);
         tvcore.init();
+    }
+
+    private String getPath(String url) {
+        try {
+            File file = new File(Path.so(), Uri.parse(url).getLastPathSegment());
+            if (file.length() < 10240) Path.write(file, OkHttp.newCall(url).execute().body().bytes());
+            return file.getAbsolutePath();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
     }
 
     @Override
     public String fetch(String url) throws Exception {
         if (core != null && !core.equals(LiveConfig.get().getHome().getCore())) change();
         if (tvcore == null) init(core = LiveConfig.get().getHome().getCore());
+        App.get().setHook(null);
         tvcore.start(url);
         onWait();
         onCheck();
@@ -42,7 +58,7 @@ public class TVBus implements Source.Extractor, Listener {
     }
 
     private void onCheck() throws Exception {
-        if (hls.startsWith("-")) throw new ExtractException("Error Code : " + hls);
+        if (hls.startsWith("-")) throw new ExtractException("Error code: " + hls);
     }
 
     private void onWait() throws InterruptedException {

@@ -32,21 +32,8 @@ public class Path {
         return Environment.getExternalStorageDirectory();
     }
 
-    public static File download() {
-        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-    }
-
     public static File cache() {
         return Init.context().getCacheDir();
-    }
-
-    public static File thunderCache() {
-        File internal = Init.context().getCacheDir();
-        String dir = Prefers.getString("thunder_cache_dir", internal.getAbsolutePath());
-        if (dir.equals(internal.getAbsolutePath())) return internal;
-        File cache = new File(dir);
-        if (!cache.exists()) return internal;
-        return cache;
     }
 
     public static File files() {
@@ -55,10 +42,6 @@ public class Path {
 
     public static String rootPath() {
         return root().getAbsolutePath();
-    }
-
-    public static String downloadPath() {
-        return download().getAbsolutePath();
     }
 
     public static File tv() {
@@ -94,15 +77,11 @@ public class Path {
     }
 
     public static File jpa() {
-        return mkdir(new File(thunderCache() + File.separator + "jpa"));
+        return mkdir(new File(cache() + File.separator + "jpa"));
     }
 
     public static File thunder() {
-        return mkdir(new File(thunderCache() + File.separator + "thunder"));
-    }
-
-    public static File restore() {
-        return mkdir(new File(cache() + File.separator + "restore"));
+        return mkdir(new File(cache() + File.separator + "thunder"));
     }
 
     public static File root(String name) {
@@ -238,6 +217,7 @@ public class Path {
 
     public static File create(File file) throws Exception {
         try {
+            if (file.getParentFile() != null) mkdir(file.getParentFile());
             if (!file.canWrite()) file.setWritable(true);
             if (!file.exists()) file.createNewFile();
             Shell.exec("chmod 777 " + file);

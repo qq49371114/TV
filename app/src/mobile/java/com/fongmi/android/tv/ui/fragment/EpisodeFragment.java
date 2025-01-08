@@ -25,10 +25,6 @@ public class EpisodeFragment extends BaseFragment implements EpisodeAdapter.OnCl
     private FragmentEpisodeBinding mBinding;
     private SiteViewModel mViewModel;
 
-    private boolean getDownload() {
-        return getArguments().getBoolean("download");
-    }
-
     private int getSpanCount() {
         return getArguments().getInt("spanCount");
     }
@@ -38,12 +34,7 @@ public class EpisodeFragment extends BaseFragment implements EpisodeAdapter.OnCl
     }
 
     public static EpisodeFragment newInstance(int spanCount, List<Episode> items) {
-        return newInstance(spanCount, items, false);
-    }
-
-    public static EpisodeFragment newInstance(int spanCount, List<Episode> items, boolean download) {
         Bundle args = new Bundle();
-        args.putBoolean("download", download);
         args.putInt("spanCount", spanCount);
         args.putParcelableArrayList("items", new ArrayList<>(items));
         EpisodeFragment fragment = new EpisodeFragment();
@@ -77,7 +68,6 @@ public class EpisodeFragment extends BaseFragment implements EpisodeAdapter.OnCl
 
     @Override
     public void onItemClick(Episode item) {
-        if (getDownload()) mViewModel.setDownload(item);
-        else mViewModel.setEpisode(item);
+        mViewModel.setEpisode(item);
     }
 }

@@ -1,8 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools" xmlns:xliff="http://schemas.android.com/apk/res-auto" tools:ignore="MissingTranslation">
 
     <!-- App -->
-    <string name="app_name">OKTV</string>
-    <string name="app_exit">Press back again to exit</string>
+    <string name="app_name">TV</string>
 
     <!-- Vod -->
     <string name="vod_last">Last seen <xliff:g name="name">%s</xliff:g></string>
@@ -31,19 +30,11 @@
     <string name="play">Play</string>
     <string name="play_op">OP</string>
     <string name="play_ed">ED</string>
+    <string name="play_exo">EXO</string>
     <string name="play_next">Next</string>
     <string name="play_prev">Prev</string>
-    <string name="play_episodes">Episodes</string>
     <string name="play_loop">Loop</string>
     <string name="play_timer">Timer</string>
-    <string name="play_time">Time</string>
-    <string name="play_netspeed">Net Speed</string>
-    <string name="play_duration">Duration</string>
-    <string name="play_mini_progress">Mini</string>
-    <string name="play_video_title">Title</string>
-    <string name="play_danmu">Danmu</string>
-    <string name="play_display">Display</string>
-    <string name="play_speed">Speed</string>
     <string name="play_change">Change</string>
     <string name="play_forward">→</string>
     <string name="play_backward">←</string>
@@ -75,56 +66,35 @@
     <string name="setting_live">Live</string>
     <string name="setting_wall">Wallpaper</string>
     <string name="setting_player">Player setting</string>
-    <string name="setting_danmu">Danmu setting</string>
-    <string name="setting_custom">Custom setting</string>
-    <string name="setting_config_cache">Config cache</string>
-    <string name="setting_cache_dir">Thunder cache</string>
-    <string name="setting_reset">Reset app</string>
+    <string name="setting_incognito">Incognito mode</string>
     <string name="setting_quality">Image quality</string>
     <string name="setting_size">Image size</string>
-    <string name="setting_aggregated_search">Aggregated search</string>
-    <string name="setting_language">Lanuage setting</string>
-    <string name="setting_parse_webview">Parse webview</string>
-    <string name="setting_fullscreen_menu_key">Fullscreen menu key</string>
-    <string name="setting_home_menu_key">Home menu key</string>
-    <string name="setting_home_site_lock">Home site lock</string>
-    <string name="setting_incognito">Incognito mode</string>
-    <string name="setting_site_search">Site search</string>
-    <string name="setting_remove_ad">Remove ads</string>
-    <string name="setting_small_window_back_key">Small window back key</string>
-    <string name="setting_home_display_name">Home display name</string>
-    <string name="setting_home_ui">Home ui style</string>
-    <string name="setting_home_buttons">Home buttons</string>
     <string name="setting_doh">DoH</string>
     <string name="setting_proxy">Proxy</string>
     <string name="setting_cache">Cache</string>
     <string name="setting_backup">Backup</string>
     <string name="setting_restore">Restore</string>
     <string name="setting_version">Version</string>
-    <string name="setting_about">About</string>
     <string name="setting_storage">Permission</string>
     <string name="setting_off">Off</string>
     <string name="setting_on">On</string>
 
+    <!-- Backup & Restore -->
+    <string name="restore_select">Select backup</string>
+    <string name="restore_success">Restore successful</string>
+    <string name="restore_fail">Restore failed</string>
+    <string name="backup_success">Backup successful</string>
+    <string name="backup_fail">Backup failed</string>
+
     <!-- Player -->
     <string name="player">Player</string>
-    <string name="player_decode">Decode</string>
     <string name="player_render">Render</string>
     <string name="player_scale">Scale</string>
     <string name="player_caption">Caption style</string>
-    <string name="player_play_with_others">Play with others</string>
-    <string name="player_danmu_load">Danmu load</string>
-    <string name="player_danmu_speed">Danmu speed</string>
-    <string name="player_danmu_size">Danmu size</string>
-    <string name="player_danmu_line">Danmu line</string>
-    <string name="player_danmu_alpha">Danmu alpha</string>
-    <string name="player_danmu_sync">Danmu sync</string>
     <string name="player_background">Background play</string>
-    <string name="player_flag">Flag play</string>
-    <string name="player_episode">Episode style</string>
-    <string name="player_exo_tunnel">Tunnel mode</string>
-    <string name="player_exo_http">HTTP method</string>
-    <string name="player_exo_buffer">Buffer time</string>
+    <string name="player_tunnel">Tunnel mode</string>
+    <string name="player_buffer">Buffer time</string>
+    <string name="player_speed">Press speed</string>
     <string name="player_rtsp">RTSP channel</string>
     <string name="player_ua">User-Agent</string>
 
@@ -141,13 +111,6 @@
     <string name="dialog_config_hint">Please enter the config…</string>
     <string name="dialog_config_name">Please enter the name…</string>
     <string name="dialog_config_url">Please enter the url…</string>
-    <string name="dialog_delete_record">Delete all records?</string>
-    <string name="dialog_delete_keep">All keep records will be removed.</string>
-    <string name="dialog_delete_history">All history records will be removed.</string>
-    <string name="dialog_reset_app">Reset app?</string>
-    <string name="dialog_reset_app_data">All app data will be reset, and app will be shutdown.</string>
-    <string name="dialog_restore">Restore backup data?</string>
-    <string name="dialog_restore_msg">Config, history and setting will be restored.</string>
 
     <!-- Error -->
     <string name="error_config_get">Configuration get failed</string>
@@ -155,6 +118,7 @@
     <string name="error_play_next">It\'s the last episode!</string>
     <string name="error_play_prev">It\'s the first episode!</string>
     <string name="error_play_parse">Unable to parse url</string>
+    <string name="error_play_drm_scheme">This device does not support the required DRM scheme</string>
     <string name="error_play_url">Unable to load url\nError code: <xliff:g name="name">%s</xliff:g></string>
     <string name="error_play_flag">No flag data</string>
     <string name="error_play_timeout">Timed out</string>
@@ -166,12 +130,6 @@
     <string name="update_check">Checking for updates…</string>
     <string name="update_confirm">Update</string>
 
-    <!-- X5 WebView -->
-    <string name="x5webview_title">X5 WebView</string>
-    <string name="x5webview_download_enable">Unzip X5 WebView and Enable?</string>
-    <string name="x5webview_enabled">X5 WebView Enabled</string>
-    <string name="x5webview_parsing">X5 WebView Parsing</string>
-
     <!-- Crash -->
     <string name="crash_info">An unexpected error occurred.\nSorry for the inconvenience.</string>
     <string name="crash_restart">Restart app</string>
@@ -181,35 +139,16 @@
 
     <!-- Hint -->
     <string name="copied">Copied</string>
-    <string name="backed">Backup successful</string>
-    <string name="config_refreshed">Config rereshed</string>
 
     <!-- UNIT -->
     <string name="all">All</string>
+    <string name="none">None</string>
     <string name="times">times</string>
     <string name="lines">lines</string>
-
-    <string-array name="select_backup">
-        <item>Auto</item>
-        <item>Manual</item>
-    </string-array>
 
     <string-array name="select_decode">
         <item>Soft</item>
         <item>Hard</item>
-    </string-array>
-
-    <string-array name="select_player">
-        <item>System</item>
-        <item>IJK</item>
-        <item>EXO</item>
-    </string-array>
-
-    <string-array name="select_danmu_speed">
-        <item>Super slow</item>
-        <item>Slow</item>
-        <item>Moderate</item>
-        <item>Fast</item>
     </string-array>
 
     <string-array name="select_render">
@@ -241,70 +180,6 @@
     <string-array name="select_reset">
         <item>Reset</item>
         <item>Replay</item>
-    </string-array>
-
-    <string-array name="select_exo_http">
-        <item>Default</item>
-        <item>OkHttp</item>
-    </string-array>
-
-    <string-array name="select_flag">
-        <item>Auto</item>
-        <item>Manual</item>
-    </string-array>
-
-    <string-array name="select_episode">
-        <item>Single</item>
-        <item>Multiple</item>
-    </string-array>
-
-    <string-array name="select_fullscreen_menu_key">
-        <item>Control</item>
-        <item>Episodes</item>
-    </string-array>
-
-    <string-array name="select_home_menu_key">
-        <item>Select dialog</item>
-        <item>Change site</item>
-        <item>Change config</item>
-        <item>Live page</item>
-        <item>History page</item>
-        <item>Search page</item>
-        <item>Push page</item>
-        <item>Keep page</item>
-        <item>Setting page</item>
-    </string-array>
-
-    <string-array name="select_language">
-        <item>English</item>
-        <item>Simplified Chinese</item>
-        <item>Traditional Chinese</item>
-    </string-array>
-
-    <string-array name="select_parse_webview">
-        <item>System</item>
-        <item>X5 WebView</item>
-    </string-array>
-
-    <string-array name="select_small_window_back_key">
-        <item>Back</item>
-        <item>Focus move</item>
-    </string-array>
-
-    <string-array name="select_home_recommend">
-        <item>History</item>
-        <item>Site recommend</item>
-    </string-array>
-
-    <string-array name="select_home_ui">
-        <item>Simple style</item>
-        <item>TVBox style</item>
-    </string-array>
-
-    <string-array name="select_config_cache">
-        <item>Close</item>
-        <item>12 Hour</item>
-        <item>24 Hour</item>
     </string-array>
 
     <string-array name="select_caption">

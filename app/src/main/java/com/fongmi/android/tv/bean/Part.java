@@ -1,51 +1,23 @@
 package com.fongmi.android.tv.bean;
 
-import android.text.TextUtils;
-
-import com.fongmi.android.tv.App;
-import com.google.gson.annotations.SerializedName;
-
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 public class Part {
 
-    @SerializedName("data")
-    private Data data;
-
-    public static Part objectFrom(String str) {
-        return App.gson().fromJson(str, Part.class);
-    }
-
-    public static List<String> get(String str) {
+    public static List<String> get(String source) {
         List<String> items = new ArrayList<>();
-        if (TextUtils.isEmpty(str)) return items;
-        for (Data.Word word : objectFrom(str).getData().getWords()) items.add(word.getWord());
+        items.add(source.trim());
+        if (source.contains("：")) {
+            for (String split : source.split("：")) items.add(split.trim().contains(" ") ? split.split(" ")[0].trim() : split.trim());
+        } else if (source.contains("第") && source.contains("季")) {
+            for (String split : source.split("第")) if (!split.contains("季")) items.add(split.trim().contains(" ") ? split.split(" ")[0].trim() : split.trim());
+        } else if (source.contains("(")) {
+            items.add(source.split("\\(")[0].trim());
+        } else if (source.contains(" ")) {
+            items.addAll(Arrays.asList(source.split(" ")));
+        }
         return items;
-    }
-
-    public Data getData() {
-        return data == null ? new Data() : data;
-    }
-
-    public static class Data {
-
-        @SerializedName("words")
-        private List<Word> words;
-
-        public List<Word> getWords() {
-            return words == null ? Collections.emptyList() : words;
-        }
-
-        public static class Word {
-
-            @SerializedName("word")
-            private String word;
-
-            public String getWord() {
-                return TextUtils.isEmpty(word) ? "" : word;
-            }
-        }
     }
 }

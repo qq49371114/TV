@@ -62,10 +62,6 @@ public class VodConfig {
         return get().getSites().indexOf(get().getHome());
     }
 
-    public static boolean hasUrl() {
-        return getUrl() != null && getUrl().length() > 0;
-    }
-
     public static boolean hasParse() {
         return !get().getParses().isEmpty();
     }
@@ -110,12 +106,7 @@ public class VodConfig {
     }
 
     public void load(Callback callback) {
-        load(callback, false);
-    }
-
-    public void load(Callback callback, boolean cache) {
-        if (cache) App.execute(() -> loadConfigCache(callback));
-        else App.execute(() -> loadConfig(callback));
+        App.execute(() -> loadConfig(callback));
     }
 
     private void loadConfig(Callback callback) {
@@ -131,11 +122,6 @@ public class VodConfig {
     private void loadCache(Callback callback, Throwable e) {
         if (!TextUtils.isEmpty(config.getJson())) checkJson(Json.parse(config.getJson()).getAsJsonObject(), callback);
         else App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
-    }
-
-    private void loadConfigCache(Callback callback) {
-        if (!TextUtils.isEmpty(config.getJson()) && config.isCache()) checkJson(Json.parse(config.getJson()).getAsJsonObject(), callback);
-        else loadConfig(callback);
     }
 
     private void checkJson(JsonObject object, Callback callback) {
@@ -211,7 +197,7 @@ public class VodConfig {
     }
 
     private void initOther(JsonObject object) {
-        if (parses.size() > 0) parses.add(0, Parse.god());
+        if (!parses.isEmpty()) parses.add(0, Parse.god());
         if (home == null) setHome(sites.isEmpty() ? new Site() : sites.get(0));
         if (parse == null) setParse(parses.isEmpty() ? new Parse() : parses.get(0));
         setRules(Rule.arrayFrom(object.getAsJsonArray("rules")));
@@ -222,12 +208,12 @@ public class VodConfig {
     }
 
     private String parseApi(String api) {
-        if (api.startsWith("file") || api.startsWith("clan") || api.startsWith("assets")) return UrlUtil.convert(api);
+        if (api.startsWith("file") || api.startsWith("assets")) return UrlUtil.convert(api);
         return api;
     }
 
     private String parseExt(String ext) {
-        if (ext.startsWith("file") || ext.startsWith("clan") || ext.startsWith("assets")) return UrlUtil.convert(ext);
+        if (ext.startsWith("file") || ext.startsWith("assets")) return UrlUtil.convert(ext);
         if (ext.startsWith("img+")) return Decoder.getExt(ext);
         return ext;
     }
@@ -275,7 +261,7 @@ public class VodConfig {
 
     public List<Parse> getParses(int type, String flag) {
         List<Parse> items = new ArrayList<>();
-        for (Parse item : getParses(type)) if (item.getExt().getFlag().isEmpty() || item.getExt().getFlag().contains(flag)) items.add(item);
+        for (Parse item : getParses(type)) if (item.getExt().getFlag().contains(flag)) items.add(item);
         if (items.isEmpty()) items.addAll(getParses(type));
         return items;
     }

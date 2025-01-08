@@ -48,7 +48,7 @@ public abstract class Spider {
         return "";
     }
 
-    public String liveContent() throws Exception {
+    public String liveContent(String url) throws Exception {
         return "";
     }
 

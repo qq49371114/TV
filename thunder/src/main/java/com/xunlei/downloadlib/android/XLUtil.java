@@ -1,9 +1,8 @@
 package com.xunlei.downloadlib.android;
 
 import android.util.Base64;
-import java.security.SecureRandom;
 
-import java.util.Random;
+import java.security.SecureRandom;
 import java.util.UUID;
 
 public class XLUtil {
@@ -23,7 +22,7 @@ public class XLUtil {
     }
 
     private static String random(String base, int length) {
-        Random random = new SecureRandom();
+        SecureRandom random = new SecureRandom();
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < length; i++) sb.append(base.charAt(random.nextInt(base.length())));
         return sb.toString();

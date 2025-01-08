@@ -1,14 +1,17 @@
 {
   "lives": [
     {
-      "name": "TXT",
+      "name": "tvbus",
       "url": "https://github.com/live.txt",
       "epg": "https://epg.112114.xyz/?ch={name}&date={date}",
       "logo": "https://epg.112114.xyz/logo/{name}.png",
       "core": {
         "auth": "",
         "name": "",
-        "pass": ""
+        "pass": "",
+        "sign": "",
+        "pkg": "",
+        "so": ""
       }
     }
   ]

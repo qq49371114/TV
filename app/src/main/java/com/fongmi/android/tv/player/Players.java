@@ -1,5 +1,8 @@
 package com.fongmi.android.tv.player;
 
+import static androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON;
+import static androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER;
+
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Intent;
@@ -18,7 +21,10 @@ import androidx.media3.common.AudioAttributes;
 import androidx.media3.common.C;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
+import androidx.media3.common.Tracks;
+import androidx.media3.common.VideoSize;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.drm.FrameworkMediaDrm;
 import androidx.media3.exoplayer.util.EventLogger;
 import androidx.media3.ui.PlayerView;
 
@@ -34,6 +40,7 @@ import com.fongmi.android.tv.bean.Track;
 import com.fongmi.android.tv.event.ActionEvent;
 import com.fongmi.android.tv.event.ErrorEvent;
 import com.fongmi.android.tv.event.PlayerEvent;
+import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.ParseCallback;
 import com.fongmi.android.tv.impl.SessionCallback;
 import com.fongmi.android.tv.player.exo.ExoUtil;
@@ -55,20 +62,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import master.flame.danmaku.controller.DrawHandler;
-import master.flame.danmaku.danmaku.model.BaseDanmaku;
-import master.flame.danmaku.danmaku.model.DanmakuTimer;
-import master.flame.danmaku.ui.widget.DanmakuView;
-import tv.danmaku.ijk.media.player.IMediaPlayer;
-import tv.danmaku.ijk.media.player.ui.IjkVideoView;
-
-public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCallback, DrawHandler.Callback {
+public class Players implements Player.Listener, ParseCallback {
 
     private static final String TAG = Players.class.getSimpleName();
-
-    public static final int SYS = 0;
-    public static final int IJK = 1;
-    public static final int EXO = 2;
 
     public static final int SOFT = 0;
     public static final int HARD = 1;
@@ -79,8 +75,6 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
 
     private Map<String, String> headers;
     private MediaSessionCompat session;
-    private IjkVideoView ijkPlayer;
-    private DanmakuView danmuView;
     private ExoPlayer exoPlayer;
     private ParseJob parseJob;
     private List<Sub> subs;
@@ -91,8 +85,6 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
 
     private long position;
     private int decode;
-    private int count;
-    private int player;
     private int retry;
 
     public static Players create(Activity activity) {
@@ -101,33 +93,8 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         return player;
     }
 
-    public static boolean isExo(int type) {
-        return type == EXO;
-    }
-
-    public static boolean isHard(int decode) {
-        return decode == HARD;
-    }
-
-    public boolean isHard() {
-        return decode == HARD;
-    }
-
-    public boolean isSoft() {
-        return decode == SOFT;
-    }
-
-    public boolean isExo() {
-        return player == EXO;
-    }
-
-    public boolean isIjk() {
-        return player == SYS || player == IJK;
-    }
-
     private Players(Activity activity) {
-        player = Setting.getPlayer();
-        decode = Setting.getDecode(player);
+        decode = Setting.getDecode();
         builder = new StringBuilder();
         runnable = ErrorEvent::timeout;
         formatter = new Formatter(builder, Locale.getDefault());
@@ -143,40 +110,24 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         MediaControllerCompat.setMediaController(activity, session.getController());
     }
 
-    public void init(PlayerView exo, IjkVideoView ijk) {
-        releaseExo();
-        releaseIjk();
+    public void init(PlayerView exo) {
+        releasePlayer();
         initExo(exo);
-        initIjk(ijk);
+        setMediaItem();
     }
 
-    private void initExo(PlayerView view) {
-        exoPlayer = new ExoPlayer.Builder(App.get()).setLoadControl(ExoUtil.buildLoadControl()).setTrackSelector(ExoUtil.buildTrackSelector()).setRenderersFactory(ExoUtil.buildRenderersFactory(decode)).setMediaSourceFactory(ExoUtil.buildMediaSourceFactory()).build();
-        exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, !Setting.isPlayWithOthers());
+    private void initExo(PlayerView exo) {
+        exoPlayer = new ExoPlayer.Builder(App.get()).setLoadControl(ExoUtil.buildLoadControl()).setTrackSelector(ExoUtil.buildTrackSelector()).setRenderersFactory(ExoUtil.buildRenderersFactory(isHard() ? EXTENSION_RENDERER_MODE_ON : EXTENSION_RENDERER_MODE_PREFER)).setMediaSourceFactory(ExoUtil.buildMediaSourceFactory()).build();
+        exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, true);
         exoPlayer.addAnalyticsListener(new EventLogger());
         exoPlayer.setHandleAudioBecomingNoisy(true);
         exoPlayer.setPlayWhenReady(true);
         exoPlayer.addListener(this);
-        view.setPlayer(exoPlayer);
+        exo.setPlayer(exoPlayer);
     }
 
-    private void initIjk(IjkVideoView view) {
-        ijkPlayer = view.render(Setting.getRender()).decode(decode);
-        ijkPlayer.addListener(this);
-        ijkPlayer.setPlayer(player);
-    }
-
-    public void setDanmuView(DanmakuView view) {
-        view.setCallback(this);
-        danmuView = view;
-    }
-
-    public ExoPlayer exo() {
+    public ExoPlayer get() {
         return exoPlayer;
-    }
-
-    public IjkVideoView ijk() {
-        return ijkPlayer;
     }
 
     public MediaSessionCompat getSession() {
@@ -192,52 +143,23 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     public void setSub(Sub sub) {
-        this.sub = sub;
-        if (isIjk()) return;
         setPosition(getPosition());
-        setMediaSource();
+        this.sub = sub;
+        setMediaItem();
     }
 
     public void setFormat(String format) {
         this.format = format;
-    }
-
-    public void setMetadata(MediaMetadataCompat metadata) {
-        session.setMetadata(metadata);
-    }
-
-    public int getPlayer() {
-        return player;
-    }
-
-    public void setPlayer(int player) {
-        if (this.player != player) reset();
-        if (this.player != player) stop();
-        this.player = player;
-        this.decode = getDecode(player);
-    }
-
-    public int getDecode(int player) {
-        return Setting.getDecode(player);
-    }
-
-    public void setDecode(int player, int decode) {
-        Setting.putDecode(player, decode);
+        setMediaItem();
     }
 
     public void setPosition(long position) {
         this.position = position;
     }
 
-    public boolean canToggleDecode() {
-        return isExo() && ++count <= 1;
-    }
-
     public void reset() {
         position = C.TIME_UNSET;
         removeTimeoutCheck();
-        stopParse();
-        count = 0;
         retry = 0;
     }
 
@@ -249,72 +171,52 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         url = null;
     }
 
-    public int addRetry() {
-        return ++retry;
-    }
-
     public String stringToTime(long time) {
         return Util.format(builder, formatter, time);
     }
 
     public int getVideoWidth() {
-        return isExo() ? exoPlayer.getVideoSize().width : ijkPlayer.getVideoWidth();
+        return exoPlayer == null ? 0 : exoPlayer.getVideoSize().width;
     }
 
     public int getVideoHeight() {
-        return isExo() ? exoPlayer.getVideoSize().height : ijkPlayer.getVideoHeight();
+        return exoPlayer == null ? 0 : exoPlayer.getVideoSize().height;
     }
 
     public float getSpeed() {
-        if (isExo() && exoPlayer != null) return exoPlayer.getPlaybackParameters().speed;
-        if (isIjk() && ijkPlayer != null) return ijkPlayer.getSpeed();
-        return 1.0f;
+        return exoPlayer == null ? 1.0f : exoPlayer.getPlaybackParameters().speed;
     }
 
     public long getPosition() {
-        if (isExo() && exoPlayer != null) return exoPlayer.getCurrentPosition();
-        if (isIjk() && ijkPlayer != null) return ijkPlayer.getCurrentPosition();
-        return 0;
+        return exoPlayer == null ? C.TIME_UNSET : exoPlayer.getCurrentPosition();
     }
 
     public long getDuration() {
-        if (isExo() && exoPlayer != null) return exoPlayer.getDuration();
-        if (isIjk() && ijkPlayer != null) return ijkPlayer.getDuration();
-        return -1;
+        return exoPlayer == null ? -1 : exoPlayer.getDuration();
     }
 
     public long getBuffered() {
-        if (isExo() && exoPlayer != null) return exoPlayer.getBufferedPosition();
-        if (isIjk() && ijkPlayer != null) return ijkPlayer.getBufferedPosition();
-        return 0;
+        return exoPlayer == null ? 0 : exoPlayer.getBufferedPosition();
     }
 
-    private boolean haveDanmu() {
-        return danmuView != null && danmuView.isPrepared();
+    public boolean retried() {
+        return ++retry > 2;
     }
 
     public boolean canAdjustSpeed() {
-        return isIjk() || !Setting.isTunnel();
+        return !Setting.isTunnel();
     }
 
     public boolean haveTrack(int type) {
-        if (isExo() && exoPlayer != null) return ExoUtil.haveTrack(exoPlayer.getCurrentTracks(), type);
-        if (isIjk() && ijkPlayer != null) return ijkPlayer.haveTrack(type);
-        return false;
+        return exoPlayer != null && ExoUtil.haveTrack(exoPlayer.getCurrentTracks(), type);
     }
 
     public boolean isPlaying() {
-        return isExo() ? exoPlayer != null && exoPlayer.isPlaying() : ijkPlayer != null && ijkPlayer.isPlaying();
+        return exoPlayer != null && exoPlayer.isPlaying();
     }
 
     public boolean isEnd() {
-        if (isExo() && exoPlayer != null) return exoPlayer.getPlaybackState() == Player.STATE_ENDED;
-        if (isIjk() && ijkPlayer != null) return ijkPlayer.getPlaybackState() == IjkVideoView.STATE_ENDED;
-        return false;
-    }
-
-    public boolean isRelease() {
-        return exoPlayer == null || ijkPlayer == null;
+        return exoPlayer != null && exoPlayer.getPlaybackState() == Player.STATE_ENDED;
     }
 
     public boolean isEmpty() {
@@ -322,11 +224,15 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     public boolean isLive() {
-        return getDuration() < 5 * 60 * 1000;
+        return getDuration() < 3 * 60 * 1000 || exoPlayer.isCurrentMediaItemLive();
     }
 
     public boolean isVod() {
-        return getDuration() > 5 * 60 * 1000;
+        return getDuration() > 3 * 60 * 1000 && !exoPlayer.isCurrentMediaItemLive();
+    }
+
+    public boolean isHard() {
+        return decode == HARD;
     }
 
     public boolean isPortrait() {
@@ -334,15 +240,11 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     public String getSizeText() {
-        return getVideoWidth() + " x " + getVideoHeight();
+        return getVideoWidth() == 0 && getVideoHeight() == 0 ? "" : getVideoWidth() + " x " + getVideoHeight();
     }
 
     public String getSpeedText() {
         return String.format(Locale.getDefault(), "%.2f", getSpeed());
-    }
-
-    public String getPlayerText() {
-        return ResUtil.getStringArray(R.array.select_player)[player];
     }
 
     public String getDecodeText() {
@@ -351,7 +253,6 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
 
     public String setSpeed(float speed) {
         if (exoPlayer != null && !Setting.isTunnel()) exoPlayer.setPlaybackSpeed(speed);
-        if (ijkPlayer != null) ijkPlayer.setSpeed(speed);
         return getSpeedText();
     }
 
@@ -370,27 +271,20 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
 
     public String subSpeed(float value) {
         float speed = getSpeed();
-        speed = Math.max(speed - value, 0.2f);
+        speed = Math.max(speed - value, 0.25f);
         return setSpeed(speed);
     }
 
     public String toggleSpeed() {
         float speed = getSpeed();
-        speed = speed == 1 ? 3f : 1f;
+        speed = speed == 1 ? Setting.getSpeed() : 1;
         return setSpeed(speed);
     }
 
-    public void togglePlayer() {
-        setPlayer(isExo() ? SYS : ++player);
-    }
-
-    public void nextPlayer() {
-        setPlayer(isExo() ? IJK : EXO);
-    }
-
-    public void toggleDecode(boolean save) {
+    public void toggleDecode(PlayerView exo) {
         decode = isHard() ? SOFT : HARD;
-        if (save) setDecode(player, decode);
+        Setting.putDecode(decode);
+        init(exo);
     }
 
     public String getPositionTime(long time) {
@@ -411,44 +305,37 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     public void seekTo(long time) {
-        if (haveDanmu()) danmuView.seekTo(time);
-        if (isExo() && exoPlayer != null) exoPlayer.seekTo(time);
-        if (isIjk() && ijkPlayer != null) ijkPlayer.seekTo(time);
+        if (exoPlayer != null) exoPlayer.seekTo(time);
     }
 
     public void play() {
-        if (isPlaying() || isEnd()) return;
-        session.setActive(true);
-        if (isExo()) playExo();
-        if (isIjk()) playIjk();
-        if (haveDanmu()) danmuView.resume();
-        setPlaybackState(PlaybackStateCompat.STATE_PLAYING);
+        if (exoPlayer != null) exoPlayer.play();
     }
 
     public void pause() {
-        if (isExo()) pauseExo();
-        if (isIjk()) pauseIjk();
-        if (haveDanmu()) danmuView.pause();
-        setPlaybackState(PlaybackStateCompat.STATE_PAUSED);
+        if (exoPlayer != null) exoPlayer.pause();
     }
 
     public void stop() {
-        if (isExo()) stopExo();
-        if (isIjk()) stopIjk();
-        session.setActive(false);
-        if (haveDanmu()) danmuView.stop();
-        setPlaybackState(PlaybackStateCompat.STATE_STOPPED);
+        if (parseJob != null) parseJob.stop();
+        if (exoPlayer != null) exoPlayer.stop();
+        if (exoPlayer != null) exoPlayer.clearMediaItems();
     }
 
     public void release() {
         stopParse();
+        releasePlayer();
         session.release();
-        if (isExo()) releaseExo();
-        if (isIjk()) releaseIjk();
-        if (haveDanmu()) danmuView.release();
         removeTimeoutCheck();
         Server.get().setPlayer(null);
         App.execute(() -> Source.get().stop());
+    }
+
+    private void releasePlayer() {
+        if (exoPlayer == null) return;
+        exoPlayer.removeListener(this);
+        exoPlayer.release();
+        exoPlayer = null;
     }
 
     public void start(Channel channel, int timeout) {
@@ -457,9 +344,11 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         } else if (channel.getParse() == 1) {
             startParse(channel.result(), false);
         } else if (isIllegal(channel.getUrl())) {
-            ErrorEvent.url(0);
+            ErrorEvent.url();
+        } else if (channel.getDrm() != null && !FrameworkMediaDrm.isCryptoSchemeSupported(channel.getDrm().getUUID())) {
+            ErrorEvent.drm();
         } else {
-            setMediaSource(channel, timeout);
+            setMediaItem(channel, timeout);
         }
     }
 
@@ -469,54 +358,12 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         } else if (result.getParse(1) == 1 || result.getJx() == 1) {
             startParse(result, useParse);
         } else if (isIllegal(result.getRealUrl())) {
-            ErrorEvent.url(0);
+            ErrorEvent.url();
+        } else if (result.getDrm() != null && !FrameworkMediaDrm.isCryptoSchemeSupported(result.getDrm().getUUID())) {
+            ErrorEvent.drm();
         } else {
-            setMediaSource(result, timeout);
+            setMediaItem(result, timeout);
         }
-    }
-
-    private void playExo() {
-        if (exoPlayer == null) return;
-        exoPlayer.play();
-    }
-
-    private void playIjk() {
-        if (ijkPlayer == null) return;
-        ijkPlayer.start();
-    }
-
-    private void pauseExo() {
-        if (exoPlayer == null) return;
-        exoPlayer.pause();
-    }
-
-    private void pauseIjk() {
-        if (ijkPlayer == null) return;
-        ijkPlayer.pause();
-    }
-
-    private void stopExo() {
-        if (exoPlayer == null) return;
-        exoPlayer.stop();
-        exoPlayer.clearMediaItems();
-    }
-
-    private void stopIjk() {
-        if (ijkPlayer == null) return;
-        ijkPlayer.stop();
-    }
-
-    private void releaseExo() {
-        if (exoPlayer == null) return;
-        exoPlayer.removeListener(this);
-        exoPlayer.release();
-        exoPlayer = null;
-    }
-
-    private void releaseIjk() {
-        if (ijkPlayer == null) return;
-        ijkPlayer.release();
-        ijkPlayer = null;
     }
 
     private void startParse(Result result, boolean useParse) {
@@ -529,31 +376,44 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         parseJob = null;
     }
 
-    public void setMediaSource() {
-        setMediaSource(headers, url, format, drm, subs, Constant.TIMEOUT_PLAY);
+    private Map<String, String> checkUa(Map<String, String> headers) {
+        for (Map.Entry<String, String> header : headers.entrySet()) if (HttpHeaders.USER_AGENT.equalsIgnoreCase(header.getKey())) return headers;
+        headers.put(HttpHeaders.USER_AGENT, Setting.getUa().isEmpty() ? ExoUtil.getUa() : Setting.getUa());
+        return headers;
     }
 
-    public void setMediaSource(String url) {
-        setMediaSource(new HashMap<>(), url);
+    private List<Sub> checkSub(List<Sub> subs) {
+        if (sub == null || subs.contains(sub)) return subs;
+        subs.add(0, sub);
+        return subs;
     }
 
-    private void setMediaSource(Map<String, String> headers, String url) {
-        setMediaSource(headers, url, null, null, new ArrayList<>(), Constant.TIMEOUT_PLAY);
+    private void setMediaItem() {
+        if (url == null) RefreshEvent.player();
+        else setMediaItem(headers, url, format, drm, subs, Constant.TIMEOUT_PLAY);
     }
 
-    private void setMediaSource(Channel channel, int timeout) {
-        setMediaSource(channel.getHeaders(), channel.getUrl(), channel.getFormat(), channel.getDrm(), new ArrayList<>(), timeout);
+    public void setMediaItem(String url) {
+        setMediaItem(new HashMap<>(), url);
     }
 
-    private void setMediaSource(Result result, int timeout) {
-        setMediaSource(result.getHeaders(), result.getRealUrl(), result.getFormat(), result.getDrm(), result.getSubs(), timeout);
+    private void setMediaItem(Map<String, String> headers, String url) {
+        setMediaItem(headers, url, null, null, new ArrayList<>(), Constant.TIMEOUT_PLAY);
     }
 
-    private void setMediaSource(Map<String, String> headers, String url, String format, Drm drm, List<Sub> subs, int timeout) {
-        if (isIjk() && ijkPlayer != null) ijkPlayer.setMediaSource(IjkUtil.getSource(this.headers = checkUa(headers), this.url = url), position);
-        if (isExo() && exoPlayer != null) exoPlayer.setMediaItem(ExoUtil.getMediaItem(this.headers = checkUa(headers), UrlUtil.uri(this.url = url), this.format = format, this.drm = drm, checkSub(this.subs = subs), decode), position);
-        if (isExo() && exoPlayer != null) exoPlayer.prepare();
+    private void setMediaItem(Channel channel, int timeout) {
+        setMediaItem(channel.getHeaders(), channel.getUrl(), channel.getFormat(), channel.getDrm(), new ArrayList<>(), timeout);
+    }
+
+    private void setMediaItem(Result result, int timeout) {
+        setMediaItem(result.getHeaders(), result.getRealUrl(), result.getFormat(), result.getDrm(), result.getSubs(), timeout);
+    }
+
+    private void setMediaItem(Map<String, String> headers, String url, String format, Drm drm, List<Sub> subs, int timeout) {
+        if (exoPlayer != null) exoPlayer.setMediaItem(ExoUtil.getMediaItem(this.headers = checkUa(headers), UrlUtil.uri(this.url = url), this.format = format, this.drm = drm, checkSub(this.subs = subs), decode), position);
+        if (exoPlayer != null) exoPlayer.prepare();
         App.post(runnable, timeout);
+        session.setActive(true);
         PlayerEvent.prepare();
         Logger.t(TAG).d(url);
     }
@@ -562,28 +422,19 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         App.removeCallbacks(runnable);
     }
 
+    public void resetTrack() {
+        if (exoPlayer != null) ExoUtil.resetTrack(exoPlayer);
+    }
+
     public void setTrack(List<Track> tracks) {
         for (Track track : tracks) setTrack(track);
     }
 
     private void setTrack(Track item) {
-        if (item.isExo(player)) setTrackExo(item);
-        if (item.isIjk(player)) setTrackIjk(item);
-    }
-
-    private void setTrackExo(Track item) {
         if (item.isSelected()) {
             ExoUtil.selectTrack(exoPlayer, item.getGroup(), item.getTrack());
         } else {
             ExoUtil.deselectTrack(exoPlayer, item.getGroup(), item.getTrack());
-        }
-    }
-
-    private void setTrackIjk(Track item) {
-        if (item.isSelected()) {
-            ijkPlayer.selectTrack(item.getType(), item.getTrack());
-        } else {
-            ijkPlayer.deselectTrack(item.getType(), item.getTrack());
         }
     }
 
@@ -598,35 +449,6 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
         String scheme = UrlUtil.scheme(uri);
         if ("data".equals(scheme)) return false;
         return scheme.isEmpty() || "file".equals(scheme) ? !Path.exists(url) : host.isEmpty();
-    }
-
-    public static Map<String, String> checkUa(Map<String, String> headers) {
-        if (Setting.getUa().isEmpty()) return headers;
-        for (Map.Entry<String, String> header : headers.entrySet()) if (HttpHeaders.USER_AGENT.equalsIgnoreCase(header.getKey())) return headers;
-        headers.put(HttpHeaders.USER_AGENT, Setting.getUa());
-        return headers;
-    }
-
-    private List<Sub> checkSub(List<Sub> subs) {
-        if (sub == null) return subs;
-        subs.add(0, sub);
-        return subs;
-    }
-
-    public Uri getUri() {
-        return getUrl().startsWith("file://") || getUrl().startsWith("/") ? FileUtil.getShareUri(getUrl()) : Uri.parse(getUrl());
-    }
-
-    public String[] getHeaderArray() {
-        List<String> list = new ArrayList<>();
-        for (Map.Entry<String, String> entry : getHeaders().entrySet()) list.addAll(Arrays.asList(entry.getKey(), entry.getValue()));
-        return list.toArray(new String[0]);
-    }
-
-    public Bundle getHeaderBundle() {
-        Bundle bundle = new Bundle();
-        for (Map.Entry<String, String> entry : getHeaders().entrySet()) bundle.putString(entry.getKey(), entry.getValue());
-        return bundle;
     }
 
     private MediaMetadataCompat.Builder putBitmap(MediaMetadataCompat.Builder builder, Drawable drawable) {
@@ -652,10 +474,12 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     public void share(Activity activity, CharSequence title) {
         try {
             if (isEmpty()) return;
+            Bundle bundle = new Bundle();
+            for (Map.Entry<String, String> entry : getHeaders().entrySet()) bundle.putString(entry.getKey(), entry.getValue());
             Intent intent = new Intent(Intent.ACTION_SEND);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.putExtra(Intent.EXTRA_TEXT, UrlUtil.fixDownloadUrl(getUrl()));
-            intent.putExtra("extra_headers", getHeaderBundle());
+            intent.putExtra(Intent.EXTRA_TEXT, getUrl());
+            intent.putExtra("extra_headers", bundle);
             intent.putExtra("title", title);
             intent.putExtra("name", title);
             intent.setType("text/plain");
@@ -668,13 +492,16 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     public void choose(Activity activity, CharSequence title) {
         try {
             if (isEmpty()) return;
+            List<String> list = new ArrayList<>();
+            for (Map.Entry<String, String> entry : getHeaders().entrySet()) list.addAll(Arrays.asList(entry.getKey(), entry.getValue()));
+            Uri data = getUrl().startsWith("file://") || getUrl().startsWith("/") ? FileUtil.getShareUri(getUrl()) : Uri.parse(getUrl());
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            intent.setDataAndType(getUri(), "video/*");
+            intent.setDataAndType(data, "video/*");
             intent.putExtra("title", title);
             intent.putExtra("return_result", isVod());
-            intent.putExtra("headers", getHeaderArray());
+            intent.putExtra("headers", list.toArray(new String[0]));
             if (isVod()) intent.putExtra("position", (int) getPosition());
             activity.startActivityForResult(Util.getChooser(intent), 1001);
         } catch (Exception e) {
@@ -697,7 +524,8 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     @Override
     public void onParseSuccess(Map<String, String> headers, String url, String from) {
         if (!TextUtils.isEmpty(from)) Notify.show(ResUtil.getString(R.string.parse_from, from));
-        setMediaSource(headers, url);
+        if (headers != null) headers.remove(HttpHeaders.RANGE);
+        setMediaItem(headers, url);
     }
 
     @Override
@@ -725,72 +553,23 @@ public class Players implements Player.Listener, IMediaPlayer.Listener, ParseCal
     }
 
     @Override
-    public void onBufferingUpdate(IMediaPlayer mp, int percent) {
-        setPlaybackState(isPlaying() ? PlaybackStateCompat.STATE_PLAYING : PlaybackStateCompat.STATE_PAUSED);
-    }
-
-    @Override
-    public void onPlayerError(@NonNull PlaybackException error) {
-        Logger.t(TAG).e(error.errorCode + "," + url);
-        ErrorEvent.url(ExoUtil.getRetry(error.errorCode), error.errorCode);
-    }
-
-    @Override
     public void onPlaybackStateChanged(int state) {
         PlayerEvent.state(state);
     }
 
     @Override
-    public void onInfo(IMediaPlayer mp, int what, int extra) {
-        switch (what) {
-            case IMediaPlayer.MEDIA_INFO_BUFFERING_START:
-                PlayerEvent.state(Player.STATE_BUFFERING);
-                break;
-            case IMediaPlayer.MEDIA_INFO_BUFFERING_END:
-            case IMediaPlayer.MEDIA_INFO_VIDEO_SEEK_RENDERING_START:
-            case IMediaPlayer.MEDIA_INFO_AUDIO_SEEK_RENDERING_START:
-                PlayerEvent.state(Player.STATE_READY);
-                break;
-        }
+    public void onVideoSizeChanged(@NonNull VideoSize videoSize) {
+        PlayerEvent.size();
     }
 
     @Override
-    public boolean onError(IMediaPlayer mp, int what, int extra) {
-        setPlaybackState(PlaybackStateCompat.STATE_ERROR);
-        ErrorEvent.url(1);
-        return true;
+    public void onTracksChanged(@NonNull Tracks tracks) {
+        PlayerEvent.track();
     }
 
     @Override
-    public void onPrepared(IMediaPlayer mp) {
-        PlayerEvent.state(Player.STATE_READY);
-    }
-
-    @Override
-    public void onCompletion(IMediaPlayer mp) {
-        PlayerEvent.state(Player.STATE_ENDED);
-    }
-
-    @Override
-    public void prepared() {
-        App.post(() -> {
-            if (danmuView == null) return;
-            if (isPlaying() && danmuView.isPrepared()) danmuView.start(getPosition());
-            if (Setting.isDanmu()) danmuView.show();
-            else danmuView.hide();
-        });
-    }
-
-    @Override
-    public void updateTimer(DanmakuTimer timer) {
-
-    }
-
-    @Override
-    public void danmakuShown(BaseDanmaku danmaku) {
-    }
-
-    @Override
-    public void drawingFinished() {
+    public void onPlayerError(@NonNull PlaybackException error) {
+        Logger.t(TAG).e(error.errorCode + "," + url);
+        ErrorEvent.url(error.errorCode);
     }
 }

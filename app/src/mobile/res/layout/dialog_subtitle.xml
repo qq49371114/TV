@@ -12,7 +12,6 @@
         android:layout_height="wrap_content"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:padding="8dp"
-        android:layout_marginEnd="8dp"
         android:src="@drawable/ic_subtitle_large" />
 
     <ImageView
@@ -21,7 +20,6 @@
         android:layout_height="wrap_content"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:padding="8dp"
-        android:layout_marginEnd="8dp"
         android:src="@drawable/ic_subtitle_small" />
 
     <ImageView
@@ -30,7 +28,6 @@
         android:layout_height="wrap_content"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:padding="8dp"
-        android:layout_marginEnd="8dp"
         android:src="@drawable/ic_subtitle_up" />
 
     <ImageView
@@ -39,7 +36,6 @@
         android:layout_height="wrap_content"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:padding="8dp"
-        android:layout_marginEnd="8dp"
         android:src="@drawable/ic_subtitle_down" />
 
     <ImageView

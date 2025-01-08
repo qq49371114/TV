@@ -11,7 +11,6 @@ import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
-import com.fongmi.android.tv.bean.Danmu;
 import com.fongmi.android.tv.bean.Episode;
 import com.fongmi.android.tv.bean.Flag;
 import com.fongmi.android.tv.bean.Result;
@@ -42,32 +41,23 @@ import okhttp3.Response;
 
 public class SiteViewModel extends ViewModel {
 
-    public MutableLiveData<Episode> ep;
     public MutableLiveData<Episode> episode;
     public MutableLiveData<Result> result;
     public MutableLiveData<Result> player;
     public MutableLiveData<Result> search;
     public MutableLiveData<Result> action;
-    public MutableLiveData<Danmu> danmaku;
-    public MutableLiveData<Result> download;
     private ExecutorService executor;
 
     public SiteViewModel() {
-        this.ep = new MutableLiveData<>();
         this.episode = new MutableLiveData<>();
         this.result = new MutableLiveData<>();
         this.player = new MutableLiveData<>();
         this.search = new MutableLiveData<>();
         this.action = new MutableLiveData<>();
-        this.download = new MutableLiveData<>();
     }
 
     public void setEpisode(Episode value) {
         episode.setValue(value);
-    }
-
-    public void setDownload(Episode value) {
-        ep.setValue(value);
     }
 
     public void homeContent() {
@@ -78,7 +68,7 @@ public class SiteViewModel extends ViewModel {
                 String homeContent = spider.homeContent(true);
                 SpiderDebug.log(homeContent);
                 Result result = Result.fromJson(homeContent);
-                if (result.getList().size() > 0) return result;
+                if (!result.getList().isEmpty()) return result;
                 String homeVideoContent = spider.homeVideoContent();
                 SpiderDebug.log(homeVideoContent);
                 result.setList(Result.fromJson(homeVideoContent).getList());
@@ -135,7 +125,7 @@ public class SiteViewModel extends ViewModel {
                 vod.setVodId(id);
                 vod.setVodName(id);
                 vod.setVodPic(ResUtil.getString(R.string.push_image));
-                vod.setVodFlags(Flag.create(ResUtil.getString(R.string.push), ResUtil.getString(R.string.play), id));
+                vod.setVodFlags(Flag.create(ResUtil.getString(R.string.push), id));
                 Source.get().parse(vod.getVodFlags());
                 return Result.vod(vod);
             } else {
@@ -152,8 +142,8 @@ public class SiteViewModel extends ViewModel {
         });
     }
 
-    private void executePlayer(MutableLiveData<Result> data, String key, String flag, String id) {
-        execute(data, () -> {
+    public void playerContent(String key, String flag, String id) {
+        execute(player, () -> {
             Source.get().stop();
             Site site = VodConfig.get().getSite(key);
             if (site.getType() == 3) {
@@ -193,20 +183,12 @@ public class SiteViewModel extends ViewModel {
                 result.setFlag(flag);
                 result.setHeader(site.getHeader());
                 result.setPlayUrl(site.getPlayUrl());
-                result.setUrl(Source.get().fetch(result));
                 result.setParse(Sniffer.isVideoFormat(url.v()) && result.getPlayUrl().isEmpty() ? 0 : 1);
+                result.setUrl(Source.get().fetch(result));
                 SpiderDebug.log(result.toString());
                 return result;
             }
         });
-    }
-
-    public void playerContent(String key, String flag, String id) {
-        executePlayer(player, key, flag, id);
-    }
-
-    public void download(String key, String flag, String id) {
-        executePlayer(download, key, flag, id);
     }
 
     public void action(String key, String action) {
@@ -220,10 +202,12 @@ public class SiteViewModel extends ViewModel {
 
     public void searchContent(Site site, String keyword, boolean quick) throws Throwable {
         if (site.getType() == 3) {
+            if (quick && !site.isQuickSearch()) return;
             String searchContent = site.spider().searchContent(Trans.t2s(keyword), quick);
             SpiderDebug.log(site.getName() + "," + searchContent);
             post(site, Result.fromJson(searchContent));
         } else {
+            if (quick && !site.isQuickSearch()) return;
             ArrayMap<String, String> params = new ArrayMap<>();
             params.put("wd", Trans.t2s(keyword));
             params.put("quick", String.valueOf(quick));

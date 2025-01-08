@@ -41,8 +41,8 @@ public class XLTaskHelper {
     }
 
     private synchronized GetTaskId startTask(GetTaskId taskId, int index) {
-        getManager().startTask(taskId.getTaskId());
         getManager().setTaskGsState(taskId.getTaskId(), index, 2);
+        getManager().startTask(taskId.getTaskId());
         return taskId;
     }
 
@@ -77,8 +77,6 @@ public class XLTaskHelper {
             param.setPass("");
             int code = getManager().createP2spTask(param, taskId);
             if (code != XLConstant.XLErrorCode.NO_ERROR) return taskId;
-            getManager().setDownloadTaskOrigin(taskId.getTaskId(), "out_app/out_app_paste");
-            getManager().setOriginUserAgent(taskId.getTaskId(), "AndroidDownloadManager/5.41.2.4980 (Linux; U; Android 4.4.4; Build/KTU84Q)");
         } else if (url.startsWith("ed2k://")) {
             EmuleTaskParam param = new EmuleTaskParam();
             param.setFilePath(savePath.getAbsolutePath());
@@ -89,6 +87,8 @@ public class XLTaskHelper {
             int code = getManager().createEmuleTask(param, taskId);
             if (code != XLConstant.XLErrorCode.NO_ERROR) return taskId;
         }
+        getManager().setDownloadTaskOrigin(taskId.getTaskId(), "out_app/out_app_paste");
+        getManager().setOriginUserAgent(taskId.getTaskId(), "AndroidDownloadManager/4.4.4 (Linux; U; Android 4.4.4; Build/KTU84Q)");
         return startTask(taskId, 0);
     }
 

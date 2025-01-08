@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.utils;
 
 import android.app.Activity;
+import android.app.UiModeManager;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
@@ -8,7 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.os.BatteryManager;
+import android.content.res.Configuration;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Parcelable;
@@ -21,8 +22,9 @@ import android.view.inputmethod.InputMethodManager;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
-import com.github.catvod.Init;
+import com.github.catvod.utils.Shell;
 
+import java.net.NetworkInterface;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Formatter;
@@ -93,11 +95,26 @@ public class Util {
 
     public static String getAndroidId() {
         try {
-            String id = Settings.Secure.getString(Init.context().getContentResolver(), Settings.Secure.ANDROID_ID);
+            String id = Settings.Secure.getString(App.get().getContentResolver(), Settings.Secure.ANDROID_ID);
             if (TextUtils.isEmpty(id)) throw new NullPointerException();
             return id;
         } catch (Exception e) {
             return "0000000000000000";
+        }
+    }
+
+    public static String getSerial() {
+        return Shell.exec("getprop ro.serialno").replace("\n", "");
+    }
+
+    public static String getMac(String name) {
+        try {
+            StringBuilder sb = new StringBuilder();
+            NetworkInterface nif = NetworkInterface.getByName(name);
+            for (byte b : nif.getHardwareAddress()) sb.append(String.format("%02X:", b));
+            return substring(sb.toString());
+        } catch (Exception e) {
+            return "";
         }
     }
 
@@ -164,7 +181,7 @@ public class Util {
 
     public static boolean isTvBox() {
         PackageManager pm = App.get().getPackageManager();
-        if (!pm.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN) && !pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
+        if (Configuration.UI_MODE_TYPE_TELEVISION == ((UiModeManager) App.get().getSystemService(Context.UI_MODE_SERVICE)).getCurrentModeType()) {
             return true;
         }
         if (pm.hasSystemFeature("amazon.hardware.fire_tv")) {
@@ -174,7 +191,7 @@ public class Util {
             return true;
         }
         if (Build.VERSION.SDK_INT < 30) {
-            if (!pm.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN)) {
+            if (!pm.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN) && !pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
                 return true;
             }
             if (pm.hasSystemFeature("android.hardware.hdmi.cec")) {
@@ -186,18 +203,4 @@ public class Util {
         }
         return false;
     }
-
-    public static int batteryLevel() {
-        BatteryManager batteryManager = (BatteryManager) App.get().getSystemService(Context.BATTERY_SERVICE);
-        return batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
-    }
-
-    public static void restartApp(Activity activity) {
-        Intent intent = activity.getBaseContext().getPackageManager().getLaunchIntentForPackage(activity.getBaseContext().getPackageName());
-        ComponentName componentName = intent.getComponent();
-        Intent mainIntent = Intent.makeRestartActivityTask(componentName);
-        activity.startActivity(mainIntent);
-        Runtime.getRuntime().exit(0);
-    }
-
 }

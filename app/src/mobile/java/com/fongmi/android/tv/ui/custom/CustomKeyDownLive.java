@@ -52,7 +52,7 @@ public class CustomKeyDownLive extends GestureDetector.SimpleOnGestureListener {
         if (changeSpeed && e.getAction() == MotionEvent.ACTION_UP) listener.onSpeedEnd();
         if (changeBright && e.getAction() == MotionEvent.ACTION_UP) listener.onBrightEnd();
         if (changeVolume && e.getAction() == MotionEvent.ACTION_UP) listener.onVolumeEnd();
-        return detector.onTouchEvent(e);
+        return e.getPointerCount() == 1 && detector.onTouchEvent(e);
     }
 
     public void setLock(boolean lock) {
@@ -60,7 +60,7 @@ public class CustomKeyDownLive extends GestureDetector.SimpleOnGestureListener {
     }
 
     private boolean isEdge(MotionEvent e) {
-        return ResUtil.isEdge(e, ResUtil.dp2px(32));
+        return ResUtil.isEdge(activity, e, ResUtil.dp2px(40));
     }
 
     @Override
@@ -104,7 +104,7 @@ public class CustomKeyDownLive extends GestureDetector.SimpleOnGestureListener {
 
     @Override
     public boolean onSingleTapConfirmed(@NonNull MotionEvent e) {
-        int half = ResUtil.getScreenWidthNav() / 2;
+        int half = ResUtil.getScreenWidth(activity) / 2;
         if (e.getX() > half || lock) listener.onDoubleTap();
         else listener.onSingleTap();
         return true;
@@ -124,7 +124,7 @@ public class CustomKeyDownLive extends GestureDetector.SimpleOnGestureListener {
     }
 
     private void checkFunc(float distanceX, float distanceY, MotionEvent e2) {
-        int four = ResUtil.getScreenWidthNav() / 4;
+        int four = ResUtil.getScreenWidth(activity) / 4;
         if (e2.getX() > four && e2.getX() < four * 3) center = true;
         else if (Math.abs(distanceX) < Math.abs(distanceY)) checkSide(e2);
         if (Math.abs(distanceX) >= Math.abs(distanceY)) changeTime = true;
@@ -146,7 +146,7 @@ public class CustomKeyDownLive extends GestureDetector.SimpleOnGestureListener {
     }
 
     private void checkSide(MotionEvent e2) {
-        int half = ResUtil.getScreenWidthNav() / 2;
+        int half = ResUtil.getScreenWidth(activity) / 2;
         if (e2.getX() > half) changeVolume = true;
         else changeBright = true;
     }

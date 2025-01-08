@@ -16,7 +16,7 @@
         <TextView
             android:id="@+id/player"
             style="@style/Control.Action"
-            tools:text="EXO" />
+            android:text="@string/play_exo" />
 
         <TextView
             android:id="@+id/decode"

@@ -83,17 +83,19 @@ public class ParserImpl implements Parser {
     private VideoInfo parseVideoAndroid(String videoId, YoutubeCallback<VideoInfo> callback) throws YoutubeException {
         String url = "https://youtubei.googleapis.com/youtubei/v1/player?key=" + ANDROID_APIKEY;
         String body = "{" +
-                "  \"videoId\": \"" + videoId + "\"," +
-                "  \"context\": {" +
-                "    \"client\": {" +
-                "      \"hl\": \"en\"," +
-                "      \"gl\": \"US\"," +
-                "      \"clientName\": \"ANDROID_TESTSUITE\"," +
-                "      \"clientVersion\": \"1.9\"," +
-                "      \"androidSdkVersion\": 31" +
-                "    }" +
-                "  }" +
-                "}";
+                      "  \"videoId\": \"" + videoId + "\"," +
+                      "  \"context\": {" +
+                      "    \"client\": {" +
+                      "      \"clientName\": \"ANDROID_VR\"," +
+                      "      \"clientVersion\": \"1.57.29\"," +
+                      "      \"deviceMake\": \"Oculus\"," +
+                      "      \"deviceModel\": \"Quest 3\"," +
+                      "      \"osName\": \"Android\"," +
+                      "      \"osVersion\": \"12L\"," +
+                      "      \"androidSdkVersion\": 32" +
+                      "    }" +
+                      "  }" +
+                      "}";
         RequestWebpage request = new RequestWebpage(url, "POST", body).header("Content-Type", "application/json");
         Response<String> response = downloader.downloadWebpage(request);
         if (!response.ok()) {

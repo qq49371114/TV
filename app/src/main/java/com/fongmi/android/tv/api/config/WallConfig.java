@@ -1,7 +1,6 @@
 package com.fongmi.android.tv.api.config;
 
 import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 
 import com.bumptech.glide.Glide;

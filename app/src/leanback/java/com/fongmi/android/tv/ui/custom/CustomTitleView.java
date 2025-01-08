@@ -12,7 +12,6 @@ import androidx.appcompat.widget.AppCompatTextView;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.impl.SiteCallback;
@@ -42,7 +41,6 @@ public class CustomTitleView extends AppCompatTextView {
     }
 
     private boolean hasEvent(KeyEvent event) {
-        if (Setting.isHomeSiteLock()) return false;
         return KeyUtil.isEnterKey(event) || KeyUtil.isLeftKey(event) || KeyUtil.isRightKey(event) || (KeyUtil.isUpKey(event) && !coolDown);
     }
 

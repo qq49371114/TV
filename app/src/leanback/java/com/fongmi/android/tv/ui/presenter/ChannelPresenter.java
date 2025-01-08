@@ -1,7 +1,6 @@
 package com.fongmi.android.tv.ui.presenter;
 
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -43,7 +42,6 @@ public class ChannelPresenter extends Presenter {
         setOnClickListener(holder, view -> mListener.onItemClick(item));
         holder.view.setOnLongClickListener(view -> mListener.onLongClick(item));
         holder.binding.getRoot().setRightListener(() -> mListener.showEpg(item));
-        holder.binding.epg.setVisibility(item.getData().getList().isEmpty() || !item.isSelected() ? View.GONE : View.VISIBLE);
     }
 
     @Override

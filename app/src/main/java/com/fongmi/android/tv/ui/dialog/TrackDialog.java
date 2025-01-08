@@ -20,17 +20,16 @@ import com.fongmi.android.tv.bean.Sub;
 import com.fongmi.android.tv.bean.Track;
 import com.fongmi.android.tv.databinding.DialogTrackBinding;
 import com.fongmi.android.tv.player.Players;
-import com.fongmi.android.tv.player.custom.TrackNameProvider;
+import com.fongmi.android.tv.player.exo.TrackNameProvider;
 import com.fongmi.android.tv.ui.adapter.TrackAdapter;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import tv.danmaku.ijk.media.player.misc.ITrackInfo;
 
 public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClickListener {
 
@@ -38,9 +37,7 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
     private final TrackAdapter adapter;
     private DialogTrackBinding binding;
     private Listener listener;
-    private ChooserListener cListener;
     private Players player;
-    private boolean vod;
     private int type;
 
     public static TrackDialog create() {
@@ -52,18 +49,8 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
         this.provider = new TrackNameProvider();
     }
 
-    public TrackDialog chooser(ChooserListener listener) {
-        this.cListener = listener;
-        return this;
-    }
-
     public TrackDialog player(Players player) {
         this.player = player;
-        return this;
-    }
-
-    public TrackDialog vod(boolean vod) {
-        this.vod = vod;
         return this;
     }
 
@@ -85,13 +72,14 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
 
     @Override
     protected void initView() {
+        binding.recycler.setItemAnimator(null);
         binding.recycler.setHasFixedSize(true);
         binding.recycler.setAdapter(adapter.addAll(getTrack()));
         binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 16));
         binding.recycler.post(() -> binding.recycler.scrollToPosition(adapter.getSelected()));
         binding.recycler.setVisibility(adapter.getItemCount() == 0 ? View.GONE : View.VISIBLE);
-        binding.choose.setVisibility(type == C.TRACK_TYPE_TEXT && player.isExo() && vod ? View.VISIBLE : View.GONE);
-        binding.subtitle.setVisibility(type == C.TRACK_TYPE_TEXT ? View.VISIBLE : View.GONE);
+        binding.choose.setVisibility(type == C.TRACK_TYPE_TEXT && player.isVod() ? View.VISIBLE : View.GONE);
+        binding.subtitle.setVisibility(type == C.TRACK_TYPE_TEXT && player.haveTrack(C.TRACK_TYPE_TEXT) ? View.VISIBLE : View.GONE);
         binding.title.setText(ResUtil.getStringArray(R.array.select_track)[type - 1]);
     }
 
@@ -107,20 +95,18 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
     }
 
     private void showChooser(View view) {
-        if (cListener != null) cListener.showChooser(this);
-        else FileChooser.from(this).show(new String[]{MimeTypes.APPLICATION_SUBRIP, MimeTypes.TEXT_SSA, MimeTypes.TEXT_VTT, MimeTypes.APPLICATION_TTML, "text/*", "application/octet-stream"});
+        FileChooser.from(this).show(new String[]{MimeTypes.APPLICATION_SUBRIP, MimeTypes.TEXT_SSA, MimeTypes.TEXT_VTT, MimeTypes.APPLICATION_TTML, "text/*", "application/octet-stream"});
         player.pause();
     }
 
     private List<Track> getTrack() {
         List<Track> items = new ArrayList<>();
-        if (player.isExo()) addExoTrack(items);
-        if (player.isIjk()) addIjkTrack(items);
+        addTrack(items);
         return items;
     }
 
-    private void addExoTrack(List<Track> items) {
-        List<Tracks.Group> groups = player.exo().getCurrentTracks().getGroups();
+    private void addTrack(List<Track> items) {
+        List<Tracks.Group> groups = player.get().getCurrentTracks().getGroups();
         for (int i = 0; i < groups.size(); i++) {
             Tracks.Group trackGroup = groups.get(i);
             if (trackGroup.getType() != type) continue;
@@ -128,25 +114,10 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
                 Track item = new Track(type, provider.getTrackName(trackGroup.getTrackFormat(j)));
                 item.setAdaptive(trackGroup.isAdaptiveSupported());
                 item.setSelected(trackGroup.isTrackSelected(j));
-                item.setPlayer(player.getPlayer());
                 item.setGroup(i);
                 item.setTrack(j);
                 items.add(item);
             }
-        }
-    }
-
-    private void addIjkTrack(List<Track> items) {
-        int track = player.ijk().getSelectedTrack(type);
-        List<ITrackInfo> trackInfos = player.ijk().getTrackInfo();
-        for (int i = 0; i < trackInfos.size(); i++) {
-            ITrackInfo trackInfo = trackInfos.get(i);
-            if (trackInfo.getTrackType() != type) continue;
-            Track item = new Track(type, provider.getTrackName(trackInfo));
-            item.setPlayer(player.getPlayer());
-            item.setSelected(track == i);
-            item.setTrack(i);
-            items.add(item);
         }
     }
 
@@ -171,10 +142,5 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
         void onTrackClick(Track item);
 
         void onSubtitleClick();
-    }
-
-    public interface ChooserListener {
-
-        void showChooser(TrackDialog dialog);
     }
 }

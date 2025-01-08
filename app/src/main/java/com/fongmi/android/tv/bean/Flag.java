@@ -120,9 +120,9 @@ public class Flag implements Parcelable {
         return strict ? null : getEpisodes().get(0);
     }
 
-    public static List<Flag> create(String flag, String name, String url) {
+    public static List<Flag> create(String flag, String url) {
         Flag item = Flag.create(flag);
-        item.getEpisodes().add(Episode.create(name, url));
+        item.getEpisodes().add(Episode.create("01", url));
         return Arrays.asList(item);
     }
 

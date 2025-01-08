@@ -44,8 +44,8 @@ public class TypeAdapter extends RecyclerView.Adapter<TypeAdapter.ViewHolder> {
 
     public void addAll(Result result) {
         mItems.addAll(result.getTypes());
-        if (result.getList().size() > 0) mItems.add(0, home());
-        if (mItems.size() > 0) mItems.get(0).setActivated(true);
+        if (!result.getList().isEmpty()) mItems.add(0, home());
+        if (!mItems.isEmpty()) mItems.get(0).setActivated(true);
         notifyDataSetChanged();
     }
 

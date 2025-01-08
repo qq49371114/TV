@@ -37,6 +37,4 @@ public interface ITrackInfo {
     int getWidth();
 
     int getHeight();
-
-    float getFps();
 }

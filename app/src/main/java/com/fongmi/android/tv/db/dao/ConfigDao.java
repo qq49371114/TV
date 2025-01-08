@@ -11,6 +11,9 @@ import java.util.List;
 @Dao
 public abstract class ConfigDao extends BaseDao<Config> {
 
+    @Query("SELECT * FROM Config")
+    public abstract List<Config> findAll();
+
     @Query("SELECT * FROM Config WHERE type = :type ORDER BY time DESC")
     public abstract List<Config> findByType(int type);
 

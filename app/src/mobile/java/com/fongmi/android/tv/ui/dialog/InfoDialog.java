@@ -64,6 +64,7 @@ public class InfoDialog {
         binding.title.setText(title);
         binding.url.setText(fixUrl());
         binding.header.setText(header);
+        binding.title.setSingleLine(title.toString().contains(url));
         binding.url.setVisibility(TextUtils.isEmpty(url) ? View.GONE : View.VISIBLE);
         binding.header.setVisibility(TextUtils.isEmpty(header) ? View.GONE : View.VISIBLE);
     }

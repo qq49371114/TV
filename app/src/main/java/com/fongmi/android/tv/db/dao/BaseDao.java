@@ -32,9 +32,10 @@ public abstract class BaseDao<T> {
 
     @Transaction
     public void insertOrUpdate(List<T> items) {
+        if (items.isEmpty()) return;
         List<Long> result = insert(items);
         List<T> list = new ArrayList<>();
         for (int i = 0; i < result.size(); i++) if (result.get(i) == -1) list.add(items.get(i));
-        if (list.size() > 0) update(list);
+        if (!list.isEmpty()) update(list);
     }
 }

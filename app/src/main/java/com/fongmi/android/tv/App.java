@@ -12,10 +12,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.os.HandlerCompat;
 
-import com.fongmi.android.tv.api.config.LiveConfig;
+import com.fongmi.android.tv.event.EventIndex;
 import com.fongmi.android.tv.ui.activity.CrashActivity;
-import com.fongmi.android.tv.utils.LanguageUtil;
 import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.hook.Hook;
 import com.github.catvod.Init;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
@@ -24,6 +24,8 @@ import com.orhanobut.logger.AndroidLogAdapter;
 import com.orhanobut.logger.LogAdapter;
 import com.orhanobut.logger.Logger;
 import com.orhanobut.logger.PrettyFormatStrategy;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -37,7 +39,7 @@ public class App extends Application {
     private static App instance;
     private Activity activity;
     private final Gson gson;
-    private boolean hook;
+    private Hook hook;
 
     public App() {
         instance = this;
@@ -79,7 +81,7 @@ public class App extends Application {
         for (Runnable r : runnable) get().handler.removeCallbacks(r);
     }
 
-    public void setHook(boolean hook) {
+    public void setHook(Hook hook) {
         this.hook = hook;
     }
 
@@ -106,10 +108,10 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         Notify.createChannel();
-        LanguageUtil.init(this);
         Logger.addLogAdapter(getLogAdapter());
         OkHttp.get().setProxy(Setting.getProxy());
         OkHttp.get().setDoh(Doh.objectFrom(Setting.getDoh()));
+        EventBus.builder().addIndex(new EventIndex()).installDefaultEventBus();
         CaocConfig.Builder.create().backgroundMode(CaocConfig.BACKGROUND_MODE_SILENT).errorActivity(CrashActivity.class).apply();
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override
@@ -146,18 +148,15 @@ public class App extends Application {
             public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
             }
         });
-
     }
 
     @Override
     public PackageManager getPackageManager() {
-        if (!hook) return getBaseContext().getPackageManager();
-        return LiveConfig.get().getHome().getCore();
+        return hook != null ? hook : getBaseContext().getPackageManager();
     }
 
     @Override
     public String getPackageName() {
-        if (!hook) return getBaseContext().getPackageName();
-        return LiveConfig.get().getHome().getCore().getPkg();
+        return hook != null ? hook.getPackageName() : getBaseContext().getPackageName();
     }
 }

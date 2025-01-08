@@ -3,7 +3,6 @@ package com.tvbus.engine;
 import android.content.Context;
 
 import com.github.catvod.Init;
-import com.github.catvod.utils.Github;
 
 public class TVCore {
 
@@ -11,7 +10,7 @@ public class TVCore {
 
     public TVCore(String so) {
         try {
-            System.load(Github.getSo(so));
+            System.load(so);
             handle = initialise();
         } catch (Throwable ignored) {
         }
@@ -56,6 +55,15 @@ public class TVCore {
     public TVCore auth(String str) {
         try {
             if (str.length() > 0) setAuthUrl(handle, str);
+            return this;
+        } catch (Throwable ignored) {
+            return this;
+        }
+    }
+
+    public TVCore domain(String str) {
+        try {
+            if (str.length() > 0) setDomainSuffix(handle, str);
             return this;
         } catch (Throwable ignored) {
             return this;
@@ -141,6 +149,8 @@ public class TVCore {
     private native void setRunningMode(long handle, int mode);
 
     private native void setAuthUrl(long handle, String str);
+
+    private native void setDomainSuffix(long handle, String str);
 
     private native void setMKBroker(long handle, String str);
 

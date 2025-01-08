@@ -104,8 +104,8 @@ public class Spider extends com.github.catvod.crawler.Spider {
     }
 
     @Override
-    public String liveContent() throws Exception {
-        return (String) call("live");
+    public String liveContent(String url) throws Exception {
+        return (String) call("live", url);
     }
 
     @Override

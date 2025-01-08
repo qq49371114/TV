@@ -1,25 +1,19 @@
 package com.fongmi.android.tv.ui.activity;
 
-import android.Manifest;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
-import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.ItemBridgeAdapter;
+import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
-import androidx.viewpager.widget.ViewPager;
 
 import com.android.cast.dlna.dmr.DLNARendererService;
 import com.bumptech.glide.Glide;
@@ -28,68 +22,61 @@ import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.Updater;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.api.config.WallConfig;
-import com.fongmi.android.tv.bean.Button;
-import com.fongmi.android.tv.bean.Class;
 import com.fongmi.android.tv.bean.Config;
-import com.fongmi.android.tv.bean.Filter;
+import com.fongmi.android.tv.bean.Func;
+import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
+import com.fongmi.android.tv.bean.Style;
+import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.ActivityHomeBinding;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.event.CastEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.event.ServerEvent;
 import com.fongmi.android.tv.impl.Callback;
-import com.fongmi.android.tv.impl.ConfigCallback;
 import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.ui.base.BaseActivity;
+import com.fongmi.android.tv.ui.custom.CustomRowPresenter;
+import com.fongmi.android.tv.ui.custom.CustomSelector;
 import com.fongmi.android.tv.ui.custom.CustomTitleView;
-import com.fongmi.android.tv.ui.dialog.HistoryDialog;
-import com.fongmi.android.tv.ui.dialog.MenuDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
-import com.fongmi.android.tv.ui.fragment.HomeFragment;
-import com.fongmi.android.tv.ui.fragment.VodFragment;
-import com.fongmi.android.tv.ui.presenter.TypePresenter;
+import com.fongmi.android.tv.ui.presenter.FuncPresenter;
+import com.fongmi.android.tv.ui.presenter.HeaderPresenter;
+import com.fongmi.android.tv.ui.presenter.HistoryPresenter;
+import com.fongmi.android.tv.ui.presenter.ProgressPresenter;
+import com.fongmi.android.tv.ui.presenter.VodPresenter;
 import com.fongmi.android.tv.utils.Clock;
 import com.fongmi.android.tv.utils.FileChooser;
-import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.KeyUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
-import com.fongmi.android.tv.utils.Tbs;
 import com.fongmi.android.tv.utils.UrlUtil;
-import com.github.catvod.utils.Prefers;
-import com.github.catvod.utils.Trans;
-import com.permissionx.guolindev.PermissionX;
+import com.google.common.collect.Lists;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-public class HomeActivity extends BaseActivity implements CustomTitleView.Listener, TypePresenter.OnClickListener, ConfigCallback {
+public class HomeActivity extends BaseActivity implements CustomTitleView.Listener, VodPresenter.OnClickListener, FuncPresenter.OnClickListener, HistoryPresenter.OnClickListener {
 
-    public ActivityHomeBinding mBinding;
+    private ActivityHomeBinding mBinding;
+    private ArrayObjectAdapter mHistoryAdapter;
+    private HistoryPresenter mPresenter;
     private ArrayObjectAdapter mAdapter;
-    private HomeActivity.PageAdapter mPageAdapter;
     private SiteViewModel mViewModel;
-    public Result mResult;
     private boolean loading;
-    private boolean coolDown;
-    private View mOldView;
-    private boolean confirm;
+    private Result mResult;
     private Clock mClock;
-    private View mFocus;
 
     private Site getHome() {
         return VodConfig.get().getHome();
@@ -110,30 +97,25 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     protected void initView() {
         DLNARendererService.Companion.start(this, R.drawable.ic_logo);
         mClock = Clock.create(mBinding.clock).format("MM/dd HH:mm:ss");
+        mBinding.progressLayout.showProgress();
         Updater.get().release().start(this);
+        mResult = Result.empty();
         Server.get().start();
-        Tbs.init();
-        setTitleView();
         setRecyclerView();
         setViewModel();
-        setHomeType();
-        setPager();
+        setAdapter();
         initConfig();
+        setLogo();
     }
 
     @Override
     protected void initEvent() {
         mBinding.title.setListener(this);
-        mBinding.pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-            @Override
-            public void onPageSelected(int position) {
-                mBinding.recycler.setSelectedPosition(position);
-            }
-        });
         mBinding.recycler.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
             @Override
             public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
-                onChildSelected(child);
+                mBinding.toolbar.setVisibility(position == 0 ? View.VISIBLE : View.GONE);
+                if (mPresenter.isDelete()) setHistoryDelete(false);
             }
         });
     }
@@ -150,174 +132,41 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         }
     }
 
-    private void setTitleView() {
-        mBinding.homeSiteLock.setVisibility(Setting.isHomeSiteLock() ? View.VISIBLE : View.GONE);
-        if (Setting.getHomeUI() == 0) {
-            mBinding.title.setTextSize(24);
-            mBinding.clock.setTextSize(24);
-        } else {
-            mBinding.title.setTextSize(20);
-            mBinding.clock.setTextSize(20);
-        }
-    }
-
     private void setRecyclerView() {
-        setHomeUI();
-        mBinding.recycler.setHorizontalSpacing(ResUtil.dp2px(16));
-        mBinding.recycler.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-        mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(new TypePresenter(this))));
-    }
-
-    private void setHomeUI() {
-        if (Setting.getHomeUI() == 0) mBinding.recycler.setVisibility(View.GONE);
-        else mBinding.recycler.setVisibility(View.VISIBLE);
+        CustomSelector selector = new CustomSelector();
+        selector.addPresenter(Integer.class, new HeaderPresenter());
+        selector.addPresenter(String.class, new ProgressPresenter());
+        selector.addPresenter(ListRow.class, new CustomRowPresenter(16), VodPresenter.class);
+        selector.addPresenter(ListRow.class, new CustomRowPresenter(16), FuncPresenter.class);
+        selector.addPresenter(ListRow.class, new CustomRowPresenter(16), HistoryPresenter.class);
+        mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
+        mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
     }
 
     private void setViewModel() {
         mViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
         mViewModel.result.observe(this, result -> {
-            setTypes(mResult = result);
+            mAdapter.remove("progress");
+            addVideo(mResult = result);
         });
     }
 
-    private List<Class> getTypes(Result result) {
-        List<Class> items = new ArrayList<>();
-        for (String cate : getHome().getCategories()) for (Class item : result.getTypes()) if (Trans.s2t(cate).equals(item.getTypeName())) items.add(item);
-        return items;
+    private void setAdapter() {
+        mAdapter.add(getFuncRow());
+        mAdapter.add(R.string.home_history);
+        mAdapter.add(R.string.home_recommend);
+        mHistoryAdapter = new ArrayObjectAdapter(mPresenter = new HistoryPresenter(this));
     }
 
-    private String getKey() {
-        return getHome().getKey();
-    }
-
-    private List<Filter> getFilter(String typeId) {
-        return Filter.arrayFrom(Prefers.getString("filter_" + getKey() + "_" + typeId));
-    }
-
-    private void setHomeType() {
-        Class home = new Class();
-        home.setTypeId("home");
-        home.setTypeName(ResUtil.getString(R.string.home));
-        mAdapter.add(home);
-    }
-
-    public void homeContent() {
-        mResult = Result.empty();
-        String title = getHome().getName();
-        mBinding.title.setText(title.isEmpty() ? ResUtil.getString(R.string.app_name) : title);
-        if (getHome().getKey().isEmpty()) return;
-        mFocus = getCurrentFocus();
-        getHomeFragment().mBinding.progressLayout.showProgress();
-        mViewModel.homeContent();
-    }
-
-    public void setTypes(Result result) {
-        result.setTypes(getTypes(result));
-        for (Map.Entry<String, List<Filter>> entry : result.getFilters().entrySet()) Prefers.put("filter_" + getKey() + "_" + entry.getKey(), App.gson().toJson(entry.getValue()));
-        for (Class item : result.getTypes()) item.setFilters(getFilter(item.getTypeId()));
-        if (mAdapter.size() > 1) mAdapter.removeItems(1, mAdapter.size() - 1);
-        if (result.getTypes().size() > 0) mAdapter.addAll(1, result.getTypes());
-        setPager();
-        mPageAdapter.notifyDataSetChanged();
-        getHomeFragment().addVideo(result);
-        getHomeFragment().mBinding.progressLayout.showContent();
-        App.post(() -> setFocus(), 200);
-    }
-
-    private void setPager() {
-        mBinding.pager.setAdapter(mPageAdapter = new HomeActivity.PageAdapter(getSupportFragmentManager()));
-        mBinding.pager.setNoScrollItem(0);
-    }
-
-    private void onChildSelected(@Nullable RecyclerView.ViewHolder child) {
-        if (mOldView != null) mOldView.setActivated(false);
-        if (child == null) return;
-        mOldView = child.itemView;
-        mOldView.setActivated(true);
-        App.post(mRunnable, 100);
-    }
-
-    private final Runnable mRunnable = new Runnable() {
-        @Override
-        public void run() {
-            int position = mBinding.recycler.getSelectedPosition();
-            mBinding.pager.setCurrentItem(position);
-            if (position == 0) showToolBar();
-            else hideToolBar();
-        }
-    };
-
-    private void updateFilter(Class item) {
-        if (item.getFilter() == null) return;
-        getFragment().toggleFilter(item.toggleFilter());
-        mAdapter.notifyArrayItemRangeChanged(1, mAdapter.size() - 1);
-    }
-
-    public void hideToolBar() {
-        mBinding.toolbar.setVisibility(View.GONE);
-        if (mBinding.recycler.getVisibility() == View.VISIBLE) mBinding.blank.setVisibility(View.VISIBLE);
-        else mBinding.blank.setVisibility(View.GONE);
-    }
-
-    public void showToolBar() {
-        mBinding.toolbar.setVisibility(View.VISIBLE);
-        mBinding.blank.setVisibility(View.GONE);
-    }
-
-    private HomeFragment getHomeFragment() {
-        return (HomeFragment) mPageAdapter.instantiateItem(mBinding.pager, 0);
-    }
-
-    private VodFragment getFragment() {
-        return (VodFragment) mPageAdapter.instantiateItem(mBinding.pager, mBinding.pager.getCurrentItem());
-    }
-
-    private void setCoolDown() {
-        App.post(() -> coolDown = false, 2000);
-        coolDown = true;
-    }
-
-    private boolean hasSettingButton() {
-        return Setting.getHomeButtons(Button.getDefaultButtons()).contains("6");
-    }
-
-    @Override
-    public void onItemClick(Class item) {
-        if (mBinding.pager.getCurrentItem() == 0) {
-            SiteDialog.create(this).show();
-        } else {
-            updateFilter(item);
-        }
-    }
-
-    @Override
-    public void onRefresh(Class item) {
-        if (mBinding.pager.getCurrentItem() == 0) mBinding.title.requestFocus();
-        else getFragment().onRefresh();
-    }
-
-    @Override
-    public void setConfig(Config config) {
-        setConfig(config, "");
-    }
-
-    private void setConfig(Config config, String success) {
-        if (config.getUrl().startsWith("file") && !PermissionX.isGranted(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-            PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> load(config, success));
-        } else {
-            load(config, success);
-        }
-    }
-
-    public void initConfig() {
+    private void initConfig() {
         if (isLoading()) return;
         WallConfig.get().init();
         LiveConfig.get().init().load();
-        VodConfig.get().init().load(getCallback(""), true);
+        VodConfig.get().init().load(getCallback());
         setLoading(true);
     }
 
-    private Callback getCallback(String success) {
+    private Callback getCallback() {
         return new Callback() {
             @Override
             public void success(String result) {
@@ -326,30 +175,22 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
             @Override
             public void success() {
+                mBinding.progressLayout.showContent();
                 checkAction(getIntent());
-                RefreshEvent.video();
+                getHistory();
+                getVideo();
+                setFocus();
                 setLogo();
-                if (!TextUtils.isEmpty(success)) Notify.show(success);
             }
 
             @Override
             public void error(String msg) {
-                if (getHomeFragment().inited) getHomeFragment().mBinding.progressLayout.showContent();
-                else App.post(() -> getHomeFragment().mBinding.progressLayout.showContent(), 1000);
+                mBinding.progressLayout.showContent();
                 mResult = Result.empty();
                 Notify.show(msg);
-                setLoading(false);
+                setFocus();
             }
         };
-    }
-
-    private void load(Config config, String success) {
-        switch (config.getType()) {
-            case 0:
-                getHomeFragment().mBinding.progressLayout.showProgress();
-                VodConfig.load(config, getCallback(success));
-                break;
-        }
     }
 
     private void loadLive(String url) {
@@ -361,50 +202,106 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         });
     }
 
-    private void setConfirm() {
-        confirm = true;
-        Notify.show(R.string.app_exit);
-        App.post(() -> confirm = false, 5000);
+    private void setFocus() {
+        setLoading(false);
+        App.post(() -> mBinding.title.setFocusable(true), 500);
+        if (!mBinding.title.hasFocus()) mBinding.recycler.requestFocus();
     }
 
+    private void getVideo() {
+        mResult = Result.empty();
+        int index = getRecommendIndex();
+        String title = getHome().getName();
+        mBinding.title.setText(title.isEmpty() ? ResUtil.getString(R.string.app_name) : title);
+        if (mAdapter.size() > index) mAdapter.removeItems(index, mAdapter.size() - index);
+        if (getHome().getKey().isEmpty()) return;
+        mViewModel.homeContent();
+        mAdapter.add("progress");
+    }
 
-    @Override
-    public void showDialog() {
-        if (!hasSettingButton()) {
-            MenuDialog.create(this).show();
-            return;
+    private void addVideo(Result result) {
+        Style style = result.getStyle(getHome().getStyle());
+        for (List<Vod> items : Lists.partition(result.getList(), Product.getColumn(style))) {
+            ArrayObjectAdapter adapter = new ArrayObjectAdapter(new VodPresenter(this, style));
+            adapter.setItems(items, null);
+            mAdapter.add(new ListRow(adapter));
         }
-        if (Setting.isHomeSiteLock()) return;
-        SiteDialog.create(this).show();
     }
 
-    @Override
-    public void onRefresh() {
-        FileUtil.clearCache(new Callback() {
+    private ListRow getFuncRow() {
+        ArrayObjectAdapter adapter = new ArrayObjectAdapter(new FuncPresenter(this));
+        adapter.add(Func.create(R.string.home_vod));
+        adapter.add(Func.create(R.string.home_live));
+        adapter.add(Func.create(R.string.home_search));
+        adapter.add(Func.create(R.string.home_keep));
+        adapter.add(Func.create(R.string.home_push));
+        adapter.add(Func.create(R.string.home_setting));
+        return new ListRow(adapter);
+    }
+
+    private void getHistory() {
+        getHistory(false);
+    }
+
+    private void getHistory(boolean renew) {
+        List<History> items = History.get();
+        int historyIndex = getHistoryIndex();
+        int recommendIndex = getRecommendIndex();
+        boolean exist = recommendIndex - historyIndex == 2;
+        if (renew) mHistoryAdapter = new ArrayObjectAdapter(mPresenter = new HistoryPresenter(this));
+        if ((items.isEmpty() && exist) || (renew && exist)) mAdapter.removeItems(historyIndex, 1);
+        if ((!items.isEmpty() && !exist) || (renew && exist)) mAdapter.add(historyIndex, new ListRow(mHistoryAdapter));
+        mHistoryAdapter.setItems(items, null);
+    }
+
+    private void setHistoryDelete(boolean delete) {
+        mPresenter.setDelete(delete);
+        mHistoryAdapter.notifyArrayItemRangeChanged(0, mHistoryAdapter.size());
+    }
+
+    private void clearHistory() {
+        mAdapter.removeItems(getHistoryIndex(), 1);
+        History.delete(VodConfig.getCid());
+        mPresenter.setDelete(false);
+        mHistoryAdapter.clear();
+    }
+
+    private int getHistoryIndex() {
+        for (int i = 0; i < mAdapter.size(); i++) if (mAdapter.get(i).equals(R.string.home_history)) return i + 1;
+        return -1;
+    }
+
+    private int getRecommendIndex() {
+        for (int i = 0; i < mAdapter.size(); i++) if (mAdapter.get(i).equals(R.string.home_recommend)) return i + 1;
+        return -1;
+    }
+
+    private boolean isLoading() {
+        return loading;
+    }
+
+    private void setLoading(boolean loading) {
+        this.loading = loading;
+    }
+
+    private void setLogo() {
+        Glide.with(App.get()).load(UrlUtil.convert(VodConfig.get().getConfig().getLogo())).circleCrop().override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL).listener(getListener()).into(mBinding.logo);
+    }
+
+    private RequestListener<Drawable> getListener() {
+        return new RequestListener<>() {
             @Override
-            public void success() {
-                Config config = VodConfig.get().getConfig().json("").save();
-                if (!config.isEmpty()) setConfig(config, ResUtil.getString(R.string.config_refreshed));
+            public boolean onLoadFailed(@Nullable GlideException e, Object model, @NonNull Target<Drawable> target, boolean isFirstResource) {
+                mBinding.logo.setVisibility(View.GONE);
+                return false;
             }
-        });
-    }
 
-    @Override
-    public boolean onItemLongClick(Class item) {
-        if (mBinding.pager.getCurrentItem() != 0) return true;
-        onRefresh();
-        return true;
-    }
-
-
-    @Override
-    public void setSite(Site item) {
-        VodConfig.get().setHome(item);
-        homeContent();
-    }
-
-    @Override
-    public void onChanged() {
+            @Override
+            public boolean onResourceReady(@NonNull Drawable resource, @NonNull Object model, Target<Drawable> target, @NonNull DataSource dataSource, boolean isFirstResource) {
+                mBinding.logo.setVisibility(View.VISIBLE);
+                return false;
+            }
+        };
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -415,16 +312,18 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 setLogo();
                 break;
             case VIDEO:
-                homeContent();
+                getVideo();
                 break;
             case IMAGE:
-                getHomeFragment().refreshRecommond();
+                int index = getRecommendIndex();
+                mAdapter.notifyArrayItemRangeChanged(index, mAdapter.size() - index);
                 break;
             case HISTORY:
-                getHomeFragment().getHistory();
+                getHistory();
                 break;
             case SIZE:
-                homeContent();
+                getVideo();
+                getHistory(true);
                 break;
         }
     }
@@ -467,59 +366,86 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         };
     }
 
-    public boolean isLoading() {
-        return loading;
-    }
-
-    public void setLoading(boolean loading) {
-        this.loading = loading;
-    }
-
-    private void setLogo() {
-        Glide.with(App.get()).load(UrlUtil.convert(VodConfig.get().getConfig().getLogo())).circleCrop().override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL).listener(getListener()).into(mBinding.logo);
-    }
-
-    private RequestListener<Drawable> getListener() {
-        return new RequestListener<Drawable>() {
-            @Override
-            public boolean onLoadFailed(@Nullable GlideException e, Object model, @NonNull Target<Drawable> target, boolean isFirstResource) {
-                mBinding.logo.setVisibility(View.GONE);
-                return false;
-            }
-
-            @Override
-            public boolean onResourceReady(@NonNull Drawable resource, @NonNull Object model, Target<Drawable> target, @NonNull DataSource dataSource, boolean isFirstResource) {
-                mBinding.logo.setVisibility(View.VISIBLE);
-                return false;
-            }
-        };
-    }
-
-    private void setFocus() {
-        setLoading(false);
-        if (!mBinding.title.isFocusable()) App.post(() -> mBinding.title.setFocusable(true), 500);
-        if (mFocus != mBinding.title) {
-            if (Setting.getHomeUI() == 0) getHomeFragment().mBinding.recycler.requestFocus();
-            else mBinding.recycler.requestFocus();
+    @Override
+    public void onItemClick(Func item) {
+        switch (item.getResId()) {
+            case R.string.home_vod:
+                VodActivity.start(this, mResult.clear());
+                break;
+            case R.string.home_live:
+                LiveActivity.start(this);
+                break;
+            case R.string.home_search:
+                SearchActivity.start(this);
+                break;
+            case R.string.home_keep:
+                KeepActivity.start(this);
+                break;
+            case R.string.home_push:
+                PushActivity.start(this);
+                break;
+            case R.string.home_setting:
+                SettingActivity.start(this);
+                break;
         }
     }
 
     @Override
+    public void onItemClick(Vod item) {
+        if (item.isAction()) mViewModel.action(getHome().getKey(), item.getAction());
+        else if (getHome().isIndex()) CollectActivity.start(getActivity(), item.getVodName());
+        else VideoActivity.start(this, item.getVodId(), item.getVodName(), item.getVodPic());
+    }
+
+    @Override
+    public boolean onLongClick(Vod item) {
+        CollectActivity.start(this, item.getVodName());
+        return true;
+    }
+
+    @Override
+    public void onItemClick(History item) {
+        VideoActivity.start(this, item.getSiteKey(), item.getVodId(), item.getVodName(), item.getVodPic());
+    }
+
+    @Override
+    public void onItemDelete(History item) {
+        mHistoryAdapter.remove(item.delete());
+        if (mHistoryAdapter.size() > 0) return;
+        mAdapter.removeItems(getHistoryIndex(), 1);
+        mPresenter.setDelete(false);
+    }
+
+    @Override
+    public boolean onLongClick() {
+        if (mPresenter.isDelete()) clearHistory();
+        else setHistoryDelete(true);
+        return true;
+    }
+
+    @Override
+    public void showDialog() {
+        SiteDialog.create(this).show();
+    }
+
+    @Override
+    public void onRefresh() {
+        getVideo();
+    }
+
+    @Override
+    public void setSite(Site item) {
+        VodConfig.get().setHome(item);
+        getVideo();
+    }
+
+    @Override
+    public void onChanged() {
+    }
+
+    @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        boolean isHomeFragment = mBinding.pager.getCurrentItem() == 0;
-        if (isHomeFragment && KeyUtil.isMenuKey(event)) {
-            if (Setting.getHomeMenuKey() == 0) MenuDialog.create(this).show();
-            else if (Setting.getHomeMenuKey() == 1) SiteDialog.create(this).show();
-            else if (Setting.getHomeMenuKey() == 2) HistoryDialog.create(this).type(0).show();
-            else if (Setting.getHomeMenuKey() == 3) LiveActivity.start(this);
-            else if (Setting.getHomeMenuKey() == 4) HistoryActivity.start(this);
-            else if (Setting.getHomeMenuKey() == 5) SearchActivity.start(this);
-            else if (Setting.getHomeMenuKey() == 6) PushActivity.start(this);
-            else if (Setting.getHomeMenuKey() == 7) KeepActivity.start(this);
-            else if (Setting.getHomeMenuKey() == 8) SettingActivity.start(this);
-        }
-        if (!isHomeFragment && KeyUtil.isMenuKey(event)) updateFilter((Class) mAdapter.get(mBinding.pager.getCurrentItem()));
-        if (!isHomeFragment && KeyUtil.isBackKey(event) && event.isLongPress() && getFragment().goRoot()) setCoolDown();
+        if (KeyUtil.isMenuKey(event)) showDialog();
         return super.dispatchKeyEvent(event);
     }
 
@@ -527,8 +453,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     protected void onResume() {
         super.onResume();
         mClock.start();
-        setTitleView();
-        setHomeUI();
     }
 
     @Override
@@ -544,32 +468,15 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     protected void onBackPress() {
-        if (isVisible(mBinding.recycler) && mBinding.recycler.getSelectedPosition() != 0) {
+        if (mBinding.progressLayout.isProgress()) {
+            mBinding.progressLayout.showContent();
+        } else if (mPresenter.isDelete()) {
+            setHistoryDelete(false);
+        } else if (mBinding.recycler.getSelectedPosition() != 0) {
             mBinding.recycler.scrollToPosition(0);
-        } else if (mPageAdapter != null && getHomeFragment().inited && getHomeFragment().mBinding.progressLayout.isProgress()) {
-            getHomeFragment().mBinding.progressLayout.showContent();
-        } else if (mPageAdapter != null && getHomeFragment().inited && getHomeFragment().mPresenter != null && getHomeFragment().mPresenter.isDelete()) {
-            getHomeFragment().setHistoryDelete(false);
-        } else if (getHomeFragment().canBack()) {
-            getHomeFragment().goBack();
-        } else if (!confirm) {
-            setConfirm();
         } else {
             finish();
         }
-    }
-
-    @Override
-    public void onBackPressed() {
-        boolean isHomeFragment = mBinding.pager.getCurrentItem() == 0;
-        if (isHomeFragment) {
-            super.onBackPressed();
-            return;
-        }
-        Class item = (Class) mAdapter.get(mBinding.pager.getCurrentItem());
-        if (item.getFilter() != null && item.getFilter()) updateFilter(item);
-        else if (getFragment().canBack()) getFragment().goBack();
-        else if (!coolDown) super.onBackPressed();
     }
 
     @Override
@@ -581,28 +488,5 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         AppDatabase.backup();
         Server.get().stop();
         Source.get().exit();
-    }
-
-    class PageAdapter extends FragmentStatePagerAdapter {
-        public PageAdapter(@NonNull FragmentManager fm) {
-            super(fm);
-        }
-
-        @NonNull
-        @Override
-        public Fragment getItem(int position) {
-            if (position == 0) return new HomeFragment();
-            Class type = (Class) mAdapter.get(position);
-            return VodFragment.newInstance(getHome().getKey(), type.getTypeId(), type.getStyle(), type.getExtend(false), "1".equals(type.getTypeFlag()));
-        }
-
-        @Override
-        public int getCount() {
-            return mAdapter.size();
-        }
-
-        @Override
-        public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
-        }
     }
 }

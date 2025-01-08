@@ -64,14 +64,12 @@ public class Result implements Parcelable {
     private String jxFrom;
     @SerializedName("flag")
     private String flag;
-    @SerializedName("danmaku")
-    private String danmaku;
+    @SerializedName("desc")
+    private String desc;
     @SerializedName("format")
     private String format;
     @SerializedName("click")
     private String click;
-    @SerializedName("js")
-    private String js;
     @SerializedName("key")
     private String key;
     @SerializedName("pagecount")
@@ -159,7 +157,7 @@ public class Result implements Parcelable {
     }
 
     public void setTypes(List<Class> types) {
-        if (types.size() > 0) this.types = types;
+        if (!types.isEmpty()) this.types = types;
     }
 
     public List<Vod> getList() {
@@ -226,12 +224,8 @@ public class Result implements Parcelable {
         this.flag = flag;
     }
 
-    public String getDanmaku() {
-        return TextUtils.isEmpty(danmaku) ? "" : danmaku;
-    }
-
-    public void setDanmaku(String danmaku) {
-        this.danmaku = danmaku;
+    public String getDesc() {
+        return TextUtils.isEmpty(desc) ? "" : desc;
     }
 
     public String getFormat() {
@@ -244,14 +238,6 @@ public class Result implements Parcelable {
 
     public void setClick(String click) {
         this.click = click;
-    }
-
-    public String getJs() {
-        return TextUtils.isEmpty(js) ? "" : js;
-    }
-
-    public void setJs(String js) {
-        this.js = js;
     }
 
     public String getKey() {

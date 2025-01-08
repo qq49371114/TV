@@ -2,17 +2,7 @@
 -keep class com.fongmi.android.tv.bean.** { *; }
 
 # Gson
--keepattributes Signature
--keepattributes *Annotation*
--dontwarn sun.misc.**
 -keep class com.google.gson.** { *; }
--keep class * extends com.google.gson.TypeAdapter
--keep class * implements com.google.gson.TypeAdapterFactory
--keep class * implements com.google.gson.JsonSerializer
--keep class * implements com.google.gson.JsonDeserializer
--keepclassmembers,allowobfuscation class * { @com.google.gson.annotations.SerializedName <fields>; }
--keep,allowobfuscation,allowshrinking class com.google.gson.reflect.TypeToken
--keep,allowobfuscation,allowshrinking class * extends com.google.gson.reflect.TypeToken
 
 # SimpleXML
 -keep interface org.simpleframework.xml.core.Label { public *; }
@@ -21,11 +11,12 @@
 -keep class * implements org.simpleframework.xml.core.Parameter { public *; }
 -keep interface org.simpleframework.xml.core.Extractor { public *; }
 -keep class * implements org.simpleframework.xml.core.Extractor { public *; }
--keepclassmembers,allowobfuscation class * { @org.simpleframework.xml.Text <fields>; }
 -keepclassmembers,allowobfuscation class * { @org.simpleframework.xml.Path <fields>; }
--keepclassmembers,allowobfuscation class * { @org.simpleframework.xml.ElementList <fields>; }
 -keepclassmembers,allowobfuscation class * { @org.simpleframework.xml.Root <fields>; }
+-keepclassmembers,allowobfuscation class * { @org.simpleframework.xml.Text <fields>; }
+-keepclassmembers,allowobfuscation class * { @org.simpleframework.xml.Element <fields>; }
 -keepclassmembers,allowobfuscation class * { @org.simpleframework.xml.Attribute <fields>; }
+-keepclassmembers,allowobfuscation class * { @org.simpleframework.xml.ElementList <fields>; }
 
 # OkHttp
 -dontwarn okhttp3.**
@@ -64,12 +55,8 @@
 # Jianpian
 -keep class com.p2p.** { *; }
 
-# Nano
--keep class fi.iki.elonen.** { *; }
-
 # QuickJS
--keep class com.whl.quickjs.** { *; }
--keep class com.fongmi.quickjs.** { *; }
+-keep class com.fongmi.quickjs.method.** { *; }
 
 # Sardine
 -keep class com.thegrizzlylabs.sardineandroid.** { *; }
@@ -94,9 +81,3 @@
     public static **[] values();
     public static ** valueOf(java.lang.String);
 }
-
-# x5
--dontwarn dalvik.**
--dontwarn com.tencent.smtt.**
--keep class com.tencent.smtt.** { *; }
--keep class com.tencent.tbs.** { *; }

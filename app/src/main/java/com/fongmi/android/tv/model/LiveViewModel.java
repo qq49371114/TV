@@ -1,7 +1,5 @@
 package com.fongmi.android.tv.model;
 
-import android.net.Uri;
-
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -61,14 +59,18 @@ public class LiveViewModel extends ViewModel {
     public void getLive(Live item) {
         execute(LIVE, () -> {
             LiveParser.start(item.recent());
-            setTimeZone(item.getEpg());
+            setTimeZone(item);
             verify(item);
             return item;
         });
     }
 
     public void getXml(Live item) {
-        execute(XML, () -> EpgParser.start(item));
+        execute(XML, () -> {
+            boolean result = false;
+            for (String url : item.getEpg().split(",")) if (EpgParser.start(item, url)) result = true;
+            return result;
+        });
     }
 
     public void getEpg(Channel item) {
@@ -96,10 +98,9 @@ public class LiveViewModel extends ViewModel {
         });
     }
 
-    private void setTimeZone(String url) {
+    private void setTimeZone(Live live) {
         try {
-            if (!url.contains("serverTimeZone=")) return;
-            TimeZone timeZone = TimeZone.getTimeZone(Uri.parse(url).getQueryParameter("serverTimeZone"));
+            TimeZone timeZone = live.getTimeZone().isEmpty() ? TimeZone.getDefault() : TimeZone.getTimeZone(live.getTimeZone());
             formatDate.setTimeZone(timeZone);
             formatTime.setTimeZone(timeZone);
         } catch (Exception ignored) {

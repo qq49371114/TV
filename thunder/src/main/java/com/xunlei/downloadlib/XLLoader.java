@@ -53,9 +53,9 @@ class XLLoader {
 
     public native int setOriginUserAgent(long j, String str);
 
-    public native int setSpeedLimit(long j, long j2);
-
     public native int setStatReportSwitch(boolean z);
+
+    public native int setSpeedLimit(long j, long j2);
 
     public native int setTaskGsState(long j, int i, int i2);
 

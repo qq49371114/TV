@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.bean;
 
+import android.net.Uri;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -10,6 +11,7 @@ import androidx.room.PrimaryKey;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.api.XtreamParser;
 import com.fongmi.android.tv.api.loader.BaseLoader;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.gson.ExtAdapter;
@@ -77,6 +79,21 @@ public class Live {
     private String referer;
 
     @Ignore
+    @SerializedName("username")
+    private String username;
+
+    @Ignore
+    @SerializedName("password")
+    private String password;
+
+    @Ignore
+    @SerializedName("timeZone")
+    private String timeZone;
+
+    @SerializedName("keep")
+    private String keep;
+
+    @Ignore
     @SerializedName("type")
     private Integer type;
 
@@ -87,10 +104,6 @@ public class Live {
     @Ignore
     @SerializedName("header")
     private JsonElement header;
-
-    @Ignore
-    @SerializedName("playerType")
-    private Integer playerType;
 
     @Ignore
     @SerializedName("catchup")
@@ -152,6 +165,10 @@ public class Live {
         return TextUtils.isEmpty(url) ? "" : url;
     }
 
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
     public String getApi() {
         return TextUtils.isEmpty(api) ? "" : api;
     }
@@ -204,6 +221,38 @@ public class Live {
         return TextUtils.isEmpty(referer) ? "" : referer;
     }
 
+    public String getUsername() {
+        return TextUtils.isEmpty(username) ? "" : username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return TextUtils.isEmpty(password) ? "" : password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getTimeZone() {
+        return TextUtils.isEmpty(timeZone) ? "" : timeZone;
+    }
+
+    public void setTimeZone(String timeZone) {
+        this.timeZone = timeZone;
+    }
+
+    public String getKeep() {
+        return TextUtils.isEmpty(keep) ? "" : keep;
+    }
+
+    public void setKeep(String keep) {
+        this.keep = keep;
+    }
+
     public Integer getType() {
         return type == null ? 0 : type;
     }
@@ -214,10 +263,6 @@ public class Live {
 
     public JsonElement getHeader() {
         return header;
-    }
-
-    public int getPlayerType() {
-        return playerType == null ? -1 : Math.min(playerType, 2);
     }
 
     public Catchup getCatchup() {
@@ -268,6 +313,10 @@ public class Live {
         this.width = width;
     }
 
+    public boolean isXtream() {
+        return !getUsername().isEmpty() && !getPassword().isEmpty();
+    }
+
     public boolean isEmpty() {
         return getName().isEmpty();
     }
@@ -297,11 +346,25 @@ public class Live {
         return this;
     }
 
+    public Live keep(Channel channel) {
+        setKeep(channel.getGroup().getName() + AppDatabase.SYMBOL + channel.getName() + AppDatabase.SYMBOL + channel.getCurrent());
+        return this;
+    }
+
     public Live sync() {
         Live item = find(getName());
         if (item == null) return this;
         setBoot(item.isBoot());
         setPass(item.isPass());
+        setKeep(item.getKeep());
+        return this;
+    }
+
+    public Live check() {
+        Uri uri = Uri.parse(getUrl());
+        boolean xtream = XtreamParser.isVerify(uri);
+        if (xtream) setUsername(uri.getQueryParameter("username"));
+        if (xtream) setPassword(uri.getQueryParameter("password"));
         return this;
     }
 

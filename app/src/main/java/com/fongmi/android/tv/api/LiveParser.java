@@ -10,7 +10,9 @@ import com.fongmi.android.tv.bean.ClearKey;
 import com.fongmi.android.tv.bean.Drm;
 import com.fongmi.android.tv.bean.Group;
 import com.fongmi.android.tv.bean.Live;
-import com.fongmi.android.tv.player.Players;
+import com.fongmi.android.tv.bean.XCategory;
+import com.fongmi.android.tv.bean.XInfo;
+import com.fongmi.android.tv.bean.XStream;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
@@ -18,6 +20,7 @@ import com.github.catvod.utils.Path;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,11 +29,13 @@ public class LiveParser {
 
     private static final Pattern CATCHUP_SOURCE = Pattern.compile(".*catchup-source=\"(.?|.+?)\".*");
     private static final Pattern CATCHUP = Pattern.compile(".*catchup=\"(.?|.+?)\".*");
-    private static final Pattern TVG_NAME = Pattern.compile(".*tvg-name=\"(.?|.+?)\".*");
     private static final Pattern TVG_LOGO = Pattern.compile(".*tvg-logo=\"(.?|.+?)\".*");
-    private static final Pattern TVG_URL = Pattern.compile(".*x-tvg-url=\"(.?|.+?)\".*");
+    private static final Pattern TVG_NAME = Pattern.compile(".*tvg-name=\"(.?|.+?)\".*");
+    private static final Pattern TVG_URL = Pattern.compile(".*tvg-url=\"(.?|.+?)\".*");
+    private static final Pattern URL_TVG = Pattern.compile(".*url-tvg=\"(.?|.+?)\".*");
     private static final Pattern GROUP = Pattern.compile(".*group-title=\"(.?|.+?)\".*");
     private static final Pattern NAME = Pattern.compile(".*,(.+?)$");
+    private static final Pattern M3U = Pattern.compile("#EXTM3U|#EXTINF");
 
     private static String extract(String line, Pattern pattern) {
         Matcher matcher = pattern.matcher(line.trim());
@@ -38,19 +43,24 @@ public class LiveParser {
         return "";
     }
 
+    private static String extract(String line, String... keywords) {
+        String[] splits = line.split(" ");
+        for (String split : splits) for (String keyword : keywords) if (split.contains(keyword)) return split.split("=")[1].replace("\"", "");
+        return "";
+    }
+
     public static void start(Live live) throws Exception {
-        if (live.getGroups().size() > 0) return;
+        if (!live.getGroups().isEmpty()) return;
         if (live.getType() == 0) text(live, getText(live));
         if (live.getType() == 1) json(live, getText(live));
-        if (live.getType() == 3) spider(live, getText(live));
+        if (live.getType() == 3) spider(live);
     }
 
     public static void text(Live live, String text) {
         int number = 0;
-        if (live.getGroups().size() > 0) return;
-        text = text.replace("\r\n", "\n");
-        if (text.contains("#EXTM3U")) m3u(live, text);
-        else txt(live, text);
+        if (!live.getGroups().isEmpty()) return;
+        if (M3U.matcher(text).find()) m3u(live, text); else txt(live, text);
+        if (live.isXtream()) xtream(live);
         for (Group group : live.getGroups()) {
             for (Channel channel : group.getChannel()) {
                 channel.setNumber(++number);
@@ -68,8 +78,8 @@ public class LiveParser {
         }
     }
 
-    private static void spider(Live live, String text) throws Exception {
-        if (text.isEmpty()) text = live.spider().liveContent();
+    private static void spider(Live live) throws Exception {
+        String text = live.spider().liveContent(live.getUrl());
         if (Json.valid(text)) json(live, text);
         else text(live, text);
     }
@@ -78,6 +88,7 @@ public class LiveParser {
         Setting setting = Setting.create();
         Catchup catchup = Catchup.create();
         Channel channel = Channel.create("");
+        text = text.replace("\r\n", "\n").replace("\r", "");
         for (String line : text.split("\n")) {
             if (Thread.interrupted()) break;
             if (setting.find(line)) {
@@ -85,7 +96,9 @@ public class LiveParser {
             } else if (line.startsWith("#EXTM3U")) {
                 catchup.setType(extract(line, CATCHUP));
                 catchup.setSource(extract(line, CATCHUP_SOURCE));
-                if (live.getEpg().isEmpty()) live.setEpg(extract(line, TVG_URL));
+                if (live.getEpg().isEmpty()) live.setEpg(extract(line, TVG_URL).replace("\"", ""));
+                if (live.getEpg().isEmpty()) live.setEpg(extract(line, URL_TVG).replace("\"", ""));
+                if (live.getEpg().isEmpty()) live.setEpg(extract(line, "tvg-url=", "url-tvg="));
             } else if (line.startsWith("#EXTINF:")) {
                 Group group = live.find(Group.create(extract(line, GROUP), live.isPass()));
                 channel = group.find(Channel.create(extract(line, NAME)));
@@ -104,8 +117,30 @@ public class LiveParser {
         }
     }
 
+    private static void xtream(Live live) {
+        XInfo info = XtreamParser.getInfo(live);
+        if (live.getEpg().isEmpty()) live.setEpg(XtreamParser.getEpgUrl(live));
+        if (live.getTimeZone().isEmpty()) live.setTimeZone(info.getServerInfo().getTimezone());
+        if (!live.getGroups().isEmpty()) return;
+        List<XCategory> categoryList = XtreamParser.getCategoryList(live);
+        List<XStream> streamList = XtreamParser.getStreamList(live);
+        Map<String, String> categoryMap = new HashMap<>();
+        for (XCategory category : categoryList) {
+            categoryMap.put(category.getCategoryId(), category.getCategoryName());
+        }
+        for (XStream stream : streamList) {
+            if (!categoryMap.containsKey(stream.getCategoryId())) continue;
+            Group group = live.find(Group.create(categoryMap.get(stream.getCategoryId()), live.isPass()));
+            Channel channel = group.find(Channel.create(stream.getName()));
+            if (!stream.getStreamIcon().isEmpty()) channel.setLogo(stream.getStreamIcon());
+            if (!stream.getEpgChannelId().isEmpty()) channel.setTvgName(stream.getEpgChannelId());
+            channel.getUrls().addAll(stream.getPlayUrl(live, info.getUserInfo().getAllowedOutputFormats()));
+        }
+    }
+
     private static void txt(Live live, String text) {
         Setting setting = Setting.create();
+        text = text.replace("\r\n", "\n").replace("\r", "");
         for (String line : text.split("\n")) {
             if (Thread.interrupted()) break;
             String[] split = line.split(",");
@@ -124,6 +159,7 @@ public class LiveParser {
     }
 
     private static String getText(Live live) {
+        if (live.isXtream() && !XtreamParser.isGetUrl(live.getUrl())) return "";
         return getText(live.getUrl(), live.getHeaders());
     }
 
@@ -131,7 +167,7 @@ public class LiveParser {
         if (url.startsWith("file")) return Path.read(url);
         if (url.startsWith("http")) return OkHttp.string(url, header);
         if (url.startsWith("assets") || url.startsWith("proxy")) return getText(UrlUtil.convert(url), header);
-        if (url.length() > 0 && url.length() % 4 == 0) return getText(new String(Base64.decode(url, Base64.DEFAULT)), header);
+        if (!url.isEmpty() && url.length() % 4 == 0) return getText(new String(Base64.decode(url, Base64.DEFAULT)), header);
         return "";
     }
 
@@ -145,7 +181,6 @@ public class LiveParser {
         private String origin;
         private String referer;
         private Integer parse;
-        private Integer player;
         private Map<String, String> header;
 
         public static Setting create() {
@@ -153,14 +188,13 @@ public class LiveParser {
         }
 
         public boolean find(String line) {
-            return line.startsWith("ua") || line.startsWith("parse") || line.startsWith("click") || line.startsWith("player") || line.startsWith("header") || line.startsWith("format") || line.startsWith("origin") || line.startsWith("referer") || line.startsWith("#EXTHTTP:") || line.startsWith("#EXTVLCOPT:") || line.startsWith("#KODIPROP:");
+            return line.startsWith("ua") || line.startsWith("parse") || line.startsWith("click") || line.startsWith("header") || line.startsWith("format") || line.startsWith("origin") || line.startsWith("referer") || line.startsWith("#EXTHTTP:") || line.startsWith("#EXTVLCOPT:") || line.startsWith("#KODIPROP:");
         }
 
         public void check(String line) {
             if (line.startsWith("ua")) ua(line);
             else if (line.startsWith("parse")) parse(line);
             else if (line.startsWith("click")) click(line);
-            else if (line.startsWith("player")) player(line);
             else if (line.startsWith("header")) header(line);
             else if (line.startsWith("format")) format(line);
             else if (line.startsWith("origin")) origin(line);
@@ -182,7 +216,6 @@ public class LiveParser {
             if (format != null) channel.setFormat(format);
             if (origin != null) channel.setOrigin(origin);
             if (referer != null) channel.setReferer(referer);
-            if (player != null) channel.setPlayerType(player);
             if (header != null) channel.setHeader(Json.toObject(header));
             if (key != null && type != null) channel.setDrm(Drm.create(key, type));
             return this;
@@ -221,14 +254,6 @@ public class LiveParser {
             }
         }
 
-        private void player(String line) {
-            try {
-                player = Integer.parseInt(line.split("player=")[1].trim());
-            } catch (Exception e) {
-                player = null;
-            }
-        }
-
         private void format(String line) {
             try {
                 if (line.startsWith("format=")) format = line.split("format=")[1].trim();
@@ -254,8 +279,6 @@ public class LiveParser {
                 if (!key.startsWith("http")) convert();
             } catch (Exception e) {
                 key = null;
-            } finally {
-                player = Players.EXO;
             }
         }
 
@@ -264,8 +287,6 @@ public class LiveParser {
                 type = line.split("license_type=")[1].trim();
             } catch (Exception e) {
                 type = null;
-            } finally {
-                player = Players.EXO;
             }
         }
 
@@ -288,6 +309,7 @@ public class LiveParser {
         private void headers(String[] params) {
             if (header == null) header = new HashMap<>();
             for (String param : params) {
+                if (!param.contains("=")) continue;
                 String[] a = param.split("=");
                 header.put(a[0].trim(), a[1].trim().replace("\"", ""));
             }
@@ -307,7 +329,6 @@ public class LiveParser {
             type = null;
             parse = null;
             click = null;
-            player = null;
             header = null;
             format = null;
             origin = null;

@@ -217,13 +217,62 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/player"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/selector_item"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/setting_player"
+                android:textColor="@color/white"
+                android:textSize="18sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/incognito"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/selector_item"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:nextFocusDown="@id/quality"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:text="@string/setting_incognito"
+                android:textColor="@color/white"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/incognitoText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                tools:text="Off" />
+
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:orientation="horizontal">
 
             <LinearLayout
-                android:id="@+id/player"
+                android:id="@+id/quality"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
@@ -237,14 +286,23 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
-                    android:text="@string/setting_player"
+                    android:text="@string/setting_quality"
                     android:textColor="@color/white"
                     android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/qualityText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    tools:text="High" />
 
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/danmu"
+                android:id="@+id/size"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -257,9 +315,18 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
-                    android:text="@string/setting_danmu"
+                    android:text="@string/setting_size"
                     android:textColor="@color/white"
                     android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/sizeText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    tools:text="Medium" />
 
             </LinearLayout>
         </LinearLayout>
@@ -271,7 +338,7 @@
             android:orientation="horizontal">
 
             <LinearLayout
-                android:id="@+id/custom"
+                android:id="@+id/doh"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
@@ -285,9 +352,18 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
-                    android:text="@string/setting_custom"
+                    android:text="@string/setting_doh"
                     android:textColor="@color/white"
                     android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/dohText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    tools:text="Google" />
 
             </LinearLayout>
 
@@ -319,7 +395,6 @@
                     tools:text="http" />
 
             </LinearLayout>
-
         </LinearLayout>
 
         <LinearLayout
@@ -342,19 +417,9 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
                     android:text="@string/setting_backup"
                     android:textColor="@color/white"
                     android:textSize="18sp" />
-
-                <TextView
-                    android:id="@+id/backupText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="end"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
-                    tools:text="Auto" />
 
             </LinearLayout>
 
@@ -371,7 +436,6 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
                     android:text="@string/setting_restore"
                     android:textColor="@color/white"
                     android:textSize="18sp" />
@@ -416,46 +480,9 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/doh"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="@string/setting_doh"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
-
-                <TextView
-                    android:id="@+id/dohText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="end"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
-                    tools:text="Google" />
-
-            </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:orientation="horizontal">
-
-            <LinearLayout
                 android:id="@+id/version"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
                 android:layout_weight="1"
                 android:background="@drawable/selector_item"
                 android:focusable="true"
@@ -478,35 +505,6 @@
                     android:textColor="@color/white"
                     android:textSize="18sp"
                     tools:text="1.2.1" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/about"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="@string/setting_about"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
-
-                <TextView
-                    android:id="@+id/aboutText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="end"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
-                    tools:text="about" />
 
             </LinearLayout>
         </LinearLayout>

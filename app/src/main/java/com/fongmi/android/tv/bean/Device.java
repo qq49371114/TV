@@ -4,6 +4,7 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
@@ -34,8 +35,21 @@ public class Device {
     @SerializedName("type")
     private int type;
 
+    @Ignore
+    @SerializedName("serial")
+    private String serial;
+    @Ignore
+    @SerializedName("eth")
+    private String eth;
+    @Ignore
+    @SerializedName("wlan")
+    private String wlan;
+
     public static Device get() {
         Device device = new Device();
+        device.setSerial(Util.getSerial());
+        device.setEth(Util.getMac("eth0"));
+        device.setWlan(Util.getMac("wlan0"));
         device.setUuid(Util.getAndroidId());
         device.setName(Util.getDeviceName());
         device.setIp(Server.get().getAddress());
@@ -93,6 +107,18 @@ public class Device {
 
     public void setType(int type) {
         this.type = type;
+    }
+
+    public void setSerial(String serial) {
+        this.serial = serial;
+    }
+
+    public void setEth(String eth) {
+        this.eth = eth;
+    }
+
+    public void setWlan(String wlan) {
+        this.wlan = wlan;
     }
 
     public boolean isLeanback() {

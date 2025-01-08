@@ -15,9 +15,6 @@ import com.fongmi.android.tv.utils.ResUtil;
 
 public class CustomKeyDownLive extends GestureDetector.SimpleOnGestureListener {
 
-    private static final int DISTANCE = 100;
-    private static final int VELOCITY = 10;
-
     private final GestureDetector detector;
     private final StringBuilder text;
     private final Listener listener;
@@ -93,30 +90,10 @@ public class CustomKeyDownLive extends GestureDetector.SimpleOnGestureListener {
     @Override
     public boolean onSingleTapConfirmed(@NonNull MotionEvent e) {
         if (!listener.dispatch(false)) return true;
-        int half = ResUtil.getScreenWidthNav() / 2;
+        int half = ResUtil.getScreenWidth() / 2;
         if (e.getX() > half) listener.onDoubleTap();
         else listener.onSingleTap();
         return true;
-    }
-
-    @Override
-    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        if (listener.dispatch(true)) checkFunc(e1, e2, velocityX, velocityY);
-        return true;
-    }
-
-    private void checkFunc(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        if (e1.getX() - e2.getX() > DISTANCE && Math.abs(velocityX) > VELOCITY) {
-            listener.onKeyLeft(Constant.INTERVAL_SEEK * 3);
-        } else if (e2.getX() - e1.getX() > DISTANCE && Math.abs(velocityX) > VELOCITY) {
-            listener.onKeyRight(Constant.INTERVAL_SEEK * 3);
-        } else if (e1.getY() - e2.getY() > DISTANCE && Math.abs(velocityY) > VELOCITY) {
-            if (Setting.isInvert()) listener.onKeyDown();
-            else listener.onKeyUp();
-        } else if (e2.getY() - e1.getY() > DISTANCE && Math.abs(velocityY) > VELOCITY) {
-            if (Setting.isInvert()) listener.onKeyUp();
-            else listener.onKeyDown();
-        }
     }
 
     private int getNumber(int keyCode) {

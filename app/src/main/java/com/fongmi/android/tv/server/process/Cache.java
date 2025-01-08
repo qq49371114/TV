@@ -5,15 +5,15 @@ import android.text.TextUtils;
 import com.fongmi.android.tv.server.Nano;
 import com.github.catvod.utils.Prefers;
 
-import java.util.Map;
-import java.util.Objects;
+import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.response.Response;
 
-import fi.iki.elonen.NanoHTTPD;
+import java.util.Map;
 
 public class Cache implements Process {
 
     @Override
-    public boolean isRequest(NanoHTTPD.IHTTPSession session, String path) {
+    public boolean isRequest(IHTTPSession session, String path) {
         return "/cache".equals(path);
     }
 
@@ -22,21 +22,14 @@ public class Cache implements Process {
     }
 
     @Override
-    public NanoHTTPD.Response doResponse(NanoHTTPD.IHTTPSession session, String path, Map<String, String> files) {
+    public Response doResponse(IHTTPSession session, String path, Map<String, String> files) {
         Map<String, String> params = session.getParms();
+        String action = params.get("do");
         String rule = params.get("rule");
         String key = params.get("key");
-        switch (Objects.requireNonNullElse(params.get("do"), "")) {
-            case "get":
-                return Nano.success(Prefers.getString(getKey(rule, key)));
-            case "set":
-                Prefers.put(getKey(rule, key), params.get("value"));
-                return Nano.success();
-            case "del":
-                Prefers.remove(getKey(rule, key));
-                return Nano.success();
-            default:
-                return Nano.error(null);
-        }
+        if ("get".equals(action)) return Nano.ok(Prefers.getString(getKey(rule, key)));
+        if ("set".equals(action)) Prefers.put(getKey(rule, key), params.get("value"));
+        if ("del".equals(action)) Prefers.remove(getKey(rule, key));
+        return Nano.ok();
     }
 }

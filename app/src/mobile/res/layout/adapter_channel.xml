@@ -43,12 +43,4 @@
         android:textSize="14sp"
         tools:text="CNN" />
 
-    <ImageView
-        android:id="@+id/epg"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:layout_marginStart="4dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:src="@drawable/ic_action_arrow" />
-
 </LinearLayout>

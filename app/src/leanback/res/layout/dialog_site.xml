@@ -10,7 +10,7 @@
     <com.fongmi.android.tv.ui.custom.CustomRecyclerView
         android:id="@+id/recycler"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_weight="1"
         app:maxHeight="264dp"
         tools:itemCount="5"
@@ -63,7 +63,7 @@
             android:nextFocusUp="@id/change"
             android:nextFocusDown="@id/cancel"
             android:padding="8dp"
-            android:src="@drawable/ic_site_select"  />
+            android:src="@drawable/ic_site_select" />
 
         <ImageView
             android:id="@+id/cancel"
@@ -86,7 +86,7 @@
             android:background="@drawable/selector_text"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:nextFocusUp="@id/none"
+            android:nextFocusUp="@id/cancel"
             android:nextFocusDown="@id/mode"
             android:padding="8dp"
             tools:src="@drawable/ic_site_list" />

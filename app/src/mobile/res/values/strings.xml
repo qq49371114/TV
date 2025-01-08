@@ -15,7 +15,6 @@
     <!-- Detail -->
     <string name="detail_flag">Flag</string>
     <string name="detail_more">More</string>
-    <string name="detail_download">Download</string>
     <string name="detail_episode">Episode</string>
     <string name="detail_quality">Quality</string>
     <string name="detail_content">Summary</string>
@@ -31,7 +30,11 @@
     <string name="control_scale">Scale</string>
     <string name="control_track">Track</string>
     <string name="control_other">Other</string>
-    <string name="control_display">Display</string>
+
+    <!-- Dialog -->
+    <string name="dialog_delete_record">Delete all records?</string>
+    <string name="dialog_delete_keep">All keep records will be removed.</string>
+    <string name="dialog_delete_history">All history records will be removed.</string>
 
     <!-- Timer -->
     <string name="timer_5">5 minutes</string>
@@ -40,14 +43,6 @@
     <string name="timer_60">1 hour</string>
     <string name="timer_delay">Add 5 minutes</string>
     <string name="timer_cancel">Cancel timer</string>
-
-    <!-- Transmit -->
-    <string name="transmit_apk">Push apk</string>
-    <string name="transmit_vod_config">Push vod config</string>
-    <string name="transmit_wall_config">Push wallpaper</string>
-    <string name="transmit_push_restore">Push restore</string>
-    <string name="transmit_pull_restore">Pull restore</string>
-    <string name="transmit_pull_restore_desc">Data restore from TV?</string>
 
     <!-- Hint -->
     <string name="shortcut">Shortcut has been added.</string>

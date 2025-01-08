@@ -11,22 +11,7 @@
       "logo": "https://epg.112114.xyz/logo/{name}.png"
     },
     {
-      "name": "IJK",
-      "url": "file://Download/live.txt",
-      "epg": "https://epg.112114.xyz/?ch={name}&date={date}",
-      "logo": "https://epg.112114.xyz/logo/{name}.png",
-      "playerType": 1
-    },
-    {
-      "name": "EXO",
-      "url": "file://Download/live.txt",
-      "epg": "https://epg.112114.xyz/?ch={name}&date={date}",
-      "logo": "https://epg.112114.xyz/logo/{name}.png",
-      "playerType": 2
-    },
-    {
-      "name": "PRO",
-      "boot": false,
+      "name": "UA",
       "url": "file://Download/live.txt",
       "epg": "https://epg.112114.xyz/?ch={name}&date={date}",
       "logo": "https://epg.112114.xyz/logo/{name}.png",
@@ -38,7 +23,7 @@
       "boot": false,
       "pass": true,
       "url": "file://Download/live.txt",
-      "epg": "https://epg.112114.xyz/?ch={name}&date={date}",
+      "epg": "https://epg.112114.xyz/?ch={name}&date={date}&serverTimeZone=Asia/Shanghai",
       "logo": "https://epg.112114.xyz/logo/{name}.png",
       "header": {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
@@ -55,6 +40,18 @@
       "name": "JSON",
       "type": 1,
       "url": "file://Download/live.json"
+    },
+    {
+      "name": "Spider-JS",
+      "type": 3,
+      "api": "./live.js",
+      "ext": ""
+    },
+    {
+      "name": "Spider-Python",
+      "type": 3,
+      "api": "./live.py",
+      "ext": ""
     }
   ]
 }

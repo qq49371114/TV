@@ -13,17 +13,16 @@ import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.bean.Parse;
 import com.fongmi.android.tv.databinding.ActivityVideoBinding;
 import com.fongmi.android.tv.databinding.DialogControlBinding;
 import com.fongmi.android.tv.player.Players;
-import com.fongmi.android.tv.utils.Timer;
 import com.fongmi.android.tv.ui.adapter.ParseAdapter;
 import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.Timer;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.slider.Slider;
 
@@ -89,17 +88,11 @@ public class ControlDialog extends BaseDialog implements ParseAdapter.OnClickLis
     protected void initView() {
         if (player == null) dismiss();
         if (player == null) return;
-        binding.player.setText(parent.control.action.player.getText());
         binding.decode.setText(parent.control.action.decode.getText());
         binding.ending.setText(parent.control.action.ending.getText());
         binding.opening.setText(parent.control.action.opening.getText());
         binding.loop.setActivated(parent.control.action.loop.isActivated());
         binding.timer.setActivated(Timer.get().isRunning());
-        binding.dptime.setActivated(Setting.isDisplayTime());
-        binding.dpspeed.setActivated(Setting.isDisplaySpeed());
-        binding.dpduration.setActivated(Setting.isDisplayDuration());
-        binding.dpminiprogress.setActivated(Setting.isDisplayMiniProgress());
-        binding.dpvideotitle.setActivated(Setting.isDisplayVideoTitle());
         setTrackVisible();
         setScaleText();
         setPlayer();
@@ -122,46 +115,6 @@ public class ControlDialog extends BaseDialog implements ParseAdapter.OnClickLis
         binding.player.setOnLongClickListener(v -> longClick(binding.player, parent.control.action.player));
         binding.ending.setOnLongClickListener(v -> longClick(binding.ending, parent.control.action.ending));
         binding.opening.setOnLongClickListener(v -> longClick(binding.opening, parent.control.action.opening));
-        binding.dptime.setOnClickListener(v -> displayTime());
-        binding.dpspeed.setOnClickListener(v -> displaySpeed());
-        binding.dpduration.setOnClickListener(v -> displayDuration());
-        binding.dpminiprogress.setOnClickListener(v -> displayMiniProgress());
-        binding.dpvideotitle.setOnClickListener(v -> displayVideoTitle());
-    }
-
-    private void displayTime() {
-        boolean display = Setting.isDisplayTime();
-        parent.display.clock.setVisibility(!display ? View.VISIBLE : View.GONE);
-        Setting.putDisplayTime(!display);
-        binding.dptime.setActivated(!display);
-    }
-
-    private void displaySpeed() {
-        boolean display = Setting.isDisplaySpeed();
-        parent.display.netspeed.setVisibility(!display ? View.VISIBLE : View.GONE);
-        Setting.putDisplaySpeed(!display);
-        binding.dpspeed.setActivated(!display);
-    }
-
-    private void displayDuration() {
-        boolean display = Setting.isDisplayDuration();
-        parent.display.duration.setVisibility(!display ? View.VISIBLE : View.GONE);
-        Setting.putDisplayDuration(!display);
-        binding.dpduration.setActivated(!display);
-    }
-
-    private void displayMiniProgress() {
-        boolean display = Setting.isDisplayMiniProgress();
-        parent.display.progress.setVisibility(!display ? View.VISIBLE : View.GONE);
-        Setting.putDisplayMiniProgress(!display);
-        binding.dpminiprogress.setActivated(!display);
-    }
-
-    private void displayVideoTitle() {
-        boolean display = Setting.isDisplayVideoTitle();
-        parent.display.titleLayout.setVisibility(!display ? View.VISIBLE : View.GONE);
-        Setting.putDisplayVideoTitle(!display);
-        binding.dpvideotitle.setActivated(!display);
     }
 
     private void onTimer(View view) {
@@ -220,17 +173,9 @@ public class ControlDialog extends BaseDialog implements ParseAdapter.OnClickLis
         binding.parse.getAdapter().notifyItemRangeChanged(0, binding.parse.getAdapter().getItemCount());
     }
 
-    public void updatePlayer() {
-        binding.player.setText(parent.control.action.player.getText());
-    }
-
-    public void updateDecode() {
-        binding.decode.setText(parent.control.action.decode.getText());
-    }
-
     public void setPlayer() {
         binding.speed.setEnabled(player.canAdjustSpeed());
-        binding.speed.setValue(Math.max(((int) (player.getSpeed()/0.25f) * 0.25f), 0.5f));
+        binding.speed.setValue(Math.max(player.getSpeed(), 0.5f));
         binding.player.setText(parent.control.action.player.getText());
         binding.decode.setVisibility(parent.control.action.decode.getVisibility());
     }

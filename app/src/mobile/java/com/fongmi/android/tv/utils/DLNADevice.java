@@ -22,21 +22,9 @@ public class DLNADevice {
         this.devices = new ArrayList<>();
     }
 
-    public boolean isEmpty() {
-        return devices.isEmpty();
-    }
-
-    private Device create(org.fourthline.cling.model.meta.Device<?, ?, ?> item) {
-        Device device = new Device();
-        device.setUuid(item.getIdentity().getUdn().getIdentifierString());
-        device.setName(item.getDetails().getFriendlyName());
-        device.setType(2);
-        return device;
-    }
-
     public List<com.fongmi.android.tv.bean.Device> getAll() {
         List<com.fongmi.android.tv.bean.Device> items = new ArrayList<>();
-        for (org.fourthline.cling.model.meta.Device<?, ?, ?> item : devices) items.add(create(item));
+        for (org.fourthline.cling.model.meta.Device<?, ?, ?> item : devices) items.add(Device.get(item));
         return items;
     }
 
@@ -48,7 +36,7 @@ public class DLNADevice {
 
     public Device remove(org.fourthline.cling.model.meta.Device<?, ?, ?> device) {
         devices.remove(device);
-        return create(device);
+        return Device.get(device);
     }
 
     public void disconnect() {

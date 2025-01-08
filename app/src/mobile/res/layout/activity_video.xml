@@ -18,20 +18,8 @@
             android:id="@+id/exo"
             style="@style/Player.Vod"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <tv.danmaku.ijk.media.player.ui.IjkVideoView
-            android:id="@+id/ijk"
-            style="@style/Player.Vod"
-            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:visibility="gone" />
-
-        <master.flame.danmaku.ui.widget.DanmakuView
-            android:id="@+id/danmaku"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone" />
+            app:surface_type="surface_view" />
 
         <include
             android:id="@+id/widget"
@@ -42,13 +30,6 @@
         <include
             android:id="@+id/control"
             layout="@layout/view_control_vod"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone" />
-
-        <include
-            android:id="@+id/display"
-            layout="@layout/view_widget_display"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone" />
@@ -161,39 +142,16 @@
                         android:textSize="14sp"
                         tools:text="演員：FongMi" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="16dp"
                         android:layout_marginTop="16dp"
-                        android:layout_marginEnd="12dp"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/detail_flag"
-                            android:textColor="@color/white"
-                            android:textSize="16sp"
-                            android:textStyle="bold" />
-
-                        <View
-                            android:layout_width="0dp"
-                            android:layout_height="0dp"
-                            android:layout_weight="0.1" />
-
-                        <TextView
-                            android:id="@+id/download"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:gravity="center"
-                            android:text="@string/detail_download"
-                            android:textColor="@color/white"
-                            android:textSize="14sp"
-                            app:drawableEndCompat="@drawable/ic_detail_more"
-                            tools:visibility="visible" />
-
-                    </LinearLayout>
+                        android:layout_marginEnd="16dp"
+                        android:text="@string/detail_flag"
+                        android:textColor="@color/white"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/flag"

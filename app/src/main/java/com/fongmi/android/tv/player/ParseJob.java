@@ -12,9 +12,9 @@ import com.fongmi.android.tv.impl.ParseCallback;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.ui.custom.CustomWebView;
 import com.fongmi.android.tv.utils.UrlUtil;
-import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
+import com.github.catvod.utils.Util;
 import com.google.common.net.HttpHeaders;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -188,7 +188,7 @@ public class ParseJob implements ParseCallback {
 
     private Map<String, String> getHeader(JsonObject object) {
         Map<String, String> headers = new HashMap<>();
-        for (Map.Entry<String, JsonElement> entry : object.entrySet()) if (!entry.getValue().isJsonNull() && (entry.getKey().equalsIgnoreCase(HttpHeaders.USER_AGENT) || entry.getKey().equalsIgnoreCase(HttpHeaders.REFERER) || entry.getKey().equalsIgnoreCase("ua"))) headers.put(UrlUtil.fixHeader(entry.getKey()), entry.getValue().getAsString());
+        for (Map.Entry<String, JsonElement> entry : object.entrySet()) if (!entry.getValue().isJsonNull() && (entry.getKey().equalsIgnoreCase(HttpHeaders.USER_AGENT) || entry.getKey().equalsIgnoreCase(HttpHeaders.REFERER) || entry.getKey().equalsIgnoreCase(HttpHeaders.COOKIE) || entry.getKey().equalsIgnoreCase("ua"))) headers.put(UrlUtil.fixHeader(entry.getKey()), entry.getValue().getAsString());
         if (headers.isEmpty()) return parse.getHeaders();
         return headers;
     }
@@ -211,7 +211,7 @@ public class ParseJob implements ParseCallback {
 
     private void stopWeb() {
         for (CustomWebView webView : webViews) webView.stop(false);
-        webViews.clear();
+        if (!webViews.isEmpty()) webViews.clear();
     }
 
     public void stop() {

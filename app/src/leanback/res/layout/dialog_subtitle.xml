@@ -3,57 +3,53 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="8dp">
+    android:padding="16dp">
 
     <ImageView
         android:id="@+id/large"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/selector_image"
+        android:background="@drawable/selector_subtitle"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:padding="8dp"
-        android:layout_marginEnd="8dp"
         android:src="@drawable/ic_subtitle_large" />
 
     <ImageView
         android:id="@+id/small"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/selector_image"
+        android:background="@drawable/selector_subtitle"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:padding="8dp"
-        android:layout_marginEnd="8dp"
         android:src="@drawable/ic_subtitle_small" />
 
     <ImageView
         android:id="@+id/up"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/selector_image"
+        android:background="@drawable/selector_subtitle"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:padding="8dp"
-        android:layout_marginEnd="8dp"
         android:src="@drawable/ic_subtitle_up" />
 
     <ImageView
         android:id="@+id/down"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/selector_image"
+        android:background="@drawable/selector_subtitle"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:padding="8dp"
-        android:layout_marginEnd="8dp"
         android:src="@drawable/ic_subtitle_down" />
 
     <ImageView
         android:id="@+id/reset"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/selector_image"
+        android:background="@drawable/selector_subtitle"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:padding="8dp"

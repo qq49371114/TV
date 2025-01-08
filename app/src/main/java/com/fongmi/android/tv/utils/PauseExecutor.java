@@ -18,7 +18,6 @@ public class PauseExecutor extends ThreadPoolExecutor {
         condition = pauseLock.newCondition();
     }
 
-
     @Override
     protected void beforeExecute(Thread t, Runnable r) {
         super.beforeExecute(t, r);

@@ -11,7 +11,6 @@ import androidx.room.PrimaryKey;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
-import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.loader.BaseLoader;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.gson.ExtAdapter;
@@ -73,15 +72,15 @@ public class Site implements Parcelable {
     @SerializedName("timeout")
     private Integer timeout;
 
-    @Ignore
-    @SerializedName("playerType")
-    private Integer playerType;
-
     @SerializedName("searchable")
     private Integer searchable;
 
     @SerializedName("changeable")
     private Integer changeable;
+
+    @Ignore
+    @SerializedName("quickSearch")
+    private Integer quickSearch;
 
     @Ignore
     @SerializedName("categories")
@@ -174,12 +173,12 @@ public class Site implements Parcelable {
         return type == null ? 0 : type;
     }
 
-    public Integer getTimeout() {
-        return timeout == null ? Constant.TIMEOUT_PLAY : Math.max(timeout, 1) * 1000;
+    public Integer getIndexs() {
+        return indexs == null ? 0 : indexs;
     }
 
-    public int getPlayerType() {
-        return playerType == null ? -1 : Math.min(playerType, 2);
+    public Integer getTimeout() {
+        return timeout == null ? Constant.TIMEOUT_PLAY : Math.max(timeout, 1) * 1000;
     }
 
     public Integer getSearchable() {
@@ -198,13 +197,8 @@ public class Site implements Parcelable {
         this.changeable = changeable;
     }
 
-    public boolean isIndexs() {
-        return getIndexs() == 1;
-    }
-
-    public Integer getIndexs() {
-        if (Setting.isAggregatedSearch() && (indexs == null || indexs == 1)) return 1;
-        return indexs == null ? 0 : indexs;
+    public Integer getQuickSearch() {
+        return quickSearch == null ? 1 : quickSearch;
     }
 
     public List<String> getCategories() {
@@ -239,6 +233,10 @@ public class Site implements Parcelable {
         this.activated = item.equals(this);
     }
 
+    public boolean isIndex() {
+        return getIndexs() == 1;
+    }
+
     public boolean isSearchable() {
         return getSearchable() == 1;
     }
@@ -255,6 +253,10 @@ public class Site implements Parcelable {
     public Site setChangeable(boolean changeable) {
         if (getChangeable() != 0) setChangeable(changeable ? 1 : 2);
         return this;
+    }
+
+    public boolean isQuickSearch() {
+        return getQuickSearch() == 1;
     }
 
     public boolean isEmpty() {
@@ -321,11 +323,10 @@ public class Site implements Parcelable {
         dest.writeString(this.click);
         dest.writeString(this.playUrl);
         dest.writeValue(this.type);
+        dest.writeValue(this.indexs);
         dest.writeValue(this.timeout);
-        dest.writeValue(this.playerType);
         dest.writeValue(this.searchable);
         dest.writeValue(this.changeable);
-        dest.writeValue(this.indexs);
         dest.writeStringList(this.categories);
         dest.writeParcelable(this.style, flags);
         dest.writeByte(this.activated ? (byte) 1 : (byte) 0);
@@ -340,11 +341,10 @@ public class Site implements Parcelable {
         this.click = in.readString();
         this.playUrl = in.readString();
         this.type = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.indexs = (Integer) in.readValue(Integer.class.getClassLoader());
         this.timeout = (Integer) in.readValue(Integer.class.getClassLoader());
-        this.playerType = (Integer) in.readValue(Integer.class.getClassLoader());
         this.searchable = (Integer) in.readValue(Integer.class.getClassLoader());
         this.changeable = (Integer) in.readValue(Integer.class.getClassLoader());
-        this.indexs = (Integer) in.readValue(Integer.class.getClassLoader());
         this.categories = in.createStringArrayList();
         this.style = in.readParcelable(Style.class.getClassLoader());
         this.activated = in.readByte() != 0;

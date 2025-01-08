@@ -11,7 +11,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.viewbinding.ViewBinding;
 
-import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.BuildConfig;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
@@ -25,7 +24,6 @@ import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.FragmentSettingBinding;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.event.RefreshEvent;
-import com.fongmi.android.tv.impl.BackupCallback;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.ConfigCallback;
 import com.fongmi.android.tv.impl.LiveCallback;
@@ -34,14 +32,12 @@ import com.fongmi.android.tv.impl.SiteCallback;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.ui.activity.MainActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
-import com.fongmi.android.tv.ui.dialog.BackupDialog;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.ProxyDialog;
+import com.fongmi.android.tv.ui.dialog.RestoreDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
-import com.fongmi.android.tv.ui.dialog.TransmitActionDialog;
-import com.fongmi.android.tv.ui.dialog.TransmitDialog;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
@@ -53,22 +49,25 @@ import com.github.catvod.utils.Path;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.permissionx.guolindev.PermissionX;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SettingFragment extends BaseFragment implements BackupCallback, ConfigCallback, SiteCallback, LiveCallback, ProxyCallback {
+public class SettingFragment extends BaseFragment implements ConfigCallback, SiteCallback, LiveCallback, ProxyCallback {
 
     private FragmentSettingBinding mBinding;
-    private String[] backup;
+    private String[] size;
     private int type;
 
     public static SettingFragment newInstance() {
         return new SettingFragment();
+    }
+
+    private String getSwitch(boolean value) {
+        return getString(value ? R.string.setting_on : R.string.setting_off);
+    }
+
+    private String getProxy(String proxy) {
+        return proxy.isEmpty() ? getString(R.string.none) : UrlUtil.scheme(proxy);
     }
 
     private int getDohIndex() {
@@ -92,16 +91,19 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
 
     @Override
     protected void initView() {
-        EventBus.getDefault().register(this);
         mBinding.vodUrl.setText(VodConfig.getDesc());
         mBinding.liveUrl.setText(LiveConfig.getDesc());
         mBinding.wallUrl.setText(WallConfig.getDesc());
-        mBinding.dohText.setText(getDohList()[getDohIndex()]);
         mBinding.versionText.setText(BuildConfig.VERSION_NAME);
-        mBinding.backupText.setText((backup = ResUtil.getStringArray(R.array.select_backup))[Setting.getBackupMode()]);
-        mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
-        mBinding.proxyText.setText(UrlUtil.scheme(Setting.getProxy()));
+        setOtherText();
         setCacheText();
+    }
+
+    private void setOtherText() {
+        mBinding.dohText.setText(getDohList()[getDohIndex()]);
+        mBinding.proxyText.setText(getProxy(Setting.getProxy()));
+        mBinding.incognitoText.setText(getSwitch(Setting.isIncognito()));
+        mBinding.sizeText.setText((size = ResUtil.getStringArray(R.array.select_size))[Setting.getSize()]);
     }
 
     private void setCacheText() {
@@ -120,27 +122,23 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
         mBinding.wall.setOnClickListener(this::onWall);
         mBinding.proxy.setOnClickListener(this::onProxy);
         mBinding.cache.setOnClickListener(this::onCache);
-        mBinding.cache.setOnLongClickListener(this::onCacheLongClick);
-        mBinding.transmit.setOnClickListener(this::onTransmit);
-        mBinding.pull.setOnClickListener(this::onPull);
         mBinding.backup.setOnClickListener(this::onBackup);
-        mBinding.restore.setOnClickListener(this::onRestore);
         mBinding.player.setOnClickListener(this::onPlayer);
+        mBinding.restore.setOnClickListener(this::onRestore);
         mBinding.version.setOnClickListener(this::onVersion);
         mBinding.vod.setOnLongClickListener(this::onVodEdit);
         mBinding.vodHome.setOnClickListener(this::onVodHome);
         mBinding.live.setOnLongClickListener(this::onLiveEdit);
         mBinding.liveHome.setOnClickListener(this::onLiveHome);
         mBinding.wall.setOnLongClickListener(this::onWallEdit);
-        mBinding.backup.setOnLongClickListener(this::onBackupMode);
         mBinding.vodHistory.setOnClickListener(this::onVodHistory);
         mBinding.version.setOnLongClickListener(this::onVersionDev);
         mBinding.liveHistory.setOnClickListener(this::onLiveHistory);
         mBinding.wallDefault.setOnClickListener(this::setWallDefault);
         mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
+        mBinding.incognito.setOnClickListener(this::setIncognito);
+        mBinding.size.setOnClickListener(this::setSize);
         mBinding.doh.setOnClickListener(this::setDoh);
-        mBinding.custom.setOnClickListener(this::onCustom);
-        mBinding.about.setOnClickListener(this::onAbout);
     }
 
     @Override
@@ -156,23 +154,23 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
         switch (config.getType()) {
             case 0:
                 Notify.progress(getActivity());
-                VodConfig.load(config, getCallback());
+                VodConfig.load(config, getCallback(0));
                 mBinding.vodUrl.setText(config.getDesc());
                 break;
             case 1:
                 Notify.progress(getActivity());
-                LiveConfig.load(config, getCallback());
+                LiveConfig.load(config, getCallback(1));
                 mBinding.liveUrl.setText(config.getDesc());
                 break;
             case 2:
                 Notify.progress(getActivity());
-                WallConfig.load(config, getCallback());
+                WallConfig.load(config, getCallback(2));
                 mBinding.wallUrl.setText(config.getDesc());
                 break;
         }
     }
 
-    private Callback getCallback() {
+    private Callback getCallback(int type) {
         return new Callback() {
             @Override
             public void success(String result) {
@@ -181,31 +179,38 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
 
             @Override
             public void success() {
-                setConfig();
+                setConfig(type);
             }
 
             @Override
             public void error(String msg) {
                 Notify.show(msg);
-                setConfig();
+                setConfig(type);
             }
         };
     }
 
-    private void setConfig() {
+    private void setConfig(int type) {
         switch (type) {
             case 0:
+                setCacheText();
                 Notify.dismiss();
                 RefreshEvent.video();
                 RefreshEvent.config();
+                mBinding.vodUrl.setText(VodConfig.getDesc());
+                mBinding.liveUrl.setText(LiveConfig.getDesc());
+                mBinding.wallUrl.setText(WallConfig.getDesc());
                 break;
             case 1:
+                setCacheText();
                 Notify.dismiss();
                 RefreshEvent.config();
+                mBinding.liveUrl.setText(LiveConfig.getDesc());
                 break;
             case 2:
+                setCacheText();
                 Notify.dismiss();
-                RefreshEvent.config();
+                mBinding.wallUrl.setText(WallConfig.getDesc());
                 break;
         }
     }
@@ -272,14 +277,6 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
         getRoot().change(2);
     }
 
-    private void onCustom(View view) {
-        getRoot().change(3);
-    }
-
-    private void onAbout(View view) {
-        mBinding.aboutText.setText(BuildConfig.FLAVOR_mode + "-" + BuildConfig.FLAVOR_api + "-" + BuildConfig.FLAVOR_abi);
-    }
-
     private void onVersion(View view) {
         Updater.get().force().release().start(getActivity());
     }
@@ -304,6 +301,20 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
         });
     }
 
+    private void setIncognito(View view) {
+        Setting.putIncognito(!Setting.isIncognito());
+        mBinding.incognitoText.setText(getSwitch(Setting.isIncognito()));
+    }
+
+    private void setSize(View view) {
+        new MaterialAlertDialogBuilder(getActivity()).setTitle(R.string.setting_size).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(size, Setting.getSize(), (dialog, which) -> {
+            mBinding.sizeText.setText(size[which]);
+            Setting.putSize(which);
+            RefreshEvent.size();
+            dialog.dismiss();
+        }).show();
+    }
+
     private void setDoh(View view) {
         new MaterialAlertDialogBuilder(getActivity()).setTitle(R.string.setting_doh).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(getDohList(), getDohIndex(), (dialog, which) -> {
             setDoh(VodConfig.get().getDoh().get(which));
@@ -317,7 +328,7 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
         Notify.progress(getActivity());
         Setting.putDoh(doh.toString());
         mBinding.dohText.setText(doh.getName());
-        VodConfig.load(Config.vod(), getCallback());
+        VodConfig.load(Config.vod(), getCallback(0));
     }
 
     private void onProxy(View view) {
@@ -331,87 +342,54 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
         OkHttp.selector().clear();
         OkHttp.get().setProxy(proxy);
         Notify.progress(getActivity());
-        VodConfig.load(Config.vod(), getCallback());
-        mBinding.proxyText.setText(UrlUtil.scheme(proxy));
+        mBinding.proxyText.setText(getProxy(proxy));
+        VodConfig.load(Config.vod(), getCallback(0));
     }
 
     private void onCache(View view) {
         FileUtil.clearCache(new Callback() {
             @Override
             public void success() {
-                VodConfig.get().getConfig().json("").save();
                 setCacheText();
             }
         });
-    }
-
-    private boolean onCacheLongClick(View view) {
-        FileUtil.clearCache(new Callback() {
-            @Override
-            public void success() {
-                setCacheText();
-                Config config = VodConfig.get().getConfig().json("").save();
-                if (!config.isEmpty()) setConfig(config);
-            }
-        });
-        return true;
-    }
-
-    private void onRestore(View view) {
-        PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> {
-            if (allGranted) BackupDialog.create(this).show();
-        });
-    }
-
-    private void onTransmit(View view) {
-        PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> {
-            if (allGranted) TransmitActionDialog.create(this).show();
-        });
-    }
-
-    private void onPull(View view) {
-        new MaterialAlertDialogBuilder(getActivity()).setTitle(R.string.transmit_pull_restore).setMessage(R.string.transmit_pull_restore_desc).setNegativeButton(R.string.dialog_negative, null).setCancelable(true).setPositiveButton(R.string.dialog_positive, (dialog, which) -> {
-            TransmitDialog.create().pullRetore().show(this);
-            dialog.dismiss();
-        }).show();
-    }
-
-    private void initConfig() {
-        WallConfig.get().init();
-        LiveConfig.get().init().load();
-        VodConfig.get().init().load(getCallback());
-    }
-
-    @Override
-    public void restore(File file) {
-        PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> AppDatabase.restore(file, new Callback() {
-            @Override
-            public void success() {
-                if (allGranted) {
-                    Notify.progress(getActivity());
-                    App.post(() -> {
-                        AppDatabase.reset();
-                        initConfig();
-                    }, 3000);
-                }
-            }
-        }));
     }
 
     private void onBackup(View view) {
         PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> AppDatabase.backup(new Callback() {
             @Override
-            public void success(String path) {
-                Notify.show(R.string.backed);
+            public void success() {
+                Notify.show(R.string.backup_success);
+            }
+
+            @Override
+            public void error() {
+                Notify.show(R.string.backup_fail);
             }
         }));
     }
 
-    private boolean onBackupMode(View view) {
-        int index = Setting.getBackupMode();
-        Setting.putBackupMode(index = index == backup.length - 1 ? 0 : ++index);
-        mBinding.backupText.setText(backup[index]);
-        return true;
+    private void onRestore(View view) {
+        PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> RestoreDialog.create().show(getActivity(), new Callback() {
+            @Override
+            public void success() {
+                Notify.show(R.string.restore_success);
+                Notify.progress(getActivity());
+                setOtherText();
+                initConfig();
+            }
+
+            @Override
+            public void error() {
+                Notify.show(R.string.restore_fail);
+            }
+        }));
+    }
+
+    private void initConfig() {
+        WallConfig.get().init();
+        LiveConfig.get().init().load();
+        VodConfig.get().init().load(getCallback(0));
     }
 
     @Override
@@ -420,7 +398,6 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
         mBinding.vodUrl.setText(VodConfig.getDesc());
         mBinding.liveUrl.setText(LiveConfig.getDesc());
         mBinding.wallUrl.setText(WallConfig.getDesc());
-        mBinding.dohText.setText(getDohList()[getDohIndex()]);
         setCacheText();
     }
 
@@ -428,28 +405,6 @@ public class SettingFragment extends BaseFragment implements BackupCallback, Con
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode != Activity.RESULT_OK || requestCode != FileChooser.REQUEST_PICK_FILE) return;
-        String path = FileChooser.getPathFromUri(getContext(), data.getData());
-        if (FileChooser.type() == FileChooser.TYPE_APK) TransmitDialog.create().apk(path).show(getActivity());
-        else if (FileChooser.type() == FileChooser.TYPE_PUSH_WALLPAPER) TransmitDialog.create().wallConfig(path).show(getActivity());
-        else setConfig(Config.find("file:/" + path.replace(Path.rootPath(), ""), type));
+        setConfig(Config.find("file:/" + FileChooser.getPathFromUri(getContext(), data.getData()).replace(Path.rootPath(), ""), type));
     }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onRefreshEvent(RefreshEvent event) {
-        switch (event.getType()) {
-            case CONFIG:
-                setCacheText();
-                mBinding.vodUrl.setText(VodConfig.getDesc());
-                mBinding.liveUrl.setText(LiveConfig.getDesc());
-                mBinding.wallUrl.setText(WallConfig.getDesc());
-                break;
-        }
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        EventBus.getDefault().unregister(this);
-    }
-
 }

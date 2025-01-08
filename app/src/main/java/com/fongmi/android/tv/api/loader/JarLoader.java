@@ -47,9 +47,14 @@ public class JarLoader {
     }
 
     private void load(String key, File file) {
-        loaders.put(key, new DexClassLoader(file.getAbsolutePath(), Path.jar().getAbsolutePath(), null, App.get().getClassLoader()));
+        if (!file.setReadOnly()) return;
+        loaders.put(key, dex(file));
         invokeInit(key);
         putProxy(key);
+    }
+
+    private DexClassLoader dex(File file) {
+        return new DexClassLoader(file.getAbsolutePath(), Path.jar().getAbsolutePath(), null, App.get().getClassLoader());
     }
 
     private void invokeInit(String key) {
@@ -84,8 +89,9 @@ public class JarLoader {
         if (loaders.containsKey(key)) return;
         String[] texts = jar.split(";md5;");
         String md5 = texts.length > 1 ? texts[1].trim() : "";
+        if (md5.startsWith("http")) md5 = OkHttp.string(md5).trim();
         jar = texts[0];
-        if (md5.length() > 0 && Util.equals(jar, md5)) {
+        if (!md5.isEmpty() && Util.equals(jar, md5)) {
             load(key, Path.jar(jar));
         } else if (jar.startsWith("img+")) {
             load(key, Decoder.getSpider(jar));
@@ -94,8 +100,6 @@ public class JarLoader {
         } else if (jar.startsWith("file")) {
             load(key, Path.local(jar));
         } else if (jar.startsWith("assets")) {
-            parseJar(key, UrlUtil.convert(jar));
-        } else if (!jar.isEmpty()) {
             parseJar(key, UrlUtil.convert(jar));
         }
     }

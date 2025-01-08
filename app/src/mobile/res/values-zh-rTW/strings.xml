@@ -15,7 +15,6 @@
     <!-- Detail -->
     <string name="detail_flag">線路</string>
     <string name="detail_more">更多</string>
-    <string name="detail_download">下載</string>
     <string name="detail_episode">選集</string>
     <string name="detail_quality">畫質</string>
     <string name="detail_content">簡介</string>
@@ -31,7 +30,11 @@
     <string name="control_scale">縮放</string>
     <string name="control_track">軌道</string>
     <string name="control_other">其它</string>
-    <string name="control_display">螢幕顯示</string>
+
+    <!-- Dialog -->
+    <string name="dialog_delete_record">刪除全部紀錄？</string>
+    <string name="dialog_delete_keep">收藏紀錄將會全部刪除。</string>
+    <string name="dialog_delete_history">觀看紀錄將會全部刪除。</string>
 
     <!-- Timer -->
     <string name="timer_5">5 分鐘</string>
@@ -40,14 +43,6 @@
     <string name="timer_60">1 小時</string>
     <string name="timer_delay">延長 5 分鐘</string>
     <string name="timer_cancel">取消定時器</string>
-
-    <!-- Transmit -->
-    <string name="transmit_apk">推送APK</string>
-    <string name="transmit_vod_config">一鍵配置TV</string>
-    <string name="transmit_wall_config">推送TV墻紙</string>
-    <string name="transmit_push_restore">一鍵恢復TV</string>
-    <string name="transmit_pull_restore">從TV恢復</string>
-    <string name="transmit_pull_restore_desc">確認從TV恢復數據嗎？</string>
 
     <!-- Hint -->
     <string name="shortcut"> 已於主螢幕新增捷徑。</string>

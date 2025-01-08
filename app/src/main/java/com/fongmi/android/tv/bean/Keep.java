@@ -144,7 +144,7 @@ public class Keep {
     }
 
     public void save() {
-        AppDatabase.get().getKeepDao().insert(this);
+        AppDatabase.get().getKeepDao().insertOrUpdate(this);
     }
 
     public Keep delete() {

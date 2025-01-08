@@ -24,8 +24,6 @@ public class TypePresenter extends Presenter {
         void onItemClick(Class item);
 
         void onRefresh(Class item);
-
-        boolean onItemLongClick(Class item);
     }
 
     @Override
@@ -42,7 +40,6 @@ public class TypePresenter extends Presenter {
         holder.binding.text.setCompoundDrawablesWithIntrinsicBounds(0, 0, getIcon(item), 0);
         holder.binding.text.setListener(() -> mListener.onRefresh(item));
         setOnClickListener(holder, view -> mListener.onItemClick(item));
-        holder.view.setOnLongClickListener(view -> mListener.onItemLongClick(item));
     }
 
     @Override

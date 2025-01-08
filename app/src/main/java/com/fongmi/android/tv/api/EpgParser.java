@@ -27,10 +27,10 @@ import java.util.Set;
 
 public class EpgParser {
 
-    public static boolean start(Live live) throws Exception {
-        if (!live.getEpg().endsWith(".xml") && !live.getEpg().endsWith(".gz")) return false;
-        File file = Path.epg(Uri.parse(live.getEpg()).getLastPathSegment());
-        if (shouldDownload(file)) Download.create(live.getEpg(), file).start();
+    public static boolean start(Live live, String url) throws Exception {
+        if (!url.contains("xml") && !url.contains("gz")) return false;
+        File file = Path.epg(Uri.parse(url).getLastPathSegment());
+        if (shouldDownload(file)) Download.create(url, file).start();
         if (file.getName().endsWith(".gz")) readGzip(live, file);
         else readXml(live, file);
         return true;
@@ -52,7 +52,7 @@ public class EpgParser {
 
     private static void readGzip(Live live, File file) throws Exception {
         File xml = Path.epg(file.getName().replace(".gz", ""));
-        if (!xml.exists()) FileUtil.extractGzip(file, xml);
+        if (!xml.exists()) FileUtil.gzipDecompress(file, xml);
         readXml(live, xml);
     }
 
@@ -68,7 +68,9 @@ public class EpgParser {
         for (Group group : live.getGroups()) for (Channel channel : group.getChannel()) exist.add(channel.getTvgName());
         for (Tv.Channel channel : tv.getChannel()) mapping.put(channel.getId(), channel.getDisplayName());
         for (Tv.Programme programme : tv.getProgramme()) {
-            String key = mapping.get(programme.getChannel());
+            String key = programme.getChannel();
+            String name = mapping.get(programme.getChannel());
+            if (!exist.contains(key) && exist.contains(name)) key = name;
             Date startDate = formatFull.parse(programme.getStart());
             Date endDate = formatFull.parse(programme.getStop());
             if (!exist.contains(key)) continue;
@@ -84,7 +86,9 @@ public class EpgParser {
         }
         for (Group group : live.getGroups()) {
             for (Channel channel : group.getChannel()) {
-                channel.setData(epgMap.get(channel.getTvgName()));
+                if (epgMap.containsKey(channel.getTvgName())) {
+                    channel.setData(epgMap.get(channel.getTvgName()));
+                }
             }
         }
     }

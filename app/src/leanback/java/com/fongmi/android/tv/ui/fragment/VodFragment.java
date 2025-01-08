@@ -37,6 +37,7 @@ import com.fongmi.android.tv.ui.custom.CustomScroller;
 import com.fongmi.android.tv.ui.custom.CustomSelector;
 import com.fongmi.android.tv.ui.presenter.FilterPresenter;
 import com.fongmi.android.tv.ui.presenter.VodPresenter;
+import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.github.catvod.utils.Prefers;
 import com.google.common.collect.Lists;
@@ -96,10 +97,6 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
         return VodConfig.get().getSite(getKey());
     }
 
-    private boolean isIndexs() {
-        return getSite().isIndexs();
-    }
-
     private Page getLastPage() {
         return mPages.get(mPages.size() - 1);
     }
@@ -142,6 +139,7 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
 
     private void setViewModel() {
         mViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
+        mViewModel.action.observe(getViewLifecycleOwner(), result -> Notify.show(result.getMsg()));
         mViewModel.result.observe(getViewLifecycleOwner(), result -> {
             boolean first = mScroller.first();
             int size = result.getList().size();
@@ -288,9 +286,8 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
             mBinding.recycler.setMoveTop(false);
             getVideo(item.getVodId(), "1");
         } else {
-            if (isIndexs()) CollectActivity.start(getActivity(), item.getVodName());
-            else if (!isFolder()) VideoActivity.start(getActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic());
-            else VideoActivity.start(getActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic(), item.getVodName());
+            if (getSite().isIndex()) CollectActivity.start(getActivity(), item.getVodName());
+            else VideoActivity.start(getActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic(), isFolder() ? item.getVodName() : null);
         }
     }
 

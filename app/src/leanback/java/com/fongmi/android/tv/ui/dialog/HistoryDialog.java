@@ -41,11 +41,11 @@ public class HistoryDialog implements ConfigAdapter.OnClickListener {
     public void show() {
         setRecyclerView();
         setDialog();
-        binding.recycler.requestFocus();
     }
 
     private void setRecyclerView() {
-        binding.recycler.setHasFixedSize(true);
+        binding.recycler.setItemAnimator(null);
+        binding.recycler.setHasFixedSize(false);
         binding.recycler.setAdapter(adapter.addAll(type));
         binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 16));
     }

@@ -2,20 +2,21 @@ package com.fongmi.android.tv.player.extractor;
 
 import android.net.Uri;
 
+import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.player.Source;
+import com.fongmi.android.tv.utils.Clock;
+import com.fongmi.android.tv.utils.FileUtil;
 import com.github.catvod.utils.Path;
 import com.p2p.P2PClass;
 
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
 
-public class JianPian implements Source.Extractor {
+public class JianPian implements Source.Extractor, Clock.Callback {
 
     private P2PClass p2p;
     private String path;
-    private Map<String, Boolean> pathPaused;
+    private Clock clock;
 
     @Override
     public boolean match(String scheme, String host) {
@@ -24,30 +25,34 @@ public class JianPian implements Source.Extractor {
 
     private void init() {
         if (p2p == null) p2p = new P2PClass();
-        if (pathPaused == null) pathPaused = new HashMap<>();
+        if (clock == null) clock = Clock.create();
     }
 
     @Override
     public String fetch(String url) throws Exception {
         init();
         stop();
+        check(10);
         start(url);
         return "http://127.0.0.1:" + p2p.port + "/" + URLEncoder.encode(Uri.parse(path).getLastPathSegment(), "GBK");
     }
 
+    private void check(int limit) {
+        double cache = FileUtil.getDirectorySize(Path.jpa());
+        double total = cache + FileUtil.getAvailableStorageSpace(Path.jpa());
+        int percent = (int) (cache / total * 100);
+        if (percent > limit) Path.clear(Path.jpa());
+    }
+
     private void start(String url) {
         try {
-            String lastPath = path;
             path = URLDecoder.decode(url).split("\\|")[0];
             path = path.replace("jianpian://pathtype=url&path=", "");
             path = path.replace("tvbox-xg://", "").replace("tvbox-xg:", "");
             path = path.replace("xg://", "ftp://").replace("xgplay://", "ftp://");
-            boolean isDiff = lastPath != null && !lastPath.equals(path);
-            if (isDiff) p2p.P2Pdoxdel(lastPath.getBytes("GBK"));
             p2p.P2Pdoxstart(path.getBytes("GBK"));
-            if (lastPath == null || isDiff) p2p.P2Pdoxadd(path.getBytes("GBK"));
-            if (isDiff && pathPaused.containsKey(lastPath)) pathPaused.remove(lastPath);
-            pathPaused.put(path, false);
+            clock.setCallback(this);
+            clock.stop().start();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -56,17 +61,25 @@ public class JianPian implements Source.Extractor {
     @Override
     public void stop() {
         try {
+            if (clock != null) clock.stop();
             if (p2p == null || path == null) return;
-            if (pathPaused.containsKey(path) && pathPaused.get(path)) return;
             p2p.P2Pdoxpause(path.getBytes("GBK"));
-            pathPaused.put(path, true);
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            path = null;
         }
     }
 
     @Override
     public void exit() {
-        Path.clear(Path.jpa());
+        App.execute(() -> check(10));
+        if (clock != null) clock.release();
+    }
+
+    @Override
+    public void onTimeChanged() {
+        long seconds = System.currentTimeMillis() / 1000 % 60;
+        if (seconds % 30 == 0) App.execute(() -> check(60));
     }
 }

@@ -47,8 +47,6 @@ public class Channel {
     private Catchup catchup;
     @SerializedName("header")
     private JsonElement header;
-    @SerializedName("playerType")
-    private Integer playerType;
     @SerializedName("parse")
     private Integer parse;
     @SerializedName("drm")
@@ -194,14 +192,6 @@ public class Channel {
         this.header = header;
     }
 
-    public Integer getPlayerType() {
-        return playerType == null ? -1 : Math.min(playerType, 2);
-    }
-
-    public void setPlayerType(Integer playerType) {
-        this.playerType = playerType;
-    }
-
     public Integer getParse() {
         return parse == null ? 0 : parse;
     }
@@ -335,7 +325,6 @@ public class Channel {
         if (!live.getOrigin().isEmpty() && getOrigin().isEmpty()) setOrigin(live.getOrigin());
         if (!live.getCatchup().isEmpty() && getCatchup().isEmpty()) setCatchup(live.getCatchup());
         if (!live.getReferer().isEmpty() && getReferer().isEmpty()) setReferer(live.getReferer());
-        if (live.getPlayerType() != -1 && getPlayerType() == -1) setPlayerType(live.getPlayerType());
         if (live.getEpg().contains("{") && !getEpg().startsWith("http")) setEpg(live.getEpg().replace("{name}", getTvgName()).replace("{epg}", getEpg()));
         if (live.getLogo().contains("{") && !getLogo().startsWith("http")) setLogo(live.getLogo().replace("{name}", getTvgName()).replace("{logo}", getLogo()));
     }
@@ -353,7 +342,6 @@ public class Channel {
     }
 
     public Channel copy(Channel item) {
-        setPlayerType(item.getPlayerType());
         setCatchup(item.getCatchup());
         setReferer(item.getReferer());
         setTvgName(item.getTvgName());

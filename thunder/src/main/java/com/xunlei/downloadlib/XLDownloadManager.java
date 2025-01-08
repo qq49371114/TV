@@ -78,12 +78,12 @@ public class XLDownloadManager {
         loader.getLocalUrl(filePath, localUrl);
     }
 
-    public void setOriginUserAgent(long taskId, String userAgent) {
-        loader.setOriginUserAgent(taskId, userAgent);
+    public void getDownloadLibVersion(GetDownloadLibVersion version) {
+        loader.getDownloadLibVersion(version);
     }
 
-    public void setDownloadTaskOrigin(long taskId, String str) {
-        loader.setDownloadTaskOrigin(taskId, str);
+    public void setStatReportSwitch(boolean value) {
+        loader.setStatReportSwitch(value);
     }
 
     private void setLocalProperty(String key, String value) {
@@ -94,16 +94,16 @@ public class XLDownloadManager {
         loader.setMiUiVersion(str);
     }
 
-    public void getDownloadLibVersion(GetDownloadLibVersion version) {
-        loader.getDownloadLibVersion(version);
+    public void setOriginUserAgent(long taskId, String userAgent) {
+        loader.setOriginUserAgent(taskId, userAgent);
+    }
+
+    public void setDownloadTaskOrigin(long taskId, String str) {
+        loader.setDownloadTaskOrigin(taskId, str);
     }
 
     public void setTaskGsState(long j, int i, int i2) {
         loader.setTaskGsState(j, i, i2);
-    }
-
-    public void setStatReportSwitch(boolean value) {
-        loader.setStatReportSwitch(value);
     }
 
     public int createP2spTask(P2spTaskParam param, GetTaskId taskId) {

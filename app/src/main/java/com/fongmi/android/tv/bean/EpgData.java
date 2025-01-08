@@ -86,8 +86,8 @@ public class EpgData {
 
     public String format(String group) {
         String pattern = group.split("\\)")[1].split("\\}")[0];
-        if (group.contains("(b)")) return new SimpleDateFormat(pattern, Locale.getDefault()).format(getStartTime());
-        if (group.contains("(e)")) return new SimpleDateFormat(pattern, Locale.getDefault()).format(getEndTime());
+        if (group.contains("(b")) return new SimpleDateFormat(pattern, Locale.getDefault()).format(getStartTime());
+        if (group.contains("(e")) return new SimpleDateFormat(pattern, Locale.getDefault()).format(getEndTime());
         return "";
     }
 

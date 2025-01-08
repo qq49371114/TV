@@ -32,7 +32,7 @@ public class PyLoader {
 
     private void init() {
         try {
-            loader = Class.forName("com.undcover.freedom.pyramid.Loader").newInstance();
+            loader = Class.forName("com.fongmi.chaquo.Loader").newInstance();
         } catch (Throwable ignored) {
         }
     }

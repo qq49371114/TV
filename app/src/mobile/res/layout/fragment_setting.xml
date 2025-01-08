@@ -13,44 +13,17 @@
         app:elevation="0dp"
         app:liftOnScrollColor="@color/transparent">
 
-        <LinearLayout
-            android:orientation="horizontal"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="12dp"
-                android:text="@string/nav_setting"
-                android:textColor="@color/white"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                app:layout_scrollFlags="scroll|enterAlways" />
-
-            <ImageView
-                android:id="@+id/transmit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="12dp"
-                android:padding="7dp"
-                android:scaleType="fitCenter"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_action_upload" />
-
-            <ImageView
-                android:id="@+id/pull"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:padding="7dp"
-                android:scaleType="fitCenter"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_action_download" />
-        </LinearLayout>
+            android:layout_marginEnd="16dp"
+            android:text="@string/nav_setting"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_scrollFlags="scroll|enterAlways" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -261,7 +234,7 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/custom"
+                android:id="@+id/incognito"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -271,9 +244,46 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/setting_custom"
+                    android:layout_marginEnd="16dp"
+                    android:text="@string/setting_incognito"
                     android:textColor="@color/white"
                     android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/incognitoText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    tools:text="Off" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/size"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/shape_item"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:text="@string/setting_size"
+                    android:textColor="@color/white"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/sizeText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    tools:text="Medium" />
 
             </LinearLayout>
 
@@ -359,44 +369,38 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/backup"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:background="@drawable/shape_item"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:padding="0dp">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:id="@+id/backup"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
+                    android:layout_weight="1"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:paddingStart="12dp"
+                    android:paddingTop="8dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="8dp"
                     android:text="@string/setting_backup"
                     android:textColor="@color/white"
                     android:textSize="16sp" />
 
                 <TextView
-                    android:id="@+id/backupText"
-                    android:layout_width="match_parent"
+                    android:id="@+id/restore"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="?android:attr/selectableItemBackground"
                     android:gravity="end"
-                    android:textColor="@color/white"
-                    android:textSize="16sp"
-                    tools:text="20231103" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/restore"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/shape_item"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
+                    android:paddingStart="12dp"
+                    android:paddingTop="8dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="8dp"
                     android:text="@string/setting_restore"
                     android:textColor="@color/white"
                     android:textSize="16sp" />
@@ -427,33 +431,6 @@
                     android:textColor="@color/white"
                     android:textSize="16sp"
                     tools:text="1.2.1" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/about"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/shape_item"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="@string/setting_about"
-                    android:textColor="@color/white"
-                    android:textSize="16sp" />
-
-                <TextView
-                    android:id="@+id/aboutText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="end"
-                    android:textColor="@color/white"
-                    android:textSize="16sp"
-                    tools:text="about" />
 
             </LinearLayout>
         </LinearLayout>

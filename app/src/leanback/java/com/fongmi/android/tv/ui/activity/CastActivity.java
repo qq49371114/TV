@@ -5,7 +5,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.drawable.Drawable;
 import android.os.IBinder;
 import android.view.KeyEvent;
 import android.view.View;
@@ -15,8 +14,6 @@ import androidx.annotation.Nullable;
 import androidx.media3.common.C;
 import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
-import androidx.media3.ui.PlayerView;
-import androidx.media3.ui.SubtitleView;
 import androidx.viewbinding.ViewBinding;
 
 import com.android.cast.dlna.dmr.CastAction;
@@ -36,12 +33,10 @@ import com.fongmi.android.tv.event.ActionEvent;
 import com.fongmi.android.tv.event.ErrorEvent;
 import com.fongmi.android.tv.event.PlayerEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
-import com.fongmi.android.tv.player.IjkUtil;
-import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.player.Players;
+import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownCast;
-import com.fongmi.android.tv.ui.dialog.PlayerDialog;
 import com.fongmi.android.tv.ui.dialog.SubtitleDialog;
 import com.fongmi.android.tv.ui.dialog.TrackDialog;
 import com.fongmi.android.tv.utils.Clock;
@@ -53,9 +48,7 @@ import org.fourthline.cling.support.contentdirectory.DIDLParser;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import tv.danmaku.ijk.media.player.ui.IjkVideoView;
-
-public class CastActivity extends BaseActivity implements CustomKeyDownCast.Listener, TrackDialog.Listener, PlayerDialog.Listener, RenderControl, ServiceConnection, Clock.Callback {
+public class CastActivity extends BaseActivity implements CustomKeyDownCast.Listener, TrackDialog.Listener, RenderControl, ServiceConnection, Clock.Callback {
 
     private ActivityCastBinding mBinding;
     private DLNARendererService mService;
@@ -70,19 +63,6 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     private long position;
     private long duration;
     private int scale;
-
-    private PlayerView getExo() {
-        return mBinding.exo;
-    }
-
-    private IjkVideoView getIjk() {
-        return mBinding.ijk;
-    }
-
-    private Drawable getDefaultArtwork() {
-        if (mPlayers.isExo()) return getExo().getDefaultArtwork();
-        return getIjk().getDefaultArtwork();
-    }
 
     @Override
     protected ViewBinding getBinding() {
@@ -123,7 +103,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
         mBinding.control.scale.setOnClickListener(view -> onScale());
         mBinding.control.speed.setOnClickListener(view -> onSpeed());
         mBinding.control.reset.setOnClickListener(view -> onReset());
-        mBinding.control.player.setOnClickListener(view -> onPlayer());
+        mBinding.control.player.setOnClickListener(view -> onChoose());
         mBinding.control.decode.setOnClickListener(view -> onDecode());
         mBinding.control.speed.setOnLongClickListener(view -> onSpeedLong());
         mBinding.video.setOnTouchListener((view, event) -> mKeyDown.onTouchEvent(event));
@@ -145,41 +125,29 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     }
 
     private void start() {
-        mPlayers.setMediaSource(mAction.getCurrentURI());
+        mPlayers.setMediaItem(mAction.getCurrentURI());
         showProgress();
         setMetadata();
         hideCenter();
     }
 
     private void setVideoView() {
-        mPlayers.init(getExo(), getIjk());
-        mPlayers.setPlayer(Setting.getPlayer());
-        findViewById(R.id.timeBar).setNextFocusUpId(R.id.reset);
-        mBinding.control.reset.setText(ResUtil.getStringArray(R.array.select_reset)[0]);
+        mPlayers.init(mBinding.exo);
         setScale(scale = Setting.getScale());
         ExoUtil.setSubtitleView(mBinding.exo);
-        IjkUtil.setSubtitleView(mBinding.ijk);
-        setPlayerView();
-        setDecodeView();
-    }
-
-    private void setPlayerView() {
-        getIjk().setPlayer(mPlayers.getPlayer());
+        findViewById(R.id.timeBar).setNextFocusUpId(R.id.reset);
         mBinding.control.speed.setText(mPlayers.getSpeedText());
-        mBinding.control.player.setText(mPlayers.getPlayerText());
+        mBinding.control.decode.setText(mPlayers.getDecodeText());
         mBinding.control.speed.setEnabled(mPlayers.canAdjustSpeed());
-        getExo().setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
-        getIjk().setVisibility(mPlayers.isIjk() ? View.VISIBLE : View.GONE);
-        mBinding.control.decode.setVisibility(mPlayers.isExo() ? View.VISIBLE : View.GONE);
+        mBinding.control.reset.setText(ResUtil.getStringArray(R.array.select_reset)[0]);
     }
 
-    private void setDecodeView() {
+    private void setDecode() {
         mBinding.control.decode.setText(mPlayers.getDecodeText());
     }
 
     private void setScale(int scale) {
-        getExo().setResizeMode(scale);
-        getIjk().setResizeMode(scale);
+        mBinding.exo.setResizeMode(scale);
         mBinding.control.scale.setText(ResUtil.getStringArray(R.array.select_scale)[scale]);
     }
 
@@ -210,24 +178,17 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
         start();
     }
 
-    private void onPlayer() {
-        PlayerDialog.create().select(mPlayers.getPlayer()).title(mBinding.widget.title.getText().toString()).show(this);
-        hideControl();
+    private void onChoose() {
+        mPlayers.choose(this, mBinding.widget.title.getText());
     }
 
     private void onDecode() {
-        onDecode(true);
-    }
-
-    private void onDecode(boolean save) {
-        mPlayers.toggleDecode(save);
-        mPlayers.init(getExo(), getIjk());
-        mPlayers.setMediaSource();
-        setDecodeView();
+        mPlayers.toggleDecode(mBinding.exo);
+        setDecode();
     }
 
     private void onTrack(View view) {
-        TrackDialog.create().player(mPlayers).vod(true).type(Integer.parseInt(view.getTag().toString())).show(this);
+        TrackDialog.create().player(mPlayers).type(Integer.parseInt(view.getTag().toString())).show(this);
         hideControl();
     }
 
@@ -306,14 +267,14 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onRefreshEvent(RefreshEvent event) {
-        if (event.getType() == RefreshEvent.Type.SUBTITLE) mPlayers.setSub(Sub.from(event.getPath()));
+        if (event.getType() == RefreshEvent.Type.PLAYER) onReset();
+        else if (event.getType() == RefreshEvent.Type.SUBTITLE) mPlayers.setSub(Sub.from(event.getPath()));
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onPlayerEvent(PlayerEvent event) {
         switch (event.getState()) {
-            case 0:
-                setTrackVisible(false);
+            case PlayerEvent.PREPARE:
                 mClock.setCallback(this);
                 setState(RenderState.PREPARING);
                 break;
@@ -325,45 +286,52 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
                 setState(RenderState.PREPARING);
                 break;
             case Player.STATE_READY:
-                setMetadata();
                 hideProgress();
-                mPlayers.reset();
-                setTrackVisible(true);
                 setState(RenderState.PLAYING);
-                mBinding.widget.size.setText(mPlayers.getSizeText());
                 break;
             case Player.STATE_ENDED:
                 showControl();
                 setState(RenderState.STOPPED);
                 break;
+            case PlayerEvent.TRACK:
+                setMetadata();
+                mPlayers.reset();
+                setTrackVisible();
+                break;
+            case PlayerEvent.SIZE:
+                mBinding.widget.size.setText(mPlayers.getSizeText());
+                break;
         }
     }
 
-    private void setTrackVisible(boolean visible) {
-        mBinding.control.text.setVisibility(visible && mPlayers.haveTrack(C.TRACK_TYPE_TEXT) ? View.VISIBLE : View.GONE);
-        mBinding.control.audio.setVisibility(visible && mPlayers.haveTrack(C.TRACK_TYPE_AUDIO) ? View.VISIBLE : View.GONE);
-        mBinding.control.video.setVisibility(visible && mPlayers.haveTrack(C.TRACK_TYPE_VIDEO) ? View.VISIBLE : View.GONE);
+    private void setTrackVisible() {
+        mBinding.control.text.setVisibility(mPlayers.haveTrack(C.TRACK_TYPE_TEXT) || mPlayers.isVod() ? View.VISIBLE : View.GONE);
+        mBinding.control.audio.setVisibility(mPlayers.haveTrack(C.TRACK_TYPE_AUDIO) ? View.VISIBLE : View.GONE);
+        mBinding.control.video.setVisibility(mPlayers.haveTrack(C.TRACK_TYPE_VIDEO) ? View.VISIBLE : View.GONE);
     }
 
     private void setMetadata() {
-        mPlayers.setMetadata(mBinding.widget.title.getText().toString(), "", "", getDefaultArtwork());
+        mPlayers.setMetadata(mBinding.widget.title.getText().toString(), "", "", mBinding.exo.getDefaultArtwork());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
-        if (mPlayers.addRetry() > event.getRetry()) onError(event);
-        else if (event.isDecode() && mPlayers.canToggleDecode()) onDecode(false);
-        else if (event.isExo() && mPlayers.isExo()) onExoCheck(event);
+        if (mPlayers.retried()) onError(event);
+        else if (event.isExo()) onCheck(event);
         else onReset();
     }
 
-    private void onExoCheck(ErrorEvent event) {
+    private void onCheck(ErrorEvent event) {
         if (event.getCode() == PlaybackException.ERROR_CODE_IO_UNSPECIFIED || event.getCode() >= PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED && event.getCode() <= PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED) mPlayers.setFormat(ExoUtil.getMimeType(event.getCode()));
-        mPlayers.setMediaSource();
+        else if (event.getCode() == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) mPlayers.seekTo(C.TIME_UNSET);
+        else if (event.getCode() == PlaybackException.ERROR_CODE_DECODER_INIT_FAILED) mPlayers.init(mBinding.exo);
+        else if (event.getCode() == PlaybackException.ERROR_CODE_DECODING_FAILED && mPlayers.isHard()) onDecode();
+        else onError(event);
     }
 
     private void onError(ErrorEvent event) {
         showError(event.getMsg());
+        mPlayers.resetTrack();
         onStopped();
     }
 
@@ -404,8 +372,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     @Override
     public void onSubtitleClick() {
         App.post(this::hideControl, 200);
-        SubtitleView subtitleView = mPlayers.isIjk() ? getIjk().getSubtitleView() : getExo().getSubtitleView();
-        App.post(() -> SubtitleDialog.create().view(subtitleView).full(true).show(this), 200);
+        App.post(() -> SubtitleDialog.create().view(mBinding.exo.getSubtitleView()).full(true).show(this), 200);
     }
 
     @Override
@@ -481,7 +448,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     @Override
     public void onSpeedUp() {
         if (!mPlayers.isPlaying() || !mPlayers.canAdjustSpeed()) return;
-        mBinding.control.speed.setText(mPlayers.setSpeed(mPlayers.getSpeed() < 3 ? 3 : 5));
+        mBinding.control.speed.setText(mPlayers.setSpeed(Setting.getSpeed()));
         mBinding.widget.speed.startAnimation(ResUtil.getAnim(R.anim.forward));
         mBinding.widget.speed.setVisibility(View.VISIBLE);
     }
@@ -518,19 +485,6 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     @Override
     public void onDoubleTap() {
         onKeyCenter();
-    }
-
-    @Override
-    public void onPlayerClick(Integer item) {
-        mPlayers.setPlayer(item);
-        setPlayerView();
-        onReset();
-    }
-
-    @Override
-    public void onPlayerShare(String title) {
-        if (mPlayers.isEmpty()) return;
-        mPlayers.choose(this, mBinding.widget.title.getText());
     }
 
     @Override

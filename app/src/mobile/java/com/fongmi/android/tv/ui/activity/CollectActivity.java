@@ -24,7 +24,6 @@ import com.fongmi.android.tv.bean.Hot;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Suggest;
-import com.fongmi.android.tv.bean.SuggestTwo;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.ActivityCollectBinding;
 import com.fongmi.android.tv.impl.Callback;
@@ -155,7 +154,7 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
             mCollectAdapter.add(result.getList());
         });
         mViewModel.result.observe(this, result -> {
-            boolean same = result.getList().size() > 0 && mCollectAdapter.getActivated().getSite().equals(result.getList().get(0).getSite());
+            boolean same = !result.getList().isEmpty() && mCollectAdapter.getActivated().getSite().equals(result.getList().get(0).getSite());
             if (same) mCollectAdapter.getActivated().getList().addAll(result.getList());
             if (same) mSearchAdapter.addAll(result.getList());
             mScroller.endLoading(result);
@@ -210,21 +209,12 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
 
     private void getSuggest(String text) {
         mBinding.word.setText(R.string.search_suggest);
-        mWordAdapter.clear();
-        OkHttp.newCall("https://tv.aiseet.atianqi.com/i-tvbin/qtv_video/search/get_search_smart_box?format=json&page_num=0&page_size=20&key=" + URLEncoder.encode(text)).enqueue(new Callback() {
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                if (mBinding.keyword.getText().toString().trim().isEmpty()) return;
-                List<String> items = SuggestTwo.get(response.body().string());
-                App.post(() -> mWordAdapter.appendAll(items));
-            }
-        });
         OkHttp.newCall("https://suggest.video.iqiyi.com/?if=mobile&key=" + URLEncoder.encode(text)).enqueue(new Callback() {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (mBinding.keyword.getText().toString().trim().isEmpty()) return;
                 List<String> items = Suggest.get(response.body().string());
-                App.post(() -> mWordAdapter.appendAll(items), 200);
+                App.post(() -> mWordAdapter.addAll(items));
             }
         });
     }

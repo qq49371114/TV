@@ -68,16 +68,11 @@ public class Connect {
         if (req.getData() != null && "json".equals(req.getPostType())) return getJsonBody(req);
         if (req.getData() != null && "form".equals(req.getPostType())) return getFormBody(req);
         if (req.getData() != null && "form-data".equals(req.getPostType())) return getFormDataBody(req);
-        if (req.getData() != null && "raw".equals(req.getPostType())) return getRawBody(req);
         if (req.getBody() != null && contentType != null) return RequestBody.create(req.getBody(), MediaType.get(contentType));
-        return RequestBody.create("", null);
+        return RequestBody.create(new byte[0]);
     }
 
     private static RequestBody getJsonBody(Req req) {
-        return RequestBody.create(req.getData().toString(), MediaType.get("application/json; charset=utf-8"));
-    }
-
-    private static RequestBody getRawBody(Req req) {
         return RequestBody.create(req.getData().toString(), MediaType.get("application/json; charset=utf-8"));
     }
 
@@ -95,8 +90,6 @@ public class Connect {
         for (String key : params.keySet()) builder.addFormDataPart(key, params.get(key));
         return builder.build();
     }
-
-
 
     private static void setHeader(QuickJSContext ctx, Response res, JSObject object) {
         for (Map.Entry<String, List<String>> entry : res.headers().toMultimap().entrySet()) {

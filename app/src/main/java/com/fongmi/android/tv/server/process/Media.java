@@ -9,21 +9,22 @@ import com.fongmi.android.tv.server.Nano;
 import com.fongmi.android.tv.server.Server;
 import com.google.gson.JsonObject;
 
+import org.nanohttpd.protocols.http.IHTTPSession;
+import org.nanohttpd.protocols.http.response.Response;
+
 import java.util.Map;
 import java.util.Objects;
-
-import fi.iki.elonen.NanoHTTPD;
 
 public class Media implements Process {
 
     @Override
-    public boolean isRequest(NanoHTTPD.IHTTPSession session, String path) {
+    public boolean isRequest(IHTTPSession session, String path) {
         return "/media".equals(path);
     }
 
     @Override
-    public NanoHTTPD.Response doResponse(NanoHTTPD.IHTTPSession session, String path, Map<String, String> files) {
-        if (isNull()) return Nano.success("{}");
+    public Response doResponse(IHTTPSession session, String path, Map<String, String> files) {
+        if (isNull()) return Nano.ok("{}");
         JsonObject result = new JsonObject();
         result.addProperty("url", getUrl());
         result.addProperty("state", getState());
@@ -33,7 +34,7 @@ public class Media implements Process {
         result.addProperty("artwork", getArtUri());
         result.addProperty("duration", getDuration());
         result.addProperty("position", getPosition());
-        return Nano.success(result.toString());
+        return Nano.ok(result.toString());
     }
 
     private Players getPlayer() {

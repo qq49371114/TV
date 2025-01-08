@@ -14,7 +14,6 @@ import androidx.core.graphics.drawable.IconCompat;
 import androidx.fragment.app.Fragment;
 import androidx.viewbinding.ViewBinding;
 
-import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Updater;
 import com.fongmi.android.tv.api.config.LiveConfig;
@@ -32,7 +31,6 @@ import com.fongmi.android.tv.receiver.ShortcutReceiver;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.FragmentStateManager;
-import com.fongmi.android.tv.ui.fragment.SettingCustomFragment;
 import com.fongmi.android.tv.ui.fragment.SettingFragment;
 import com.fongmi.android.tv.ui.fragment.SettingPlayerFragment;
 import com.fongmi.android.tv.ui.fragment.VodFragment;
@@ -48,7 +46,6 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
 
     private ActivityMainBinding mBinding;
     private FragmentStateManager mManager;
-    private boolean confirm;
 
     @Override
     protected ViewBinding getBinding() {
@@ -94,7 +91,6 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
                 if (position == 0) return VodFragment.newInstance();
                 if (position == 1) return SettingFragment.newInstance();
                 if (position == 2) return SettingPlayerFragment.newInstance();
-                if (position == 3) return SettingCustomFragment.newInstance();
                 return null;
             }
         };
@@ -104,7 +100,7 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
     private void initConfig() {
         WallConfig.get().init();
         LiveConfig.get().init().load();
-        VodConfig.get().init().load(getCallback(), true);
+        VodConfig.get().init().load(getCallback());
     }
 
     private Callback getCallback() {
@@ -157,12 +153,6 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
         return true;
     }
 
-    private void setConfirm() {
-        confirm = true;
-        Notify.show(R.string.app_exit);
-        App.post(() -> confirm = false, 5000);
-    }
-
     public void change(int position) {
         mManager.change(position);
     }
@@ -202,15 +192,12 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
     protected void onBackPress() {
         if (!mBinding.navigation.getMenu().findItem(R.id.vod).isVisible()) {
             setNavigation();
-        } else if (mManager.isVisible(3)) {
-            change(1);
         } else if (mManager.isVisible(2)) {
             change(1);
         } else if (mManager.isVisible(1)) {
             mBinding.navigation.setSelectedItemId(R.id.vod);
         } else if (mManager.canBack(0)) {
-            if (!confirm) setConfirm();
-            else finish();
+            finish();
         }
     }
 

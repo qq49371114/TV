@@ -74,7 +74,6 @@ public class PiP {
     public void enter(Activity activity, int width, int height, int scale) {
         try {
             if (noPiP() || activity.isInPictureInPictureMode() || !Setting.isBackgroundPiP()) return;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) builder.setAutoEnterEnabled(true);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) builder.setSeamlessResizeEnabled(true);
             if (scale == 1) builder.setAspectRatio(new Rational(16, 9));
             else if (scale == 2) builder.setAspectRatio(new Rational(4, 3));

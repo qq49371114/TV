@@ -67,7 +67,6 @@ public class CustomSeekView extends FrameLayout implements TimeBar.OnScrubListen
     }
 
     private void refresh() {
-        if (player.isRelease()) return;
         long duration = player.getDuration();
         long position = player.getPosition();
         long buffered = player.getBuffered();
@@ -89,14 +88,14 @@ public class CustomSeekView extends FrameLayout implements TimeBar.OnScrubListen
         if (bufferedChanged) {
             timeBar.setBufferedPosition(buffered);
         }
+        removeCallbacks(refresh);
         if (player.isEmpty()) {
             positionView.setText("00:00");
             durationView.setText("00:00");
-            timeBar.setPosition(currentDuration = 0);
+            timeBar.setPosition(currentPosition = 0);
             timeBar.setDuration(currentDuration = 0);
-        }
-        removeCallbacks(refresh);
-        if (player.isPlaying()) {
+            postDelayed(refresh, MIN_UPDATE_INTERVAL_MS);
+        } else if (player.isPlaying()) {
             postDelayed(refresh, delayMs(position));
         } else {
             postDelayed(refresh, MAX_UPDATE_INTERVAL_MS);
@@ -104,20 +103,14 @@ public class CustomSeekView extends FrameLayout implements TimeBar.OnScrubListen
     }
 
     private void setKeyTimeIncrement(long duration) {
-        if (duration > TimeUnit.HOURS.toMillis(2)) {
-            timeBar.setKeyTimeIncrement(TimeUnit.MINUTES.toMillis(5));
-        } else if (duration > TimeUnit.HOURS.toMillis(1)) {
-            timeBar.setKeyTimeIncrement(TimeUnit.MINUTES.toMillis(3));
-        } else if (duration > TimeUnit.MINUTES.toMillis(30)) {
+        if (duration > TimeUnit.MINUTES.toMillis(30)) {
             timeBar.setKeyTimeIncrement(TimeUnit.MINUTES.toMillis(1));
         } else if (duration > TimeUnit.MINUTES.toMillis(15)) {
             timeBar.setKeyTimeIncrement(TimeUnit.SECONDS.toMillis(30));
         } else if (duration > TimeUnit.MINUTES.toMillis(10)) {
             timeBar.setKeyTimeIncrement(TimeUnit.SECONDS.toMillis(15));
-        } else if (duration > TimeUnit.MINUTES.toMillis(5)) {
-            timeBar.setKeyTimeIncrement(TimeUnit.SECONDS.toMillis(10));
         } else if (duration > 0) {
-            timeBar.setKeyTimeIncrement(TimeUnit.SECONDS.toMillis(5));
+            timeBar.setKeyTimeIncrement(TimeUnit.SECONDS.toMillis(10));
         }
     }
 

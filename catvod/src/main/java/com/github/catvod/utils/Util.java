@@ -103,6 +103,15 @@ public class Util {
         }
     }
 
+    public static String substring(String text) {
+        return substring(text, 1);
+    }
+
+    public static String substring(String text, int num) {
+        if (text != null && text.length() > num) return text.substring(0, text.length() - num);
+        return text;
+    }
+
     public static String getIp() {
         try {
             WifiManager manager = (WifiManager) Init.context().getApplicationContext().getSystemService(Context.WIFI_SERVICE);

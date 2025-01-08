@@ -3,11 +3,13 @@ package com.fongmi.android.tv.utils;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.StatFs;
 import android.text.TextUtils;
 
 import androidx.core.content.FileProvider;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.impl.Callback;
 import com.github.catvod.utils.Path;
 
@@ -16,13 +18,14 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URLConnection;
 import java.text.DecimalFormat;
 import java.util.Enumeration;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.util.zip.ZipOutputStream;
 
 public class FileUtil {
 
@@ -38,35 +41,19 @@ public class FileUtil {
         App.get().startActivity(intent);
     }
 
-    public static void zipFolder(File folder, File zip) {
-        try {
-            ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zip));
-            folderToZip("", folder, zipOut);
-            zipOut.close();
-        } catch (Exception e) {
+    public static void gzipCompress(File target) {
+        byte[] buffer = new byte[1024];
+        try (FileInputStream is = new FileInputStream(target); GZIPOutputStream os = new GZIPOutputStream(new FileOutputStream(target.getAbsolutePath() + ".gz"))) {
+            int read;
+            while ((read = is.read(buffer)) > 0) os.write(buffer, 0, read);
+        } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            Path.clear(target);
         }
     }
 
-    private static void folderToZip(String parentPath, File folder, ZipOutputStream zipOut) throws Exception {
-        for (File file : folder.listFiles()) {
-            if (file.isDirectory()) {
-                folderToZip(parentPath + file.getName() + "/", file, zipOut);
-                continue;
-            }
-            ZipEntry zipEntry = new ZipEntry(parentPath + file.getName());
-            zipOut.putNextEntry(zipEntry);
-
-            FileInputStream in = new FileInputStream(file);
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-            while ((bytesRead = in.read(buffer)) != -1) {
-                zipOut.write(buffer, 0, bytesRead);
-            }
-            in.close();
-        }
-    }
-    public static void extractGzip(File target, File path) {
+    public static void gzipDecompress(File target, File path) {
         byte[] buffer = new byte[1024];
         try (GZIPInputStream is = new GZIPInputStream(new BufferedInputStream(new FileInputStream(target))); BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(path))) {
             int read;
@@ -76,7 +63,7 @@ public class FileUtil {
         }
     }
 
-    public static void extractZip(File target, File path) {
+    public static void zipDecompress(File target, File path) {
         try (ZipFile zip = new ZipFile(target)) {
             Enumeration<?> entries = zip.entries();
             while (entries.hasMoreElements()) {
@@ -93,15 +80,32 @@ public class FileUtil {
     public static void clearCache(Callback callback) {
         App.execute(() -> {
             Path.clear(Path.cache());
-            if (callback != null) App.post(callback::success);
+            App.post(callback::success);
         });
     }
 
     public static void getCacheSize(Callback callback) {
         App.execute(() -> {
-            String result = byteCountToDisplaySize(getFolderSize(Path.cache()));
-            App.post(() -> callback.success(result));
+            String usage = byteCountToDisplaySize(getDirectorySize(Path.cache()));
+            App.post(() -> callback.success(usage));
         });
+    }
+
+    public static long getDirectorySize(File file) {
+        long size = 0;
+        if (file == null) return 0;
+        if (file.isDirectory()) for (File f : Path.list(file)) size += getDirectorySize(f);
+        else size = file.length();
+        return size;
+    }
+
+    public static long getAvailableStorageSpace(File file) {
+        try {
+            StatFs stat = new StatFs(file.getAbsolutePath());
+            return stat.getAvailableBlocksLong() * stat.getBlockSizeLong();
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     public static Uri getShareUri(String path) {
@@ -117,16 +121,8 @@ public class FileUtil {
         return TextUtils.isEmpty(mimeType) ? "*/*" : mimeType;
     }
 
-    private static long getFolderSize(File file) {
-        long size = 0;
-        if (file == null) return 0;
-        if (file.isDirectory()) for (File f : Path.list(file)) size += getFolderSize(f);
-        else size = file.length();
-        return size;
-    }
-
-    private static String byteCountToDisplaySize(long size) {
-        if (size <= 0) return "0 KB";
+    public static String byteCountToDisplaySize(long size) {
+        if (size <= 0) return ResUtil.getString(R.string.none);
         String[] units = new String[]{"bytes", "KB", "MB", "GB", "TB"};
         int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
         return new DecimalFormat("#,##0.#").format(size / Math.pow(1024, digitGroups)) + " " + units[digitGroups];

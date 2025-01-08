@@ -33,7 +33,7 @@ public class Drm {
         return TextUtils.isEmpty(type) ? "" : type;
     }
 
-    private UUID getUUID() {
+    public UUID getUUID() {
         if (getType().contains("playready")) return C.PLAYREADY_UUID;
         if (getType().contains("widevine")) return C.WIDEVINE_UUID;
         if (getType().contains("clearkey")) return C.CLEARKEY_UUID;
@@ -41,6 +41,6 @@ public class Drm {
     }
 
     public MediaItem.DrmConfiguration get() {
-        return new MediaItem.DrmConfiguration.Builder(getUUID()).setLicenseUri(getKey()).build();
+        return new MediaItem.DrmConfiguration.Builder(getUUID()).setLicenseUri(getKey()).setMultiSession(!getType().contains("clearkey")).build();
     }
 }
