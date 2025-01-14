@@ -120,16 +120,11 @@ public class ConfigDialog {
         }
     }
 
-       private void onPositive(DialogInterface dialog, int which) {
-        String url = UrlUtil.fixUrl(binding.url.getText().toString().trim());
+    private void onPositive(DialogInterface dialog, int which) {
+        String url = binding.url.getText().toString().trim();
         String name = binding.name.getText().toString().trim();
         if (edit) Config.find(ori, type).url(url).name(name).update();
-//        if (url.isEmpty()) Config.delete(ori, type);
-        if (url.isEmpty()) {
-//            url = "assets://js/main.json";
-            url = "http://47.109.61.116:86/yylxnz.zip";
-            Config.find(url, 1).name("🐯遥遥领先🐯").update();
-        }
+        if (url.isEmpty()) Config.delete(ori, type);
         callback.setConfig(Config.find(url, type));
         dialog.dismiss();
     }
