@@ -29,15 +29,8 @@ android {
         mobile {
             dimension "mode"
         }
-        java {
-            dimension "api"
-        }
         python {
             dimension "api"
-        }
-        x86 {
-            dimension "abi"
-            ndk { abiFilters "x86" }
         }
         arm64_v8a {
             dimension "abi"
