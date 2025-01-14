@@ -74,7 +74,7 @@ public class LiveConfig {
     }
 
     public static boolean hasUrl() {
-        return  true; getUrl().length() > 0;
+        return  true; //getUrl().length() > 0;
     }
 
     public static void load(Config config, Callback callback) {
