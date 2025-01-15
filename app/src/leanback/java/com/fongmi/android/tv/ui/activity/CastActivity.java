@@ -120,7 +120,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     private void checkAction() {
         mAction = getIntent().getParcelableExtra(RendererInterfaceKt.keyExtraCastAction);
         mBinding.widget.title.setText(getName());
-        position = duration = 0;
+        position = duration = C.TIME_UNSET;
         start();
     }
 
@@ -175,6 +175,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     }
 
     private void onReset() {
+        position = duration = C.TIME_UNSET;
         start();
     }
 
@@ -221,13 +222,15 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     }
 
     private void showInfo() {
-        mBinding.widget.center.setVisibility(View.VISIBLE);
         mBinding.widget.info.setVisibility(View.VISIBLE);
+        mBinding.widget.center.setVisibility(View.VISIBLE);
+        mBinding.widget.exoDuration.setText(mPlayers.getDurationTime());
+        mBinding.widget.exoPosition.setText(mPlayers.getPositionTime(0));
     }
 
     private void hideInfo() {
-        mBinding.widget.center.setVisibility(View.GONE);
         mBinding.widget.info.setVisibility(View.GONE);
+        mBinding.widget.center.setVisibility(View.GONE);
     }
 
     private void showControl() {
@@ -275,7 +278,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     public void onPlayerEvent(PlayerEvent event) {
         switch (event.getState()) {
             case PlayerEvent.PREPARE:
-                mClock.setCallback(this);
+                mPlayers.seekTo(position);
                 setState(RenderState.PREPARING);
                 break;
             case Player.STATE_IDLE:
@@ -297,6 +300,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
                 setMetadata();
                 mPlayers.reset();
                 setTrackVisible();
+                mClock.setCallback(this);
                 break;
             case PlayerEvent.SIZE:
                 mBinding.widget.size.setText(mPlayers.getSizeText());
@@ -336,14 +340,14 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     }
 
     private void onPaused() {
-        mBinding.widget.exoDuration.setText(mPlayers.getDurationTime());
-        mBinding.widget.exoPosition.setText(mPlayers.getPositionTime(0));
         setState(RenderState.PAUSED);
         mPlayers.pause();
         showInfo();
     }
 
     private void onPlay() {
+        if (!mPlayers.isEmpty() && mPlayers.isIdle()) mPlayers.prepare();
+        if (mPlayers.isEnded()) mPlayers.seekTo(C.TIME_UNSET);
         setState(RenderState.PLAYING);
         mPlayers.play();
         hideCenter();

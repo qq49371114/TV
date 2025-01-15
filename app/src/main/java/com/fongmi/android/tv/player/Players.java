@@ -83,7 +83,6 @@ public class Players implements Player.Listener, ParseCallback {
     private Drm drm;
     private Sub sub;
 
-    private long position;
     private int decode;
     private int retry;
 
@@ -98,7 +97,6 @@ public class Players implements Player.Listener, ParseCallback {
         builder = new StringBuilder();
         runnable = ErrorEvent::timeout;
         formatter = new Formatter(builder, Locale.getDefault());
-        position = C.TIME_UNSET;
         createSession(activity);
     }
 
@@ -143,7 +141,6 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     public void setSub(Sub sub) {
-        setPosition(getPosition());
         this.sub = sub;
         setMediaItem();
     }
@@ -153,12 +150,7 @@ public class Players implements Player.Listener, ParseCallback {
         setMediaItem();
     }
 
-    public void setPosition(long position) {
-        this.position = position;
-    }
-
     public void reset() {
-        position = C.TIME_UNSET;
         removeTimeoutCheck();
         retry = 0;
     }
@@ -215,8 +207,12 @@ public class Players implements Player.Listener, ParseCallback {
         return exoPlayer != null && exoPlayer.isPlaying();
     }
 
-    public boolean isEnd() {
+    public boolean isEnded() {
         return exoPlayer != null && exoPlayer.getPlaybackState() == Player.STATE_ENDED;
+    }
+
+    public boolean isIdle() {
+        return exoPlayer != null && exoPlayer.getPlaybackState() == Player.STATE_IDLE;
     }
 
     public boolean isEmpty() {
@@ -308,6 +304,10 @@ public class Players implements Player.Listener, ParseCallback {
         if (exoPlayer != null) exoPlayer.seekTo(time);
     }
 
+    public void prepare() {
+        if (exoPlayer != null) exoPlayer.prepare();
+    }
+
     public void play() {
         if (exoPlayer != null) exoPlayer.play();
     }
@@ -319,7 +319,6 @@ public class Players implements Player.Listener, ParseCallback {
     public void stop() {
         if (parseJob != null) parseJob.stop();
         if (exoPlayer != null) exoPlayer.stop();
-        if (exoPlayer != null) exoPlayer.clearMediaItems();
     }
 
     public void release() {
@@ -410,12 +409,12 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     private void setMediaItem(Map<String, String> headers, String url, String format, Drm drm, List<Sub> subs, int timeout) {
-        if (exoPlayer != null) exoPlayer.setMediaItem(ExoUtil.getMediaItem(this.headers = checkUa(headers), UrlUtil.uri(this.url = url), this.format = format, this.drm = drm, checkSub(this.subs = subs), decode), position);
-        if (exoPlayer != null) exoPlayer.prepare();
+        if (exoPlayer != null) exoPlayer.setMediaItem(ExoUtil.getMediaItem(this.headers = checkUa(headers), UrlUtil.uri(this.url = url), this.format = format, this.drm = drm, checkSub(this.subs = subs), decode));
         App.post(runnable, timeout);
         session.setActive(true);
         PlayerEvent.prepare();
         Logger.t(TAG).d(url);
+        prepare();
     }
 
     private void removeTimeoutCheck() {
@@ -564,7 +563,7 @@ public class Players implements Player.Listener, ParseCallback {
 
     @Override
     public void onTracksChanged(@NonNull Tracks tracks) {
-        PlayerEvent.track();
+        if (!tracks.isEmpty()) PlayerEvent.track();
     }
 
     @Override
