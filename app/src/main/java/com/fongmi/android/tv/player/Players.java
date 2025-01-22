@@ -40,7 +40,6 @@ import com.fongmi.android.tv.bean.Track;
 import com.fongmi.android.tv.event.ActionEvent;
 import com.fongmi.android.tv.event.ErrorEvent;
 import com.fongmi.android.tv.event.PlayerEvent;
-import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.ParseCallback;
 import com.fongmi.android.tv.impl.SessionCallback;
 import com.fongmi.android.tv.player.exo.ExoUtil;
@@ -77,6 +76,7 @@ public class Players implements Player.Listener, ParseCallback {
     private MediaSessionCompat session;
     private ExoPlayer exoPlayer;
     private ParseJob parseJob;
+    private PlayerView view;
     private List<Sub> subs;
     private String format;
     private String url;
@@ -108,20 +108,21 @@ public class Players implements Player.Listener, ParseCallback {
         MediaControllerCompat.setMediaController(activity, session.getController());
     }
 
-    public void init(PlayerView exo) {
+    public void init(PlayerView view) {
         releasePlayer();
-        initExo(exo);
+        setPlayer(view);
         setMediaItem();
     }
 
-    private void initExo(PlayerView exo) {
+    private void setPlayer(PlayerView view) {
         exoPlayer = new ExoPlayer.Builder(App.get()).setLoadControl(ExoUtil.buildLoadControl()).setTrackSelector(ExoUtil.buildTrackSelector()).setRenderersFactory(ExoUtil.buildRenderersFactory(isHard() ? EXTENSION_RENDERER_MODE_ON : EXTENSION_RENDERER_MODE_PREFER)).setMediaSourceFactory(ExoUtil.buildMediaSourceFactory()).build();
         exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, true);
         exoPlayer.addAnalyticsListener(new EventLogger());
         exoPlayer.setHandleAudioBecomingNoisy(true);
         exoPlayer.setPlayWhenReady(true);
         exoPlayer.addListener(this);
-        exo.setPlayer(exoPlayer);
+        view.setPlayer(exoPlayer);
+        this.view = view;
     }
 
     public ExoPlayer get() {
@@ -277,10 +278,10 @@ public class Players implements Player.Listener, ParseCallback {
         return setSpeed(speed);
     }
 
-    public void toggleDecode(PlayerView exo) {
+    public void toggleDecode() {
         decode = isHard() ? SOFT : HARD;
         Setting.putDecode(decode);
-        init(exo);
+        init(view);
     }
 
     public String getPositionTime(long time) {
@@ -317,8 +318,8 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     public void stop() {
-        if (parseJob != null) parseJob.stop();
         if (exoPlayer != null) exoPlayer.stop();
+        stopParse();
     }
 
     public void release() {
@@ -331,9 +332,8 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     private void releasePlayer() {
-        if (exoPlayer == null) return;
-        exoPlayer.removeListener(this);
-        exoPlayer.release();
+        if (exoPlayer != null) exoPlayer.release();
+        if (view != null) view.setPlayer(null);
         exoPlayer = null;
     }
 
@@ -388,8 +388,7 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     private void setMediaItem() {
-        if (url == null) RefreshEvent.player();
-        else setMediaItem(headers, url, format, drm, subs, Constant.TIMEOUT_PLAY);
+        if (url != null) setMediaItem(headers, url, format, drm, subs, Constant.TIMEOUT_PLAY);
     }
 
     public void setMediaItem(String url) {
