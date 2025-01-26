@@ -29,6 +29,7 @@ import com.google.gson.JsonParser;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -84,13 +85,13 @@ public class ParserImpl implements Parser {
     private String randomVisitorData() {
         ProtoBuilder pbE2 = new ProtoBuilder();
         pbE2.string(2, "");
-        pbE2.varint(4, new Random().nextInt(255) + 1);
+        pbE2.varint(4, new SecureRandom().nextInt(255) + 1);
         ProtoBuilder pbE = new ProtoBuilder();
         pbE.string(1, "GB");
         pbE.bytes(2, pbE2.toBytes());
         ProtoBuilder pb = new ProtoBuilder();
-        pb.string(1, generate(11, new Random()));
-        pb.varint(5, System.currentTimeMillis() / 1000 - new Random().nextInt(600000));
+        pb.string(1, generate(11, new SecureRandom()));
+        pb.varint(5, System.currentTimeMillis() / 1000 - new SecureRandom().nextInt(600000));
         pb.bytes(6, pbE.toBytes());
         return pb.toUrlencodedBase64();
     }
