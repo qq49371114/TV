@@ -202,6 +202,7 @@ public class VodConfig {
         if (parse == null) setParse(parses.isEmpty() ? new Parse() : parses.get(0));
         setRules(Rule.arrayFrom(object.getAsJsonArray("rules")));
         setDoh(Doh.arrayFrom(object.getAsJsonArray("doh")));
+        setHeaders(Json.safeListElement(object, "headers"));
         setFlags(Json.safeListString(object, "flags"));
         setHosts(Json.safeListString(object, "hosts"));
         setProxy(Json.safeListString(object, "proxy"));
@@ -252,6 +253,10 @@ public class VodConfig {
         for (Parse item : getParses(type)) if (item.getExt().getFlag().contains(flag)) items.add(item);
         if (items.isEmpty()) items.addAll(getParses(type));
         return items;
+    }
+
+    public void setHeaders(List<JsonElement> items) {
+        OkHttp.requestInterceptor().setHeaders(items);
     }
 
     public List<String> getFlags() {

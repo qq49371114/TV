@@ -122,6 +122,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
         mAction = intent.getParcelableExtra(RendererInterfaceKt.keyExtraCastAction);
         mBinding.widget.waiting.setVisibility(View.GONE);
         mBinding.widget.title.setText(getName());
+        mBinding.widget.title.setSelected(true);
         position = duration = C.TIME_UNSET;
         mService.bindRealPlayer(this);
         start();

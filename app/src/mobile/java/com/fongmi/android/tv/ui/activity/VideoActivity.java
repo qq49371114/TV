@@ -520,6 +520,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.control.title.setText(getString(R.string.detail_title, mBinding.name.getText(), episode.getName()));
         mViewModel.playerContent(getKey(), flag.getFlag(), episode.getUrl());
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        mBinding.control.title.setSelected(true);
         updateHistory(episode, replay);
         showProgress();
         setMetadata();

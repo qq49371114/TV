@@ -53,6 +53,23 @@
       "type": 3,
       "api": "https://github.com/live.py",
       "ext": ""
-    },
+    }
+  ],
+  "headers": [
+    {
+      "host": "gslbserv.itv.cmvideo.cn",
+      "header": {
+        "User-Agent": "okhttp/3.12.13"
+      }
+    }
+  ],
+  "proxy": [
+    "raw.githubusercontent.com"
+  ],
+  "hosts": [
+    "cache.ott.ystenlive.itv.cmvideo.cn=base-v4-free-mghy.e.cdn.chinamobile.com"
+  ],
+  "ads": [
+    "static-mozai.4gtv.tv"
   ]
 }

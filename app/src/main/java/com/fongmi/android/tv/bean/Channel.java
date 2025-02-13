@@ -304,7 +304,8 @@ public class Channel {
 
     public String getLineText() {
         if (getUrls().size() <= 1) return "";
-        if (getCurrent().contains("$")) return getCurrent().split("\\$")[1];
+        String[] sp = getCurrent().split("\\$");
+        if (sp.length > 1 && !sp[1].isEmpty()) return sp[1];
         return ResUtil.getString(R.string.live_line, getLine() + 1);
     }
 

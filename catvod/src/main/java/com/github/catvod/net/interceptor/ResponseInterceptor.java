@@ -8,8 +8,7 @@ import com.google.common.net.HttpHeaders;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
@@ -23,10 +22,10 @@ import okio.Okio;
 
 public class ResponseInterceptor implements Interceptor {
 
-    private final Map<String, String> redirect;
+    private final ConcurrentHashMap<String, String> redirect;
 
     public ResponseInterceptor() {
-        this.redirect = new HashMap<>();
+        this.redirect = new ConcurrentHashMap<>();
     }
 
     @NonNull

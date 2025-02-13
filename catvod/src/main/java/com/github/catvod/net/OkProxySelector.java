@@ -25,7 +25,7 @@ public class OkProxySelector extends ProxySelector {
         this.hosts = new ArrayList<>();
     }
 
-    public void addAll(List<String> hosts) {
+    public synchronized void addAll(List<String> hosts) {
         this.hosts.addAll(hosts);
     }
 
