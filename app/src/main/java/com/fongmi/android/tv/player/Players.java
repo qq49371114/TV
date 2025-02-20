@@ -62,6 +62,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import io.github.peerless2012.ass.media.AssHandler;
+import io.github.peerless2012.ass.media.parser.AssSubtitleParserFactory;
+import io.github.peerless2012.ass.media.type.AssRenderType;
+
 public class Players implements Player.Listener, ParseCallback {
 
     private static final String TAG = Players.class.getSimpleName();
@@ -116,12 +120,15 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     private void setPlayer(PlayerView view) {
-        exoPlayer = new ExoPlayer.Builder(App.get()).setLoadControl(ExoUtil.buildLoadControl()).setTrackSelector(ExoUtil.buildTrackSelector()).setRenderersFactory(ExoUtil.buildRenderersFactory(isHard() ? EXTENSION_RENDERER_MODE_ON : EXTENSION_RENDERER_MODE_PREFER)).setMediaSourceFactory(ExoUtil.buildMediaSourceFactory()).build();
+        AssHandler assHandler = new AssHandler(AssRenderType.LEGACY);
+        AssSubtitleParserFactory subtitleParserFactory = new AssSubtitleParserFactory(assHandler);
+        exoPlayer = new ExoPlayer.Builder(App.get()).setLoadControl(ExoUtil.buildLoadControl()).setTrackSelector(ExoUtil.buildTrackSelector()).setRenderersFactory(ExoUtil.buildRenderersFactory(isHard() ? EXTENSION_RENDERER_MODE_ON : EXTENSION_RENDERER_MODE_PREFER)).setMediaSourceFactory(ExoUtil.buildMediaSourceFactory(assHandler, subtitleParserFactory)).build();
         exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, true);
         exoPlayer.addAnalyticsListener(new EventLogger());
         exoPlayer.setHandleAudioBecomingNoisy(true);
         exoPlayer.setPlayWhenReady(true);
         exoPlayer.addListener(this);
+        assHandler.init(exoPlayer);
         view.setPlayer(exoPlayer);
         this.view = view;
     }
@@ -175,10 +182,6 @@ public class Players implements Player.Listener, ParseCallback {
 
     public int getVideoHeight() {
         return exoPlayer == null ? 0 : exoPlayer.getVideoSize().height;
-    }
-
-    public int getRetry() {
-        return retry;
     }
 
     public float getSpeed() {

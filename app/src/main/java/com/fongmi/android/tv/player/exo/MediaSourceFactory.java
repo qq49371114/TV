@@ -27,6 +27,9 @@ import com.github.catvod.net.OkHttp;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.github.peerless2012.ass.media.AssHandler;
+import io.github.peerless2012.ass.media.parser.AssSubtitleParserFactory;
+
 public class MediaSourceFactory implements MediaSource.Factory {
 
     private final DefaultMediaSourceFactory defaultMediaSourceFactory;
@@ -34,8 +37,9 @@ public class MediaSourceFactory implements MediaSource.Factory {
     private DataSource.Factory dataSourceFactory;
     private ExtractorsFactory extractorsFactory;
 
-    public MediaSourceFactory() {
+    public MediaSourceFactory(AssHandler assHandler, AssSubtitleParserFactory subtitleParserFactory) {
         defaultMediaSourceFactory = new DefaultMediaSourceFactory(getDataSourceFactory(), getExtractorsFactory());
+        //defaultMediaSourceFactory = new DefaultMediaSourceFactory(getDataSourceFactory(), ExoPlayerKtKt.withAssMkvSupport(getExtractorsFactory(), subtitleParserFactory, assHandler));
     }
 
     @NonNull
@@ -83,7 +87,7 @@ public class MediaSourceFactory implements MediaSource.Factory {
     }
 
     private ExtractorsFactory getExtractorsFactory() {
-        if (extractorsFactory == null) extractorsFactory = new DefaultExtractorsFactory().setTsExtractorFlags(FLAG_ENABLE_HDMV_DTS_AUDIO_STREAMS).setTsExtractorTimestampSearchBytes(TsExtractor.DEFAULT_TIMESTAMP_SEARCH_BYTES * 3);
+        if (extractorsFactory == null) extractorsFactory = new DefaultExtractorsFactory().setTsExtractorFlags(FLAG_ENABLE_HDMV_DTS_AUDIO_STREAMS).setTsExtractorTimestampSearchBytes(TsExtractor.DEFAULT_TIMESTAMP_SEARCH_BYTES * 10);
         return extractorsFactory;
     }
 

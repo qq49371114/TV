@@ -115,7 +115,6 @@ public class App extends Application {
         super.onCreate();
         Notify.createChannel();
         Logger.addLogAdapter(getLogAdapter());
-        OkHttp.get().setDebug(BuildConfig.DEBUG);
         OkHttp.get().setProxy(Setting.getProxy());
         OkHttp.get().setDoh(Doh.objectFrom(Setting.getDoh()));
         EventBus.builder().addIndex(new EventIndex()).installDefaultEventBus();

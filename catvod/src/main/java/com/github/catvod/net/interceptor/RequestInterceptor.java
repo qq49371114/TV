@@ -38,6 +38,12 @@ public class RequestInterceptor implements Interceptor {
         }
     }
 
+    public void clear() {
+        userMap.clear();
+        authMap.clear();
+        headerMap.clear();
+    }
+
     @NonNull
     @Override
     public Response intercept(@NonNull Chain chain) throws IOException {

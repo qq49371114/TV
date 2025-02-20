@@ -86,7 +86,7 @@ public class Source {
     }
 
     public String fetch(Channel channel) throws Exception {
-        String url = channel.getCurrent().split("\\$")[0];
+        String url = channel.getCurrent();
         Extractor extractor = getExtractor(url);
         if (extractor != null) channel.setParse(0);
         if (extractor instanceof Video) channel.setParse(1);

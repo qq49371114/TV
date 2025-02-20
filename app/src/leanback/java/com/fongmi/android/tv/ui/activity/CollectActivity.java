@@ -48,14 +48,9 @@ public class CollectActivity extends BaseActivity {
     private View mOldView;
 
     public static void start(Activity activity, String keyword) {
-        start(activity, keyword, false);
-    }
-
-    public static void start(Activity activity, String keyword, boolean clear) {
-        Intent intent = new Intent(activity, CollectActivity.class);
-        if (clear) intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        Intent intent = new Intent(activity, CollectActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra("keyword", keyword);
-        activity.startActivityForResult(intent, 1000);
+        activity.startActivity(intent);
     }
 
     private CollectFragment getFragment() {
@@ -69,6 +64,15 @@ public class CollectActivity extends BaseActivity {
     @Override
     protected ViewBinding getBinding() {
         return mBinding = ActivityCollectBinding.inflate(getLayoutInflater());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        getIntent().putExtras(intent);
+        mAdapter.clear();
+        setPager();
+        search();
     }
 
     @Override
@@ -127,6 +131,7 @@ public class CollectActivity extends BaseActivity {
 
     private void search() {
         mAdapter.add(Collect.all());
+        if (mExecutor != null) stop();
         mBinding.pager.getAdapter().notifyDataSetChanged();
         mExecutor = new PauseExecutor(Constant.THREAD_POOL);
         mBinding.result.setText(getString(R.string.collect_result, getKeyword()));
@@ -168,14 +173,6 @@ public class CollectActivity extends BaseActivity {
             mBinding.pager.setCurrentItem(mBinding.recycler.getSelectedPosition());
         }
     };
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode != RESULT_OK) return;
-        setResult(RESULT_OK);
-        finish();
-    }
 
     @Override
     protected void onResume() {

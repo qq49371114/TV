@@ -5,6 +5,8 @@ import android.text.TextUtils;
 import com.google.gson.annotations.SerializedName;
 
 import java.net.URI;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -107,8 +109,19 @@ public class Catchup {
     public String format(String url, EpgData data) {
         String result = getSource();
         if (data.isInRange()) return url;
-        Matcher matcher = Pattern.compile("(\\$\\{[^}]*\\})").matcher(result);
-        while (matcher.find()) result = result.replace(matcher.group(1), data.format(matcher.group(1)));
+        Matcher matcher = Pattern.compile("(\\$?\\{[^}]*\\})").matcher(result);
+        while (matcher.find()) result = result.replace(matcher.group(1), format(matcher.group(1), data.getStartTime(), data.getEndTime()));
         return isDefault() ? result : append(url, result);
+    }
+
+    private String format(String group, long start, long end) {
+        Matcher matcher = Pattern.compile("\\{([^}]+)\\}").matcher(group);
+        if (!matcher.find()) return "";
+        String tag = matcher.group(1);
+        if (tag.startsWith("(b")) return new SimpleDateFormat(tag.split("\\)")[1], Locale.getDefault()).format(start);
+        if (tag.startsWith("(e")) return new SimpleDateFormat(tag.split("\\)")[1], Locale.getDefault()).format(end);
+        if (tag.startsWith("utcend:")) return String.valueOf(end / 1000);
+        if (tag.startsWith("utc:")) return String.valueOf(start / 1000);
+        return "";
     }
 }

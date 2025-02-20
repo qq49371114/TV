@@ -26,6 +26,7 @@ import com.fongmi.android.tv.ui.dialog.WebDialog;
 import com.fongmi.android.tv.utils.Sniffer;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.net.OkCookieJar;
+import com.github.catvod.utils.Util;
 import com.google.common.net.HttpHeaders;
 import com.orhanobut.logger.Logger;
 
@@ -176,10 +177,8 @@ public class CustomWebView extends WebView implements DialogInterface.OnDismissL
     }
 
     private boolean isAd(String host) {
-        for (String ad : VodConfig.get().getAds()) if (host.contains(ad)) return true;
-        for (String ad : LiveConfig.get().getAds()) if (host.contains(ad)) return true;
-        for (String ad : VodConfig.get().getAds()) if (Pattern.compile(ad).matcher(host).find()) return true;
-        for (String ad : LiveConfig.get().getAds()) if (Pattern.compile(ad).matcher(host).find()) return true;
+        for (String ad : VodConfig.get().getAds()) if (Util.containOrMatch(host, ad)) return true;
+        for (String ad : LiveConfig.get().getAds()) if (Util.containOrMatch(host, ad)) return true;
         return false;
     }
 

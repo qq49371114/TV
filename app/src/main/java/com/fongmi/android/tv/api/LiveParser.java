@@ -38,7 +38,7 @@ public class LiveParser {
 
     private static String extract(String line, Pattern pattern) {
         Matcher matcher = pattern.matcher(line.trim());
-        if (matcher.matches()) return matcher.group(1);
+        if (matcher.matches()) return matcher.group(1).trim();
         return "";
     }
 

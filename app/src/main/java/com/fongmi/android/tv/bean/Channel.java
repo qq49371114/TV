@@ -285,7 +285,7 @@ public class Channel {
     }
 
     public String getCurrent() {
-        return getUrls().isEmpty() ? "" : getUrls().get(getLine());
+        return getUrls().isEmpty() ? "" : getUrls().get(getLine()).split("\\$")[0];
     }
 
     public boolean isOnly() {
@@ -304,7 +304,7 @@ public class Channel {
 
     public String getLineText() {
         if (getUrls().size() <= 1) return "";
-        String[] sp = getCurrent().split("\\$");
+        String[] sp = getUrls().get(getLine()).split("\\$");
         if (sp.length > 1 && !sp[1].isEmpty()) return sp[1];
         return ResUtil.getString(R.string.live_line, getLine() + 1);
     }

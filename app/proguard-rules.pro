@@ -37,6 +37,10 @@
 -keep class org.fourthline.cling.** { *; }
 -keep class javax.xml.** { *; }
 
+# Cronet
+-keep class org.chromium.net.** { *; }
+-keep class com.google.net.cronet.** { *; }
+
 # EXO
 -dontwarn org.kxml2.io.**
 -dontwarn org.xmlpull.v1.**

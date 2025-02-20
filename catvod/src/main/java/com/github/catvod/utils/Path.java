@@ -121,9 +121,9 @@ public class Path {
     }
 
     public static File local(String path) {
-        File file1 = new File(path.replace("file:/", ""));
-        File file2 = new File(path.replace("file:/", rootPath()));
-        return file2.exists() ? file2 : file1.exists() ? file1 : new File(path);
+        path = path.replace("file:/", "");
+        File file = new File(root(), path);
+        return file.exists() ? file : new File(path);
     }
 
     public static String read(File file) {
