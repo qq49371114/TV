@@ -128,7 +128,7 @@ public class Players implements Player.Listener, ParseCallback {
         exoPlayer.setHandleAudioBecomingNoisy(true);
         exoPlayer.setPlayWhenReady(true);
         exoPlayer.addListener(this);
-        assHandler.init(exoPlayer);
+        //assHandler.init(exoPlayer);
         view.setPlayer(exoPlayer);
         this.view = view;
     }
