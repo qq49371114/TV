@@ -233,6 +233,14 @@ public class Setting {
         Prefers.put("audio_prefer", audioPrefer);
     }
 
+    public static boolean isDanmakuLoad() {
+        return Prefers.getBoolean("danmaku_load");
+    }
+
+    public static void putDanmakuLoad(boolean danmakuLoad) {
+        Prefers.put("danmaku_load", danmakuLoad);
+    }
+
     public static boolean isZhuyin() {
         return Prefers.getBoolean("zhuyin");
     }

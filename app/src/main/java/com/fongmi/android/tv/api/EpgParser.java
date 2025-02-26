@@ -27,8 +27,11 @@ import java.util.Set;
 
 public class EpgParser {
 
+    private static final SimpleDateFormat formatTime = new SimpleDateFormat("HH:mm", Locale.getDefault());
+    private static final SimpleDateFormat formatDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+    private static final SimpleDateFormat formatFull = new SimpleDateFormat("yyyyMMddHHmmss Z", Locale.getDefault());
+
     public static boolean start(Live live, String url) throws Exception {
-        if (!url.contains("xml") && !url.contains("gz")) return false;
         File file = Path.epg(Uri.parse(url).getLastPathSegment());
         if (shouldDownload(file)) Download.create(url, file).start();
         if (file.getName().endsWith(".gz")) readGzip(live, file);
@@ -60,9 +63,6 @@ public class EpgParser {
         Set<String> exist = new HashSet<>();
         Map<String, Epg> epgMap = new HashMap<>();
         Map<String, String> mapping = new HashMap<>();
-        SimpleDateFormat formatTime = new SimpleDateFormat("HH:mm", Locale.getDefault());
-        SimpleDateFormat formatDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        SimpleDateFormat formatFull = new SimpleDateFormat("yyyyMMddHHmmss Z", Locale.getDefault());
         String today = formatDate.format(new Date());
         Tv tv = new Persister().read(Tv.class, Path.read(file), false);
         for (Group group : live.getGroups()) for (Channel channel : group.getChannel()) exist.add(channel.getTvgName());
@@ -76,13 +76,7 @@ public class EpgParser {
             if (!exist.contains(key)) continue;
             if (!isToday(startDate) && !isToday(endDate)) continue;
             if (!epgMap.containsKey(key)) epgMap.put(key, Epg.create(key, today));
-            EpgData epgData = new EpgData();
-            epgData.setTitle(Trans.s2t(programme.getTitle()));
-            epgData.setStart(formatTime.format(startDate));
-            epgData.setEnd(formatTime.format(endDate));
-            epgData.setStartTime(startDate.getTime());
-            epgData.setEndTime(endDate.getTime());
-            epgMap.get(key).getList().add(epgData);
+            epgMap.get(key).getList().add(getEpgData(startDate, endDate, programme));
         }
         for (Group group : live.getGroups()) {
             for (Channel channel : group.getChannel()) {
@@ -90,6 +84,33 @@ public class EpgParser {
                     channel.setData(epgMap.get(channel.getTvgName()));
                 }
             }
+        }
+    }
+
+    public static Epg getEpg(String xml, String key) throws Exception {
+        Tv tv = new Persister().read(Tv.class, xml, false);
+        Epg epg = Epg.create(key, formatDate.format(formatFull.parse(tv.getDate())));
+        for (Tv.Programme programme : tv.getProgramme()) epg.getList().add(getEpgData(programme));
+        return epg;
+    }
+
+    private static EpgData getEpgData(Tv.Programme programme) throws Exception {
+        Date startDate = formatFull.parse(programme.getStart());
+        Date endDate = formatFull.parse(programme.getStop());
+        return getEpgData(startDate, endDate, programme);
+    }
+
+    private static EpgData getEpgData(Date startDate, Date endDate, Tv.Programme programme) {
+        try {
+            EpgData epgData = new EpgData();
+            epgData.setTitle(Trans.s2t(programme.getTitle()));
+            epgData.setStart(formatTime.format(startDate));
+            epgData.setEnd(formatTime.format(endDate));
+            epgData.setStartTime(startDate.getTime());
+            epgData.setEndTime(endDate.getTime());
+            return epgData;
+        } catch (Exception e) {
+            return new EpgData();
         }
     }
 }

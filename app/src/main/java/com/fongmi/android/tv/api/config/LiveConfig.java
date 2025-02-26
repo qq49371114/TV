@@ -8,7 +8,6 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.Decoder;
 import com.fongmi.android.tv.api.LiveParser;
-import com.fongmi.android.tv.api.XtreamParser;
 import com.fongmi.android.tv.api.loader.BaseLoader;
 import com.fongmi.android.tv.bean.Channel;
 import com.fongmi.android.tv.bean.Config;
@@ -114,8 +113,7 @@ public class LiveConfig {
 
     private void loadConfig(Callback callback) {
         try {
-            boolean xtream = XtreamParser.isApiUrl(config.getUrl());
-            parseConfig(xtream ? "" : Decoder.getJson(config.getUrl()), callback);
+            parseConfig(Decoder.getJson(config.getUrl()), callback);
         } catch (Throwable e) {
             if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
             else App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
@@ -124,7 +122,7 @@ public class LiveConfig {
     }
 
     private void parseConfig(String text, Callback callback) {
-        if (Json.invalid(text)) {
+        if (!Json.isObj(text)) {
             parseText(text, callback);
         } else {
             checkJson(Json.parse(text).getAsJsonObject(), callback);
@@ -132,7 +130,7 @@ public class LiveConfig {
     }
 
     private void parseText(String text, Callback callback) {
-        Live live = new Live(parseName(config.getUrl()), config.getUrl()).check().sync();
+        Live live = new Live(parseName(config.getUrl()), config.getUrl()).sync();
         LiveParser.text(live, text);
         lives.add(live);
         setHome(live, true);
@@ -187,7 +185,7 @@ public class LiveConfig {
             live.setApi(UrlUtil.convert(live.getApi()));
             live.setExt(UrlUtil.convert(live.getExt()));
             live.setJar(parseJar(live, spider));
-            lives.add(live.check().sync());
+            lives.add(live.sync());
         }
         for (Live live : lives) {
             if (live.getName().equals(config.getHome())) {

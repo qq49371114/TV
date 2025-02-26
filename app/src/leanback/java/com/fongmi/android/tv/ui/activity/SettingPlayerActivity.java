@@ -54,6 +54,7 @@ public class SettingPlayerActivity extends BaseActivity implements UaCallback, B
         mBinding.bufferText.setText(String.valueOf(Setting.getBuffer()));
         mBinding.backgroundText.setText(getSwitch(Setting.isBackgroundOn()));
         mBinding.audioDecodeText.setText(getSwitch(Setting.isAudioPrefer()));
+        mBinding.danmakuLoadText.setText(getSwitch(Setting.isDanmakuLoad()));
         mBinding.rtspText.setText((rtsp = ResUtil.getStringArray(R.array.select_rtsp))[Setting.getRtsp()]);
         mBinding.scaleText.setText((scale = ResUtil.getStringArray(R.array.select_scale))[Setting.getScale()]);
         mBinding.renderText.setText((render = ResUtil.getStringArray(R.array.select_render))[Setting.getRender()]);
@@ -73,6 +74,7 @@ public class SettingPlayerActivity extends BaseActivity implements UaCallback, B
         mBinding.caption.setOnLongClickListener(this::onCaption);
         mBinding.background.setOnClickListener(this::onBackground);
         mBinding.audioDecode.setOnClickListener(this::setAudioDecode);
+        mBinding.danmakuLoad.setOnClickListener(this::setDanmakuLoad);
     }
 
     private void setVisible() {
@@ -148,6 +150,11 @@ public class SettingPlayerActivity extends BaseActivity implements UaCallback, B
     private void setAudioDecode(View view) {
         Setting.putAudioPrefer(!Setting.isAudioPrefer());
         mBinding.audioDecodeText.setText(getSwitch(Setting.isAudioPrefer()));
+    }
+
+    private void setDanmakuLoad(View view) {
+        Setting.putDanmakuLoad(!Setting.isDanmakuLoad());
+        mBinding.danmakuLoadText.setText(getSwitch(Setting.isDanmakuLoad()));
     }
 
     private void onBackground(View view) {

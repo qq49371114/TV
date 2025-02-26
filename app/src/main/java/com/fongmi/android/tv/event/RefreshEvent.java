@@ -51,6 +51,10 @@ public class RefreshEvent {
         EventBus.getDefault().post(new RefreshEvent(Type.SUBTITLE, path));
     }
 
+    public static void danmaku(String path) {
+        EventBus.getDefault().post(new RefreshEvent(Type.DANMAKU, path));
+    }
+
     private RefreshEvent(Type type) {
         this.type = type;
     }
@@ -69,6 +73,6 @@ public class RefreshEvent {
     }
 
     public enum Type {
-        CONFIG, IMAGE, VIDEO, HISTORY, KEEP, SIZE, WALL, LIVE, DETAIL, PLAYER, SUBTITLE
+        CONFIG, IMAGE, VIDEO, HISTORY, KEEP, SIZE, WALL, LIVE, DETAIL, PLAYER, SUBTITLE, DANMAKU
     }
 }

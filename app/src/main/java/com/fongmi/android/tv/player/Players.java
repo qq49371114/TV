@@ -16,6 +16,7 @@ import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.media3.common.AudioAttributes;
@@ -34,6 +35,7 @@ import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.bean.Channel;
+import com.fongmi.android.tv.bean.Danmaku;
 import com.fongmi.android.tv.bean.Drm;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Sub;
@@ -43,6 +45,8 @@ import com.fongmi.android.tv.event.ErrorEvent;
 import com.fongmi.android.tv.event.PlayerEvent;
 import com.fongmi.android.tv.impl.ParseCallback;
 import com.fongmi.android.tv.impl.SessionCallback;
+import com.fongmi.android.tv.player.danmaku.Parser;
+import com.fongmi.android.tv.player.danmaku.Sync;
 import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.utils.FileUtil;
@@ -62,23 +66,29 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import io.github.peerless2012.ass.media.AssHandler;
-import io.github.peerless2012.ass.media.parser.AssSubtitleParserFactory;
-import io.github.peerless2012.ass.media.type.AssRenderType;
+import master.flame.danmaku.controller.DrawHandler;
+import master.flame.danmaku.danmaku.model.BaseDanmaku;
+import master.flame.danmaku.danmaku.model.DanmakuTimer;
+import master.flame.danmaku.danmaku.model.IDisplayer;
+import master.flame.danmaku.danmaku.model.android.DanmakuContext;
+import master.flame.danmaku.ui.widget.DanmakuView;
 
-public class Players implements Player.Listener, ParseCallback {
+public class Players implements Player.Listener, ParseCallback, DrawHandler.Callback {
 
     private static final String TAG = Players.class.getSimpleName();
 
     public static final int SOFT = 0;
     public static final int HARD = 1;
 
+    private final DanmakuContext context;
     private final StringBuilder builder;
     private final Formatter formatter;
     private final Runnable runnable;
 
     private Map<String, String> headers;
     private MediaSessionCompat session;
+    private List<Danmaku> danmakus;
+    private DanmakuView danmaku;
     private ExoPlayer exoPlayer;
     private ParseJob parseJob;
     private PlayerView view;
@@ -101,6 +111,7 @@ public class Players implements Player.Listener, ParseCallback {
         decode = Setting.getDecode();
         builder = new StringBuilder();
         runnable = ErrorEvent::timeout;
+        context = DanmakuContext.create();
         formatter = new Formatter(builder, Locale.getDefault());
         createSession(activity);
     }
@@ -120,17 +131,26 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     private void setPlayer(PlayerView view) {
-        AssHandler assHandler = new AssHandler(AssRenderType.LEGACY);
-        AssSubtitleParserFactory subtitleParserFactory = new AssSubtitleParserFactory(assHandler);
-        exoPlayer = new ExoPlayer.Builder(App.get()).setLoadControl(ExoUtil.buildLoadControl()).setTrackSelector(ExoUtil.buildTrackSelector()).setRenderersFactory(ExoUtil.buildRenderersFactory(isHard() ? EXTENSION_RENDERER_MODE_ON : EXTENSION_RENDERER_MODE_PREFER)).setMediaSourceFactory(ExoUtil.buildMediaSourceFactory(assHandler, subtitleParserFactory)).build();
+        exoPlayer = new ExoPlayer.Builder(App.get()).setLoadControl(ExoUtil.buildLoadControl()).setTrackSelector(ExoUtil.buildTrackSelector()).setRenderersFactory(ExoUtil.buildRenderersFactory(isHard() ? EXTENSION_RENDERER_MODE_ON : EXTENSION_RENDERER_MODE_PREFER)).setMediaSourceFactory(ExoUtil.buildMediaSourceFactory()).build();
         exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, true);
         exoPlayer.addAnalyticsListener(new EventLogger());
         exoPlayer.setHandleAudioBecomingNoisy(true);
         exoPlayer.setPlayWhenReady(true);
         exoPlayer.addListener(this);
-        //assHandler.init(exoPlayer);
         view.setPlayer(exoPlayer);
         this.view = view;
+    }
+
+    public void setDanmakuView(DanmakuView view) {
+        (danmaku = view).setCallback(this);
+        context.setDanmakuSync(new Sync(this));
+        HashMap<Integer, Integer> maxLines = new HashMap<>();
+        maxLines.put(BaseDanmaku.TYPE_FIX_TOP, 2);
+        maxLines.put(BaseDanmaku.TYPE_SCROLL_RL, 2);
+        maxLines.put(BaseDanmaku.TYPE_SCROLL_LR, 2);
+        maxLines.put(BaseDanmaku.TYPE_FIX_BOTTOM, 2);
+        context.setMaximumLines(maxLines).setScrollSpeedFactor(1.2f).setDanmakuTransparency(0.8f);
+        context.setDanmakuStyle(IDisplayer.DANMAKU_STYLE_STROKEN, 3).setDanmakuMargin(ResUtil.dp2px(8));
     }
 
     public ExoPlayer get() {
@@ -139,6 +159,10 @@ public class Players implements Player.Listener, ParseCallback {
 
     public MediaSessionCompat getSession() {
         return session;
+    }
+
+    public List<Danmaku> getDanmakus() {
+        return danmakus;
     }
 
     public String getUrl() {
@@ -165,6 +189,7 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     public void clear() {
+        danmakus = null;
         headers = null;
         format = null;
         subs = null;
@@ -208,6 +233,14 @@ public class Players implements Player.Listener, ParseCallback {
         return exoPlayer != null && ExoUtil.haveTrack(exoPlayer.getCurrentTracks(), type);
     }
 
+    public boolean haveDanmaku() {
+        return danmakus != null && !danmakus.isEmpty();
+    }
+
+    public boolean isDanmakuPrepared() {
+        return (danmaku != null && danmaku.isPrepared());
+    }
+
     public boolean isPlaying() {
         return exoPlayer != null && exoPlayer.isPlaying();
     }
@@ -242,6 +275,10 @@ public class Players implements Player.Listener, ParseCallback {
 
     public boolean isPortrait() {
         return getVideoHeight() > getVideoWidth();
+    }
+
+    public boolean isLandscape() {
+        return getVideoWidth() > getVideoHeight();
     }
 
     public String getSizeText() {
@@ -312,6 +349,8 @@ public class Players implements Player.Listener, ParseCallback {
 
     public void seekTo(long time) {
         if (exoPlayer != null) exoPlayer.seekTo(time);
+        if (isDanmakuPrepared()) danmaku.seekTo(time);
+        if (isDanmakuPrepared()) danmaku.hide();
     }
 
     public void seekToDefaultPosition() {
@@ -325,14 +364,17 @@ public class Players implements Player.Listener, ParseCallback {
 
     public void play() {
         if (exoPlayer != null) exoPlayer.play();
+        if (isDanmakuPrepared()) danmaku.resume();
     }
 
     public void pause() {
         if (exoPlayer != null) exoPlayer.pause();
+        if (isDanmakuPrepared()) danmaku.pause();
     }
 
     public void stop() {
         if (exoPlayer != null) exoPlayer.stop();
+        if (isDanmakuPrepared()) danmaku.stop();
         stopParse();
     }
 
@@ -343,12 +385,17 @@ public class Players implements Player.Listener, ParseCallback {
         removeTimeoutCheck();
         Server.get().setPlayer(null);
         App.execute(() -> Source.get().stop());
+        if (isDanmakuPrepared()) danmaku.release();
     }
 
     private void releasePlayer() {
         if (exoPlayer != null) exoPlayer.release();
         if (view != null) view.setPlayer(null);
         exoPlayer = null;
+    }
+
+    private void removeTimeoutCheck() {
+        App.removeCallbacks(runnable);
     }
 
     public void start(Channel channel, int timeout) {
@@ -419,6 +466,7 @@ public class Players implements Player.Listener, ParseCallback {
 
     private void setMediaItem(Result result, int timeout) {
         setMediaItem(result.getHeaders(), result.getRealUrl(), result.getFormat(), result.getDrm(), result.getSubs(), timeout);
+        setDanmaku(danmakus = result.getDanmaku());
     }
 
     private void setMediaItem(Map<String, String> headers, String url, String format, Drm drm, List<Sub> subs, int timeout) {
@@ -430,8 +478,20 @@ public class Players implements Player.Listener, ParseCallback {
         prepare();
     }
 
-    private void removeTimeoutCheck() {
-        App.removeCallbacks(runnable);
+    private void setDanmaku(List<Danmaku> items) {
+        danmaku.setVisibility(items.isEmpty() ? View.GONE : View.VISIBLE);
+        if (!items.isEmpty()) setDanmaku(items.get(0).getUrl());
+        if (!items.isEmpty()) items.get(0).setSelected(true);
+        else danmaku.release();
+    }
+
+    public void setDanmaku(String path) {
+        danmaku.release();
+        if (!TextUtils.isEmpty(path)) danmaku.prepare(new Parser(path), context);
+    }
+
+    public void setDanmakuSize(float size) {
+        context.setScaleTextSize(size);
     }
 
     public void resetTrack() {
@@ -568,6 +628,7 @@ public class Players implements Player.Listener, ParseCallback {
 
     @Override
     public void onPlaybackStateChanged(int state) {
+        if (state == Player.STATE_READY && isDanmakuPrepared()) prepared();
         PlayerEvent.state(state);
     }
 
@@ -578,7 +639,9 @@ public class Players implements Player.Listener, ParseCallback {
 
     @Override
     public void onTracksChanged(@NonNull Tracks tracks) {
-        if (!tracks.isEmpty()) PlayerEvent.track();
+        if (tracks.isEmpty()) return;
+        setTrack(Track.find(url));
+        PlayerEvent.track();
     }
 
     @Override
@@ -605,5 +668,26 @@ public class Players implements Player.Listener, ParseCallback {
                 ErrorEvent.extract(error.getErrorCodeName());
                 break;
         }
+    }
+
+    @Override
+    public void prepared() {
+        App.post(() -> {
+            if (isPlaying()) danmaku.start(getPosition());
+            else danmaku.pause();
+            danmaku.show();
+        });
+    }
+
+    @Override
+    public void updateTimer(DanmakuTimer danmakuTimer) {
+    }
+
+    @Override
+    public void danmakuShown(BaseDanmaku baseDanmaku) {
+    }
+
+    @Override
+    public void drawingFinished() {
     }
 }

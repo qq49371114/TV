@@ -162,7 +162,7 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
     }
 
     private void checkKeyword() {
-        if (TextUtils.isEmpty(getKeyword())) mBinding.keyword.requestFocus();
+        if (TextUtils.isEmpty(getKeyword())) Util.showKeyboard(mBinding.keyword);
         else setKeyword(getKeyword());
     }
 

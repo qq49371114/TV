@@ -124,8 +124,7 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
 
     @Override
     public void onItemClick(Track item) {
-        if (listener != null) listener.onTrackClick(item);
-        player.setTrack(Arrays.asList(item));
+        player.setTrack(Arrays.asList(item.key(player.getUrl()).save()));
         if (item.isAdaptive()) return;
         dismiss();
     }
@@ -139,8 +138,6 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
     }
 
     public interface Listener {
-
-        void onTrackClick(Track item);
 
         void onSubtitleClick();
     }

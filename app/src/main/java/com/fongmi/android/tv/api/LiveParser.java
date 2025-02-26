@@ -8,16 +8,12 @@ import com.fongmi.android.tv.bean.ClearKey;
 import com.fongmi.android.tv.bean.Drm;
 import com.fongmi.android.tv.bean.Group;
 import com.fongmi.android.tv.bean.Live;
-import com.fongmi.android.tv.bean.XCategory;
-import com.fongmi.android.tv.bean.XInfo;
-import com.fongmi.android.tv.bean.XStream;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,16 +46,20 @@ public class LiveParser {
 
     public static void start(Live live) throws Exception {
         if (!live.getGroups().isEmpty()) return;
-        if (live.getType() == 0) text(live, getText(live));
-        if (live.getType() == 1) json(live, getText(live));
-        if (live.getType() == 3) spider(live);
+        String text = getText(live);
+        if (Json.isArray(text)) json(live, text);
+        else text(live, text);
+    }
+
+    private static String getText(Live live) throws Exception {
+        if (!live.getApi().isEmpty()) return live.spider().liveContent(live.getUrl());
+        return OkHttp.string(UrlUtil.convert(live.getUrl()), live.getHeaders());
     }
 
     public static void text(Live live, String text) {
         int number = 0;
         if (!live.getGroups().isEmpty()) return;
         if (M3U.matcher(text).find()) m3u(live, text); else txt(live, text);
-        if (live.isXtream()) xtream(live);
         for (Group group : live.getGroups()) {
             for (Channel channel : group.getChannel()) {
                 if (channel.getNumber().isEmpty()) channel.setNumber(++number);
@@ -69,18 +69,14 @@ public class LiveParser {
     }
 
     private static void json(Live live, String text) {
+        int number = 0;
         live.getGroups().addAll(Group.arrayFrom(text));
         for (Group group : live.getGroups()) {
             for (Channel channel : group.getChannel()) {
+                if (channel.getNumber().isEmpty()) channel.setNumber(++number);
                 channel.live(live);
             }
         }
-    }
-
-    private static void spider(Live live) throws Exception {
-        String text = live.spider().liveContent(live.getUrl());
-        if (Json.valid(text)) json(live, text);
-        else text(live, text);
     }
 
     private static void m3u(Live live, String text) {
@@ -119,27 +115,6 @@ public class LiveParser {
         }
     }
 
-    private static void xtream(Live live) {
-        XInfo info = XtreamParser.getInfo(live);
-        if (live.getEpg().isEmpty()) live.setEpg(XtreamParser.getEpgUrl(live));
-        if (live.getTimeZone().isEmpty()) live.setTimeZone(info.getServerInfo().getTimezone());
-        if (!live.getGroups().isEmpty()) return;
-        List<XCategory> categoryList = XtreamParser.getCategoryList(live);
-        List<XStream> streamList = XtreamParser.getStreamList(live);
-        Map<String, String> categoryMap = new HashMap<>();
-        for (XCategory category : categoryList) {
-            categoryMap.put(category.getCategoryId(), category.getCategoryName());
-        }
-        for (XStream stream : streamList) {
-            if (!categoryMap.containsKey(stream.getCategoryId())) continue;
-            Group group = live.find(Group.create(categoryMap.get(stream.getCategoryId()), live.isPass()));
-            Channel channel = group.find(Channel.create(stream.getName()));
-            if (!stream.getStreamIcon().isEmpty()) channel.setLogo(stream.getStreamIcon());
-            if (!stream.getEpgChannelId().isEmpty()) channel.setTvgName(stream.getEpgChannelId());
-            channel.getUrls().addAll(stream.getPlayUrl(live, info.getUserInfo().getAllowedOutputFormats()));
-        }
-    }
-
     private static void txt(Live live, String text) {
         Setting setting = Setting.create();
         text = text.replace("\r\n", "\n").replace("\r", "");
@@ -158,11 +133,6 @@ public class LiveParser {
                 setting.copy(channel);
             }
         }
-    }
-
-    private static String getText(Live live) {
-        if (live.isXtream() && !XtreamParser.isGetUrl(live.getUrl())) return "";
-        return OkHttp.string(UrlUtil.convert(live.getUrl()), live.getHeaders());
     }
 
     private static class Setting {

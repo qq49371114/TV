@@ -16,8 +16,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -79,17 +79,13 @@ public class Local implements Process {
     }
 
     private Response getFolder(File root) {
-        File[] list = root.listFiles();
+        List<File> list = Path.list(root);
         JsonObject info = new JsonObject();
         info.addProperty("parent", root.equals(Path.root()) ? "." : root.getParent().replace(Path.rootPath(), ""));
-        if (list == null || list.length == 0) {
+        if (list.isEmpty()) {
             info.add("files", new JsonArray());
             return Nano.ok(info.toString());
         }
-        Arrays.sort(list, (o1, o2) -> {
-            if (o1.isDirectory() && o2.isFile()) return -1;
-            return o1.isFile() && o2.isDirectory() ? 1 : o1.getName().compareTo(o2.getName());
-        });
         JsonArray files = new JsonArray();
         info.add("files", files);
         for (File file : list) {

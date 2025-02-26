@@ -11,8 +11,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class Path {
@@ -196,9 +196,18 @@ public class Path {
         }
     }
 
+    public static void sort(File[] files) {
+        Arrays.sort(files, (o1, o2) -> {
+            if (o1.isDirectory() && o2.isFile()) return -1;
+            if (o1.isFile() && o2.isDirectory()) return 1;
+            return o1.getName().compareTo(o2.getName());
+        });
+    }
+
     public static List<File> list(File dir) {
         File[] files = dir.listFiles();
-        return files == null ? Collections.emptyList() : Arrays.asList(files);
+        if (files != null) sort(files);
+        return files == null ? new ArrayList<>() : Arrays.asList(files);
     }
 
     public static void clear(File dir) {

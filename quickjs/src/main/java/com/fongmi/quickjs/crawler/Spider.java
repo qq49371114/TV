@@ -65,7 +65,7 @@ public class Spider extends com.github.catvod.crawler.Spider {
     @Override
     public void init(Context context, String extend) throws Exception {
         if (cat) call("init", submit(() -> cfg(extend)).get());
-        else call("init", Json.valid(extend) ? ctx.parse(extend) : extend);
+        else call("init", Json.isObj(extend) ? ctx.parse(extend) : extend);
     }
 
     @Override
@@ -196,7 +196,7 @@ public class Spider extends com.github.catvod.crawler.Spider {
         JSObject cfg = ctx.createNewJSObject();
         cfg.setProperty("stype", 3);
         cfg.setProperty("skey", key);
-        if (Json.invalid(ext)) cfg.setProperty("ext", ext);
+        if (!Json.isObj(ext)) cfg.setProperty("ext", ext);
         else cfg.setProperty("ext", (JSObject) ctx.parse(ext));
         return cfg;
     }

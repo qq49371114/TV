@@ -91,11 +91,11 @@ public class FileUtil {
         });
     }
 
-    public static long getDirectorySize(File file) {
+    public static long getDirectorySize(File dir) {
         long size = 0;
-        if (file == null) return 0;
-        if (file.isDirectory()) for (File f : Path.list(file)) size += getDirectorySize(f);
-        else size = file.length();
+        if (dir == null) return 0;
+        if (dir.isDirectory()) for (File file: Path.list(dir)) size += getDirectorySize(file);
+        else size = dir.length();
         return size;
     }
 

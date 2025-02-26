@@ -52,6 +52,10 @@
     <string name="play_switch_flag">正在切換線路至「<xliff:g name="name">%s</xliff:g>」</string>
     <string name="play_switch_site">正在切換站源至「<xliff:g name="name">%s</xliff:g>」</string>
 
+    <!-- Danmaku -->
+    <string name="danmaku">彈幕</string>
+    <string name="danmaku_select">選擇彈幕</string>
+
     <!-- Parse -->
     <string name="parse">解析</string>
     <string name="parse_god">超級解析</string>
@@ -74,7 +78,7 @@
     <string name="setting_backup">備份</string>
     <string name="setting_restore">還原</string>
     <string name="setting_version">版本</string>
-    <string name="setting_storage">權限</string>
+    <string name="setting_choose">選擇</string>
     <string name="setting_off">關</string>
     <string name="setting_on">開</string>
 
@@ -92,6 +96,7 @@
     <string name="player_caption">字幕樣式</string>
     <string name="player_background">背景播放</string>
     <string name="player_audio_decode">音訊軟解</string>
+    <string name="player_danmaku_load">彈幕載入</string>
     <string name="player_tunnel">隧道模式</string>
     <string name="player_buffer">緩衝時間</string>
     <string name="player_speed">長按倍速</string>

@@ -35,16 +35,20 @@ import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.ProxyDialog;
 import com.fongmi.android.tv.ui.dialog.RestoreDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
+import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
+import com.github.catvod.utils.Path;
 import com.permissionx.guolindev.PermissionX;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 public class SettingActivity extends BaseActivity implements ConfigCallback, SiteCallback, LiveCallback, DohCallback, ProxyCallback {
 
@@ -386,5 +390,12 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         WallConfig.get().init();
         LiveConfig.get().init().load();
         VodConfig.get().init().load(getCallback(0));
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != Activity.RESULT_OK || requestCode != FileChooser.REQUEST_PICK_FILE) return;
+        setConfig(Config.find("file:/" + FileChooser.getPathFromUri(this, data.getData()).replace(Path.rootPath(), ""), type));
     }
 }

@@ -1,7 +1,6 @@
 package com.fongmi.android.tv.utils;
 
 import android.app.Activity;
-import android.app.UiModeManager;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
@@ -9,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.content.res.Configuration;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Parcelable;
@@ -48,6 +46,12 @@ public class Util {
     public static void hideSystemUI(Window window) {
         int flags = View.SYSTEM_UI_FLAG_LOW_PROFILE | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
         window.getDecorView().setSystemUiVisibility(flags);
+    }
+
+    public static void showKeyboard(View view) {
+        if (!view.requestFocus()) return;
+        InputMethodManager imm = (InputMethodManager) App.get().getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null) view.postDelayed(() -> imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT), 250);
     }
 
     public static void hideKeyboard(View view) {
@@ -159,7 +163,7 @@ public class Util {
 
     public static Intent getChooser(Intent intent) {
         List<ComponentName> components = new ArrayList<>();
-        for (ResolveInfo resolveInfo : App.get().getPackageManager().queryIntentActivities(intent, 0)) {
+        for (ResolveInfo resolveInfo : App.get().getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)) {
             String pkgName = resolveInfo.activityInfo.packageName;
             if (pkgName.equals(App.get().getPackageName())) {
                 components.add(new ComponentName(pkgName, resolveInfo.activityInfo.name));
@@ -170,37 +174,5 @@ public class Util {
         } else {
             return Intent.createChooser(intent, null);
         }
-    }
-
-    public static boolean hasSAFChooser() {
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("video/*");
-        return intent.resolveActivity(App.get().getPackageManager()) != null;
-    }
-
-    public static boolean isTvBox() {
-        PackageManager pm = App.get().getPackageManager();
-        if (Configuration.UI_MODE_TYPE_TELEVISION == ((UiModeManager) App.get().getSystemService(Context.UI_MODE_SERVICE)).getCurrentModeType()) {
-            return true;
-        }
-        if (pm.hasSystemFeature("amazon.hardware.fire_tv")) {
-            return true;
-        }
-        if (!hasSAFChooser()) {
-            return true;
-        }
-        if (Build.VERSION.SDK_INT < 30) {
-            if (!pm.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN) && !pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
-                return true;
-            }
-            if (pm.hasSystemFeature("android.hardware.hdmi.cec")) {
-                return true;
-            }
-            if (Build.MANUFACTURER.equalsIgnoreCase("zidoo")) {
-                return true;
-            }
-        }
-        return false;
     }
 }

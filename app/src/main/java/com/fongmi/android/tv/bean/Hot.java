@@ -2,6 +2,7 @@ package com.fongmi.android.tv.bean;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Setting;
+import com.github.catvod.utils.Trans;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
@@ -37,7 +38,7 @@ public class Hot {
         private String title;
 
         public String getTitle() {
-            return title;
+            return Trans.s2t(title);
         }
     }
 }

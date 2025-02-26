@@ -82,6 +82,7 @@ public class Action implements Process {
         if ("live".equals(type)) RefreshEvent.live();
         else if ("detail".equals(type)) RefreshEvent.detail();
         else if ("player".equals(type)) RefreshEvent.player();
+        else if ("danmaku".equals(type)) RefreshEvent.danmaku(path);
         else if ("subtitle".equals(type)) RefreshEvent.subtitle(path);
     }
 

@@ -46,6 +46,10 @@ public class PiP {
         this.builder = new PictureInPictureParams.Builder();
     }
 
+    public boolean isInMode(Activity activity) {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && activity.isInPictureInPictureMode();
+    }
+
     public void update(Activity activity, View view) {
         if (noPiP()) return;
         Rect sourceRectHint = new Rect();

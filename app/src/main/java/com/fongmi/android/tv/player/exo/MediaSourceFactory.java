@@ -27,9 +27,6 @@ import com.github.catvod.net.OkHttp;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.github.peerless2012.ass.media.AssHandler;
-import io.github.peerless2012.ass.media.parser.AssSubtitleParserFactory;
-
 public class MediaSourceFactory implements MediaSource.Factory {
 
     private final DefaultMediaSourceFactory defaultMediaSourceFactory;
@@ -37,9 +34,8 @@ public class MediaSourceFactory implements MediaSource.Factory {
     private DataSource.Factory dataSourceFactory;
     private ExtractorsFactory extractorsFactory;
 
-    public MediaSourceFactory(AssHandler assHandler, AssSubtitleParserFactory subtitleParserFactory) {
+    public MediaSourceFactory() {
         defaultMediaSourceFactory = new DefaultMediaSourceFactory(getDataSourceFactory(), getExtractorsFactory());
-        //defaultMediaSourceFactory = new DefaultMediaSourceFactory(getDataSourceFactory(), ExoPlayerKtKt.withAssMkvSupport(getExtractorsFactory(), subtitleParserFactory, assHandler));
     }
 
     @NonNull

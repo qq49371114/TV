@@ -262,6 +262,18 @@
         android:orientation="horizontal">
 
         <TextView
+            android:id="@+id/danmaku"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/shape_accent"
+            android:text="@string/danmaku"
+            android:textColor="@color/control"
+            android:textSize="14sp"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <TextView
             android:id="@+id/loop"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

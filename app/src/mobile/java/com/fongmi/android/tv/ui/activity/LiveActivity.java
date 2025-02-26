@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
@@ -92,7 +91,6 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
     private Runnable mR2;
     private Runnable mR3;
     private Clock mClock;
-    private boolean initTrack;
     private boolean redirect;
     private boolean rotate;
     private boolean stop;
@@ -462,7 +460,7 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
     }
 
     private void showControl() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode()) return;
+        if (mPiP.isInMode(this)) return;
         mBinding.control.info.setVisibility(mPlayers.isEmpty() ? View.GONE : View.VISIBLE);
         mBinding.control.cast.setVisibility(mPlayers.isEmpty() ? View.GONE : View.VISIBLE);
         mBinding.control.right.rotate.setVisibility(isLock() ? View.GONE : View.VISIBLE);
@@ -481,9 +479,8 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
     }
 
     private void showInfo() {
-        boolean pip = Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N && isInPictureInPictureMode();
-        mBinding.widget.infoPip.setVisibility(pip ? View.VISIBLE : View.GONE);
-        mBinding.widget.info.setVisibility(pip ? View.GONE : View.VISIBLE);
+        mBinding.widget.infoPip.setVisibility(mPiP.isInMode(this) ? View.VISIBLE : View.GONE);
+        mBinding.widget.info.setVisibility(mPiP.isInMode(this) ? View.GONE : View.VISIBLE);
         setR3Callback();
         hideControl();
         hideEpg();
@@ -658,6 +655,10 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
         mPlayers.start(result, getTimeout());
     }
 
+    private void checkControl() {
+        if (isVisible(mBinding.control.getRoot())) showControl();
+    }
+
     private void checkPlayImg() {
         mPiP.update(this, mPlayers.isPlaying());
         ActionEvent.update();
@@ -678,12 +679,6 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
         mHides.clear();
         mChannel = null;
         mGroup = null;
-    }
-
-    @Override
-    public void onTrackClick(Track item) {
-        item.setKey(mPlayers.getUrl());
-        item.save();
     }
 
     @Override
@@ -755,7 +750,6 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
     public void onPlayerEvent(PlayerEvent event) {
         switch (event.getState()) {
             case PlayerEvent.PREPARE:
-                setInitTrack(true);
                 setDecode();
                 break;
             case Player.STATE_BUFFERING:
@@ -763,6 +757,7 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
                 break;
             case Player.STATE_READY:
                 hideProgress();
+                checkControl();
                 checkPlayImg();
                 mPlayers.reset();
                 break;
@@ -771,7 +766,6 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
                 break;
             case PlayerEvent.TRACK:
                 setMetadata();
-                setInitTrack();
                 setTrackVisible();
                 break;
             case PlayerEvent.SIZE:
@@ -785,13 +779,6 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
         mBinding.control.action.audio.setVisibility(mPlayers.haveTrack(C.TRACK_TYPE_AUDIO) ? View.VISIBLE : View.GONE);
         mBinding.control.action.video.setVisibility(mPlayers.haveTrack(C.TRACK_TYPE_VIDEO) ? View.VISIBLE : View.GONE);
         mBinding.control.action.speed.setVisibility(mPlayers.isVod() ? View.VISIBLE : View.GONE);
-    }
-
-    private void setInitTrack() {
-        if (isInitTrack()) {
-            setInitTrack(false);
-            mPlayers.setTrack(Track.find(mPlayers.getUrl()));
-        }
     }
 
     private void setMetadata() {
@@ -893,14 +880,6 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
     private void onPlay() {
         mPlayers.play();
         checkPlayImg();
-    }
-
-    private boolean isInitTrack() {
-        return initTrack;
-    }
-
-    private void setInitTrack(boolean initTrack) {
-        this.initTrack = initTrack;
     }
 
     public boolean isRedirect() {

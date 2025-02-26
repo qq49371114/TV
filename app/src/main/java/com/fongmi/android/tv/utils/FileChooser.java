@@ -1,9 +1,12 @@
 package com.fongmi.android.tv.utils;
 
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -14,20 +17,31 @@ import android.provider.MediaStore;
 import androidx.fragment.app.Fragment;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.ui.activity.FileActivity;
 import com.github.catvod.utils.Path;
 
 import java.io.File;
 import java.io.InputStream;
 import java.net.URLDecoder;
+import java.util.List;
 
 public class FileChooser {
 
     public static final int REQUEST_PICK_FILE = 9999;
 
-    private final Fragment fragment;
+    private Activity activity;
+    private Fragment fragment;
+
+    public static FileChooser from(Activity activity) {
+        return new FileChooser(activity);
+    }
 
     public static FileChooser from(Fragment fragment) {
         return new FileChooser(fragment);
+    }
+
+    private FileChooser(Activity activity) {
+        this.activity = activity;
     }
 
     private FileChooser(Fragment fragment) {
@@ -47,14 +61,20 @@ public class FileChooser {
     }
 
     public void show(String mimeType, String[] mimeTypes, int code) {
-        Intent intent = new Intent(Util.isTvBox() ? Intent.ACTION_GET_CONTENT : Intent.ACTION_OPEN_DOCUMENT);
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.setType(mimeType);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false);
         intent.putExtra("android.content.extra.SHOW_ADVANCED", true);
-        if (intent.resolveActivity(App.get().getPackageManager()) == null) return;
-        if (fragment != null) fragment.startActivityForResult(Intent.createChooser(intent, ""), code);
+        List<ResolveInfo> resolveInfos = App.get().getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+        if (!resolveInfos.isEmpty() && !resolveInfos.get(0).activityInfo.packageName.contains("frameworkpackagestubs")) {
+            if (activity != null) activity.startActivityForResult(Intent.createChooser(intent, ""), code);
+            if (fragment != null) fragment.startActivityForResult(Intent.createChooser(intent, ""), code);
+        } else {
+            if (activity != null) activity.startActivityForResult(new Intent(activity, FileActivity.class), code);
+            if (fragment != null) fragment.startActivityForResult(new Intent(fragment.getActivity(), FileActivity.class), code);
+        }
     }
 
     public static boolean isValid(Context context, Uri uri) {

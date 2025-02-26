@@ -27,7 +27,6 @@ import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.bean.Sub;
-import com.fongmi.android.tv.bean.Track;
 import com.fongmi.android.tv.databinding.ActivityCastBinding;
 import com.fongmi.android.tv.event.ActionEvent;
 import com.fongmi.android.tv.event.ErrorEvent;
@@ -298,8 +297,8 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     public void onPlayerEvent(PlayerEvent event) {
         switch (event.getState()) {
             case PlayerEvent.PREPARE:
-                setState(RenderState.PREPARING);
                 setDecode();
+                setState(RenderState.PREPARING);
                 break;
             case Player.STATE_IDLE:
                 setState(RenderState.IDLE);
@@ -380,10 +379,6 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     @Override
     public RenderState getState() {
         return mState;
-    }
-
-    @Override
-    public void onTrackClick(Track item) {
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.bean;
 
 import com.fongmi.android.tv.App;
+import com.github.catvod.utils.Trans;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ public class Suggest {
         private String name;
 
         private String getName() {
-            return name;
+            return Trans.s2t(name);
         }
     }
 }

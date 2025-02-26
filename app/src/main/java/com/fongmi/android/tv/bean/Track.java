@@ -94,14 +94,20 @@ public class Track {
         this.adaptive = adaptive;
     }
 
+    public Track key(String key) {
+        setKey(key);
+        return this;
+    }
+
     public Track toggle() {
         setSelected(!isSelected());
         return this;
     }
 
-    public void save() {
-        if (TextUtils.isEmpty(getKey())) return;
+    public Track save() {
+        if (TextUtils.isEmpty(getKey())) return this;
         AppDatabase.get().getTrackDao().insert(this);
+        return this;
     }
 
     public static List<Track> find(String key) {

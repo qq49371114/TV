@@ -33,7 +33,7 @@ public class Decoder {
 
     private static String verify(String url, String data) throws Exception {
         if (data.isEmpty()) throw new Exception();
-        if (Json.valid(data)) return fix(url, data);
+        if (Json.isObj(data)) return fix(url, data);
         if (data.contains("**")) data = base64(data);
         if (data.startsWith("2423")) data = cbc(data);
         return fix(url, data);

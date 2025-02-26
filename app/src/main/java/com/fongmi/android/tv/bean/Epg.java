@@ -3,7 +3,9 @@ package com.fongmi.android.tv.bean;
 import android.text.TextUtils;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.api.EpgParser;
 import com.fongmi.android.tv.utils.Util;
+import com.github.catvod.utils.Json;
 import com.github.catvod.utils.Trans;
 import com.google.gson.annotations.SerializedName;
 
@@ -24,15 +26,12 @@ public class Epg {
 
     private int width;
 
-    public static Epg objectFrom(String str, String key, SimpleDateFormat format) {
-        try {
-            Epg item = App.gson().fromJson(str, Epg.class);
-            item.setTime(format);
-            item.setKey(key);
-            return item;
-        } catch (Exception e) {
-            return new Epg();
-        }
+    public static Epg objectFrom(String str, String key, SimpleDateFormat format) throws Exception {
+        if (!Json.isObj(str)) return EpgParser.getEpg(str, key);
+        Epg item = App.gson().fromJson(str, Epg.class);
+        item.setTime(format);
+        item.setKey(key);
+        return item;
     }
 
     public static Epg create(String key, String date) {

@@ -1,6 +1,5 @@
 package com.fongmi.android.tv.bean;
 
-import android.net.Uri;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -11,7 +10,6 @@ import androidx.room.PrimaryKey;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.api.XtreamParser;
 import com.fongmi.android.tv.api.loader.BaseLoader;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.gson.ExtAdapter;
@@ -79,23 +77,11 @@ public class Live {
     private String referer;
 
     @Ignore
-    @SerializedName("username")
-    private String username;
-
-    @Ignore
-    @SerializedName("password")
-    private String password;
-
-    @Ignore
     @SerializedName("timeZone")
     private String timeZone;
 
     @SerializedName("keep")
     private String keep;
-
-    @Ignore
-    @SerializedName("type")
-    private Integer type;
 
     @Ignore
     @SerializedName("timeout")
@@ -221,28 +207,8 @@ public class Live {
         return TextUtils.isEmpty(referer) ? "" : referer;
     }
 
-    public String getUsername() {
-        return TextUtils.isEmpty(username) ? "" : username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return TextUtils.isEmpty(password) ? "" : password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public String getTimeZone() {
         return TextUtils.isEmpty(timeZone) ? "" : timeZone;
-    }
-
-    public void setTimeZone(String timeZone) {
-        this.timeZone = timeZone;
     }
 
     public String getKeep() {
@@ -251,10 +217,6 @@ public class Live {
 
     public void setKeep(String keep) {
         this.keep = keep;
-    }
-
-    public Integer getType() {
-        return type == null ? 0 : type;
     }
 
     public Integer getTimeout() {
@@ -313,8 +275,15 @@ public class Live {
         this.width = width;
     }
 
-    public boolean isXtream() {
-        return !getUsername().isEmpty() && !getPassword().isEmpty();
+    public String getEpgApi() {
+        for (String url : getEpg().split(",")) if (url.contains("{")) return url;
+        return getEpg();
+    }
+
+    public List<String> getEpgXml() {
+        List<String> items = new ArrayList<>();
+        for (String epg : getEpg().split(",")) if (!epg.contains("{") && (epg.contains("xml") || epg.contains("gz"))) items.add(epg);
+        return items;
     }
 
     public boolean isEmpty() {
@@ -357,14 +326,6 @@ public class Live {
         setBoot(item.isBoot());
         setPass(item.isPass());
         setKeep(item.getKeep());
-        return this;
-    }
-
-    public Live check() {
-        Uri uri = Uri.parse(getUrl());
-        boolean xtream = XtreamParser.isVerify(uri);
-        if (xtream) setUsername(uri.getQueryParameter("username"));
-        if (xtream) setPassword(uri.getQueryParameter("password"));
         return this;
     }
 

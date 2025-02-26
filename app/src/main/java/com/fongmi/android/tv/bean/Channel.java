@@ -326,7 +326,7 @@ public class Channel {
         if (!live.getOrigin().isEmpty() && getOrigin().isEmpty()) setOrigin(live.getOrigin());
         if (!live.getCatchup().isEmpty() && getCatchup().isEmpty()) setCatchup(live.getCatchup());
         if (!live.getReferer().isEmpty() && getReferer().isEmpty()) setReferer(live.getReferer());
-        if (live.getEpg().contains("{") && !getEpg().startsWith("http")) setEpg(live.getEpg().replace("{name}", getTvgName()).replace("{epg}", getEpg()));
+        if (live.getEpg().contains("{") && !getEpg().startsWith("http")) setEpg(live.getEpgApi().replace("{name}", getTvgName()).replace("{epg}", getEpg()));
         if (live.getLogo().contains("{") && !getLogo().startsWith("http")) setLogo(live.getLogo().replace("{name}", getTvgName()).replace("{logo}", getLogo()));
     }
 

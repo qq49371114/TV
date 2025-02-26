@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -23,8 +24,9 @@ public class Json {
         }
     }
 
-    public static boolean valid(String text) {
+    public static boolean isObj(String text) {
         try {
+            if (TextUtils.isEmpty(text)) return false;
             new JSONObject(text);
             return true;
         } catch (Exception e) {
@@ -32,8 +34,14 @@ public class Json {
         }
     }
 
-    public static boolean invalid(String text) {
-        return !valid(text);
+    public static boolean isArray(String text) {
+        try {
+            if (TextUtils.isEmpty(text)) return false;
+            new JSONArray(text);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public static String safeString(JsonObject obj, String key) {

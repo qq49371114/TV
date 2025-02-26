@@ -13,11 +13,18 @@ import java.util.List;
 @Root(name = "tv", strict = false)
 public class Tv {
 
+    @Attribute(name = "date", required = false)
+    private String date;
+
     @ElementList(entry = "channel", required = false, inline = true)
     private List<Channel> channel;
 
     @ElementList(entry = "programme", required = false, inline = true)
     private List<Programme> programme;
+
+    public String getDate() {
+        return TextUtils.isEmpty(date) ? "" : date;
+    }
 
     public List<Channel> getChannel() {
         return channel == null ? Collections.emptyList() : channel;

@@ -36,7 +36,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/white"
-                android:textSize="14sp"
+                android:textSize="12sp"
                 android:visibility="gone"
                 tools:text="秘境之眼" />
 
