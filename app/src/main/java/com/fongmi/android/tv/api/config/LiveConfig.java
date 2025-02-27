@@ -8,7 +8,6 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.Decoder;
 import com.fongmi.android.tv.api.LiveParser;
-import com.fongmi.android.tv.api.XtreamParser;
 import com.fongmi.android.tv.api.loader.BaseLoader;
 import com.fongmi.android.tv.bean.Channel;
 import com.fongmi.android.tv.bean.Config;
@@ -112,15 +111,9 @@ public class LiveConfig {
         App.execute(() -> loadConfig(callback));
     }
 
-  private void loadConfig(Callback callback) {
+    private void loadConfig(Callback callback) {
         try {
-            String url = config.getUrl();
-             if (TextUtils.isEmpty(url)) {
-                 url = "http://47.109.61.116:86/yylxnz.zip";
-            // // 添加以下代码，解决内置源时，投屏播放问题，给定一个配置，写入本地数据库，标记一个name（名字“源已内置”可以随便取，但一定要有，type为1,表示直播）
-                 Config.find(url, 1).name("🐯遥遥领先🐯").update();
-             }
-            parseConfig(Decoder.getJson(url), callback);
+            parseConfig(Decoder.getJson(config.getUrl()), callback);
         } catch (Throwable e) {
             if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
             else App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
@@ -129,7 +122,7 @@ public class LiveConfig {
     }
 
     private void parseConfig(String text, Callback callback) {
-        if (Json.invalid(text)) {
+        if (!Json.isObj(text)) {
             parseText(text, callback);
         } else {
             checkJson(Json.parse(text).getAsJsonObject(), callback);
@@ -137,7 +130,7 @@ public class LiveConfig {
     }
 
     private void parseText(String text, Callback callback) {
-        Live live = new Live(parseName(config.getUrl()), config.getUrl()).check().sync();
+        Live live = new Live(parseName(config.getUrl()), config.getUrl()).sync();
         LiveParser.text(live, text);
         lives.add(live);
         setHome(live, true);
@@ -192,7 +185,7 @@ public class LiveConfig {
             live.setApi(UrlUtil.convert(live.getApi()));
             live.setExt(UrlUtil.convert(live.getExt()));
             live.setJar(parseJar(live, spider));
-            lives.add(live.check().sync());
+            lives.add(live.sync());
         }
         for (Live live : lives) {
             if (live.getName().equals(config.getHome())) {
