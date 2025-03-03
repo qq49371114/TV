@@ -241,6 +241,14 @@ public class Setting {
         Prefers.put("danmaku_load", danmakuLoad);
     }
 
+    public static boolean isDanmakuShow() {
+        return Prefers.getBoolean("danmaku_show");
+    }
+
+    public static void putDanmakuShow(boolean danmakuShow) {
+        Prefers.put("danmaku_show", danmakuShow);
+    }
+
     public static boolean isZhuyin() {
         return Prefers.getBoolean("zhuyin");
     }

@@ -200,7 +200,7 @@ public class Path {
         Arrays.sort(files, (o1, o2) -> {
             if (o1.isDirectory() && o2.isFile()) return -1;
             if (o1.isFile() && o2.isDirectory()) return 1;
-            return o1.getName().compareTo(o2.getName());
+            return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
         });
     }
 

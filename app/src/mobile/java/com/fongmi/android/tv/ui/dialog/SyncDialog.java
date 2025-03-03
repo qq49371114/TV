@@ -48,6 +48,7 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
 
     private final FormBody.Builder body;
     private final OkHttpClient client;
+    private final ScanTask scanTask;
     private final TypedArray mode;
     private DialogDeviceBinding binding;
     private DeviceAdapter adapter;
@@ -58,9 +59,10 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
     }
 
     public SyncDialog() {
+        body = new FormBody.Builder();
+        scanTask = new ScanTask(this);
         client = OkHttp.client(Constant.TIMEOUT_SYNC);
         mode = ResUtil.getTypedArray(R.array.cast_mode);
-        body = new FormBody.Builder();
     }
 
     public SyncDialog history() {
@@ -136,7 +138,7 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
     }
 
     private void onRefresh() {
-        ScanTask.create(this).start(adapter.getIps());
+        scanTask.start(adapter.getIps());
         adapter.clear();
     }
 
@@ -146,7 +148,7 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onScanEvent(ScanEvent event) {
-        ScanTask.create(this).start(event.getAddress());
+        scanTask.start(event.getAddress());
     }
 
     @Override
@@ -187,5 +189,11 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
     public void onDestroyView() {
         super.onDestroyView();
         EventBus.getDefault().unregister(this);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        scanTask.stop();
     }
 }

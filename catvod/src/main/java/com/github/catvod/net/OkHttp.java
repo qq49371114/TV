@@ -136,6 +136,10 @@ public class OkHttp {
         return client().newCall(new Request.Builder().url(url).build());
     }
 
+    public static Call newCall(String url, String tag) {
+        return client().newCall(new Request.Builder().url(url).tag(tag).build());
+    }
+
     public static Call newCall(OkHttpClient client, String url) {
         return client.newCall(new Request.Builder().url(url).build());
     }
@@ -154,6 +158,11 @@ public class OkHttp {
 
     public static Call newCall(OkHttpClient client, String url, RequestBody body) {
         return client.newCall(new Request.Builder().url(url).post(body).build());
+    }
+
+    public static void cancel(String tag) {
+        for (Call call : client().dispatcher().queuedCalls()) if (tag.equals(call.request().tag())) call.cancel();
+        for (Call call : client().dispatcher().runningCalls()) if (tag.equals(call.request().tag())) call.cancel();
     }
 
     public static FormBody toBody(ArrayMap<String, String> params) {

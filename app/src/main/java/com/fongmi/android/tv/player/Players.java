@@ -16,7 +16,6 @@ import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
-import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.media3.common.AudioAttributes;
@@ -45,6 +44,7 @@ import com.fongmi.android.tv.event.ErrorEvent;
 import com.fongmi.android.tv.event.PlayerEvent;
 import com.fongmi.android.tv.impl.ParseCallback;
 import com.fongmi.android.tv.impl.SessionCallback;
+import com.fongmi.android.tv.player.danmaku.Loader;
 import com.fongmi.android.tv.player.danmaku.Parser;
 import com.fongmi.android.tv.player.danmaku.Sync;
 import com.fongmi.android.tv.player.exo.ExoUtil;
@@ -233,12 +233,8 @@ public class Players implements Player.Listener, ParseCallback, DrawHandler.Call
         return exoPlayer != null && ExoUtil.haveTrack(exoPlayer.getCurrentTracks(), type);
     }
 
-    public boolean haveDanmaku() {
-        return danmakus != null && !danmakus.isEmpty();
-    }
-
     public boolean isDanmakuPrepared() {
-        return (danmaku != null && danmaku.isPrepared());
+        return danmaku != null && danmaku.isPrepared();
     }
 
     public boolean isPlaying() {
@@ -479,15 +475,16 @@ public class Players implements Player.Listener, ParseCallback, DrawHandler.Call
     }
 
     private void setDanmaku(List<Danmaku> items) {
-        danmaku.setVisibility(items.isEmpty() ? View.GONE : View.VISIBLE);
-        if (!items.isEmpty()) setDanmaku(items.get(0).getUrl());
-        if (!items.isEmpty()) items.get(0).setSelected(true);
-        else danmaku.release();
+        if (items.isEmpty()) danmaku.release();
+        else setDanmaku(items.get(0));
     }
 
-    public void setDanmaku(String path) {
+    public void setDanmaku(Danmaku item) {
         danmaku.release();
-        if (!TextUtils.isEmpty(path)) danmaku.prepare(new Parser(path), context);
+        if (danmakus == null) danmakus = new ArrayList<>();
+        if (!item.isEmpty() && !danmakus.contains(item)) danmakus.add(0, item);
+        if (!item.isEmpty()) App.execute(() -> danmaku.prepare(new Parser().load(new Loader(item).getDataSource()), context));
+        for (int i = 0; i < danmakus.size(); i++) danmakus.get(i).setSelected(danmakus.get(i).getUrl().equals(item.getUrl()) && !danmakus.get(i).isSelected());
     }
 
     public void setDanmakuSize(float size) {
@@ -628,6 +625,7 @@ public class Players implements Player.Listener, ParseCallback, DrawHandler.Call
 
     @Override
     public void onPlaybackStateChanged(int state) {
+        if (state == Player.STATE_BUFFERING && isDanmakuPrepared()) danmaku.pause();
         if (state == Player.STATE_READY && isDanmakuPrepared()) prepared();
         PlayerEvent.state(state);
     }

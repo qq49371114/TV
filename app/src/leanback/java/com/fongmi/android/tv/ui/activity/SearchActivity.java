@@ -30,7 +30,7 @@ import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.utils.KeyUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.net.OkHttp;
-import com.github.catvod.utils.Trans;
+import com.github.catvod.utils.ZhuToPin;
 import com.google.common.net.HttpHeaders;
 
 import java.io.IOException;
@@ -115,7 +115,7 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
 
     private void getSuggest(String text) {
         mBinding.hint.setText(R.string.search_suggest);
-        OkHttp.newCall("https://suggest.video.iqiyi.com/?if=mobile&key=" + URLEncoder.encode(Trans.z2p(text))).enqueue(new Callback() {
+        OkHttp.newCall("https://suggest.video.iqiyi.com/?if=mobile&key=" + URLEncoder.encode(ZhuToPin.get(text))).enqueue(new Callback() {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (mBinding.keyword.getText().toString().trim().isEmpty()) return;

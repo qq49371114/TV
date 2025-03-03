@@ -28,6 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
             android:background="?attr/selectableItemBackgroundBorderless"
+            android:focusable="true"
             android:src="@drawable/ic_action_choose"
             android:visibility="gone"
             tools:visibility="visible" />
@@ -37,6 +38,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="?attr/selectableItemBackgroundBorderless"
+            android:focusable="true"
             android:src="@drawable/ic_action_subtitle"
             android:visibility="gone"
             tools:visibility="visible" />

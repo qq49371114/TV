@@ -68,12 +68,12 @@ public class FileChooser {
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false);
         intent.putExtra("android.content.extra.SHOW_ADVANCED", true);
         List<ResolveInfo> resolveInfos = App.get().getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
-        if (!resolveInfos.isEmpty() && !resolveInfos.get(0).activityInfo.packageName.contains("frameworkpackagestubs")) {
-            if (activity != null) activity.startActivityForResult(Intent.createChooser(intent, ""), code);
-            if (fragment != null) fragment.startActivityForResult(Intent.createChooser(intent, ""), code);
-        } else {
+        if (Util.isLeanback() || resolveInfos.isEmpty() || resolveInfos.get(0).activityInfo.packageName.contains("frameworkpackagestubs")) {
             if (activity != null) activity.startActivityForResult(new Intent(activity, FileActivity.class), code);
             if (fragment != null) fragment.startActivityForResult(new Intent(fragment.getActivity(), FileActivity.class), code);
+        } else {
+            if (activity != null) activity.startActivityForResult(Intent.createChooser(intent, ""), code);
+            if (fragment != null) fragment.startActivityForResult(Intent.createChooser(intent, ""), code);
         }
     }
 

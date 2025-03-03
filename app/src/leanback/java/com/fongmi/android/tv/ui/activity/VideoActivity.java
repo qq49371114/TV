@@ -38,6 +38,7 @@ import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.VodConfig;
+import com.fongmi.android.tv.bean.Danmaku;
 import com.fongmi.android.tv.bean.Episode;
 import com.fongmi.android.tv.bean.Flag;
 import com.fongmi.android.tv.bean.History;
@@ -375,6 +376,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         ExoUtil.setSubtitleView(mBinding.exo);
         mPlayers.setDanmakuView(mBinding.danmaku);
         mBinding.control.decode.setText(mPlayers.getDecodeText());
+        mBinding.control.danmaku.setVisibility(Setting.isDanmakuLoad() ? View.VISIBLE : View.GONE);
         mBinding.control.reset.setText(ResUtil.getStringArray(R.array.select_reset)[Setting.getReset()]);
     }
 
@@ -1042,8 +1044,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         if (isRedirect()) return;
         if (event.getType() == RefreshEvent.Type.DETAIL) getDetail();
         else if (event.getType() == RefreshEvent.Type.PLAYER) onRefresh();
-        else if (event.getType() == RefreshEvent.Type.DANMAKU) mPlayers.setDanmaku(event.getPath());
         else if (event.getType() == RefreshEvent.Type.SUBTITLE) mPlayers.setSub(Sub.from(event.getPath()));
+        else if (event.getType() == RefreshEvent.Type.DANMAKU) mPlayers.setDanmaku(Danmaku.from(event.getPath()));
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -1094,7 +1096,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mBinding.control.text.setVisibility(mPlayers.haveTrack(C.TRACK_TYPE_TEXT) || mPlayers.isVod() ? View.VISIBLE : View.GONE);
         mBinding.control.audio.setVisibility(mPlayers.haveTrack(C.TRACK_TYPE_AUDIO) ? View.VISIBLE : View.GONE);
         mBinding.control.video.setVisibility(mPlayers.haveTrack(C.TRACK_TYPE_VIDEO) ? View.VISIBLE : View.GONE);
-        mBinding.control.danmaku.setVisibility(mPlayers.haveDanmaku() ? View.VISIBLE : View.GONE);
     }
 
     private void setMetadata() {

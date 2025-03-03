@@ -6,27 +6,28 @@ import com.fongmi.android.tv.server.Server;
 import com.github.catvod.net.OkHttp;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import okhttp3.OkHttpClient;
 
 public class ScanTask {
 
-    private final Listener listener;
-    private final OkHttpClient client;
     private final List<Device> devices;
+    private final OkHttpClient client;
 
-    public static ScanTask create(Listener listener) {
-        return new ScanTask(listener);
-    }
+    private ExecutorService executor;
+    private Listener listener;
 
     public ScanTask(Listener listener) {
-        this.listener = listener;
+        this.devices = Collections.synchronizedList(new ArrayList<>());
         this.client = OkHttp.client(1000);
-        this.devices = new ArrayList<>();
+        this.listener = listener;
     }
 
     public void start(List<String> ips) {
@@ -34,27 +35,42 @@ public class ScanTask {
     }
 
     public void start(String url) {
-        App.execute(() -> run(Arrays.asList(url)));
+        App.execute(() -> run(List.of(url)));
+    }
+
+    public void stop() {
+        if (executor != null) executor.shutdownNow();
+        executor = null;
+        listener = null;
+    }
+
+    private void init() {
+        if (executor != null) executor.shutdownNow();
+        executor = Executors.newCachedThreadPool();
+        devices.clear();
     }
 
     private void run(List<String> items) {
         try {
+            init();
             getDevice(items);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            App.post(() -> listener.onFind(devices));
+            App.post(() -> {
+                if (listener != null) listener.onFind(devices);
+            });
         }
     }
 
     private void getDevice(List<String> urls) throws Exception {
         CountDownLatch cd = new CountDownLatch(urls.size());
-        for (String url : urls) new Thread(() -> findDevice(cd, url)).start();
+        for (String url : urls) executor.execute(() -> findDevice(cd, url));
         cd.await();
     }
 
     private List<String> getUrl(List<String> ips) {
-        LinkedHashSet<String> urls = new LinkedHashSet<>(ips);
+        Set<String> urls = new HashSet<>(ips);
         String local = Server.get().getAddress();
         String base = local.substring(0, local.lastIndexOf(".") + 1);
         for (int i = 1; i < 256; i++) urls.add(base + i + ":9978");

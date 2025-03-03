@@ -278,11 +278,11 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
     }
 
     private void onVersion(View view) {
-        Updater.get().force().release().start(getActivity());
+        Updater.create().force().release().start(getActivity());
     }
 
     private boolean onVersionDev(View view) {
-        Updater.get().force().dev().start(getActivity());
+        Updater.create().force().dev().start(getActivity());
         return true;
     }
 

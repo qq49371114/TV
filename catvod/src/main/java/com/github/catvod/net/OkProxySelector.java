@@ -13,7 +13,6 @@ import java.net.ProxySelector;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class OkProxySelector extends ProxySelector {
@@ -39,9 +38,9 @@ public class OkProxySelector extends ProxySelector {
 
     @Override
     public List<Proxy> select(URI uri) {
-        if (proxy == null || hosts.isEmpty() || uri.getHost() == null || "127.0.0.1".equals(uri.getHost())) return Collections.singletonList(Proxy.NO_PROXY);
-        for (String host : hosts) if (Util.containOrMatch(uri.getHost(), host)) return Collections.singletonList(proxy);
-        return Collections.singletonList(Proxy.NO_PROXY);
+        if (proxy == null || hosts.isEmpty() || uri.getHost() == null || "127.0.0.1".equals(uri.getHost())) return List.of(Proxy.NO_PROXY);
+        for (String host : hosts) if (Util.containOrMatch(uri.getHost(), host)) return List.of(proxy);
+        return List.of(Proxy.NO_PROXY);
     }
 
     @Override

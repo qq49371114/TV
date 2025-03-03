@@ -73,7 +73,7 @@ public class LiveConfig {
     }
 
     public static boolean hasUrl() {
-        return getUrl() != null && getUrl().length() > 0;
+        return getUrl() != null && !getUrl().isEmpty();
     }
 
     public static void load(Config config, Callback callback) {
@@ -113,7 +113,8 @@ public class LiveConfig {
 
     private void loadConfig(Callback callback) {
         try {
-            parseConfig(Decoder.getJson(config.getUrl()), callback);
+            OkHttp.cancel("live");
+            parseConfig(Decoder.getJson(config.getUrl(), "live"), callback);
         } catch (Throwable e) {
             if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
             else App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
@@ -147,7 +148,7 @@ public class LiveConfig {
     }
 
     private void checkJson(JsonObject object, Callback callback) {
-        if (object.has("msg") && callback != null) {
+        if (object.has("msg")) {
             App.post(() -> callback.error(object.get("msg").getAsString()));
         } else if (object.has("urls")) {
             parseDepot(object, callback);

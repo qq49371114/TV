@@ -111,7 +111,8 @@ public class VodConfig {
 
     private void loadConfig(Callback callback) {
         try {
-            checkJson(Json.parse(Decoder.getJson(config.getUrl())).getAsJsonObject(), callback);
+            OkHttp.cancel("vod");
+            checkJson(Json.parse(Decoder.getJson(config.getUrl(), "vod")).getAsJsonObject(), callback);
         } catch (Throwable e) {
             if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
             else loadCache(callback, e);
@@ -125,7 +126,7 @@ public class VodConfig {
     }
 
     private void checkJson(JsonObject object, Callback callback) {
-        if (object.has("msg") && callback != null) {
+        if (object.has("msg")) {
             App.post(() -> callback.error(object.get("msg").getAsString()));
         } else if (object.has("urls")) {
             parseDepot(object, callback);

@@ -22,10 +22,10 @@ public class Decoder {
 
     private static final Pattern JS_URI = Pattern.compile("\"(\\.|\\.\\.)/(.?|.+?)\\.js\\?(.?|.+?)\"");
 
-    public static String getJson(String url) throws Exception {
+    public static String getJson(String url, String tag) throws Exception {
         url = UrlUtil.convert(url);
         int size = HttpUrl.parse(url).querySize();
-        Response res = OkHttp.newCall(url).execute();
+        Response res = OkHttp.newCall(url, tag).execute();
         HttpUrl httpUrl = res.request().url();
         if (httpUrl.querySize() == size) url = httpUrl.toString();
         return verify(url, res.body().string());

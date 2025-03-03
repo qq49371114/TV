@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.dialog;
 
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -45,6 +46,11 @@ public class RestoreDialog extends BaseDialog implements RestoreAdapter.OnClickL
         binding.recycler.setHasFixedSize(false);
         binding.recycler.setAdapter(adapter = new RestoreAdapter(this));
         binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 16));
+    }
+
+    @Override
+    public void onItemLoaded() {
+        binding.recycler.setVisibility(adapter.getItemCount() == 0 ? View.GONE : View.VISIBLE);
     }
 
     @Override

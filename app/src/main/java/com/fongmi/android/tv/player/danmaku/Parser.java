@@ -1,8 +1,6 @@
 package com.fongmi.android.tv.player.danmaku;
 
 import com.fongmi.android.tv.bean.DanmakuData;
-import com.fongmi.android.tv.utils.UrlUtil;
-import com.github.catvod.net.OkHttp;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -15,24 +13,22 @@ import master.flame.danmaku.danmaku.model.BaseDanmaku;
 import master.flame.danmaku.danmaku.model.IDanmakus;
 import master.flame.danmaku.danmaku.model.android.Danmakus;
 import master.flame.danmaku.danmaku.parser.BaseDanmakuParser;
+import master.flame.danmaku.danmaku.parser.android.AndroidFileSource;
 import master.flame.danmaku.danmaku.util.DanmakuUtils;
 
 public class Parser extends BaseDanmakuParser {
 
     private static final Pattern XML = Pattern.compile("p=\"([^\"]+)\"[^>]*>([^<]+)<");
     private static final Pattern TXT = Pattern.compile("\\[(.*?)\\](.*)");
-    private final String path;
-
-    public Parser(String path) {
-        this.path = path;
-    }
 
     @Override
     public Danmakus parse() {
         String line;
         Pattern pattern = null;
+        if (mDataSource == null) return null;
         List<DanmakuData> items = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(OkHttp.newCall(UrlUtil.convert(path)).execute().body().byteStream()))) {
+        AndroidFileSource source = (AndroidFileSource) mDataSource;
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(source.data()))) {
             while ((line = br.readLine()) != null) {
                 if (pattern == null) pattern = line.startsWith("<") ? XML : TXT;
                 Matcher matcher = pattern.matcher(line);

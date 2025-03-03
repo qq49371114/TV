@@ -54,6 +54,7 @@ public class CastDialog extends BaseDialog implements DeviceAdapter.OnClickListe
 
     private final FormBody.Builder body;
     private final OkHttpClient client;
+    private final ScanTask scanTask;
 
     private DialogDeviceBinding binding;
     private DeviceAdapter adapter;
@@ -67,6 +68,7 @@ public class CastDialog extends BaseDialog implements DeviceAdapter.OnClickListe
     }
 
     public CastDialog() {
+        scanTask = new ScanTask(this);
         body = new FormBody.Builder();
         body.add("device", Device.get().toString());
         body.add("config", Config.vod().toString());
@@ -139,7 +141,7 @@ public class CastDialog extends BaseDialog implements DeviceAdapter.OnClickListe
     }
 
     private void onRefresh() {
-        if (fm) ScanTask.create(this).start(adapter.getIps());
+        if (fm) scanTask.start(adapter.getIps());
         DLNACastManager.INSTANCE.search(null);
         adapter.clear();
     }
@@ -151,7 +153,7 @@ public class CastDialog extends BaseDialog implements DeviceAdapter.OnClickListe
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onScanEvent(ScanEvent event) {
-        ScanTask.create(this).start(event.getAddress());
+        scanTask.start(event.getAddress());
     }
 
     @Override
@@ -215,6 +217,12 @@ public class CastDialog extends BaseDialog implements DeviceAdapter.OnClickListe
         EventBus.getDefault().unregister(this);
         DLNACastManager.INSTANCE.unregisterListener(this);
         DLNACastManager.INSTANCE.unbindCastService(App.get());
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        scanTask.stop();
     }
 
     @Override

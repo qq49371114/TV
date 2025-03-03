@@ -34,9 +34,9 @@ public class RestoreAdapter extends RecyclerView.Adapter<RestoreAdapter.ViewHold
 
     public void addAll() {
         File[] files = Path.tv().listFiles();
-        if (files == null || files.length == 0) return;
+        if (files == null) files = new File[0];
         for (File file : files) if (file.getName().startsWith("tv") && file.getName().endsWith(".bk.gz")) mItems.add(file);
-        Collections.sort(mItems, (f1, f2) -> Long.compare(f2.lastModified(), f1.lastModified()));
+        if (!mItems.isEmpty()) Collections.sort(mItems, (f1, f2) -> Long.compare(f2.lastModified(), f1.lastModified()));
         notifyDataSetChanged();
     }
 

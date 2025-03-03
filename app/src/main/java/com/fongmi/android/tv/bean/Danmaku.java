@@ -2,9 +2,11 @@ package com.fongmi.android.tv.bean;
 
 import android.text.TextUtils;
 
+import androidx.annotation.Nullable;
+
 import com.google.gson.annotations.SerializedName;
 
-import java.util.List;
+import java.io.File;
 
 public class Danmaku {
 
@@ -15,11 +17,30 @@ public class Danmaku {
 
     private boolean selected;
 
-    public static List<Danmaku> from(String path) {
+    public static Danmaku from(String path) {
+        if (path.startsWith("http")) {
+            return http(path);
+        } else {
+            return file(path);
+        }
+    }
+
+    public static Danmaku http(String path) {
         Danmaku danmaku = new Danmaku();
         danmaku.setName(path);
         danmaku.setUrl(path);
-        return List.of(danmaku);
+        return danmaku;
+    }
+
+    public static Danmaku file(String path) {
+        Danmaku danmaku = new Danmaku();
+        danmaku.setName(new File(path).getName());
+        danmaku.setUrl("file:/" + path);
+        return danmaku;
+    }
+
+    public static Danmaku empty() {
+        return new Danmaku();
     }
 
     public String getName() {
@@ -44,5 +65,17 @@ public class Danmaku {
 
     public void setSelected(boolean selected) {
         this.selected = selected;
+    }
+
+    public boolean isEmpty() {
+        return getUrl().isEmpty();
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Danmaku)) return false;
+        Danmaku it = (Danmaku) obj;
+        return getUrl().equals(it.getUrl());
     }
 }

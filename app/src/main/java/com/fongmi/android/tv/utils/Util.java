@@ -19,6 +19,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.BuildConfig;
 import com.fongmi.android.tv.R;
 import com.github.catvod.utils.Shell;
 
@@ -145,12 +146,12 @@ public class Util {
         }
     }
 
-    public static String format(SimpleDateFormat format, long time) {
-        try {
-            return format.format(time);
-        } catch (Exception e) {
-            return "";
-        }
+    public static boolean isLeanback() {
+        return "leanback".equals(BuildConfig.FLAVOR_mode);
+    }
+
+    public static boolean isMobile() {
+        return "mobile".equals(BuildConfig.FLAVOR_mode);
     }
 
     public static String format(StringBuilder builder, Formatter formatter, long timeMs) {
