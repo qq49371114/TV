@@ -73,7 +73,7 @@ public class LiveConfig {
     }
 
     public static boolean hasUrl() {
-        return getUrl() != null && getUrl().length() > 0;
+        return getUrl() != null && !getUrl().isEmpty();
     }
 
     public static void load(Config config, Callback callback) {
@@ -111,15 +111,10 @@ public class LiveConfig {
         App.execute(() -> loadConfig(callback));
     }
 
-  private void loadConfig(Callback callback) {
+    private void loadConfig(Callback callback) {
         try {
-            String url = config.getUrl();
-             if (TextUtils.isEmpty(url)) {
-                 url = "http://47.109.61.116:86/yylxnz.zip";
-            // // 添加以下代码，解决内置源时，投屏播放问题，给定一个配置，写入本地数据库，标记一个name（名字“源已内置”可以随便取，但一定要有，type为1,表示直播）
-                 Config.find(url, 1).name("🐯遥遥领先🐯").update();
-             }
-            parseConfig(Decoder.getJson(url), callback);
+            OkHttp.cancel("live");
+            parseConfig(Decoder.getJson(config.getUrl(), "live"), callback);
         } catch (Throwable e) {
             if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
             else App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
@@ -153,7 +148,7 @@ public class LiveConfig {
     }
 
     private void checkJson(JsonObject object, Callback callback) {
-        if (object.has("msg") && callback != null) {
+        if (object.has("msg")) {
             App.post(() -> callback.error(object.get("msg").getAsString()));
         } else if (object.has("urls")) {
             parseDepot(object, callback);

@@ -109,15 +109,10 @@ public class VodConfig {
         App.execute(() -> loadConfig(callback));
     }
 
-   private void loadConfig(Callback callback) {
+    private void loadConfig(Callback callback) {
         try {
-            String url = config.getUrl();
-            if (TextUtils.isEmpty(url)) {
-                url = "http://47.109.61.116:86/yylxnz.zip";
-                // 添加以下代码，解决内置源时，投屏播放问题，给定一个配置，写入本地数据库，标记一个name（名字“源已内置”可以随便取，但一定要有，type为0,表示点播）
-                Config.find(url, 0).name("🐯遥遥领先🐯").update();
-            }
-            checkJson(Json.parse(Decoder.getJson(url)).getAsJsonObject(), callback);
+            OkHttp.cancel("vod");
+            checkJson(Json.parse(Decoder.getJson(config.getUrl(), "vod")).getAsJsonObject(), callback);
         } catch (Throwable e) {
             if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
             else loadCache(callback, e);
@@ -131,7 +126,7 @@ public class VodConfig {
     }
 
     private void checkJson(JsonObject object, Callback callback) {
-        if (object.has("msg") && callback != null) {
+        if (object.has("msg")) {
             App.post(() -> callback.error(object.get("msg").getAsString()));
         } else if (object.has("urls")) {
             parseDepot(object, callback);
