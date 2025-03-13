@@ -1,0 +1,35 @@
+name: clone
+# 触发器
+on:
+  schedule:
+    - cron: 0 19 * * * #每天在国际标准时间19点(北京时间+8，即 03:00)
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: Ubuntu-22.04
+    steps:
+      # 检出代码
+    - uses: actions/checkout@v3
+      # 删除旧的工作流
+    - name: Delete action workflows
+      uses: Mattraks/delete-workflow-runs@v2
+      with:
+        token: ${{ github.token }}
+        repository: ${{ github.repository }}
+        retain_days: 0 # 
+        keep_minimum_runs: 1 # 
+        
+    - name: Clone project
+      run: |
+        rm -rf ./*
+        git clone -b release --recurse-submodules https://github.com/FongMi/TV Project
+        cp -r Project/* ${{ github.workspace }}
+        rm -rf Project
+        
+    - name: Update files
+      uses: EndBug/add-and-commit@main
+      with:        
+        default_author: github_actions
+        message: 'update files'
+        add: ${{ github.workspace }}/*
