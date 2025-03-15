@@ -33,6 +33,7 @@ package org.nanohttpd.protocols.http;
  * #L%
  */
 
+import io.github.pixee.security.BoundedLineReader;
 import org.nanohttpd.protocols.http.NanoHTTPD.ResponseException;
 import org.nanohttpd.protocols.http.content.ContentType;
 import org.nanohttpd.protocols.http.content.CookieHandler;
@@ -133,7 +134,7 @@ public class HTTPSession implements IHTTPSession {
     private void decodeHeader(BufferedReader in, Map<String, String> pre, Map<String, List<String>> parms, Map<String, String> headers) throws ResponseException {
         try {
             // Read the request line
-            String inLine = in.readLine();
+            String inLine = BoundedLineReader.readLine(in, 5_000_000);
             if (inLine == null) {
                 return;
             }
@@ -172,13 +173,13 @@ public class HTTPSession implements IHTTPSession {
                 protocolVersion = "HTTP/1.1";
                 NanoHTTPD.LOG.log(Level.FINE, "no protocol version specified, strange. Assuming HTTP/1.1.");
             }
-            String line = in.readLine();
+            String line = BoundedLineReader.readLine(in, 5_000_000);
             while (line != null && !line.trim().isEmpty()) {
                 int p = line.indexOf(':');
                 if (p >= 0) {
                     headers.put(line.substring(0, p).trim().toLowerCase(Locale.US), line.substring(p + 1).trim());
                 }
-                line = in.readLine();
+                line = BoundedLineReader.readLine(in, 5_000_000);
             }
 
             pre.put("uri", uri);
@@ -208,7 +209,7 @@ public class HTTPSession implements IHTTPSession {
 
                 int headerLines = 0;
                 // First line is boundary string
-                String mpline = in.readLine();
+                String mpline = BoundedLineReader.readLine(in, 5_000_000);
                 headerLines++;
                 if (mpline == null || !mpline.contains(contentType.getBoundary())) {
                     throw new ResponseException(Status.BAD_REQUEST, "BAD REQUEST: Content type is multipart/form-data but chunk does not start with boundary.");
@@ -216,7 +217,7 @@ public class HTTPSession implements IHTTPSession {
 
                 String partName = null, fileName = null, partContentType = null;
                 // Parse the reset of the header lines
-                mpline = in.readLine();
+                mpline = BoundedLineReader.readLine(in, 5_000_000);
                 headerLines++;
                 while (mpline != null && mpline.trim().length() > 0) {
                     Matcher matcher = NanoHTTPD.CONTENT_DISPOSITION_PATTERN.matcher(mpline);
@@ -244,7 +245,7 @@ public class HTTPSession implements IHTTPSession {
                     if (matcher.matches()) {
                         partContentType = matcher.group(2).trim();
                     }
-                    mpline = in.readLine();
+                    mpline = BoundedLineReader.readLine(in, 5_000_000);
                     headerLines++;
                 }
                 int partHeaderLength = 0;

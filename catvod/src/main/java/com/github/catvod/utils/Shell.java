@@ -1,6 +1,7 @@
 package com.github.catvod.utils;
 
 import com.orhanobut.logger.Logger;
+import io.github.pixee.security.BoundedLineReader;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -15,7 +16,7 @@ public class Shell {
             Process p = Runtime.getRuntime().exec(command);
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line;
-            while ((line = br.readLine()) != null) sb.append(line).append("\n");
+            while ((line = BoundedLineReader.readLine(br, 5_000_000)) != null) sb.append(line).append("\n");
             Logger.t(TAG).d("Shell command '%s' with exit code '%s'", command, p.waitFor());
             return Util.substring(sb.toString());
         } catch (Exception e) {
