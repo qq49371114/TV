@@ -142,7 +142,7 @@ public class JarLoader {
 
     public Object[] proxyInvoke(Map<String, String> params) {
         try {
-            Method method = methods.get(Util.md5(recent));
+            Method method = methods.get(recent);
             if (method == null) return null;
             return (Object[]) method.invoke(null, params);
         } catch (Throwable e) {

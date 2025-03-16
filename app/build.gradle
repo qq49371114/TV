@@ -13,8 +13,8 @@ android {
         minSdk 21
         //noinspection ExpiredTargetSdkVersion
         targetSdk 28
-        versionCode 322
-        versionName "3.2.2"
+        versionCode 330
+        versionName "3.3.0"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString(), "eventBusIndex": "com.fongmi.android.tv.event.EventIndex"]
@@ -60,14 +60,9 @@ android {
 
     packagingOptions {
         resources {
-            excludes += ['META-INF/beans.xml']
+            exclude 'META-INF/beans.xml'
+            exclude 'META-INF/versions/9/OSGI-INF/MANIFEST.MF'
         }
-        pickFirsts.addAll([
-                "lib/x86/libc++_shared.so",
-                "lib/x86_64/libc++_shared.so",
-                "lib/arm64-v8a/libc++_shared.so",
-                "lib/armeabi-v7a/libc++_shared.so"
-        ])
     }
 
     android.applicationVariants.configureEach { variant ->
@@ -137,7 +132,7 @@ dependencies {
     implementation 'org.fourthline.cling:cling-support:2.1.1'
     implementation 'org.greenrobot:eventbus:3.3.1'
     implementation('org.simpleframework:simple-xml:2.7.1') { exclude group: 'stax', module: 'stax-api' exclude group: 'xpp3', module: 'xpp3' }
-    leanbackImplementation 'androidx.leanback:leanback:1.2.0-alpha04'
+    leanbackImplementation 'androidx.leanback:leanback:1.2.0-beta01'
     leanbackImplementation 'com.github.JessYanCoding:AndroidAutoSize:1.2.1'
     mobileImplementation 'androidx.biometric:biometric:1.1.0'
     mobileImplementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'

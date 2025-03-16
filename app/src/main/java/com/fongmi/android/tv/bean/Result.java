@@ -199,7 +199,7 @@ public class Result implements Parcelable {
     }
 
     public List<Sub> getSubs() {
-        return subs == null ? new ArrayList<>() : subs;
+        return subs == null ? new ArrayList<>() : new ArrayList<>(subs);
     }
 
     public JsonElement getHeader() {
@@ -235,7 +235,7 @@ public class Result implements Parcelable {
     }
 
     public List<Danmaku> getDanmaku() {
-        return !Setting.isDanmakuLoad() || danmaku == null ? new ArrayList<>() : danmaku;
+        return !Setting.isDanmakuLoad() || danmaku == null ? new ArrayList<>() : new ArrayList<>(danmaku);
     }
 
     public String getFormat() {

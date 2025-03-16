@@ -5,13 +5,11 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.v4.media.MediaMetadataCompat;
 
 import androidx.annotation.DrawableRes;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.core.app.NotificationCompat;
@@ -21,8 +19,7 @@ import androidx.core.content.ContextCompat;
 import androidx.media.app.NotificationCompat.MediaStyle;
 import androidx.media.session.MediaButtonReceiver;
 
-import com.bumptech.glide.request.target.CustomTarget;
-import com.bumptech.glide.request.transition.Transition;
+import com.bumptech.glide.Glide;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.event.ActionEvent;
@@ -35,13 +32,10 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 public class PlaybackService extends Service {
 
-    private final Map<String, Bitmap> cache = new HashMap<>();
     private static Players player;
 
     public static void start(Players player) {
@@ -99,14 +93,6 @@ public class PlaybackService extends Service {
         b1.recycle();
     }
 
-    private void setArtwork(NotificationCompat.Builder builder) {
-        if (cache.containsKey(getArtUri())) {
-            setLargeIcon(builder, cache.get(getArtUri()));
-        } else {
-            ImgUtil.load(getArtUri(), getCallback(builder));
-        }
-    }
-
     private void addAction(NotificationCompat.Builder builder) {
         builder.addAction(buildNotificationAction(R.drawable.ic_notify_prev, androidx.media3.ui.R.string.exo_controls_previous_description, ActionEvent.PREV));
         builder.addAction(getPlayPauseAction());
@@ -130,19 +116,16 @@ public class PlaybackService extends Service {
         return builder.build();
     }
 
-    private CustomTarget<Bitmap> getCallback(NotificationCompat.Builder builder) {
-        return new CustomTarget<>() {
-            @Override
-            public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                cache.put(getArtUri(), resource);
-                setLargeIcon(builder, resource);
+    private void setArtwork(NotificationCompat.Builder builder) {
+        App.execute(() -> {
+            try {
+                Bitmap bitmap = Glide.with(App.get()).asBitmap().skipMemoryCache(true).dontAnimate().load(ImgUtil.getUrl(getArtUri())).submit().get();
+                setLargeIcon(builder, bitmap);
                 Notify.show(builder.build());
+                bitmap.recycle();
+            } catch (Exception ignored) {
             }
-
-            @Override
-            public void onLoadCleared(@Nullable Drawable placeholder) {
-            }
-        };
+        });
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

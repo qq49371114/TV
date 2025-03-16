@@ -1,5 +1,7 @@
 package com.fongmi.android.tv.api.loader;
 
+import android.text.TextUtils;
+
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Live;
@@ -67,7 +69,7 @@ public class BaseLoader {
         boolean csp = api.startsWith("csp_");
         if (js) jsLoader.setRecent(key);
         else if (py) pyLoader.setRecent(key);
-        else if (csp) jarLoader.setRecent(jar);
+        else if (csp) jarLoader.setRecent(Util.md5(jar));
     }
 
     public Object[] proxyLocal(Map<String, String> params) {
@@ -80,8 +82,10 @@ public class BaseLoader {
         }
     }
 
-    public void parseJar(String jar) {
+    public void parseJar(String jar, boolean recent) {
+        if (TextUtils.isEmpty(jar)) return;
         jarLoader.parseJar(Util.md5(jar), jar);
+        if (recent) jarLoader.setRecent(Util.md5(jar));
     }
 
     public DexClassLoader dex(String jar) {

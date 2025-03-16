@@ -83,6 +83,7 @@ public class Epg {
         for (EpgData item : getList()) {
             item.setStartTime(Util.format(format, getDate().concat(item.getStart())));
             item.setEndTime(Util.format(format, getDate().concat(item.getEnd())));
+            if (item.getEndTime() < item.getStartTime()) item.checkDay();
             item.setTitle(Trans.s2t(item.getTitle()));
         }
     }

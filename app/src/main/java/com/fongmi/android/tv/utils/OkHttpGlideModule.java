@@ -1,11 +1,13 @@
 package com.fongmi.android.tv.utils;
 
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.GlideBuilder;
 import com.bumptech.glide.Registry;
 import com.bumptech.glide.annotation.GlideModule;
 import com.bumptech.glide.integration.okhttp3.OkHttpUrlLoader;
@@ -17,6 +19,11 @@ import java.io.InputStream;
 
 @GlideModule
 public class OkHttpGlideModule extends AppGlideModule {
+
+    @Override
+    public void applyOptions(@NonNull Context context, @NonNull GlideBuilder builder) {
+        builder.setLogLevel(Log.ERROR);
+    }
 
     @Override
     public void registerComponents(@NonNull Context context, @Nullable Glide glide, Registry registry) {

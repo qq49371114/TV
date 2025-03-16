@@ -9,7 +9,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 
 import java.lang.reflect.Type;
-import java.util.Arrays;
 import java.util.List;
 
 public class DanmakuAdapter implements JsonDeserializer<List<Danmaku>> {
@@ -19,6 +18,6 @@ public class DanmakuAdapter implements JsonDeserializer<List<Danmaku>> {
         if (!json.isJsonPrimitive()) return App.gson().fromJson(json, typeOfT);
         String text = json.getAsString().trim();
         if (Json.isArray(text)) return App.gson().fromJson(text, typeOfT);
-        else return Arrays.asList(Danmaku.from(text));
+        else return List.of(Danmaku.from(text));
     }
 }

@@ -73,8 +73,7 @@ public class EpgParser {
             if (!exist.contains(key) && exist.contains(name)) key = name;
             Date startDate = formatFull.parse(programme.getStart());
             Date endDate = formatFull.parse(programme.getStop());
-            if (!exist.contains(key)) continue;
-            if (!isToday(startDate) && !isToday(endDate)) continue;
+            if (!exist.contains(key) || !isToday(startDate)) continue;
             if (!epgMap.containsKey(key)) epgMap.put(key, Epg.create(key, today));
             epgMap.get(key).getList().add(getEpgData(startDate, endDate, programme));
         }

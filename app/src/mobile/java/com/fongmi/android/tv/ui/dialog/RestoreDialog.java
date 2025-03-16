@@ -46,10 +46,6 @@ public class RestoreDialog extends BaseDialog implements RestoreAdapter.OnClickL
         binding.recycler.setHasFixedSize(false);
         binding.recycler.setAdapter(adapter = new RestoreAdapter(this));
         binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 16));
-    }
-
-    @Override
-    public void onItemLoaded() {
         binding.recycler.setVisibility(adapter.getItemCount() == 0 ? View.GONE : View.VISIBLE);
     }
 
@@ -61,7 +57,6 @@ public class RestoreDialog extends BaseDialog implements RestoreAdapter.OnClickL
 
     @Override
     public void onDeleteClick(File item) {
-        if (adapter.getItemCount() == 1) dismiss();
-        adapter.remove(item);
+        if (adapter.remove(item) == 0) dismiss();
     }
 }

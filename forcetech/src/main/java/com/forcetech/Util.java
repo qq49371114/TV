@@ -5,12 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
+import com.forcetech.service.P2PService;
 import com.forcetech.service.P3PService;
 import com.gsoft.mitv.MainActivity;
 
 public class Util {
 
     public static int MTV = 9002;
+    public static int P2P = 9906;
     public static int P3P = 9907;
 
     public static String scheme(String url) {
@@ -35,6 +37,8 @@ public class Util {
 
     private static Class<?> clz(String scheme) {
         switch (scheme) {
+            case "p2p":
+                return P2PService.class;
             case "p3p":
                 return P3PService.class;
             default:
@@ -44,6 +48,8 @@ public class Util {
 
     public static int port(String scheme) {
         switch (scheme) {
+            case "p2p":
+                return P2P;
             case "p3p":
                 return P3P;
             default:

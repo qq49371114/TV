@@ -8,6 +8,8 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.google.gson.annotations.SerializedName;
 
+import java.util.Calendar;
+
 public class EpgData {
 
     @SerializedName("title")
@@ -90,6 +92,13 @@ public class EpgData {
     public String getTime() {
         if (getStart().isEmpty() && getEnd().isEmpty()) return "";
         return getStart() + " ~ " + getEnd();
+    }
+
+    public void checkDay() {
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(getEndTime());
+        cal.add(Calendar.DAY_OF_MONTH, 1);
+        setEndTime(cal.getTimeInMillis());
     }
 
     @Override

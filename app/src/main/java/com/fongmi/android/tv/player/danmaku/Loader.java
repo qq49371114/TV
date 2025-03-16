@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.player.danmaku;
 
+import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.bean.Danmaku;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.net.OkHttp;
@@ -27,7 +28,7 @@ public class Loader implements ILoader {
     public void load(String url) throws IllegalDataException {
         try {
             OkHttp.cancel("danmaku");
-            load(OkHttp.newCall(UrlUtil.convert(url), "danmaku").execute().body().byteStream());
+            load(OkHttp.newCall(OkHttp.client(Constant.TIMEOUT_DANMAKU), UrlUtil.convert(url), "danmaku").execute().body().byteStream());
         } catch (IOException e) {
             e.printStackTrace();
         }

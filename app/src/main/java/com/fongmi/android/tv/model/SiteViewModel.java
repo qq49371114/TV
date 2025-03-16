@@ -37,7 +37,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
-import okhttp3.Response;
 
 public class SiteViewModel extends ViewModel {
 
@@ -76,7 +75,7 @@ public class SiteViewModel extends ViewModel {
             } else if (site.getType() == 4) {
                 ArrayMap<String, String> params = new ArrayMap<>();
                 params.put("filter", "true");
-                String homeContent = call(site, params, false);
+                String homeContent = call(site.fetchExt(), params);
                 SpiderDebug.log(homeContent);
                 return Result.fromJson(homeContent);
             } else {
@@ -102,7 +101,7 @@ public class SiteViewModel extends ViewModel {
                 params.put("ac", site.getType() == 0 ? "videolist" : "detail");
                 params.put("t", tid);
                 params.put("pg", page);
-                String categoryContent = call(site, params, true);
+                String categoryContent = call(site, params);
                 SpiderDebug.log(categoryContent);
                 return Result.fromType(site.getType(), categoryContent);
             }
@@ -132,7 +131,7 @@ public class SiteViewModel extends ViewModel {
                 ArrayMap<String, String> params = new ArrayMap<>();
                 params.put("ac", site.getType() == 0 ? "videolist" : "detail");
                 params.put("ids", id);
-                String detailContent = call(site, params, true);
+                String detailContent = call(site, params);
                 SpiderDebug.log(detailContent);
                 Result result = Result.fromType(site.getType(), detailContent);
                 if (!result.getList().isEmpty()) result.getList().get(0).setVodFlags();
@@ -160,7 +159,7 @@ public class SiteViewModel extends ViewModel {
                 ArrayMap<String, String> params = new ArrayMap<>();
                 params.put("play", id);
                 params.put("flag", flag);
-                String playerContent = call(site, params, true);
+                String playerContent = call(site, params);
                 SpiderDebug.log(playerContent);
                 Result result = Result.fromJson(playerContent);
                 if (result.getFlag().isEmpty()) result.setFlag(flag);
@@ -211,7 +210,7 @@ public class SiteViewModel extends ViewModel {
             ArrayMap<String, String> params = new ArrayMap<>();
             params.put("wd", Trans.t2s(keyword));
             params.put("quick", String.valueOf(quick));
-            String searchContent = call(site, params, true);
+            String searchContent = call(site, params);
             SpiderDebug.log(site.getName() + "," + searchContent);
             post(site, fetchPic(site, Result.fromType(site.getType(), searchContent)));
         }
@@ -229,7 +228,7 @@ public class SiteViewModel extends ViewModel {
                 ArrayMap<String, String> params = new ArrayMap<>();
                 params.put("wd", Trans.t2s(keyword));
                 params.put("pg", page);
-                String searchContent = call(site, params, true);
+                String searchContent = call(site, params);
                 SpiderDebug.log(site.getName() + "," + searchContent);
                 Result result = fetchPic(site, Result.fromType(site.getType(), searchContent));
                 for (Vod vod : result.getList()) vod.setSite(site);
@@ -238,28 +237,15 @@ public class SiteViewModel extends ViewModel {
         });
     }
 
-    private String call(Site site, ArrayMap<String, String> params, boolean limit) throws IOException {
-        Call call = fetchExt(site, params, limit).length() <= 1000 ? OkHttp.newCall(site.getApi(), site.getHeaders(), params) : OkHttp.newCall(site.getApi(), site.getHeaders(), OkHttp.toBody(params));
-        return call.execute().body().string();
-    }
-
-    private String fetchExt(Site site, ArrayMap<String, String> params, boolean limit) throws IOException {
-        String extend = site.getExt();
-        if (extend.startsWith("http")) extend = fetchExt(site);
-        if (limit && extend.length() > 1000) extend = extend.substring(0, 1000);
-        if (!extend.isEmpty()) params.put("extend", extend);
-        return extend;
-    }
-
-    private String fetchExt(Site site) throws IOException {
-        Response res = OkHttp.newCall(site.getExt(), site.getHeaders()).execute();
-        if (res.code() != 200) return "";
-        site.setExt(res.body().string());
-        return site.getExt();
+    private String call(Site site, ArrayMap<String, String> params) throws IOException {
+        if (!site.getExt().isEmpty()) params.put("extend", site.getExt());
+        Call get = OkHttp.newCall(site.getApi(), site.getHeaders(), params);
+        Call post = OkHttp.newCall(site.getApi(), site.getHeaders(), OkHttp.toBody(params));
+        return (site.getExt().length() <= 1000 ? get : post).execute().body().string();
     }
 
     private Result fetchPic(Site site, Result result) throws Exception {
-        if (site.getType() > 2 || result.getList().isEmpty() || result.getList().get(0).getVodPic().length() > 0) return result;
+        if (site.getType() > 2 || result.getList().isEmpty() || !result.getList().get(0).getVodPic().isEmpty()) return result;
         ArrayList<String> ids = new ArrayList<>();
         if (site.getCategories().isEmpty()) for (Vod item : result.getList()) ids.add(item.getVodId());
         else for (Vod item : result.getList()) if (site.getCategories().contains(item.getTypeName())) ids.add(item.getVodId());

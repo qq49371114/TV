@@ -27,7 +27,10 @@ import com.github.catvod.utils.Path;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 @Database(entities = {Keep.class, Site.class, Live.class, Track.class, Config.class, Device.class, History.class}, version = AppDatabase.VERSION)
@@ -58,6 +61,7 @@ public abstract class AppDatabase extends RoomDatabase {
                 Path.write(file, backup.toString().getBytes());
                 FileUtil.gzipCompress(file);
                 App.post(callback::success);
+                cleanOld();
             }
         });
     }
@@ -75,6 +79,15 @@ public abstract class AppDatabase extends RoomDatabase {
                 App.post(callback::success);
             }
         });
+    }
+
+    private static void cleanOld() {
+        List<File> items = new ArrayList<>();
+        File[] files = Path.tv().listFiles();
+        if (files == null) files = new File[0];
+        for (File file : files) if (file.getName().startsWith("tv") && file.getName().endsWith(".bk.gz")) items.add(file);
+        if (!items.isEmpty()) Collections.sort(items, (f1, f2) -> Long.compare(f2.lastModified(), f1.lastModified()));
+        if (items.size() > 7) for (int i = 7; i < items.size(); i++) Path.clear(items.get(i));
     }
 
     private static AppDatabase create(Context context) {

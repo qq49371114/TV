@@ -1,6 +1,7 @@
 package com.fongmi.android.tv;
 
 public class Constant {
+
     //快進時間單位
     public static final int INTERVAL_SEEK = 10 * 1000;
     //控件隱藏時間
@@ -17,6 +18,8 @@ public class Constant {
     public static final int TIMEOUT_XML = 15 * 1000;
     //播放超時時間
     public static final int TIMEOUT_PLAY = 15 * 1000;
+    //彈幕超時時間
+    public static final int TIMEOUT_DANMAKU = 30 * 1000;
     //解析預設時間
     public static final int TIMEOUT_PARSE_DEF = 15 * 1000;
     //嗅探超時時間
@@ -27,4 +30,5 @@ public class Constant {
     public static final int TIMEOUT_SYNC = 2 * 1000;
     //搜尋線程數量
     public static final int THREAD_POOL = 10;
+
 }

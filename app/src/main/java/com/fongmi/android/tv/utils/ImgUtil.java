@@ -34,10 +34,6 @@ public class ImgUtil {
         return new ObjectKey(url + "_" + Setting.getQuality());
     }
 
-    public static void load(String url, CustomTarget<Bitmap> target) {
-        if (!TextUtils.isEmpty(url)) Glide.with(App.get()).asBitmap().load(getUrl(url)).override(ResUtil.getScreenWidth(), ResUtil.getScreenHeight()).skipMemoryCache(true).dontAnimate().signature(getSignature(url)).into(target);
-    }
-
     public static void load(String url, int error, CustomTarget<Drawable> target) {
         if (TextUtils.isEmpty(url)) target.onLoadFailed(ResUtil.getDrawable(error));
         else Glide.with(App.get()).asDrawable().load(getUrl(url)).override(ResUtil.getScreenWidth(), ResUtil.getScreenHeight()).error(error).skipMemoryCache(true).dontAnimate().signature(getSignature(url)).into(target);

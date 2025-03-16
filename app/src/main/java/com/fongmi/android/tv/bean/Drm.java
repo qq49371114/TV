@@ -5,6 +5,8 @@ import android.text.TextUtils;
 import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
 
+import com.github.catvod.utils.Json;
+import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.UUID;
@@ -15,6 +17,10 @@ public class Drm {
     private String key;
     @SerializedName("type")
     private String type;
+    @SerializedName("forceKey")
+    private boolean forceKey;
+    @SerializedName("header")
+    private JsonElement header;
 
     public static Drm create(String key, String type) {
         return new Drm(key, type);
@@ -33,6 +39,14 @@ public class Drm {
         return TextUtils.isEmpty(type) ? "" : type;
     }
 
+    public boolean isForceKey() {
+        return forceKey;
+    }
+
+    private JsonElement getHeader() {
+        return header;
+    }
+
     public UUID getUUID() {
         if (getType().contains("playready")) return C.PLAYREADY_UUID;
         if (getType().contains("widevine")) return C.WIDEVINE_UUID;
@@ -41,6 +55,11 @@ public class Drm {
     }
 
     public MediaItem.DrmConfiguration get() {
-        return new MediaItem.DrmConfiguration.Builder(getUUID()).setLicenseUri(getKey()).setMultiSession(!getType().contains("clearkey")).build();
+        MediaItem.DrmConfiguration.Builder builder = new MediaItem.DrmConfiguration.Builder(getUUID());
+        builder.setMultiSession(!C.CLEARKEY_UUID.equals(getUUID()));
+        builder.setLicenseRequestHeaders(Json.toMap(getHeader()));
+        builder.setForceDefaultLicenseUri(isForceKey());
+        builder.setLicenseUri(getKey());
+        return builder.build();
     }
 }
