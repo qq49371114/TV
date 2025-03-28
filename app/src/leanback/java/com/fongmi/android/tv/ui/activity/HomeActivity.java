@@ -484,7 +484,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         WallConfig.get().clear();
         LiveConfig.get().clear();
         VodConfig.get().clear();
@@ -492,5 +491,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         AppDatabase.backup();
         Server.get().stop();
         Source.get().exit();
+        super.onDestroy();
     }
 }

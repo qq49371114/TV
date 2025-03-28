@@ -79,8 +79,8 @@ public class Sub {
         this.name = Trans.s2t(name);
     }
 
-    public MediaItem.SubtitleConfiguration getConfig() {
-        return new MediaItem.SubtitleConfiguration.Builder(Uri.parse(getUrl())).setLabel(getName()).setMimeType(getFormat()).setSelectionFlags(getFlag()).setLanguage(getLang()).build();
+    public MediaItem.SubtitleConfiguration getConfig(int id) {
+        return new MediaItem.SubtitleConfiguration.Builder(Uri.parse(getUrl())).setId(String.valueOf(id)).setLabel(getName()).setMimeType(getFormat()).setSelectionFlags(getFlag()).setLanguage(getLang()).build();
     }
 
     @Override

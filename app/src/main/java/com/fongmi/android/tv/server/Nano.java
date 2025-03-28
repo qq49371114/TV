@@ -7,7 +7,7 @@ import com.fongmi.android.tv.server.process.Cache;
 import com.fongmi.android.tv.server.process.Local;
 import com.fongmi.android.tv.server.process.Media;
 import com.fongmi.android.tv.server.process.Parse;
-import com.fongmi.android.tv.server.process.Process;
+import com.fongmi.android.tv.server.impl.Process;
 import com.fongmi.android.tv.server.process.Proxy;
 import com.github.catvod.utils.Asset;
 

@@ -14,16 +14,18 @@ import com.github.catvod.net.OkHttp;
 import com.google.common.net.HttpHeaders;
 
 import java.util.HashSet;
+import java.util.regex.Pattern;
 
 import okhttp3.Headers;
 
 public class Force implements Source.Extractor {
 
+    private static final Pattern PATTERN = Pattern.compile("(?i)(p[2-9]p|mitv)");
     private final HashSet<String> set = new HashSet<>();
 
     @Override
     public boolean match(String scheme, String host) {
-        return !"push".equals(scheme) && scheme.startsWith("p") || "mitv".equals(scheme);
+        return PATTERN.matcher(scheme).find();
     }
 
     private void init(String scheme) {

@@ -20,7 +20,7 @@ import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.api.config.WallConfig;
 import com.fongmi.android.tv.bean.Config;
-import com.fongmi.android.tv.databinding.ActivityMainBinding;
+import com.fongmi.android.tv.databinding.ActivityHomeBinding;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.event.ServerEvent;
@@ -43,14 +43,14 @@ import com.google.android.material.navigation.NavigationBarView;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-public class MainActivity extends BaseActivity implements NavigationBarView.OnItemSelectedListener {
+public class HomeActivity extends BaseActivity implements NavigationBarView.OnItemSelectedListener {
 
-    private ActivityMainBinding mBinding;
+    private ActivityHomeBinding mBinding;
     private FragmentStateManager mManager;
 
     @Override
     protected ViewBinding getBinding() {
-        return mBinding = ActivityMainBinding.inflate(getLayoutInflater());
+        return mBinding = ActivityHomeBinding.inflate(getLayoutInflater());
     }
 
     @Override
@@ -204,7 +204,6 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         WallConfig.get().clear();
         LiveConfig.get().clear();
         VodConfig.get().clear();
@@ -212,5 +211,6 @@ public class MainActivity extends BaseActivity implements NavigationBarView.OnIt
         AppDatabase.backup();
         Source.get().exit();
         Server.get().stop();
+        super.onDestroy();
     }
 }

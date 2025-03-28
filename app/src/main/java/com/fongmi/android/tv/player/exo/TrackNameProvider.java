@@ -172,8 +172,6 @@ public class TrackNameProvider {
                 return "AMR-NB";
             case MimeTypes.AUDIO_AMR_WB:
                 return "AMR-WB";
-            case MimeTypes.AUDIO_IAMF:
-                return "IAMF";
             case MimeTypes.VIDEO_MP4:
                 return "MP4";
             case MimeTypes.VIDEO_FLV:

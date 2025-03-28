@@ -306,6 +306,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.actor.setOnClickListener(view -> onActor());
         mBinding.content.setOnClickListener(view -> onContent());
         mBinding.reverse.setOnClickListener(view -> onReverse());
+        mBinding.director.setOnClickListener(view -> onDirector());
         mBinding.name.setOnLongClickListener(view -> onChange());
         mBinding.content.setOnLongClickListener(view -> onCopy());
         mBinding.control.cast.setOnClickListener(view -> onCast());
@@ -631,6 +632,10 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void onActor() {
         mBinding.actor.setMaxLines(mBinding.actor.getMaxLines() == 1 ? Integer.MAX_VALUE : 1);
+    }
+
+    private void onDirector() {
+        mBinding.director.setMaxLines(mBinding.director.getMaxLines() == 1 ? Integer.MAX_VALUE : 1);
     }
 
     private void onContent() {

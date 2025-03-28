@@ -59,6 +59,7 @@ public class OkHttp {
     }
 
     public void clear() {
+        cancelAll();
         dns().clear();
         selector().clear();
         requestInterceptor().clear();
@@ -167,6 +168,10 @@ public class OkHttp {
     public static void cancel(String tag) {
         for (Call call : client().dispatcher().queuedCalls()) if (tag.equals(call.request().tag())) call.cancel();
         for (Call call : client().dispatcher().runningCalls()) if (tag.equals(call.request().tag())) call.cancel();
+    }
+
+    public static void cancelAll() {
+        client().dispatcher().cancelAll();
     }
 
     public static FormBody toBody(ArrayMap<String, String> params) {

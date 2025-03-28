@@ -217,6 +217,14 @@ public class Setting {
         Prefers.put("caption", caption);
     }
 
+    public static boolean isLibAss() {
+        return Prefers.getBoolean("libass");
+    }
+
+    public static void putLibAss(boolean libass) {
+        Prefers.put("libass", libass);
+    }
+
     public static boolean isTunnel() {
         return Prefers.getBoolean("tunnel");
     }

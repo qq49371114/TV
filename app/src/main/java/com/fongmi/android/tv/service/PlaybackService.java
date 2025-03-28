@@ -32,10 +32,13 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public class PlaybackService extends Service {
 
+    private Map<String, Bitmap> cache;
     private static Players player;
 
     public static void start(Players player) {
@@ -117,15 +120,21 @@ public class PlaybackService extends Service {
     }
 
     private void setArtwork(NotificationCompat.Builder builder) {
-        App.execute(() -> {
-            try {
-                Bitmap bitmap = Glide.with(App.get()).asBitmap().skipMemoryCache(true).dontAnimate().load(ImgUtil.getUrl(getArtUri())).submit().get();
-                setLargeIcon(builder, bitmap);
-                Notify.show(builder.build());
-                bitmap.recycle();
-            } catch (Exception ignored) {
-            }
-        });
+        if (cache.containsKey(getArtUri())) {
+            setLargeIcon(builder, cache.get(getArtUri()));
+        } else {
+            App.execute(() -> glide(builder));
+        }
+    }
+
+    private void glide(NotificationCompat.Builder builder) {
+        try {
+            cache.put(getArtUri(), Glide.with(App.get()).asBitmap().skipMemoryCache(true).dontAnimate().load(ImgUtil.getUrl(getArtUri())).submit().get());
+            setLargeIcon(builder, cache.get(getArtUri()));
+            Notify.show(builder.build());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -136,6 +145,7 @@ public class PlaybackService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        cache = new HashMap<>();
         EventBus.getDefault().register(this);
     }
 

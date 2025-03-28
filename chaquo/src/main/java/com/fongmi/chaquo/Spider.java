@@ -92,14 +92,13 @@ public class Spider extends com.github.catvod.crawler.Spider {
     @Override
     public Object[] proxyLocal(Map<String, String> params) {
         List<PyObject> list = app.callAttr("localProxy", obj, gson.toJson(params)).asList();
-        Map<PyObject, PyObject> headers = list.size() > 3 ? list.get(3).asMap() : null;
         boolean base64 = list.size() > 4 && list.get(4).toInt() == 1;
-        PyObject r2 = list.get(2);
+        boolean header = list.size() > 3 && list.get(3) != null;
         Object[] result = new Object[4];
         result[0] = list.get(0).toInt();
         result[1] = list.get(1).toString();
-        result[2] = r2 == null ? null : getStream(r2, base64);
-        result[3] = headers;
+        result[2] = getStream(list.get(2), base64);
+        result[3] = header ? getHeader(list.get(3)) : null;
         return result;
     }
 
@@ -116,14 +115,22 @@ public class Spider extends com.github.catvod.crawler.Spider {
         }
     }
 
-    private ByteArrayInputStream getStream(PyObject o, boolean base64) {
-        if (o.type().toString().contains("bytes")) {
-            return new ByteArrayInputStream(o.toJava(byte[].class));
-        } else {
-            String content = o.toString();
-            if (base64 && content.contains("base64,")) content = content.split("base64,")[1];
-            return new ByteArrayInputStream(base64 ? Util.decode(content) : content.getBytes());
+    private Map<String, String> getHeader(PyObject obj) {
+        try {
+            Map<String, String> header = new HashMap<>();
+            for (Map.Entry<PyObject, PyObject> entry : obj.asMap().entrySet()) header.put(entry.getKey().toString(), entry.getValue().toString());
+            return header;
+        } catch (Exception e) {
+            return null;
         }
+    }
+
+    private ByteArrayInputStream getStream(PyObject o, boolean base64) {
+        if (o == null) return null;
+        if (o.type().toString().contains("bytes")) return new ByteArrayInputStream(o.toJava(byte[].class));
+        String content = o.toString();
+        if (base64 && content.contains("base64,")) content = content.split("base64,")[1];
+        return new ByteArrayInputStream(base64 ? Util.decode(content) : content.getBytes());
     }
 
     private void download(String name) {

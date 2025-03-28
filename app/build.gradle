@@ -13,8 +13,8 @@ android {
         minSdk 21
         //noinspection ExpiredTargetSdkVersion
         targetSdk 28
-        versionCode 330
-        versionName "3.3.0"
+        versionCode 337
+        versionName "3.3.7"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString(), "eventBusIndex": "com.fongmi.android.tv.event.EventIndex"]
@@ -102,6 +102,7 @@ dependencies {
     implementation 'androidx.media3:media3-datasource-okhttp:' + media3Version
     implementation 'androidx.media3:media3-datasource-rtmp:' + media3Version
     implementation 'androidx.media3:media3-decoder:' + media3Version
+    implementation 'androidx.media3:media3-effect:' + media3Version
     implementation 'androidx.media3:media3-exoplayer:' + media3Version
     implementation 'androidx.media3:media3-exoplayer-dash:' + media3Version
     implementation 'androidx.media3:media3-exoplayer-hls:' + media3Version
@@ -124,6 +125,7 @@ dependencies {
     implementation 'com.guolindev.permissionx:permissionx:1.8.0'
     implementation 'com.hierynomus:smbj:0.14.0'
     implementation 'io.antmedia:rtmp-client:3.2.0'
+    implementation('io.github.peerless2012:ass-media:0.2.0') { exclude group: 'androidx.media3' }
     implementation 'javax.servlet:javax.servlet-api:3.1.0'
     implementation 'org.eclipse.jetty:jetty-client:8.1.21.v20160908'
     implementation('org.eclipse.jetty:jetty-server:8.1.21.v20160908') { exclude group: 'org.eclipse.jetty.orbit', module: 'javax.servlet' }

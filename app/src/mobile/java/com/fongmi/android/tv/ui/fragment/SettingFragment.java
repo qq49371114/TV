@@ -30,7 +30,7 @@ import com.fongmi.android.tv.impl.LiveCallback;
 import com.fongmi.android.tv.impl.ProxyCallback;
 import com.fongmi.android.tv.impl.SiteCallback;
 import com.fongmi.android.tv.player.Source;
-import com.fongmi.android.tv.ui.activity.MainActivity;
+import com.fongmi.android.tv.ui.activity.HomeActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
@@ -80,8 +80,8 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
         return list.toArray(new String[0]);
     }
 
-    private MainActivity getRoot() {
-        return (MainActivity) getActivity();
+    private HomeActivity getRoot() {
+        return (HomeActivity) getActivity();
     }
 
     @Override

@@ -49,6 +49,7 @@ public class SettingPlayerActivity extends BaseActivity implements UaCallback, B
         format = new DecimalFormat("0.#");
         mBinding.render.requestFocus();
         mBinding.uaText.setText(Setting.getUa());
+        mBinding.libassText.setText(getSwitch(Setting.isLibAss()));
         mBinding.tunnelText.setText(getSwitch(Setting.isTunnel()));
         mBinding.speedText.setText(format.format(Setting.getSpeed()));
         mBinding.bufferText.setText(String.valueOf(Setting.getBuffer()));
@@ -68,6 +69,7 @@ public class SettingPlayerActivity extends BaseActivity implements UaCallback, B
         mBinding.scale.setOnClickListener(this::setScale);
         mBinding.speed.setOnClickListener(this::onSpeed);
         mBinding.buffer.setOnClickListener(this::onBuffer);
+        mBinding.libass.setOnClickListener(this::setLibAss);
         mBinding.render.setOnClickListener(this::setRender);
         mBinding.tunnel.setOnClickListener(this::setTunnel);
         mBinding.caption.setOnClickListener(this::setCaption);
@@ -122,6 +124,11 @@ public class SettingPlayerActivity extends BaseActivity implements UaCallback, B
     public void setBuffer(int times) {
         mBinding.bufferText.setText(String.valueOf(times));
         Setting.putBuffer(times);
+    }
+
+    private void setLibAss(View view) {
+        Setting.putLibAss(!Setting.isLibAss());
+        mBinding.libassText.setText(getSwitch(Setting.isLibAss()));
     }
 
     private void setRender(View view) {

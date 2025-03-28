@@ -44,6 +44,7 @@ public class OkCookieJar implements CookieJar {
         try {
             if (TextUtils.isEmpty(cookie)) return;
             for (String split : cookie.split(";")) get().manager.setCookie(url, split);
+            get().manager.flush();
         } catch (Throwable ignored) {
         }
     }
@@ -72,6 +73,7 @@ public class OkCookieJar implements CookieJar {
         try {
             if ("127.0.0.1".equals(url.host())) return;
             for (Cookie cookie : cookies) manager.setCookie(url.toString(), cookie.toString());
+            manager.flush();
         } catch (Throwable ignored) {
         }
     }

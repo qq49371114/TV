@@ -66,6 +66,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import io.github.peerless2012.ass.media.AssHandler;
+import io.github.peerless2012.ass.media.parser.AssSubtitleParserFactory;
+import io.github.peerless2012.ass.media.type.AssRenderType;
 import master.flame.danmaku.controller.DrawHandler;
 import master.flame.danmaku.danmaku.model.BaseDanmaku;
 import master.flame.danmaku.danmaku.model.DanmakuTimer;
@@ -131,8 +134,11 @@ public class Players implements Player.Listener, ParseCallback, DrawHandler.Call
     }
 
     private void setPlayer(PlayerView view) {
-        exoPlayer = new ExoPlayer.Builder(App.get()).setLoadControl(ExoUtil.buildLoadControl()).setTrackSelector(ExoUtil.buildTrackSelector()).setRenderersFactory(ExoUtil.buildRenderersFactory(isHard() ? EXTENSION_RENDERER_MODE_ON : EXTENSION_RENDERER_MODE_PREFER)).setMediaSourceFactory(ExoUtil.buildMediaSourceFactory()).build();
+        AssHandler assHandler = new AssHandler(AssRenderType.OPEN_GL);
+        AssSubtitleParserFactory subtitleParserFactory = new AssSubtitleParserFactory(assHandler);
+        exoPlayer = new ExoPlayer.Builder(App.get()).setLoadControl(ExoUtil.buildLoadControl()).setTrackSelector(ExoUtil.buildTrackSelector()).setRenderersFactory(ExoUtil.buildRenderersFactory(isHard() ? EXTENSION_RENDERER_MODE_ON : EXTENSION_RENDERER_MODE_PREFER)).setMediaSourceFactory(ExoUtil.buildMediaSourceFactory(assHandler, subtitleParserFactory)).build();
         exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, true);
+        if (Setting.isLibAss()) assHandler.init(exoPlayer);
         exoPlayer.addAnalyticsListener(new EventLogger());
         exoPlayer.setHandleAudioBecomingNoisy(true);
         exoPlayer.setPlayWhenReady(true);
@@ -186,6 +192,10 @@ public class Players implements Player.Listener, ParseCallback, DrawHandler.Call
     public void reset() {
         removeTimeoutCheck();
         retry = 0;
+    }
+
+    public void clearMediaItems() {
+        if (exoPlayer != null) exoPlayer.clearMediaItems();
     }
 
     public void clear() {
@@ -263,10 +273,6 @@ public class Players implements Player.Listener, ParseCallback, DrawHandler.Call
 
     public boolean isHard() {
         return decode == HARD;
-    }
-
-    public boolean isSoft() {
-        return decode == SOFT;
     }
 
     public boolean isPortrait() {
