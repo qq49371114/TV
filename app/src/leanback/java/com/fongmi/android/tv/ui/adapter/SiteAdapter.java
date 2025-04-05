@@ -13,6 +13,7 @@ import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.AdapterSiteBinding;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
@@ -23,7 +24,8 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
 
     public SiteAdapter(OnClickListener listener) {
         this.mListener = listener;
-        this.mItems = VodConfig.get().getSites();
+        this.mItems = new ArrayList<>();
+        this.addAll();
     }
 
     public interface OnClickListener {
@@ -42,6 +44,14 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
 
     public void cancelAll() {
         setEnable(type == 3);
+    }
+
+    private void addAll() {
+        for (Site site : VodConfig.get().getSites()) if (!site.isHide()) mItems.add(site);
+    }
+
+    public List<Site> getItems() {
+        return mItems;
     }
 
     @Override
@@ -88,8 +98,8 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
     }
 
     private void setEnable(boolean enable) {
-        if (type == 1) for (Site site : VodConfig.get().getSites()) site.setSearchable(enable).save();
-        if (type == 2) for (Site site : VodConfig.get().getSites()) site.setChangeable(enable).save();
+        if (type == 1) for (Site site : mItems) site.setSearchable(enable).save();
+        if (type == 2) for (Site site : mItems) site.setChangeable(enable).save();
         notifyItemRangeChanged(0, getItemCount());
     }
 

@@ -48,6 +48,8 @@ import org.fourthline.cling.support.contentdirectory.DIDLParser;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.UUID;
+
 public class CastActivity extends BaseActivity implements CustomKeyDownCast.Listener, TrackDialog.Listener, RenderControl, ServiceConnection, Clock.Callback {
 
     private ActivityCastBinding mBinding;
@@ -62,6 +64,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     private boolean redirect;
     private long position;
     private long duration;
+    private String tag;
     private int scale;
 
     public static void start(Activity activity) {
@@ -141,6 +144,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
         PlaybackService.start(mPlayers);
         setScale(scale = Setting.getScale());
         ExoUtil.setSubtitleView(mBinding.exo);
+        mPlayers.setTag(tag = UUID.randomUUID().toString());
         findViewById(R.id.timeBar).setNextFocusUpId(R.id.reset);
         mBinding.control.speed.setText(mPlayers.getSpeedText());
         mBinding.control.decode.setText(mPlayers.getDecodeText());
@@ -295,6 +299,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onPlayerEvent(PlayerEvent event) {
+        if (!event.getTag().equals(tag)) return;
         switch (event.getState()) {
             case PlayerEvent.PREPARE:
                 setDecode();
@@ -340,6 +345,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
+        if (!event.getTag().equals(tag)) return;
         if (mPlayers.retried()) onError(event);
         else onReset();
     }

@@ -6,15 +6,15 @@ android {
     namespace 'com.fongmi.android.tv'
 
     compileSdk 35
-    flavorDimensions = ["mode", "api", "abi"]
+    flavorDimensions = ["mode", "abi"]
 
     defaultConfig {
         applicationId "com.fongmi.android.tv"
         minSdk 21
         //noinspection ExpiredTargetSdkVersion
         targetSdk 28
-        versionCode 337
-        versionName "3.3.7"
+        versionCode 349
+        versionName "3.4.9"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString(), "eventBusIndex": "com.fongmi.android.tv.event.EventIndex"]
@@ -28,12 +28,6 @@ android {
         }
         mobile {
             dimension "mode"
-        }
-        java {
-            dimension "api"
-        }
-        python {
-            dimension "api"
         }
         arm64_v8a {
             dimension "abi"
@@ -67,7 +61,7 @@ android {
 
     android.applicationVariants.configureEach { variant ->
         variant.outputs.configureEach { output ->
-            outputFileName = "${variant.productFlavors[0].name}-${variant.productFlavors[1].name}-${variant.productFlavors[2].name}.apk"
+            outputFileName = "${variant.productFlavors[0].name}-${variant.productFlavors[1].name}.apk"
         }
     }
 
@@ -91,8 +85,8 @@ android {
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.aar"])
     implementation project(':catvod')
+    implementation project(':chaquo')
     implementation project(':quickjs')
-    pythonImplementation project(':chaquo')
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.media:media:1.7.0'
     implementation 'androidx.media3:media3-common:' + media3Version
@@ -125,7 +119,6 @@ dependencies {
     implementation 'com.guolindev.permissionx:permissionx:1.8.0'
     implementation 'com.hierynomus:smbj:0.14.0'
     implementation 'io.antmedia:rtmp-client:3.2.0'
-    implementation('io.github.peerless2012:ass-media:0.2.0') { exclude group: 'androidx.media3' }
     implementation 'javax.servlet:javax.servlet-api:3.1.0'
     implementation 'org.eclipse.jetty:jetty-client:8.1.21.v20160908'
     implementation('org.eclipse.jetty:jetty-server:8.1.21.v20160908') { exclude group: 'org.eclipse.jetty.orbit', module: 'javax.servlet' }

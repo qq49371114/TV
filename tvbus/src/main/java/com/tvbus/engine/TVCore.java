@@ -6,14 +6,11 @@ import com.github.catvod.Init;
 
 public class TVCore {
 
-    private long handle;
+    private final long handle;
 
     public TVCore(String so) {
-        try {
-            System.load(so);
-            handle = initialise();
-        } catch (Throwable ignored) {
-        }
+        System.load(so);
+        handle = initialise();
     }
 
     public TVCore listener(Listener listener) {
@@ -54,7 +51,7 @@ public class TVCore {
 
     public TVCore auth(String str) {
         try {
-            if (str.length() > 0) setAuthUrl(handle, str);
+            if (!str.isEmpty()) setAuthUrl(handle, str);
             return this;
         } catch (Throwable ignored) {
             return this;
@@ -63,7 +60,7 @@ public class TVCore {
 
     public TVCore domain(String str) {
         try {
-            if (str.length() > 0) setDomainSuffix(handle, str);
+            if (!str.isEmpty()) setDomainSuffix(handle, str);
             return this;
         } catch (Throwable ignored) {
             return this;
@@ -72,7 +69,7 @@ public class TVCore {
 
     public TVCore broker(String str) {
         try {
-            if (str.length() > 0) setMKBroker(handle, str);
+            if (!str.isEmpty()) setMKBroker(handle, str);
             return this;
         } catch (Throwable ignored) {
             return this;
@@ -81,7 +78,7 @@ public class TVCore {
 
     public TVCore name(String str) {
         try {
-            if (str.length() > 0) setUsername(handle, str);
+            if (!str.isEmpty()) setUsername(handle, str);
             return this;
         } catch (Throwable ignored) {
             return this;
@@ -90,15 +87,16 @@ public class TVCore {
 
     public TVCore pass(String str) {
         try {
-            if (str.length() > 0) setPassword(handle, str);
+            if (!str.isEmpty()) setPassword(handle, str);
             return this;
         } catch (Throwable ignored) {
             return this;
         }
     }
 
-    public void init() {
+    public TVCore init() {
         new Thread(this::start).start();
+        return this;
     }
 
     private void start() {

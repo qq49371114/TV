@@ -124,7 +124,7 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
 
     @Override
     public void onItemClick(Track item) {
-        player.setTrack(Arrays.asList(item.key(player.getUrl()).save()));
+        player.setTrack(Arrays.asList(item.key(player.getKey()).save()));
         if (item.isAdaptive()) return;
         dismiss();
     }
@@ -133,7 +133,7 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode != Activity.RESULT_OK || requestCode != FileChooser.REQUEST_PICK_FILE) return;
-        App.post(() -> player.setSub(Sub.from(FileChooser.getPathFromUri(data.getData()))), 250);
+        player.setSub(Sub.from(FileChooser.getPathFromUri(data.getData())));
         dismiss();
     }
 

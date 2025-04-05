@@ -14,6 +14,7 @@ import androidx.core.graphics.drawable.IconCompat;
 import androidx.fragment.app.Fragment;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Updater;
 import com.fongmi.android.tv.api.config.LiveConfig;
@@ -45,8 +46,9 @@ import org.greenrobot.eventbus.ThreadMode;
 
 public class HomeActivity extends BaseActivity implements NavigationBarView.OnItemSelectedListener {
 
-    private ActivityHomeBinding mBinding;
     private FragmentStateManager mManager;
+    private ActivityHomeBinding mBinding;
+    private int orientation;
 
     @Override
     protected ViewBinding getBinding() {
@@ -61,6 +63,7 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
 
     @Override
     protected void initView(Bundle savedInstanceState) {
+        orientation = getResources().getConfiguration().orientation;
         Updater.create().release().start(this);
         initFragment(savedInstanceState);
         Server.get().start();
@@ -173,8 +176,8 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         if (mBinding.navigation.getSelectedItemId() == item.getItemId()) return false;
-        if (item.getItemId() == R.id.vod) return mManager.change(0);
         if (item.getItemId() == R.id.setting) return mManager.change(1);
+        if (item.getItemId() == R.id.vod) return mManager.change(0);
         if (item.getItemId() == R.id.live) return openLive();
         return false;
     }
@@ -182,7 +185,14 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        RefreshEvent.video();
+        App.post(() -> checkOrientation(newConfig), 100);
+    }
+
+    private void checkOrientation(Configuration newConfig) {
+        if (orientation != newConfig.orientation) {
+            orientation = newConfig.orientation;
+            RefreshEvent.video();
+        }
     }
 
     protected boolean handleBack() {

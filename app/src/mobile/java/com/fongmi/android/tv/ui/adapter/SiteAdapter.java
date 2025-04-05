@@ -12,6 +12,7 @@ import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.AdapterSiteBinding;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
@@ -23,7 +24,8 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
 
     public SiteAdapter(OnClickListener listener) {
         this.mListener = listener;
-        this.mItems = VodConfig.get().getSites();
+        this.mItems = new ArrayList<>();
+        this.addAll();
     }
 
     public SiteAdapter search(boolean search) {
@@ -34,6 +36,14 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
     public SiteAdapter change(boolean change) {
         this.change = change;
         return this;
+    }
+
+    private void addAll() {
+        for (Site site : VodConfig.get().getSites()) if (!site.isHide()) mItems.add(site);
+    }
+
+    public List<Site> getItems() {
+        return mItems;
     }
 
     public interface OnClickListener {

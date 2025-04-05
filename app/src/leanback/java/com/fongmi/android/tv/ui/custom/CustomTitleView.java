@@ -18,6 +18,7 @@ import com.fongmi.android.tv.impl.SiteCallback;
 import com.fongmi.android.tv.utils.KeyUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CustomTitleView extends AppCompatTextView {
@@ -41,7 +42,7 @@ public class CustomTitleView extends AppCompatTextView {
     }
 
     private boolean hasEvent(KeyEvent event) {
-        return KeyUtil.isEnterKey(event) || KeyUtil.isLeftKey(event) || KeyUtil.isRightKey(event) || (KeyUtil.isUpKey(event) && !coolDown);
+        return !getSites().isEmpty() && (KeyUtil.isEnterKey(event) || KeyUtil.isLeftKey(event) || KeyUtil.isRightKey(event) || (KeyUtil.isUpKey(event) && !coolDown));
     }
 
     @Override
@@ -53,7 +54,6 @@ public class CustomTitleView extends AppCompatTextView {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (VodConfig.get().getSites().isEmpty()) return false;
         if (hasEvent(event)) return onKeyDown(event);
         else return super.dispatchKeyEvent(event);
     }
@@ -78,11 +78,17 @@ public class CustomTitleView extends AppCompatTextView {
     }
 
     private Site getSite(boolean next) {
-        List<Site> items = VodConfig.get().getSites();
+        List<Site> items = getSites();
         int position = VodConfig.getHomeIndex();
         if (next) position = position > 0 ? --position : items.size() - 1;
         else position = position < items.size() - 1 ? ++position : 0;
         return items.get(position);
+    }
+
+    private List<Site> getSites() {
+        List<Site> items = new ArrayList<>();
+        for (Site site : VodConfig.get().getSites()) if (!site.isHide()) items.add(site);
+        return items;
     }
 
     public interface Listener extends SiteCallback {

@@ -103,7 +103,7 @@ public class SiteDialog implements SiteAdapter.OnClickListener {
     @Override
     public boolean onSearchLongClick(Site item) {
         boolean result = !item.isSearchable();
-        for (Site site : VodConfig.get().getSites()) site.setSearchable(result).save();
+        for (Site site : adapter.getItems()) site.setSearchable(result).save();
         adapter.notifyItemRangeChanged(0, adapter.getItemCount());
         callback.onChanged();
         return true;
@@ -112,7 +112,7 @@ public class SiteDialog implements SiteAdapter.OnClickListener {
     @Override
     public boolean onChangeLongClick(Site item) {
         boolean result = !item.isChangeable();
-        for (Site site : VodConfig.get().getSites()) site.setChangeable(result).save();
+        for (Site site : adapter.getItems()) site.setChangeable(result).save();
         adapter.notifyItemRangeChanged(0, adapter.getItemCount());
         return true;
     }

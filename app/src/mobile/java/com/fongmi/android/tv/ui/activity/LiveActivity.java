@@ -72,6 +72,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 public class LiveActivity extends BaseActivity implements CustomKeyDownLive.Listener, TrackDialog.Listener, Biometric.Callback, PassCallback, LiveCallback, GroupAdapter.OnClickListener, ChannelAdapter.OnClickListener, EpgDataAdapter.OnClickListener, CastDialog.Listener, InfoDialog.Listener {
 
@@ -95,7 +96,8 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
     private boolean rotate;
     private boolean stop;
     private boolean lock;
-    private int passCount;
+    private String tag;
+    private int count;
     private PiP mPiP;
 
     public static void start(Context context) {
@@ -197,6 +199,7 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
         PlaybackService.start(mPlayers);
         setScale(Setting.getLiveScale());
         ExoUtil.setSubtitleView(mBinding.exo);
+        mPlayers.setTag(tag = UUID.randomUUID().toString());
         mBinding.control.action.invert.setActivated(Setting.isInvert());
         mBinding.control.action.across.setActivated(Setting.isAcross());
         mBinding.control.action.change.setActivated(Setting.isChange());
@@ -514,11 +517,11 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
     }
 
     private void resetPass() {
-        this.passCount = 0;
+        this.count = 0;
     }
 
     private void setArtwork(String url) {
-        ImgUtil.load(url, R.drawable.radio, new CustomTarget<>() {
+        ImgUtil.load(url, R.drawable.radio, new CustomTarget<>(ResUtil.getScreenWidth(), ResUtil.getScreenHeight()) {
             @Override
             public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
                 mBinding.exo.setDefaultArtwork(resource);
@@ -541,7 +544,7 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
         mChannelAdapter.addAll(item.getChannel());
         mChannelAdapter.setSelected(item.getPosition());
         mBinding.channel.scrollToPosition(Math.max(item.getPosition(), 0));
-        if (!item.isKeep() || ++passCount < 5 || mHides.isEmpty()) return;
+        if (!item.isKeep() || ++count < 5 || mHides.isEmpty()) return;
         if (Biometric.enable()) Biometric.show(this);
         else PassDialog.create().show(this);
         resetPass();
@@ -618,7 +621,7 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
     private void setEpg() {
         String epg = mChannel.getData().getEpg();
         List<EpgData> data = mChannel.getData().getList();
-        if (epg.length() > 0) mBinding.widget.name.setMaxEms(12);
+        if (!epg.isEmpty()) mBinding.widget.name.setMaxEms(12);
         mBinding.widget.play.setText(epg);
         mChannelAdapter.changed(mChannel);
         mEpgDataAdapter.addAll(data);
@@ -748,6 +751,7 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onPlayerEvent(PlayerEvent event) {
+        if (!event.getTag().equals(tag)) return;
         switch (event.getState()) {
             case PlayerEvent.PREPARE:
                 setDecode();
@@ -789,6 +793,7 @@ public class LiveActivity extends BaseActivity implements CustomKeyDownLive.List
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
+        if (!event.getTag().equals(tag)) return;
         if (mPlayers.retried()) onError(event);
         else fetch();
     }

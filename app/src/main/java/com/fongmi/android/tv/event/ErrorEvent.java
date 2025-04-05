@@ -7,44 +7,51 @@ import org.greenrobot.eventbus.EventBus;
 
 public class ErrorEvent {
 
+    private final String tag;
     private final Type type;
     private String msg;
 
-    public static void url() {
-        EventBus.getDefault().post(new ErrorEvent(Type.URL));
+    public static void url(String tag) {
+        EventBus.getDefault().post(new ErrorEvent(tag, Type.URL));
     }
 
-    public static void drm() {
-        EventBus.getDefault().post(new ErrorEvent(Type.DRM));
+    public static void drm(String tag) {
+        EventBus.getDefault().post(new ErrorEvent(tag, Type.DRM));
     }
 
-    public static void flag() {
-        EventBus.getDefault().post(new ErrorEvent(Type.FLAG));
+    public static void flag(String tag) {
+        EventBus.getDefault().post(new ErrorEvent(tag, Type.FLAG));
     }
 
-    public static void parse() {
-        EventBus.getDefault().post(new ErrorEvent(Type.PARSE));
+    public static void parse(String tag) {
+        EventBus.getDefault().post(new ErrorEvent(tag, Type.PARSE));
     }
 
-    public static void timeout() {
-        EventBus.getDefault().post(new ErrorEvent(Type.TIMEOUT));
+    public static void timeout(String tag) {
+        EventBus.getDefault().post(new ErrorEvent(tag, Type.TIMEOUT));
     }
 
-    public static void extract(String msg) {
-        EventBus.getDefault().post(new ErrorEvent(Type.EXTRACT, msg));
+    public static void extract(String tag, String msg) {
+        EventBus.getDefault().post(new ErrorEvent(tag, Type.EXTRACT, msg));
     }
 
-    public ErrorEvent(Type type) {
+    public ErrorEvent(String tag, Type type) {
         this.type = type;
+        this.tag = tag;
     }
 
-    public ErrorEvent(Type type, String msg) {
+    public ErrorEvent(String tag, Type type, String msg) {
+        this.type = type;
+        this.tag = tag;
         this.msg = msg;
-        this.type = type;
     }
 
     public Type getType() {
         return type;
+    }
+
+    public String getTag() {
+        return tag;
     }
 
     public String getMsg() {

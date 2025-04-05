@@ -68,6 +68,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 public class LiveActivity extends BaseActivity implements GroupPresenter.OnClickListener, ChannelPresenter.OnClickListener, EpgDataPresenter.OnClickListener, CustomKeyDownLive.Listener, CustomLiveListView.Callback, TrackDialog.Listener, PassCallback, LiveCallback {
 
@@ -91,6 +92,7 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
     private Runnable mR4;
     private Clock mClock;
     private boolean redirect;
+    private String tag;
     private int count;
 
     public static void start(Context context) {
@@ -189,6 +191,7 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
         PlaybackService.start(mPlayers);
         setScale(Setting.getLiveScale());
         ExoUtil.setSubtitleView(mBinding.exo);
+        mPlayers.setTag(tag = UUID.randomUUID().toString());
         findViewById(R.id.timeBar).setNextFocusUpId(R.id.player);
         mBinding.control.invert.setActivated(Setting.isInvert());
         mBinding.control.across.setActivated(Setting.isAcross());
@@ -498,7 +501,7 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
     }
 
     private void setArtwork(String url) {
-        ImgUtil.load(url, R.drawable.radio, new CustomTarget<>() {
+        ImgUtil.load(url, R.drawable.radio, new CustomTarget<>(ResUtil.getScreenWidth(), ResUtil.getScreenHeight()) {
             @Override
             public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
                 mBinding.exo.setDefaultArtwork(resource);
@@ -595,7 +598,7 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
 
     private void setEpg() {
         String epg = mChannel.getData().getEpg();
-        if (epg.length() > 0) mBinding.widget.name.setMaxEms(12);
+        if (!epg.isEmpty()) mBinding.widget.name.setMaxEms(12);
         mEpgDataAdapter.setItems(mChannel.getData().getList(), null);
         mBinding.widget.play.setText(epg);
         setWidth(mChannel.getData());
@@ -712,6 +715,7 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onPlayerEvent(PlayerEvent event) {
+        if (!event.getTag().equals(tag)) return;
         switch (event.getState()) {
             case PlayerEvent.PREPARE:
                 setDecode();
@@ -752,6 +756,7 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
+        if (!event.getTag().equals(tag)) return;
         if (mPlayers.retried()) onError(event);
         else fetch();
     }

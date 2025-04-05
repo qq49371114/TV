@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.v4.media.MediaMetadataCompat;
+import android.util.Log;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.Nullable;
@@ -122,14 +123,14 @@ public class PlaybackService extends Service {
     private void setArtwork(NotificationCompat.Builder builder) {
         if (cache.containsKey(getArtUri())) {
             setLargeIcon(builder, cache.get(getArtUri()));
-        } else {
+        } else if (!getArtUri().isEmpty()) {
             App.execute(() -> glide(builder));
         }
     }
 
     private void glide(NotificationCompat.Builder builder) {
         try {
-            cache.put(getArtUri(), Glide.with(App.get()).asBitmap().skipMemoryCache(true).dontAnimate().load(ImgUtil.getUrl(getArtUri())).submit().get());
+            cache.put(getArtUri(), Glide.with(this).asBitmap().skipMemoryCache(true).dontAnimate().load(ImgUtil.getUrl(getArtUri())).submit().get());
             setLargeIcon(builder, cache.get(getArtUri()));
             Notify.show(builder.build());
         } catch (Exception e) {

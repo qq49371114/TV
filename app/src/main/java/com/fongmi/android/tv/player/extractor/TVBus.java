@@ -20,8 +20,8 @@ import java.io.File;
 
 public class TVBus implements Source.Extractor, Listener {
 
+    private volatile String hls;
     private TVCore tvcore;
-    private String hls;
     private Core core;
 
     @Override
@@ -30,29 +30,26 @@ public class TVBus implements Source.Extractor, Listener {
     }
 
     private void init(Core core) {
-        App.get().setHook(core.getHook());
-        tvcore = new TVCore(getPath(core.getSo())).listener(this);
-        tvcore.auth(core.getAuth()).name(core.getName()).pass(core.getPass());
-        tvcore.domain(core.getDomain()).broker(core.getBroker()).serv(0).play(8902).mode(1);
-        tvcore.init();
+        try {
+            App.get().setHook(core.getHook());
+            tvcore = new TVCore(getPath(core.getSo())).listener(this).auth(core.getAuth()).name(core.getName()).pass(core.getPass()).domain(core.getDomain()).broker(core.getBroker()).serv(0).play(8902).mode(1).init();
+        } catch (Exception ignored) {
+        } finally {
+            App.get().setHook(null);
+        }
     }
 
-    private String getPath(String url) {
-        try {
-            File file = new File(Path.so(), Uri.parse(url).getLastPathSegment());
-            if (file.length() < 10240) Path.write(file, OkHttp.newCall(url).execute().body().bytes());
-            return file.getAbsolutePath();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "";
-        }
+    private String getPath(String url) throws Exception {
+        File file = new File(Path.so(), Uri.parse(url).getLastPathSegment());
+        if (file.length() < 10240) Path.write(file, OkHttp.newCall(url).execute().body().bytes());
+        return file.getAbsolutePath();
     }
 
     @Override
     public String fetch(String url) throws Exception {
-        if (core != null && !core.equals(LiveConfig.get().getHome().getCore())) change();
-        if (tvcore == null) init(core = LiveConfig.get().getHome().getCore());
-        App.get().setHook(null);
+        Core c = LiveConfig.get().getHome().getCore();
+        if (core != null && !core.equals(c)) change();
+        if (tvcore == null) init(core = c);
         tvcore.start(url);
         onWait();
         onCheck();
@@ -63,7 +60,7 @@ public class TVBus implements Source.Extractor, Listener {
         if (hls.startsWith("-")) throw new ExtractException(ResUtil.getString(R.string.error_play_code, hls));
     }
 
-    private void onWait() throws InterruptedException {
+    private void onWait() throws Exception {
         synchronized (this) {
             wait();
         }
@@ -83,7 +80,7 @@ public class TVBus implements Source.Extractor, Listener {
     @Override
     public void stop() {
         if (tvcore != null) tvcore.stop();
-        if (hls != null) hls = null;
+        hls = null;
     }
 
     @Override

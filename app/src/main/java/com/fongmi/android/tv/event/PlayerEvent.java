@@ -8,26 +8,32 @@ public class PlayerEvent {
     public static final int TRACK = 21;
     public static final int SIZE = 11;
 
+    private final String tag;
     private final int state;
 
-    public static void prepare() {
-        EventBus.getDefault().post(new PlayerEvent(PREPARE));
+    public static void prepare(String tag) {
+        EventBus.getDefault().post(new PlayerEvent(tag, PREPARE));
     }
 
-    public static void track() {
-        EventBus.getDefault().post(new PlayerEvent(TRACK));
+    public static void track(String tag) {
+        EventBus.getDefault().post(new PlayerEvent(tag, TRACK));
     }
 
-    public static void size() {
-        EventBus.getDefault().post(new PlayerEvent(SIZE));
+    public static void size(String tag) {
+        EventBus.getDefault().post(new PlayerEvent(tag, SIZE));
     }
 
-    public static void state(int state) {
-        EventBus.getDefault().post(new PlayerEvent(state));
+    public static void state(String tag, int state) {
+        EventBus.getDefault().post(new PlayerEvent(tag, state));
     }
 
-    private PlayerEvent(int state) {
+    private PlayerEvent(String tag, int state) {
         this.state = state;
+        this.tag = tag;
+    }
+
+    public String getTag() {
+        return tag;
     }
 
     public int getState() {

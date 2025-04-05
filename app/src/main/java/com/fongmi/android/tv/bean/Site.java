@@ -66,6 +66,10 @@ public class Site implements Parcelable {
     private Integer type;
 
     @Ignore
+    @SerializedName("hide")
+    private Integer hide;
+
+    @Ignore
     @SerializedName("indexs")
     private Integer indexs;
 
@@ -174,6 +178,10 @@ public class Site implements Parcelable {
         return type == null ? 0 : type;
     }
 
+    public Integer getHide() {
+        return hide == null ? 0 : hide;
+    }
+
     public Integer getIndexs() {
         return indexs == null ? 0 : indexs;
     }
@@ -232,6 +240,10 @@ public class Site implements Parcelable {
 
     public void setActivated(Site item) {
         this.activated = item.equals(this);
+    }
+
+    public boolean isHide() {
+        return getHide() == 1;
     }
 
     public boolean isIndex() {

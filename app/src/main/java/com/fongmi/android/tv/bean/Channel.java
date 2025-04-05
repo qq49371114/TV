@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 public class Channel {
 
@@ -375,7 +376,13 @@ public class Channel {
         if (this == obj) return true;
         if (!(obj instanceof Channel)) return false;
         Channel it = (Channel) obj;
-        if (getNumber().isEmpty()) return getName().equals(it.getName());
+        if (!getName().isEmpty()) return getName().equals(it.getName());
+        if (!getNumber().isEmpty()) return getNumber().equals(it.getNumber());
         return getName().equals(it.getName()) && getNumber().equals(it.getNumber());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getName(), getNumber());
     }
 }

@@ -12,7 +12,7 @@
 
         <activity
             android:name=".ui.activity.HomeActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode|orientation"
             android:exported="true"
             android:screenOrientation="fullUser"
             android:windowSoftInputMode="adjustPan">
@@ -67,33 +67,33 @@
 
         <activity
             android:name=".ui.activity.CollectActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode"
             android:screenOrientation="fullUser"
             android:windowSoftInputMode="adjustPan" />
 
         <activity
             android:name=".ui.activity.FileActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode"
             android:screenOrientation="fullUser" />
 
         <activity
             android:name=".ui.activity.FolderActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode"
             android:screenOrientation="fullUser" />
 
         <activity
             android:name=".ui.activity.HistoryActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode"
             android:screenOrientation="fullUser" />
 
         <activity
             android:name=".ui.activity.KeepActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode"
             android:screenOrientation="fullUser" />
 
         <activity
             android:name=".ui.activity.LiveActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode|orientation"
             android:exported="true"
             android:launchMode="singleTop"
             android:resizeableActivity="true"
@@ -103,12 +103,12 @@
 
         <activity
             android:name=".ui.activity.ScanActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode"
             android:screenOrientation="fullUser" />
 
         <activity
             android:name=".ui.activity.VideoActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode|orientation"
             android:launchMode="singleTop"
             android:resizeableActivity="true"
             android:screenOrientation="fullUser"

@@ -1,15 +1,17 @@
 package com.fongmi.android.tv.utils;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.Display;
 import android.view.MotionEvent;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
@@ -25,27 +27,45 @@ import com.fongmi.android.tv.App;
 public class ResUtil {
 
     public static DisplayMetrics getDisplayMetrics() {
-        return App.get().getResources().getDisplayMetrics();
+        return getDisplayMetrics(App.get());
+    }
+
+    public static DisplayMetrics getDisplayMetrics(Context context) {
+        return context.getResources().getDisplayMetrics();
+    }
+
+    public static WindowManager getWindowManager(Context context) {
+        return (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
     }
 
     public static int getScreenWidth() {
-        return getDisplayMetrics().widthPixels;
+        return getScreenWidth(App.get());
     }
 
     public static int getScreenWidth(Context context) {
-        return context.getResources().getDisplayMetrics().widthPixels;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Rect rect = getWindowManager(context).getCurrentWindowMetrics().getBounds();
+            return isLand(context) ? Math.max(rect.width(), rect.height()) : Math.min(rect.width(), rect.height());
+        } else {
+            return getDisplayMetrics(context).widthPixels;
+        }
     }
 
     public static int getScreenHeight() {
-        return getDisplayMetrics().heightPixels;
+        return getScreenHeight(App.get());
     }
 
     public static int getScreenHeight(Context context) {
-        return context.getResources().getDisplayMetrics().heightPixels;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Rect rect = getWindowManager(context).getCurrentWindowMetrics().getBounds();
+            return isLand(context) ? Math.min(rect.width(), rect.height()) : Math.max(rect.width(), rect.height());
+        } else {
+            return getDisplayMetrics(context).heightPixels;
+        }
     }
 
-    public static boolean isEdge(Activity activity, MotionEvent e, int edge) {
-        return e.getRawX() < edge || e.getRawX() > getScreenWidth(activity) - edge || e.getRawY() < edge || e.getRawY() > getScreenHeight(activity) - edge;
+    public static boolean isEdge(Context context, MotionEvent e, int edge) {
+        return e.getRawX() < edge || e.getRawX() > getScreenWidth(context) - edge || e.getRawY() < edge || e.getRawY() > getScreenHeight(context) - edge;
     }
 
     public static boolean isLand(Context context) {

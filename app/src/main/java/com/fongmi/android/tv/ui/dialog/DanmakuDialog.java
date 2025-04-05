@@ -13,7 +13,6 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewbinding.ViewBinding;
 
-import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.bean.Danmaku;
 import com.fongmi.android.tv.databinding.DialogDanmakuBinding;
 import com.fongmi.android.tv.player.Players;
@@ -81,7 +80,7 @@ public final class DanmakuDialog extends BaseDialog implements DanmakuAdapter.On
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode != Activity.RESULT_OK || requestCode != FileChooser.REQUEST_PICK_FILE) return;
-        App.post(() -> player.setDanmaku(Danmaku.from(FileChooser.getPathFromUri(data.getData()))), 250);
+        player.setDanmaku(Danmaku.from(FileChooser.getPathFromUri(data.getData())));
         dismiss();
     }
 }
