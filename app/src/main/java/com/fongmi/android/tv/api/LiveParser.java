@@ -120,7 +120,8 @@ public class LiveParser {
         text = text.replace("\r\n", "\n").replace("\r", "");
         for (String line : text.split("\n")) {
             if (Thread.interrupted()) break;
-            String[] split = line.split(",", 2);
+            String[] split = line.split(",");
+            int index = line.indexOf(",") + 1;
             if (setting.find(line)) setting.check(line);
             if (line.contains("#genre#")) setting.clear();
             if (line.contains("#genre#")) live.getGroups().add(Group.create(split[0], live.isPass()));
@@ -128,7 +129,7 @@ public class LiveParser {
             if (split.length > 1 && split[1].contains("://")) {
                 Group group = live.getGroups().get(live.getGroups().size() - 1);
                 Channel channel = group.find(Channel.create(split[0]));
-                channel.addUrls(split[1].split("#"));
+                channel.addUrls(line.substring(index).split("#"));
                 setting.copy(channel);
             }
         }

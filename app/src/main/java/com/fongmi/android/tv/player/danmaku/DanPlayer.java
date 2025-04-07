@@ -86,9 +86,8 @@ public class DanPlayer implements DrawHandler.Callback {
     public void setDanmaku(Danmaku item) {
         executor.execute(() -> {
             view.release();
-            if (item.isEmpty()) return;
             Logger.t(TAG).d(item.getUrl());
-            view.prepare(new Parser().load(new Loader(item).getDataSource()), context);
+            if (!item.isEmpty()) view.prepare(new Parser().load(new Loader(item).getDataSource()), context);
         });
     }
 
