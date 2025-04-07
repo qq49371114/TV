@@ -50,14 +50,14 @@ public class ImgUtil {
     public static void load(String text, String url, ImageView view, ImageView.ScaleType scaleType, boolean rect) {
         view.setScaleType(scaleType);
         if (!TextUtils.isEmpty(url)) Glide.with(App.get()).asBitmap().load(getUrl(url)).placeholder(R.drawable.ic_img_loading).skipMemoryCache(true).dontAnimate().sizeMultiplier(Setting.getThumbnail()).signature(getSignature(url)).listener(getListener(view, scaleType)).into(view);
-        else if (text.length() > 0) view.setImageDrawable(getTextDrawable(text.substring(0, 1), rect));
+        else if (!text.isEmpty()) view.setImageDrawable(getTextDrawable(text.substring(0, 1), rect));
         else view.setImageResource(R.drawable.ic_img_error);
     }
 
     public static void loadVod(String text, String url, ImageView view) {
         view.setScaleType(ImageView.ScaleType.CENTER);
         if (!TextUtils.isEmpty(url)) Glide.with(App.get()).asBitmap().load(getUrl(url)).placeholder(R.drawable.ic_img_loading).listener(getListener(view)).into(view);
-        else if (text.length() > 0) view.setImageDrawable(getTextDrawable(text.substring(0, 1), true));
+        else if (!text.isEmpty()) view.setImageDrawable(getTextDrawable(text.substring(0, 1), true));
         else view.setImageResource(R.drawable.ic_img_error);
     }
 
@@ -69,8 +69,8 @@ public class ImgUtil {
 
     private static Drawable getTextDrawable(String text, boolean rect) {
         TextDrawable.Builder builder = new TextDrawable.Builder().withBorder(ResUtil.dp2px(2), ColorGenerator.get700(text));
-        if (rect) return builder.buildRoundRect(text, ColorGenerator.get500(text), ResUtil.dp2px(8));
-        return builder.buildRound(text, ColorGenerator.get500(text));
+        if (rect) return builder.buildRoundRect(text, ColorGenerator.get400(text), ResUtil.dp2px(8));
+        return builder.buildRound(text, ColorGenerator.get400(text));
     }
 
     public static Object getUrl(String url) {
