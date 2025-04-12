@@ -428,6 +428,10 @@ public class Players implements Player.Listener, ParseCallback {
 
     private void startParse(Result result, boolean useParse) {
         stopParse();
+        drm = result.getDrm();
+        subs = result.getSubs();
+        format = result.getFormat();
+        danmakus = result.getDanmaku();
         parseJob = ParseJob.create(this).start(result, useParse);
     }
 
@@ -443,6 +447,7 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     private List<Sub> checkSub(List<Sub> subs) {
+        if (subs == null) subs = this.subs = new ArrayList<>();
         if (sub == null || subs.contains(sub)) return subs;
         subs.add(0, sub);
         return subs;
@@ -457,7 +462,7 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     private void setMediaItem(Map<String, String> headers, String url) {
-        setMediaItem(headers, url, null, null, new ArrayList<>(), new ArrayList<>(), Constant.TIMEOUT_PLAY);
+        setMediaItem(headers, url, format, drm, subs, danmakus, Constant.TIMEOUT_PLAY);
     }
 
     private void setMediaItem(Channel channel, int timeout) {
@@ -479,7 +484,7 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     private void setDanmaku(List<Danmaku> items) {
-        setDanmaku(items.isEmpty() ? Danmaku.empty() : items.get(0));
+        setDanmaku(items == null || items.isEmpty() ? Danmaku.empty() : items.get(0));
     }
 
     public void setDanmaku(Danmaku item) {
