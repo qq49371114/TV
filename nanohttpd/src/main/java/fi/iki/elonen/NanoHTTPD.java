@@ -64,6 +64,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
+import java.nio.file.Files;
 import java.security.KeyStore;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -392,7 +393,7 @@ public abstract class NanoHTTPD {
         private final OutputStream fstream;
 
         public DefaultTempFile(File tempdir) throws IOException {
-            this.file = File.createTempFile("NanoHTTPD-", "", tempdir);
+            this.file = Files.createTempFile(tempdir.toPath(), "NanoHTTPD-", "").toFile();
             this.fstream = new FileOutputStream(this.file);
         }
 
