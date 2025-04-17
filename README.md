@@ -205,7 +205,7 @@ scheme://username:password@host:port
 
 ### 飛機群
 
-[討論群組](https://t.me/fongmi_official)  
+[討論群組](https://t.me/+9XsOpkPFLgA0ZTE1)  
 [發布頻道](https://t.me/fongmi_release)
 
 ### 贊助
