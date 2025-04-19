@@ -3,11 +3,9 @@ package com.github.catvod.net.interceptor;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.github.catvod.utils.Util;
 import com.google.common.net.HttpHeaders;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
@@ -32,17 +30,11 @@ public class ResponseInterceptor implements Interceptor {
     @Override
     public Response intercept(@NonNull Chain chain) throws IOException {
         Request request = chain.request();
-        Response response = chain.proceed(checkUser(request));
+        Response response = chain.proceed(request);
         if ("deflate".equals(response.header(HttpHeaders.CONTENT_ENCODING))) return deflate(response);
         if (response.code() == 302) redirect.put(response.header(HttpHeaders.LOCATION), request.url().toString());
         if (response.code() == 406 && redirect.containsKey(request.url().toString())) return redirect(request, response);
         return response;
-    }
-
-    private Request checkUser(Request request) {
-        URI uri = request.url().uri();
-        if (uri.getUserInfo() == null) return request;
-        return request.newBuilder().header(HttpHeaders.AUTHORIZATION, Util.basic(uri.getUserInfo())).build();
     }
 
     private Response redirect(Request request, Response response) {
