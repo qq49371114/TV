@@ -37,7 +37,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
 
 import org.nanohttpd.protocols.http.NanoHTTPD;
 
@@ -56,7 +55,7 @@ public class DefaultTempFile implements ITempFile {
     private final OutputStream fstream;
 
     public DefaultTempFile(File tempdir) throws IOException {
-        this.file = Files.createTempFile(tempdir.toPath(), "NanoHTTPD-", "").toFile();
+        this.file = File.createTempFile("NanoHTTPD-", "", tempdir);
         this.fstream = new FileOutputStream(this.file);
     }
 
