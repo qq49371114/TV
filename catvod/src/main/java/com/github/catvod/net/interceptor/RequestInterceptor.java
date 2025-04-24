@@ -24,8 +24,8 @@ public class RequestInterceptor implements Interceptor {
     private final ConcurrentHashMap<String, JsonObject> headerMap;
 
     public RequestInterceptor() {
-        this.authMap = new ConcurrentHashMap<>();
-        this.headerMap = new ConcurrentHashMap<>();
+        authMap = new ConcurrentHashMap<>();
+        headerMap = new ConcurrentHashMap<>();
     }
 
     public synchronized void setHeaders(List<JsonElement> items) {

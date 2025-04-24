@@ -102,49 +102,49 @@ https://github.com/CatVodTVOfficial/CatVodTVJarLoader
 刷新詳情
 
 ```
-http://127.0.0.1:9978/action?do=refresh&type=detail
+http://127.0.0.1:8964/action?do=refresh&type=detail
 ```
 
 刷新播放
 
 ```
-http://127.0.0.1:9978/action?do=refresh&type=player
+http://127.0.0.1:8964/action?do=refresh&type=player
 ```
 
 刷新直播
 
 ```
-http://127.0.0.1:9978/action?do=refresh&type=live
+http://127.0.0.1:8964/action?do=refresh&type=live
 ```
 
 推送字幕
 
 ```
-http://127.0.0.1:9978/action?do=refresh&type=subtitle&path=http://xxx
+http://127.0.0.1:8964/action?do=refresh&type=subtitle&path=http://xxx
 ```
 
 推送彈幕
 
 ```
-http://127.0.0.1:9978/action?do=refresh&type=danmaku&path=http://xxx
+http://127.0.0.1:8964/action?do=refresh&type=danmaku&path=http://xxx
 ```
 
 新增緩存字串
 
 ```
-http://127.0.0.1:9978/cache?do=set&key=xxx&value=xxx
+http://127.0.0.1:8964/cache?do=set&key=xxx&value=xxx
 ```
 
 取得緩存字串
 
 ```
-http://127.0.0.1:9978/cache?do=get&key=xxx
+http://127.0.0.1:8964/cache?do=get&key=xxx
 ```
 
 刪除緩存字串
 
 ```
-http://127.0.0.1:9978/cache?do=del&key=xxx
+http://127.0.0.1:8964/cache?do=del&key=xxx
 ```
 
 ### Proxy
@@ -194,6 +194,38 @@ scheme://username:password@host:port
     }
   ]
 }
+```
+
+### 爬蟲本地代理
+
+Java
+
+```
+proxy://
+```
+
+```
+Proxy.getUrl(boolean local)
+```
+
+Python
+
+```
+proxy://do=py
+```
+
+```
+getProxyUrl(boolean local)
+```
+
+JS
+
+```
+proxy://do=js
+```
+
+```
+getProxy(boolean local)
 ```
 
 ### 配置範例

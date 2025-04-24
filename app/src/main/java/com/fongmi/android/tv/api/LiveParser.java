@@ -173,6 +173,7 @@ public class LiveParser {
             else if (line.startsWith("#KODIPROP:inputstream.adaptive.drm_legacy")) drmLegacy(line);
             else if (line.startsWith("#KODIPROP:inputstream.adaptive.manifest_type")) format(line);
             else if (line.startsWith("#KODIPROP:inputstream.adaptive.stream_headers")) headers(line);
+            else if (line.startsWith("#KODIPROP:inputstream.adaptive.common_headers")) headers(line);
         }
 
         public Setting copy(Channel channel) {
@@ -288,7 +289,7 @@ public class LiveParser {
             if (header == null) header = new HashMap<>();
             for (String param : params) {
                 if (!param.contains("=")) continue;
-                String[] a = param.split("=");
+                String[] a = param.split("=", 2);
                 header.put(a[0].trim(), a[1].trim().replace("\"", ""));
             }
         }

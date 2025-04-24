@@ -7,7 +7,6 @@ import com.google.common.net.HttpHeaders;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import okhttp3.Interceptor;
@@ -16,7 +15,7 @@ import okhttp3.Response;
 
 public class AuthInterceptor implements Interceptor {
 
-    private final Map<String, String> userMap;
+    private final ConcurrentHashMap<String, String> userMap;
 
     public AuthInterceptor() {
         userMap = new ConcurrentHashMap<>();

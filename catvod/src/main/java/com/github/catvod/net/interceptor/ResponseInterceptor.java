@@ -20,10 +20,10 @@ import okio.Okio;
 
 public class ResponseInterceptor implements Interceptor {
 
-    private final ConcurrentHashMap<String, String> redirect;
+    private final ConcurrentHashMap<String, String> redirectMap;
 
     public ResponseInterceptor() {
-        this.redirect = new ConcurrentHashMap<>();
+        redirectMap = new ConcurrentHashMap<>();
     }
 
     @NonNull
@@ -32,13 +32,13 @@ public class ResponseInterceptor implements Interceptor {
         Request request = chain.request();
         Response response = chain.proceed(request);
         if ("deflate".equals(response.header(HttpHeaders.CONTENT_ENCODING))) return deflate(response);
-        if (response.code() == 302) redirect.put(response.header(HttpHeaders.LOCATION), request.url().toString());
-        if (response.code() == 406 && redirect.containsKey(request.url().toString())) return redirect(request, response);
+        if (response.code() == 406 && redirectMap.containsKey(request.url().toString())) return redirect(request, response);
+        if (response.code() == 302 && response.header(HttpHeaders.LOCATION) != null) redirectMap.put(response.header(HttpHeaders.LOCATION), request.url().toString());
         return response;
     }
 
     private Response redirect(Request request, Response response) {
-        return new Response.Builder().request(request).protocol(response.protocol()).code(302).message("Found").header(HttpHeaders.LOCATION, redirect.get(request.url().toString())).build();
+        return new Response.Builder().request(request).protocol(response.protocol()).code(302).message("Found").header(HttpHeaders.LOCATION, redirectMap.get(request.url().toString())).build();
     }
 
     private Response deflate(Response response) {

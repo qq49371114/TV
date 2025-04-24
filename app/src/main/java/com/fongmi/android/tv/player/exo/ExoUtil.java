@@ -43,7 +43,7 @@ public class ExoUtil {
     }
 
     public static LoadControl buildLoadControl() {
-        return new DefaultLoadControl.Builder().setBufferDurationsMs(DefaultLoadControl.DEFAULT_MIN_BUFFER_MS * Setting.getBuffer(), DefaultLoadControl.DEFAULT_MAX_BUFFER_MS * Setting.getBuffer(), DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS, DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS).setBackBuffer(30000, true).build();
+        return new DefaultLoadControl.Builder().setBufferDurationsMs(DefaultLoadControl.DEFAULT_MIN_BUFFER_MS * Setting.getBuffer(), DefaultLoadControl.DEFAULT_MAX_BUFFER_MS * Setting.getBuffer(), DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS, DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS).build();
     }
 
     public static TrackSelector buildTrackSelector() {

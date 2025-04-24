@@ -64,7 +64,7 @@ public class ImgUtil {
     public static void loadLive(String url, ImageView view) {
         view.setVisibility(TextUtils.isEmpty(url) ? View.GONE : View.VISIBLE);
         if (TextUtils.isEmpty(url)) view.setImageResource(R.drawable.ic_img_empty);
-        else Glide.with(App.get()).asBitmap().load(url).error(R.drawable.ic_img_empty).skipMemoryCache(true).dontAnimate().signature(getSignature(url)).into(view);
+        else Glide.with(App.get()).asBitmap().load(getUrl(url)).error(R.drawable.ic_img_empty).skipMemoryCache(true).dontAnimate().signature(getSignature(url)).into(view);
     }
 
     private static Drawable getTextDrawable(String text, boolean rect) {
