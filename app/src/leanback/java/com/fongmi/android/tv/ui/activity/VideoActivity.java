@@ -153,11 +153,11 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     public static void cast(Activity activity, History history) {
-        start(activity, history.getSiteKey(), history.getVodId(), history.getVodName(), history.getVodPic(), null, true, false);
+        start(activity, history.getSiteKey(), history.getVodId(), history.getVodName(), history.getVodPic(), null, false, true);
     }
 
     public static void collect(Activity activity, String key, String id, String name, String pic) {
-        start(activity, key, id, name, pic, null, false, true);
+        start(activity, key, id, name, pic, null, true, false);
     }
 
     public static void start(Activity activity, String url) {
@@ -176,7 +176,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         start(activity, key, id, name, pic, mark, false, false);
     }
 
-    public static void start(Activity activity, String key, String id, String name, String pic, String mark, boolean cast, boolean collect) {
+    public static void start(Activity activity, String key, String id, String name, String pic, String mark, boolean collect, boolean cast) {
         Intent intent = new Intent(activity, VideoActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra("collect", collect);
         intent.putExtra("cast", cast);

@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 
 public class LiveParser {
 
-    private static final Pattern M3U = Pattern.compile("^(?!.*#genre#)(#EXTM3U|#EXTINF)");
+    private static final Pattern M3U = Pattern.compile("^(?!.*#genre#).*#EXT(?:M3U|INF).*", Pattern.MULTILINE);
     private static final Pattern CATCHUP_REPLACE = Pattern.compile(".*catchup-replace=\"(.?|.+?)\".*");
     private static final Pattern CATCHUP_SOURCE = Pattern.compile(".*catchup-source=\"(.?|.+?)\".*");
     private static final Pattern CATCHUP = Pattern.compile(".*catchup=\"(.?|.+?)\".*");
@@ -97,6 +97,7 @@ public class LiveParser {
                 if (live.getEpg().isEmpty()) live.setEpg(extract(line, URL_TVG).replace("\"", ""));
                 if (live.getEpg().isEmpty()) live.setEpg(extract(line, "tvg-url=", "url-tvg="));
             } else if (line.startsWith("#EXTINF:")) {
+                if (line.contains("group-logo=")) continue;
                 Group group = live.find(Group.create(extract(line, GROUP), live.isPass()));
                 channel = group.find(Channel.create(extract(line, NAME)));
                 channel.setTvgName(extract(line, TVG_NAME));

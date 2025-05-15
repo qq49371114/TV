@@ -170,15 +170,19 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     public static void start(Activity activity, String url) {
-        start(activity, "push_agent", url, url, null);
+        start(activity, "push_agent", url, url);
     }
 
     public static void start(Activity activity, String key, String id, String name) {
-        start(activity, key, id, name, null, null, false);
+        start(activity, key, id, name, null);
     }
 
     public static void start(Activity activity, String key, String id, String name, String pic) {
-        start(activity, key, id, name, pic, null, false);
+        start(activity, key, id, name, pic, null);
+    }
+
+    public static void start(Activity activity, String key, String id, String name, String pic, String mark) {
+        start(activity, key, id, name, pic, mark, false);
     }
 
     public static void start(Activity activity, String key, String id, String name, String pic, String mark, boolean collect) {

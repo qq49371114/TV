@@ -4,7 +4,7 @@ import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
 
-import com.fongmi.android.tv.utils.UrlUtil;
+import com.fongmi.android.tv.server.Server;
 import com.fongmi.hook.Hook;
 import com.google.gson.annotations.SerializedName;
 
@@ -30,7 +30,7 @@ public class Core {
     private String so;
 
     public String getAuth() {
-        return TextUtils.isEmpty(auth) ? "" : UrlUtil.convert(auth);
+        return !getResp().isEmpty() ? Server.get().getAddress("/tvbus") : TextUtils.isEmpty(auth) ? "" : auth;
     }
 
     public String getName() {
