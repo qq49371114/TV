@@ -34,7 +34,7 @@ import okhttp3.logging.HttpLoggingInterceptor;
 
 public class OkHttp {
 
-    private static final int TIMEOUT = 30 * 1000;
+    private static final long TIMEOUT = TimeUnit.SECONDS.toMillis(30);
     private static final ProxySelector defaultSelector;
 
     private ResponseInterceptor responseInterceptor;
@@ -109,15 +109,15 @@ public class OkHttp {
         return get().client = getBuilder().build();
     }
 
-    public static OkHttpClient client(int timeout) {
+    public static OkHttpClient client(long timeout) {
         return client().newBuilder().connectTimeout(timeout, TimeUnit.MILLISECONDS).readTimeout(timeout, TimeUnit.MILLISECONDS).writeTimeout(timeout, TimeUnit.MILLISECONDS).build();
     }
 
-    public static OkHttpClient noRedirect(int timeout) {
+    public static OkHttpClient noRedirect(long timeout) {
         return client().newBuilder().connectTimeout(timeout, TimeUnit.MILLISECONDS).readTimeout(timeout, TimeUnit.MILLISECONDS).writeTimeout(timeout, TimeUnit.MILLISECONDS).followRedirects(false).followSslRedirects(false).build();
     }
 
-    public static OkHttpClient client(boolean redirect, int timeout) {
+    public static OkHttpClient client(boolean redirect, long timeout) {
         return redirect ? client(timeout) : noRedirect(timeout);
     }
 

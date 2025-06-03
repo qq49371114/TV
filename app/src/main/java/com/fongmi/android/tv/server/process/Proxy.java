@@ -12,15 +12,16 @@ import fi.iki.elonen.NanoHTTPD;
 public class Proxy implements Process {
 
     @Override
-    public boolean isRequest(NanoHTTPD.IHTTPSession session, String path) {
-        return "/proxy".equals(path);
+    public boolean isRequest(NanoHTTPD.IHTTPSession session, String url) {
+        return url.startsWith("/proxy");
     }
 
     @Override
-    public NanoHTTPD.Response doResponse(NanoHTTPD.IHTTPSession session, String path, Map<String, String> files) {
+    public NanoHTTPD.Response doResponse(NanoHTTPD.IHTTPSession session, String url, Map<String, String> files) {
         try {
             Map<String, String> params = session.getParms();
             params.putAll(session.getHeaders());
+            params.putAll(files);
             Object[] rs = BaseLoader.get().proxyLocal(params);
             if (rs[0] instanceof NanoHTTPD.Response) return (NanoHTTPD.Response) rs[0];
             NanoHTTPD.Response response = NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.lookup((Integer) rs[0]), (String) rs[1], (InputStream) rs[2]);

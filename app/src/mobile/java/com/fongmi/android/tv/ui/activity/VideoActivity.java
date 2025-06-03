@@ -111,7 +111,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
 public class VideoActivity extends BaseActivity implements Clock.Callback, CustomKeyDownVod.Listener, TrackDialog.Listener, ControlDialog.Listener, FlagAdapter.OnClickListener, EpisodeAdapter.OnClickListener, QualityAdapter.OnClickListener, QuickAdapter.OnClickListener, ParseAdapter.OnClickListener, CastDialog.Listener, InfoDialog.Listener {
@@ -803,35 +802,41 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void onEnding() {
         long current = mPlayers.getPosition();
         long duration = mPlayers.getDuration();
-        if (duration - current > TimeUnit.MINUTES.toMillis(10)) return;
-        if (current < 0 || duration < 0 || current < duration / 2) return;
-        mHistory.setEnding(duration - current);
-        mBinding.control.action.ending.setText(mPlayers.stringToTime(mHistory.getEnding()));
+        if (current < 0 || duration < 0) return;
+        if (duration - current > Constant.OPED_LIMIT) return;
+        setEnding(duration - current);
         setR1Callback();
     }
 
     private boolean onEndingReset() {
-        mHistory.setEnding(0);
-        mBinding.control.action.ending.setText(R.string.play_ed);
         setR1Callback();
+        setEnding(0);
         return true;
+    }
+
+    private void setEnding(long ending) {
+        mHistory.setEnding(ending);
+        mBinding.control.action.ending.setText(ending <= 0 ? getString(R.string.play_ed) : mPlayers.stringToTime(mHistory.getEnding()));
     }
 
     private void onOpening() {
         long current = mPlayers.getPosition();
         long duration = mPlayers.getDuration();
-        if (current > TimeUnit.MINUTES.toMillis(10)) return;
-        if (current < 0 || duration < 0 || current > duration / 2) return;
-        mHistory.setOpening(current);
-        mBinding.control.action.opening.setText(mPlayers.stringToTime(mHistory.getOpening()));
+        if (current < 0 || duration < 0) return;
+        if (current > Constant.OPED_LIMIT) return;
+        setOpening(current);
         setR1Callback();
     }
 
     private boolean onOpeningReset() {
-        mHistory.setOpening(0);
-        mBinding.control.action.opening.setText(R.string.play_op);
         setR1Callback();
+        setOpening(0);
         return true;
+    }
+
+    private void setOpening(long opening) {
+        mHistory.setOpening(opening);
+        mBinding.control.action.opening.setText(opening <= 0 ? getString(R.string.play_op) : mPlayers.stringToTime(mHistory.getOpening()));
     }
 
     private void onEpisodes() {
@@ -1463,7 +1468,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     @Override
-    public void onSeek(int time) {
+    public void onSeek(long time) {
         mBinding.widget.action.setImageResource(time > 0 ? R.drawable.ic_widget_forward : R.drawable.ic_widget_rewind);
         mBinding.widget.time.setText(mPlayers.getPositionTime(time));
         mBinding.widget.seek.setVisibility(View.VISIBLE);
@@ -1471,9 +1476,9 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     @Override
-    public void onSeekEnd(int time) {
+    public void onSeekEnd(long time) {
         mBinding.widget.seek.setVisibility(View.GONE);
-        mPlayers.seekTo(time);
+        mPlayers.seek(time);
         showProgress();
         onPlay();
     }

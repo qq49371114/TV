@@ -30,12 +30,12 @@ import okhttp3.FormBody;
 public class Action implements Process {
 
     @Override
-    public boolean isRequest(NanoHTTPD.IHTTPSession session, String path) {
-        return "/action".equals(path);
+    public boolean isRequest(NanoHTTPD.IHTTPSession session, String url) {
+        return url.startsWith("/action");
     }
 
     @Override
-    public NanoHTTPD.Response doResponse(NanoHTTPD.IHTTPSession session, String path, Map<String, String> files) {
+    public NanoHTTPD.Response doResponse(NanoHTTPD.IHTTPSession session, String url, Map<String, String> files) {
         Map<String, String> params = session.getParms();
         String param = params.get("do");
         if ("file".equals(param)) onFile(params);

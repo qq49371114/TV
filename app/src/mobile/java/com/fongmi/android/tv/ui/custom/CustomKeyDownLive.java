@@ -33,7 +33,7 @@ public class CustomKeyDownLive extends GestureDetector.SimpleOnGestureListener {
     private boolean lock;
     private float bright;
     private float volume;
-    private int time;
+    private long time;
 
     public static CustomKeyDownLive create(Activity activity, View videoView) {
         return new CustomKeyDownLive(activity, videoView);
@@ -90,7 +90,7 @@ public class CustomKeyDownLive extends GestureDetector.SimpleOnGestureListener {
         float deltaX = e2.getX() - e1.getX();
         float deltaY = e1.getY() - e2.getY();
         if (touch) checkFunc(distanceX, distanceY, e2);
-        if (changeTime) listener.onSeek(time = (int) deltaX * 50);
+        if (changeTime) listener.onSeek(time = (long) (deltaX * 50));
         if (changeBright) setBright(deltaY);
         if (changeVolume) setVolume(deltaY);
         return true;
@@ -196,9 +196,9 @@ public class CustomKeyDownLive extends GestureDetector.SimpleOnGestureListener {
 
         void onFlingRight();
 
-        void onSeek(int time);
+        void onSeek(long time);
 
-        void onSeekEnd(int time);
+        void onSeekEnd(long time);
 
         void onSingleTap();
 

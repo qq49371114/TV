@@ -88,9 +88,9 @@ public class Epg {
         }
     }
 
-    public String getEpg() {
-        for (EpgData item : getList()) if (item.isSelected()) return item.format();
-        return "";
+    public EpgData getEpgData() {
+        for (EpgData item : getList()) if (item.isSelected()) return item;
+        return new EpgData();
     }
 
     public Epg selected() {

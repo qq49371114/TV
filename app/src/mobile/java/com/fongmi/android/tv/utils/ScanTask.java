@@ -65,7 +65,7 @@ public class ScanTask {
     }
 
     private void getDevice(List<String> urls) throws Exception {
-        CountDownLatch cd = new CountDownLatch(urls.size());
+        CountDownLatch cd = new CountDownLatch(urls.size() - 1);
         for (String url : urls) executor.execute(() -> findDevice(cd, url));
         cd.await();
     }
@@ -80,7 +80,7 @@ public class ScanTask {
 
     private void findDevice(CountDownLatch cd, String url) {
         if (url.contains(Server.get().getAddress())) return;
-        try (Response res = OkHttp.newCall(client, url).execute()) {
+        try (Response res = OkHttp.newCall(client, url.concat("/device")).execute()) {
             Device device = Device.objectFrom(res.body().string());
             if (device != null) devices.add(device.save());
         } catch (Exception ignored) {

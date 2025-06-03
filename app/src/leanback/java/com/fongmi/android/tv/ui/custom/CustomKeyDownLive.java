@@ -18,7 +18,7 @@ public class CustomKeyDownLive extends GestureDetector.SimpleOnGestureListener {
     private final GestureDetector detector;
     private final StringBuilder text;
     private final Listener listener;
-    private int holdTime;
+    private long holdTime;
 
     private final Runnable runnable = new Runnable() {
         @Override
@@ -100,11 +100,11 @@ public class CustomKeyDownLive extends GestureDetector.SimpleOnGestureListener {
         return keyCode >= 144 ? keyCode - 144 : keyCode - 7;
     }
 
-    private int addTime() {
+    private long addTime() {
         return holdTime = holdTime + Constant.INTERVAL_SEEK;
     }
 
-    private int subTime() {
+    private long subTime() {
         return holdTime = holdTime - Constant.INTERVAL_SEEK;
     }
 
@@ -120,15 +120,15 @@ public class CustomKeyDownLive extends GestureDetector.SimpleOnGestureListener {
 
         void onFind(String number);
 
-        void onSeeking(int time);
+        void onSeeking(long time);
 
         void onKeyUp();
 
         void onKeyDown();
 
-        void onKeyLeft(int time);
+        void onKeyLeft(long time);
 
-        void onKeyRight(int time);
+        void onKeyRight(long time);
 
         void onKeyCenter();
 
