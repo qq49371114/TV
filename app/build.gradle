@@ -13,7 +13,7 @@ android {
         minSdk 21
         //noinspection ExpiredTargetSdkVersion
         targetSdk 28
-        versionCode 39681
+        versionCode 39601
         versionName "3.9.6.01"
         javaCompileOptions {
             annotationProcessorOptions {
