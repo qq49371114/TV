@@ -279,7 +279,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Override
     protected void initView(Bundle savedInstanceState) {
-        mKeyDown = CustomKeyDownVod.create(this, mBinding.video);
+        mKeyDown = CustomKeyDownVod.create(this, mBinding.exo);
         mFrameParams = mBinding.video.getLayoutParams();
         mBinding.progressLayout.showProgress();
         mBinding.swipeLayout.setEnabled(false);
@@ -1465,6 +1465,16 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @Override
     public void onVolumeEnd() {
         mBinding.widget.volume.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onFlingUp() {
+        checkNext();
+    }
+
+    @Override
+    public void onFlingDown() {
+        checkPrev();
     }
 
     @Override
