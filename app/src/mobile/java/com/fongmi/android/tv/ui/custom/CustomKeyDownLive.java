@@ -15,7 +15,7 @@ import com.fongmi.android.tv.utils.Util;
 
 public class CustomKeyDownLive extends GestureDetector.SimpleOnGestureListener {
 
-    private static final int DISTANCE = 100;
+    private static final int DISTANCE = 250;
     private static final int VELOCITY = 10;
 
     private final GestureDetector detector;
