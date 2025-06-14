@@ -398,6 +398,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void setScale(int scale) {
+        mHistory.setScale(scale);
         mBinding.exo.setResizeMode(scale);
         mBinding.control.action.scale.setText(ResUtil.getStringArray(R.array.select_scale)[scale]);
     }
@@ -752,8 +753,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void onScale() {
         int index = getScale();
         String[] array = ResUtil.getStringArray(R.array.select_scale);
-        mHistory.setScale(index = index == array.length - 1 ? 0 : ++index);
-        setScale(index);
+        if (mKeyDown.getScale() != 1.0f) mKeyDown.resetScale();
+        else setScale(index == array.length - 1 ? 0 : ++index);
         setR1Callback();
     }
 
@@ -882,6 +883,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         setRotate(mPlayers.isPortrait(), true);
         mPlayers.setDanmakuSize(1.0f);
         Util.hideSystemUI(this);
+        mKeyDown.resetScale();
         App.post(mR3, 2000);
         hideControl();
     }
@@ -894,6 +896,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.video.setLayoutParams(mFrameParams);
         mPlayers.setDanmakuSize(0.8f);
         setRotate(false, false);
+        mKeyDown.resetScale();
         App.post(mR3, 2000);
         hideControl();
     }
@@ -1415,7 +1418,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Override
     public void onScale(int tag) {
-        mHistory.setScale(tag);
+        mKeyDown.resetScale();
         setScale(tag);
     }
 
