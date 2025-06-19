@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.player.danmaku;
 
 import com.fongmi.android.tv.bean.DanmakuData;
+import io.github.pixee.security.BoundedLineReader;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -29,7 +30,7 @@ public class Parser extends BaseDanmakuParser {
         List<DanmakuData> items = new ArrayList<>();
         AndroidFileSource source = (AndroidFileSource) mDataSource;
         try (BufferedReader br = new BufferedReader(new InputStreamReader(source.data()))) {
-            while ((line = br.readLine()) != null) {
+            while ((line = BoundedLineReader.readLine(br, 5_000_000)) != null) {
                 if (pattern == null) pattern = line.startsWith("<") ? XML : TXT;
                 Matcher matcher = pattern.matcher(line);
                 while (matcher.find() && matcher.groupCount() == 2) {
