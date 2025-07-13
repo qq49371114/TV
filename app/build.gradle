@@ -104,7 +104,7 @@ dependencies {
     implementation 'androidx.media3:media3-exoplayer-smoothstreaming:' + media3Version
     implementation 'androidx.media3:media3-extractor:' + media3Version
     implementation 'androidx.media3:media3-ui:' + media3Version
-    implementation 'androidx.room:room-runtime:2.7.1'
+    implementation 'androidx.room:room-runtime:2.7.2'
     implementation 'cat.ereza:customactivityoncrash:2.4.0'
     implementation('com.github.anilbeesetti.nextlib:nextlib-media3ext:0.8.4') { exclude group: 'androidx.media3' }
     implementation 'com.github.bassaer:materialdesigncolors:1.0.0'
