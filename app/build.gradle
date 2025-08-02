@@ -123,5 +123,5 @@ dependencies {
     annotationProcessor 'androidx.room:room-compiler:2.7.2'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
     annotationProcessor 'org.greenrobot:eventbus-annotation-processor:3.3.1'
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.1.4'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.1.5'
 }
