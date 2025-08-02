@@ -13,8 +13,8 @@ android {
         minSdk 21
         //noinspection ExpiredTargetSdkVersion
         targetSdk 28
-        versionCode 407
-        versionName "4.0.7"
+        versionCode 405
+        versionName "4.0.5"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString(), "eventBusIndex": "com.fongmi.android.tv.event.EventIndex"]
@@ -98,7 +98,7 @@ dependencies {
     implementation 'com.github.bumptech.glide:okhttp3-integration:4.16.0'
     implementation 'com.github.jahirfiquitiva:TextDrawable:1.0.3'
     implementation 'com.github.thegrizzlylabs:sardine-android:0.9'
-    implementation 'com.github.teamnewpipe:NewPipeExtractor:v0.24.8'
+    implementation 'com.github.teamnewpipe:NewPipeExtractor:v0.24.6'
     implementation 'com.google.android.material:material:1.12.0'
     implementation 'com.google.zxing:core:3.5.3'
     implementation 'com.guolindev.permissionx:permissionx:1.8.1'
@@ -123,5 +123,5 @@ dependencies {
     annotationProcessor 'androidx.room:room-compiler:2.7.2'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
     annotationProcessor 'org.greenrobot:eventbus-annotation-processor:3.3.1'
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.1.5'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.1.4'
 }
