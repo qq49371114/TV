@@ -1,4 +1,5 @@
 # TV
+-keep class com.fongmi.quickjs.method.** { *; }
 -keep class com.fongmi.android.tv.bean.** { *; }
 
 # Gson
@@ -33,7 +34,6 @@
 -dontwarn sun.net.**
 -dontwarn java.awt.**
 -dontwarn com.sun.net.**
--dontwarn org.ietf.jgss.**
 -keep class org.fourthline.cling.** { *; }
 -keep class javax.xml.** { *; }
 
