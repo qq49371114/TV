@@ -1,4 +1,5 @@
 # TV
+-keep class com.fongmi.quickjs.method.** { *; }
 -keep class com.fongmi.android.tv.bean.** { *; }
 
 # Gson
@@ -59,19 +60,18 @@
 -keep class fi.iki.elonen.** { *; }
 
 # NewPipeExtractor
--keep class org.schabi.newpipe.extractor.timeago.patterns.** { *; }
+-keep class javax.script.** { *; }
+-keep class jdk.dynalink.** { *; }
 -keep class org.mozilla.javascript.* { *; }
 -keep class org.mozilla.javascript.** { *; }
 -keep class org.mozilla.javascript.engine.** { *; }
--keep class javax.script.** { *; }
--keep class jdk.dynalink.** { *; }
+-keep class org.mozilla.classfile.ClassFileWriter
+-keep class org.schabi.newpipe.extractor.timeago.patterns.** { *; }
+-keep class org.schabi.newpipe.extractor.services.youtube.protos.** { *; }
 -dontwarn org.mozilla.javascript.JavaToJSONConverters
 -dontwarn org.mozilla.javascript.tools.**
 -dontwarn javax.script.**
 -dontwarn jdk.dynalink.**
-
-# QuickJS
--keep class com.fongmi.quickjs.method.** { *; }
 
 # Sardine
 -keep class com.thegrizzlylabs.sardineandroid.** { *; }

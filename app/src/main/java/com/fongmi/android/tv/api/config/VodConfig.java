@@ -15,6 +15,8 @@ import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.bean.Doh;
+import com.github.catvod.bean.Header;
+import com.github.catvod.bean.Proxy;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
 import com.google.gson.JsonElement;
@@ -201,12 +203,12 @@ public class VodConfig {
         if (!parses.isEmpty()) parses.add(0, Parse.god());
         if (home == null) setHome(sites.isEmpty() ? new Site() : sites.get(0));
         if (parse == null) setParse(parses.isEmpty() ? new Parse() : parses.get(0));
+        setHeaders(Header.arrayFrom(object.getAsJsonArray("headers")));
+        setProxy(Proxy.arrayFrom(object.getAsJsonArray("proxy")));
         setRules(Rule.arrayFrom(object.getAsJsonArray("rules")));
         setDoh(Doh.arrayFrom(object.getAsJsonArray("doh")));
-        setHeaders(Json.safeListElement(object, "headers"));
         setFlags(Json.safeListString(object, "flags"));
         setHosts(Json.safeListString(object, "hosts"));
-        setProxy(Json.safeListString(object, "proxy"));
         setWall(Json.safeString(object, "wallpaper"));
         setAds(Json.safeListString(object, "ads"));
     }
@@ -223,7 +225,7 @@ public class VodConfig {
         return items;
     }
 
-    public void setDoh(List<Doh> doh) {
+    private void setDoh(List<Doh> doh) {
         this.doh = doh;
     }
 
@@ -231,7 +233,7 @@ public class VodConfig {
         return rules == null ? Collections.emptyList() : rules;
     }
 
-    public void setRules(List<Rule> rules) {
+    private void setRules(List<Rule> rules) {
         this.rules = rules;
     }
 
@@ -256,8 +258,13 @@ public class VodConfig {
         return items;
     }
 
-    public void setHeaders(List<JsonElement> items) {
-        OkHttp.responseInterceptor().setHeaders(items);
+    private void setHeaders(List<Header> headers) {
+        OkHttp.responseInterceptor().addAll(headers);
+    }
+
+    private void setProxy(List<Proxy> proxy) {
+        OkHttp.authenticator().addAll(proxy);
+        OkHttp.selector().addAll(proxy);
     }
 
     public List<String> getFlags() {
@@ -268,12 +275,8 @@ public class VodConfig {
         this.flags.addAll(flags);
     }
 
-    public void setHosts(List<String> hosts) {
+    private void setHosts(List<String> hosts) {
         OkHttp.dns().addAll(hosts);
-    }
-
-    public void setProxy(List<String> hosts) {
-        OkHttp.selector().addAll(hosts);
     }
 
     public List<String> getAds() {

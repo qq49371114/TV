@@ -149,21 +149,26 @@ http://127.0.0.1:9978/cache?do=del&key=xxx
 
 ### Proxy
 
-scheme 支持 http, https, socks4, socks5
+支持 http, https, socks4, socks5
 
 ```
 scheme://username:password@host:port
 ```
 
-配置新增 proxy 判斷域名是否走代理  
-全局只需要加上一條規則 ".*."
+配置新增 proxy 可指定走哪條代理
 
 ```json
 {
   "spider": "",
   "proxy": [
-    "raw.githubusercontent.com",
-    "googlevideo.com"
+    {
+      "name": "Global",
+      "host": ".*.",
+      "urls": [
+        "http://127.0.0.1:7890",
+        "socks5://127.0.0.1:7891"
+      ]
+    }
   ]
 }
 ```
@@ -230,14 +235,11 @@ getProxy(boolean local)
 
 ### 配置範例
 
-[點播-線上](other/sample/vod/online.json)  
-[點播-本地](other/sample/vod/offline.json)  
-[直播-線上](other/sample/live/online.json)  
-[直播-本地](other/sample/live/offline.json)
+[本地/線上](other/sample/config.json)
 
 ### 飛機群
 
-[討論群組](https://t.me/+qTlg0qAVzP9kMmM1)  
+[討論群組](https://t.me/fongmi_official)  
 [發布頻道](https://t.me/fongmi_release)
 
 ### 贊助

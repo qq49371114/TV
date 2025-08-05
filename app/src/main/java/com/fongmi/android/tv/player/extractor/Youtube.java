@@ -144,6 +144,7 @@ public class Youtube implements Source.Extractor {
 
         private void add(List<Episode> episodes, ListExtractor.InfoItemsPage<StreamInfoItem> page) {
             for (StreamInfoItem item : page.getItems()) {
+                if (item.getDuration() == -1) continue;
                 episodes.add(Episode.create(item.getName(), item.getUrl()));
             }
             if (page.hasNextPage()) {

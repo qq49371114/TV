@@ -26,7 +26,6 @@ import com.fongmi.android.tv.bean.Suggest;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.ActivityCollectBinding;
 import com.fongmi.android.tv.impl.Callback;
-import com.fongmi.android.tv.impl.SiteCallback;
 import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.ui.adapter.CollectAdapter;
 import com.fongmi.android.tv.ui.adapter.RecordAdapter;
@@ -53,7 +52,7 @@ import java.util.List;
 import okhttp3.Call;
 import okhttp3.Response;
 
-public class CollectActivity extends BaseActivity implements CustomScroller.Callback, SiteCallback, WordAdapter.OnClickListener, RecordAdapter.OnClickListener, CollectAdapter.OnClickListener, VodAdapter.OnClickListener {
+public class CollectActivity extends BaseActivity implements CustomScroller.Callback, WordAdapter.OnClickListener, RecordAdapter.OnClickListener, CollectAdapter.OnClickListener, VodAdapter.OnClickListener {
 
     private ActivityCollectBinding mBinding;
     private CollectAdapter mCollectAdapter;
@@ -63,7 +62,6 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
     private CustomScroller mScroller;
     private SiteViewModel mViewModel;
     private PauseExecutor mExecutor;
-    private List<Site> mSites;
 
     public static void start(Activity activity) {
         start(activity, "");
@@ -91,12 +89,10 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
     @Override
     protected void initView(Bundle savedInstanceState) {
         mScroller = new CustomScroller(this);
-        mSites = new ArrayList<>();
         setRecyclerView();
         setViewModel();
         checkKeyword();
         setViewType();
-        setSite();
         getHot();
         search();
     }
@@ -170,12 +166,10 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         mBinding.keyword.setSelection(text.length());
     }
 
-    private void setSite() {
-        for (Site site : VodConfig.get().getSites()) if (site.isSearchable()) mSites.add(site);
-        Site home = VodConfig.get().getHome();
-        if (!mSites.contains(home)) return;
-        mSites.remove(home);
-        mSites.add(0, home);
+    private List<Site> getSites() {
+        List<Site> items = new ArrayList<>();
+        for (Site site : VodConfig.get().getSites()) if (site.isSearchable()) items.add(site);
+        return items;
     }
 
     private void search() {
@@ -190,7 +184,7 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         if (mExecutor != null) mExecutor.shutdownNow();
         mExecutor = new PauseExecutor(20);
         String keyword = mBinding.keyword.getText().toString().trim();
-        for (Site site : mSites) mExecutor.execute(() -> search(site, keyword));
+        for (Site site : getSites()) mExecutor.execute(() -> search(site, keyword));
         App.post(() -> mRecordAdapter.add(keyword), 250);
     }
 
@@ -236,16 +230,6 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
         mBinding.site.setVisibility(View.VISIBLE);
         mBinding.agent.setVisibility(View.VISIBLE);
         if (mExecutor != null) mExecutor.shutdownNow();
-    }
-
-    @Override
-    public void setSite(Site item) {
-    }
-
-    @Override
-    public void onChanged() {
-        mSites.clear();
-        setSite();
     }
 
     @Override

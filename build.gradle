@@ -1,7 +1,7 @@
 plugins {
-    id 'com.android.application' version '8.8.2' apply false
-    id 'com.android.library' version '8.8.2' apply false
-    id 'com.chaquo.python' version '15.0.1' apply false
+    id 'com.android.application' version '8.12.0' apply false
+    id 'com.android.library' version '8.12.0' apply false
+    id 'com.chaquo.python' version '16.1.0' apply false
 }
 
 tasks.register('clean', Delete) {
@@ -9,7 +9,7 @@ tasks.register('clean', Delete) {
 }
 
 project.ext {
-    gsonVersion = '2.11.0'
-    media3Version = '1.6.1'
-    okhttpVersion = '5.0.0-alpha.14'
+    gsonVersion = '2.13.1'
+    media3Version = '1.8.0'
+    okhttpVersion = '5.1.0'
 }

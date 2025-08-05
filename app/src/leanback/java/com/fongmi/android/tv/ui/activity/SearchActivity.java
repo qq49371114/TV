@@ -15,11 +15,9 @@ import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.bean.Hot;
-import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Suggest;
 import com.fongmi.android.tv.databinding.ActivitySearchBinding;
 import com.fongmi.android.tv.impl.Callback;
-import com.fongmi.android.tv.impl.SiteCallback;
 import com.fongmi.android.tv.ui.adapter.RecordAdapter;
 import com.fongmi.android.tv.ui.adapter.WordAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
@@ -41,7 +39,7 @@ import okhttp3.Call;
 import okhttp3.Headers;
 import okhttp3.Response;
 
-public class SearchActivity extends BaseActivity implements WordAdapter.OnClickListener, RecordAdapter.OnClickListener, CustomKeyboard.Callback, SiteCallback {
+public class SearchActivity extends BaseActivity implements WordAdapter.OnClickListener, RecordAdapter.OnClickListener, CustomKeyboard.Callback {
 
     private ActivitySearchBinding mBinding;
     private RecordAdapter mRecordAdapter;
@@ -160,14 +158,6 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
     @Override
     public void onRemote() {
         PushActivity.start(this, 1);
-    }
-
-    @Override
-    public void setSite(Site item) {
-    }
-
-    @Override
-    public void onChanged() {
     }
 
     @Override

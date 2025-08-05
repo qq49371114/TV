@@ -16,8 +16,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class SiteDialog implements SiteAdapter.OnClickListener {
 
-    private final SiteCallback callback;
     private DialogSiteBinding binding;
+    private SiteCallback callback;
     private SiteAdapter adapter;
     private AlertDialog dialog;
 
@@ -30,12 +30,12 @@ public class SiteDialog implements SiteAdapter.OnClickListener {
     }
 
     public SiteDialog(Activity activity) {
-        this.callback = (SiteCallback) activity;
+        if (activity instanceof SiteCallback) this.callback = (SiteCallback) activity;
         init(activity);
     }
 
     public SiteDialog(Fragment fragment) {
-        this.callback = (SiteCallback) fragment;
+        if (fragment instanceof SiteCallback) this.callback = (SiteCallback) fragment;
         init(fragment.getActivity());
     }
 
@@ -91,7 +91,6 @@ public class SiteDialog implements SiteAdapter.OnClickListener {
     public void onSearchClick(int position, Site item) {
         item.setSearchable(!item.isSearchable()).save();
         adapter.notifyItemChanged(position);
-        callback.onChanged();
     }
 
     @Override
@@ -105,7 +104,6 @@ public class SiteDialog implements SiteAdapter.OnClickListener {
         boolean result = !item.isSearchable();
         for (Site site : adapter.getItems()) site.setSearchable(result).save();
         adapter.notifyItemRangeChanged(0, adapter.getItemCount());
-        callback.onChanged();
         return true;
     }
 

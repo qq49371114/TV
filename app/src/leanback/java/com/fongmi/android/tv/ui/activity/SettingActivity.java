@@ -24,7 +24,6 @@ import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.ConfigCallback;
 import com.fongmi.android.tv.impl.DohCallback;
 import com.fongmi.android.tv.impl.LiveCallback;
-import com.fongmi.android.tv.impl.ProxyCallback;
 import com.fongmi.android.tv.impl.SiteCallback;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.ui.base.BaseActivity;
@@ -32,14 +31,12 @@ import com.fongmi.android.tv.ui.dialog.ConfigDialog;
 import com.fongmi.android.tv.ui.dialog.DohDialog;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
-import com.fongmi.android.tv.ui.dialog.ProxyDialog;
 import com.fongmi.android.tv.ui.dialog.RestoreDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
-import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
@@ -50,7 +47,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-public class SettingActivity extends BaseActivity implements ConfigCallback, SiteCallback, LiveCallback, DohCallback, ProxyCallback {
+public class SettingActivity extends BaseActivity implements ConfigCallback, SiteCallback, LiveCallback, DohCallback {
 
     private ActivitySettingBinding mBinding;
     private String[] quality;
@@ -63,10 +60,6 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
 
     private String getSwitch(boolean value) {
         return getString(value ? R.string.setting_on : R.string.setting_off);
-    }
-
-    private String getProxy(String proxy) {
-        return proxy.isEmpty() ? getString(R.string.none) : UrlUtil.scheme(proxy);
     }
 
     private int getDohIndex() {
@@ -97,7 +90,6 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
 
     private void setOtherText() {
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
-        mBinding.proxyText.setText(getProxy(Setting.getProxy()));
         mBinding.incognitoText.setText(getSwitch(Setting.isIncognito()));
         mBinding.sizeText.setText((size = ResUtil.getStringArray(R.array.select_size))[Setting.getSize()]);
         mBinding.qualityText.setText((quality = ResUtil.getStringArray(R.array.select_quality))[Setting.getQuality()]);
@@ -117,7 +109,6 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.vod.setOnClickListener(this::onVod);
         mBinding.live.setOnClickListener(this::onLive);
         mBinding.wall.setOnClickListener(this::onWall);
-        mBinding.proxy.setOnClickListener(this::onProxy);
         mBinding.cache.setOnClickListener(this::onCache);
         mBinding.backup.setOnClickListener(this::onBackup);
         mBinding.player.setOnClickListener(this::onPlayer);
@@ -217,10 +208,6 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
     public void setSite(Site item) {
         VodConfig.get().setHome(item);
         RefreshEvent.video();
-    }
-
-    @Override
-    public void onChanged() {
     }
 
     @Override
@@ -329,20 +316,6 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         Notify.progress(getActivity());
         Setting.putDoh(doh.toString());
         mBinding.dohText.setText(doh.getName());
-        VodConfig.load(Config.vod(), getCallback(0));
-    }
-
-    private void onProxy(View view) {
-        ProxyDialog.create(this).show();
-    }
-
-    @Override
-    public void setProxy(String proxy) {
-        Source.get().stop();
-        Setting.putProxy(proxy);
-        OkHttp.get().setProxy(proxy);
-        Notify.progress(getActivity());
-        mBinding.proxyText.setText(getProxy(proxy));
         VodConfig.load(Config.vod(), getCallback(0));
     }
 

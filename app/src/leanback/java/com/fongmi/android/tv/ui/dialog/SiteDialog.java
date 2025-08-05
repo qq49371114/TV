@@ -22,12 +22,13 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class SiteDialog implements SiteAdapter.OnClickListener {
 
-    private RecyclerView.ItemDecoration decoration;
     private final DialogSiteBinding binding;
-    private final SiteCallback callback;
     private final SiteAdapter adapter;
     private final AlertDialog dialog;
     private final int GRID_COUNT = 10;
+
+    private RecyclerView.ItemDecoration decoration;
+    private SiteCallback callback;
     private int type;
 
     public static SiteDialog create(Activity activity) {
@@ -36,9 +37,9 @@ public class SiteDialog implements SiteAdapter.OnClickListener {
 
     public SiteDialog(Activity activity) {
         this.adapter = new SiteAdapter(this);
-        this.callback = (SiteCallback) activity;
         this.binding = DialogSiteBinding.inflate(LayoutInflater.from(activity));
         this.dialog = new MaterialAlertDialogBuilder(activity).setView(binding.getRoot()).create();
+        if (activity instanceof SiteCallback) this.callback = (SiteCallback) activity;
     }
 
     public SiteDialog search() {
@@ -127,6 +128,7 @@ public class SiteDialog implements SiteAdapter.OnClickListener {
 
     @Override
     public void onItemClick(Site item) {
+        if (callback == null) return;
         callback.setSite(item);
         dialog.dismiss();
     }

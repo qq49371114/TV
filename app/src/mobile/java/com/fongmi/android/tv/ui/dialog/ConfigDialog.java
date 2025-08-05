@@ -115,7 +115,7 @@ public class ConfigDialog {
             binding.url.append("ssets://");
         } else if (s.length() > 1) {
             append = false;
-        } else if (s.length() == 0) {
+        } else if (s.isEmpty()) {
             append = true;
         }
     }

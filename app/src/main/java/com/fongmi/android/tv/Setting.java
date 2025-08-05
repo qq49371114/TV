@@ -17,14 +17,6 @@ public class Setting {
         Prefers.put("doh", doh);
     }
 
-    public static String getProxy() {
-        return Prefers.getString("proxy");
-    }
-
-    public static void putProxy(String proxy) {
-        Prefers.put("proxy", proxy);
-    }
-
     public static String getKeyword() {
         return Prefers.getString("keyword");
     }
@@ -223,6 +215,14 @@ public class Setting {
 
     public static void putAudioPrefer(boolean audioPrefer) {
         Prefers.put("audio_prefer", audioPrefer);
+    }
+
+    public static boolean isVideoPrefer() {
+        return Prefers.getBoolean("video_prefer");
+    }
+
+    public static void putVideoPrefer(boolean videoPrefer) {
+        Prefers.put("video_prefer", videoPrefer);
     }
 
     public static boolean isPreferAAC() {

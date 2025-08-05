@@ -780,11 +780,9 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void onOpening() {
-        long current = mPlayers.getPosition();
+        long position = mPlayers.getPosition();
         long duration = mPlayers.getDuration();
-        if (current < 0 || duration < 0) return;
-        if (current > Constant.OPED_LIMIT) return;
-        setOpening(current);
+        if (mPlayers.canSetOpening(position, duration)) setOpening(position);
     }
 
     private void onOpeningAdd() {
@@ -806,11 +804,9 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void onEnding() {
-        long current = mPlayers.getPosition();
+        long position = mPlayers.getPosition();
         long duration = mPlayers.getDuration();
-        if (current < 0 || duration < 0) return;
-        if (duration - current > Constant.OPED_LIMIT) return;
-        setEnding(duration - current);
+        if (mPlayers.canSetEnding(position, duration)) setEnding(duration - position);
     }
 
     private void onEndingAdd() {
@@ -1339,12 +1335,12 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     @Override
     public void onKeyUp() {
-        long current = mPlayers.getPosition();
+        long position = mPlayers.getPosition();
         long duration = mPlayers.getDuration();
-        if (duration - current < Constant.OPED_LIMIT) {
-            showControl(mBinding.control.ending);
-        } else if (current < Constant.OPED_LIMIT) {
+        if (mPlayers.canSetOpening(position, duration)) {
             showControl(mBinding.control.opening);
+        } else if (mPlayers.canSetEnding(position, duration)) {
+            showControl(mBinding.control.ending);
         } else {
             showControl(getFocus2());
         }

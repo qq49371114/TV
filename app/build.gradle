@@ -5,22 +5,25 @@ plugins {
 android {
     namespace 'com.fongmi.android.tv'
 
-    compileSdk 35
-    flavorDimensions = ["mode", "abi"]
+    compileSdk {
+        version = release(36)
+    }
 
     defaultConfig {
         applicationId "com.fongmi.android.tv"
-        minSdk 21
+        minSdk 24
         //noinspection ExpiredTargetSdkVersion
         targetSdk 28
-        versionCode 403
-        versionName "4.0.3"
+        versionCode 407
+        versionName "4.0.7"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString(), "eventBusIndex": "com.fongmi.android.tv.event.EventIndex"]
             }
         }
     }
+
+    flavorDimensions = ["mode", "abi"]
 
     productFlavors {
         leanback {
@@ -77,8 +80,8 @@ android {
 
     compileOptions {
         coreLibraryDesugaringEnabled true
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 }
 
@@ -87,7 +90,7 @@ dependencies {
     implementation project(':catvod')
     implementation project(':chaquo')
     implementation project(':quickjs')
-    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'androidx.media:media:1.7.0'
     implementation 'androidx.media3:media3-common:' + media3Version
     implementation 'androidx.media3:media3-container:' + media3Version
@@ -104,9 +107,8 @@ dependencies {
     implementation 'androidx.media3:media3-exoplayer-smoothstreaming:' + media3Version
     implementation 'androidx.media3:media3-extractor:' + media3Version
     implementation 'androidx.media3:media3-ui:' + media3Version
-    implementation 'androidx.room:room-runtime:2.7.1'
+    implementation 'androidx.room:room-runtime:2.7.2'
     implementation 'cat.ereza:customactivityoncrash:2.4.0'
-    implementation('com.github.anilbeesetti.nextlib:nextlib-media3ext:0.8.4') { exclude group: 'androidx.media3' }
     implementation 'com.github.bassaer:materialdesigncolors:1.0.0'
     implementation 'com.github.bumptech.glide:glide:4.16.0'
     implementation 'com.github.bumptech.glide:annotations:4.16.0'
@@ -114,12 +116,13 @@ dependencies {
     implementation 'com.github.bumptech.glide:okhttp3-integration:4.16.0'
     implementation 'com.github.jahirfiquitiva:TextDrawable:1.0.3'
     implementation 'com.github.thegrizzlylabs:sardine-android:0.9'
-    implementation 'com.github.teamnewpipe:NewPipeExtractor:v0.24.6'
+    implementation 'com.github.teamnewpipe:NewPipeExtractor:v0.24.8'
     implementation 'com.google.android.material:material:1.12.0'
     implementation 'com.google.zxing:core:3.5.3'
-    implementation 'com.guolindev.permissionx:permissionx:1.8.0'
+    implementation 'com.guolindev.permissionx:permissionx:1.8.1'
     implementation 'com.hierynomus:smbj:0.14.0'
     implementation 'io.antmedia:rtmp-client:3.2.0'
+    implementation 'io.github.anilbeesetti:nextlib-media3ext:1.8.0-0.9.0'
     implementation 'javax.servlet:javax.servlet-api:3.1.0'
     implementation 'org.aomedia.avif.android:avif:1.1.1.14d8e3c4'
     implementation 'org.eclipse.jetty:jetty-client:8.1.21.v20160908'
@@ -136,8 +139,8 @@ dependencies {
     mobileImplementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     mobileImplementation 'com.google.android.flexbox:flexbox:3.0.0'
     mobileImplementation('com.journeyapps:zxing-android-embedded:4.3.0') { transitive = false }
-    annotationProcessor 'androidx.room:room-compiler:2.7.1'
+    annotationProcessor 'androidx.room:room-compiler:2.7.2'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
     annotationProcessor 'org.greenrobot:eventbus-annotation-processor:3.3.1'
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.1.4'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.1.5'
 }

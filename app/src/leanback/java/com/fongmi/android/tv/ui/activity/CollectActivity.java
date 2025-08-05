@@ -43,7 +43,6 @@ public class CollectActivity extends BaseActivity {
     private ArrayObjectAdapter mAdapter;
     private SiteViewModel mViewModel;
     private PauseExecutor mExecutor;
-    private List<Site> mSites;
     private View mOldView;
 
     public static void start(Activity activity, String keyword) {
@@ -80,7 +79,6 @@ public class CollectActivity extends BaseActivity {
         setViewModel();
         saveKeyword();
         setPager();
-        setSite();
         search();
     }
 
@@ -119,13 +117,10 @@ public class CollectActivity extends BaseActivity {
         mBinding.pager.setAdapter(new PageAdapter(getSupportFragmentManager()));
     }
 
-    private void setSite() {
-        mSites = new ArrayList<>();
-        for (Site site : VodConfig.get().getSites()) if (site.isSearchable()) mSites.add(site);
-        Site home = VodConfig.get().getHome();
-        if (!mSites.contains(home)) return;
-        mSites.remove(home);
-        mSites.add(0, home);
+    private List<Site> getSites() {
+        List<Site> items = new ArrayList<>();
+        for (Site site : VodConfig.get().getSites()) if (site.isSearchable()) items.add(site);
+        return items;
     }
 
     private void search() {
@@ -134,7 +129,7 @@ public class CollectActivity extends BaseActivity {
         mBinding.pager.getAdapter().notifyDataSetChanged();
         mExecutor = new PauseExecutor(10);
         mBinding.result.setText(getString(R.string.collect_result, getKeyword()));
-        for (Site site : mSites) mExecutor.execute(() -> search(site));
+        for (Site site : getSites()) mExecutor.execute(() -> search(site));
     }
 
     private void search(Site site) {

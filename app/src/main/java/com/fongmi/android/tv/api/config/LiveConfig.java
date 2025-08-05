@@ -21,6 +21,8 @@ import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.ui.activity.LiveActivity;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.UrlUtil;
+import com.github.catvod.bean.Header;
+import com.github.catvod.bean.Proxy;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
 import com.google.gson.JsonElement;
@@ -197,10 +199,10 @@ public class LiveConfig {
 
     private void initOther(JsonObject object) {
         if (home == null) setHome(lives.isEmpty() ? new Live() : lives.get(0), true);
+        setHeaders(Header.arrayFrom(object.getAsJsonArray("headers")));
+        setProxy(Proxy.arrayFrom(object.getAsJsonArray("proxy")));
         setRules(Rule.arrayFrom(object.getAsJsonArray("rules")));
-        setHeaders(Json.safeListElement(object, "headers"));
         setHosts(Json.safeListString(object, "hosts"));
-        setProxy(Json.safeListString(object, "proxy"));
         setAds(Json.safeListString(object, "ads"));
     }
 
@@ -264,20 +266,21 @@ public class LiveConfig {
         return rules == null ? Collections.emptyList() : rules;
     }
 
-    public void setRules(List<Rule> rules) {
+    private void setRules(List<Rule> rules) {
         this.rules = rules;
     }
 
-    public void setHeaders(List<JsonElement> items) {
-        OkHttp.responseInterceptor().setHeaders(items);
+    private void setHeaders(List<Header> headers) {
+        OkHttp.responseInterceptor().addAll(headers);
     }
 
-    public void setHosts(List<String> hosts) {
+    private void setProxy(List<Proxy> proxy) {
+        OkHttp.authenticator().addAll(proxy);
+        OkHttp.selector().addAll(proxy);
+    }
+
+    private void setHosts(List<String> hosts) {
         OkHttp.dns().addAll(hosts);
-    }
-
-    public void setProxy(List<String> hosts) {
-        OkHttp.selector().addAll(hosts);
     }
 
     public List<String> getAds() {

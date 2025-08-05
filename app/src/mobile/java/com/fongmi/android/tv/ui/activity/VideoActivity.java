@@ -801,11 +801,9 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void onEnding() {
-        long current = mPlayers.getPosition();
+        long position = mPlayers.getPosition();
         long duration = mPlayers.getDuration();
-        if (current < 0 || duration < 0) return;
-        if (duration - current > Constant.OPED_LIMIT) return;
-        setEnding(duration - current);
+        if (mPlayers.canSetEnding(position, duration)) setEnding(duration - position);
         setR1Callback();
     }
 
@@ -821,11 +819,9 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void onOpening() {
-        long current = mPlayers.getPosition();
+        long position = mPlayers.getPosition();
         long duration = mPlayers.getDuration();
-        if (current < 0 || duration < 0) return;
-        if (current > Constant.OPED_LIMIT) return;
-        setOpening(current);
+        if (mPlayers.canSetOpening(position, duration)) setOpening(position);
         setR1Callback();
     }
 

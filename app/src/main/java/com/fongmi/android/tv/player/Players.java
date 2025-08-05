@@ -247,6 +247,14 @@ public class Players implements Player.Listener, ParseCallback {
         return false;
     }
 
+    public boolean canSetOpening(long position, long duration) {
+        return position > 0 && duration > 0 && position <= Constant.getOpEdLimit(duration);
+    }
+
+    public boolean canSetEnding(long position, long duration) {
+        return position > 0 && duration > 0 && duration - position <= Constant.getOpEdLimit(duration);
+    }
+
     public boolean isPlaying() {
         return exoPlayer != null && exoPlayer.isPlaying();
     }

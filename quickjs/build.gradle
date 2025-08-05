@@ -5,26 +5,24 @@ plugins {
 android {
     namespace 'com.fongmi.android.tv.quickjs'
 
-    compileSdk 35
+    compileSdk {
+        version = release(36)
+    }
 
     defaultConfig {
-        minSdk 21
+        minSdk 24
         targetSdk 28
     }
 
-    lint {
-        disable 'UnsafeOptInUsageError'
-    }
-
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 }
 
 dependencies {
     implementation project(':catvod')
-    implementation 'wang.harlon.quickjs:wrapper-java:3.2.0'
-    implementation 'wang.harlon.quickjs:wrapper-android:3.2.0'
+    implementation 'wang.harlon.quickjs:wrapper-java:3.2.3'
+    implementation 'wang.harlon.quickjs:wrapper-android:3.2.3'
     implementation 'net.sourceforge.streamsupport:android-retrofuture:1.7.4'
 }

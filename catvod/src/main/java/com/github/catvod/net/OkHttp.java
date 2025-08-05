@@ -1,7 +1,6 @@
 package com.github.catvod.net;
 
 import android.annotation.SuppressLint;
-import android.text.TextUtils;
 
 import androidx.collection.ArrayMap;
 
@@ -10,7 +9,6 @@ import com.github.catvod.net.interceptor.AuthInterceptor;
 import com.github.catvod.net.interceptor.RequestInterceptor;
 import com.github.catvod.net.interceptor.ResponseInterceptor;
 
-import java.net.ProxySelector;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.Map;
@@ -35,20 +33,14 @@ import okhttp3.logging.HttpLoggingInterceptor;
 public class OkHttp {
 
     private static final long TIMEOUT = TimeUnit.SECONDS.toMillis(30);
-    private static final ProxySelector defaultSelector;
 
     private ResponseInterceptor responseInterceptor;
     private RequestInterceptor requestInterceptor;
     private AuthInterceptor authInterceptor;
+    private OkAuthenticator authenticator;
     private OkProxySelector selector;
     private OkHttpClient client;
     private OkDns dns;
-
-    private boolean proxy;
-
-    static {
-        defaultSelector = ProxySelector.getDefault();
-    }
 
     private static class Loader {
         static volatile OkHttp INSTANCE = new OkHttp();
@@ -62,6 +54,7 @@ public class OkHttp {
         cancelAll();
         dns().clear();
         selector().clear();
+        authenticator().clear();
         authInterceptor().clear();
         requestInterceptor().clear();
         responseInterceptor().clear();
@@ -69,13 +62,6 @@ public class OkHttp {
 
     public void setDoh(Doh doh) {
         dns().setDoh(doh.getUrl().isEmpty() ? null : new DnsOverHttps.Builder().client(new OkHttpClient()).url(HttpUrl.get(doh.getUrl())).bootstrapDnsHosts(doh.getHosts()).build());
-        client = null;
-    }
-
-    public void setProxy(String proxy) {
-        ProxySelector.setDefault(TextUtils.isEmpty(proxy) ? defaultSelector : selector());
-        if (!TextUtils.isEmpty(proxy)) selector().setProxy(proxy);
-        this.proxy = !TextUtils.isEmpty(proxy);
         client = null;
     }
 
@@ -97,6 +83,11 @@ public class OkHttp {
     public static AuthInterceptor authInterceptor() {
         if (get().authInterceptor != null) return get().authInterceptor;
         return get().authInterceptor = new AuthInterceptor();
+    }
+
+    public static OkAuthenticator authenticator() {
+        if (get().authenticator != null) return get().authenticator;
+        return get().authenticator = new OkAuthenticator();
     }
 
     public static OkProxySelector selector() {
@@ -207,8 +198,9 @@ public class OkHttp {
     private static OkHttpClient.Builder getBuilder() {
         OkHttpClient.Builder builder = new OkHttpClient.Builder().cookieJar(OkCookieJar.get()).addInterceptor(requestInterceptor()).addInterceptor(authInterceptor()).addNetworkInterceptor(responseInterceptor()).connectTimeout(TIMEOUT, TimeUnit.MILLISECONDS).readTimeout(TIMEOUT, TimeUnit.MILLISECONDS).writeTimeout(TIMEOUT, TimeUnit.MILLISECONDS).dns(dns()).hostnameVerifier((hostname, session) -> true).sslSocketFactory(getSSLContext().getSocketFactory(), trustAllCertificates());
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY);
-        builder.proxySelector(get().proxy ? selector() : defaultSelector);
+        builder.proxyAuthenticator(authenticator());
         //builder.addNetworkInterceptor(logging);
+        builder.proxySelector(selector());
         return builder;
     }
 

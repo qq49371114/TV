@@ -92,7 +92,7 @@ public class UaDialog implements DialogInterface.OnDismissListener {
             binding.text.setText(Util.OKHTTP);
         } else if (s.length() > 1) {
             append = false;
-        } else if (s.length() == 0) {
+        } else if (s.isEmpty()) {
             append = true;
         }
     }

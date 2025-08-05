@@ -132,7 +132,7 @@ public class ConfigDialog implements DialogInterface.OnDismissListener {
             binding.text.append("ssets://");
         } else if (s.length() > 1) {
             append = false;
-        } else if (s.length() == 0) {
+        } else if (s.isEmpty()) {
             append = true;
         }
     }
