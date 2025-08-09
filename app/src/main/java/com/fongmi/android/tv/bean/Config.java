@@ -8,6 +8,7 @@ import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.api.config.Constants;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.github.catvod.utils.Path;
@@ -224,6 +225,17 @@ public class Config {
     }
 
     public static Config find(String url, String name, int type) {
+        // 新增：如果名称是内置源名称，强制使用占位符 URL
+        if (name.equals(Constants.BUILTIN_NAME)) {
+            url = Constants.BUILTIN_PLACEHOLDER;
+        }
+        if (url.equals(Constants.BUILTIN_PLACEHOLDER)) {
+            return new Config()
+                    .type(type)
+                    .name(Constants.BUILTIN_NAME)
+                    .url(Constants.BUILTIN_PLACEHOLDER)
+                    .update();
+        }
         Config item = AppDatabase.get().getConfigDao().find(url, type);
         return item == null ? create(type, url, name) : item.type(type).name(name);
     }
@@ -242,6 +254,34 @@ public class Config {
         return item == null ? create(type, depot.getUrl(), depot.getName()) : item.type(type).name(depot.getName());
     }
 
+    // ▼▼▼ 新增初始化方法 initBuiltin() ▼▼▼
+    public static void initBuiltin() {
+        // 初始化点播内置源
+        if (AppDatabase.get().getConfigDao().find(Constants.BUILTIN_PLACEHOLDER, 0) == null) {
+            new Config()
+                    .type(0)
+                    .name(Constants.BUILTIN_NAME)
+                    .url(Constants.BUILTIN_PLACEHOLDER)
+                    .update();
+        }
+        // 初始化直播内置源（按需添加）
+        if (AppDatabase.get().getConfigDao().find(Constants.BUILTIN_PLACEHOLDER, 1) == null) {
+            new Config()
+                    .type(1)
+                    .name(Constants.BUILTIN_NAME)
+                    .url(Constants.BUILTIN_PLACEHOLDER)
+                    .update();
+        }
+        // 初始化壁纸内置源（按需添加）
+        if (AppDatabase.get().getConfigDao().find(Constants.BUILTIN_PLACEHOLDER, 2) == null) {
+            new Config()
+                    .type(2)
+                    .name(Constants.BUILTIN_NAME)
+                    .url(Constants.BUILTIN_PLACEHOLDER)
+                    .update();
+        }
+    }
+
     public Config insert() {
         if (isEmpty()) return this;
         setId(Math.toIntExact(AppDatabase.get().getConfigDao().insert(this)));
@@ -254,12 +294,17 @@ public class Config {
         return this;
     }
 
+    // ▼▼▼ 修改update方法 ▼▼▼
     public Config update() {
-        if (isEmpty()) return this;
+        if (getUrl().equals(Constants.BUILTIN_PLACEHOLDER)) {
+            setTime(System.currentTimeMillis());
+            return this; // 内置配置不保存到数据库
+        }
         setTime(System.currentTimeMillis());
         Prefers.put("config_" + getType(), getUrl());
         return save();
     }
+    // ▲▲▲ 结束修改 ▲▲▲
 
     public void delete() {
         AppDatabase.get().getConfigDao().delete(getUrl(), getType());
