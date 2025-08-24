@@ -15,7 +15,7 @@ import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Util;
 
-public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener implements ScaleGestureDetector.OnScaleGestureListener {
+public class CustomKeyDown extends GestureDetector.SimpleOnGestureListener implements ScaleGestureDetector.OnScaleGestureListener {
 
     private static final int DISTANCE = 250;
     private static final int VELOCITY = 10;
@@ -40,11 +40,11 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener im
     private float scale;
     private long time;
 
-    public static CustomKeyDownVod create(Activity activity, View videoView) {
-        return new CustomKeyDownVod(activity, videoView);
+    public static CustomKeyDown create(Activity activity, View videoView) {
+        return new CustomKeyDown(activity, videoView);
     }
 
-    private CustomKeyDownVod(Activity activity, View videoView) {
+    private CustomKeyDown(Activity activity, View videoView) {
         this.manager = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
         this.scaleDetector = new ScaleGestureDetector(activity, this);
         this.detector = new GestureDetector(activity, this);
@@ -119,7 +119,7 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener im
     @Override
     public boolean onDoubleTap(@NonNull MotionEvent e) {
         if (isEdge(e) || changeScale || e.getPointerCount() > 1) return true;
-        if (!lock) listener.onDoubleTap();
+        listener.onDoubleTap();
         return true;
     }
 

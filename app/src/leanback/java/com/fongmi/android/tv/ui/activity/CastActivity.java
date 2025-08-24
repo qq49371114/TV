@@ -36,7 +36,7 @@ import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.ui.base.BaseActivity;
-import com.fongmi.android.tv.ui.custom.CustomKeyDownCast;
+import com.fongmi.android.tv.ui.custom.CustomKeyDownVod;
 import com.fongmi.android.tv.ui.dialog.SubtitleDialog;
 import com.fongmi.android.tv.ui.dialog.TrackDialog;
 import com.fongmi.android.tv.utils.Clock;
@@ -50,11 +50,11 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.UUID;
 
-public class CastActivity extends BaseActivity implements CustomKeyDownCast.Listener, TrackDialog.Listener, RenderControl, ServiceConnection, Clock.Callback {
+public class CastActivity extends BaseActivity implements CustomKeyDownVod.Listener, TrackDialog.Listener, RenderControl, ServiceConnection, Clock.Callback {
 
     private ActivityCastBinding mBinding;
     private DLNARendererService mService;
-    private CustomKeyDownCast mKeyDown;
+    private CustomKeyDownVod mKeyDown;
     private RenderState mState;
     private CastAction mAction;
     private Players mPlayers;
@@ -87,10 +87,11 @@ public class CastActivity extends BaseActivity implements CustomKeyDownCast.List
     protected void initView() {
         bindService(new Intent(this, DLNARendererService.class), this, Context.BIND_AUTO_CREATE);
         mClock = Clock.create(mBinding.widget.clock);
-        mKeyDown = CustomKeyDownCast.create(this);
+        mKeyDown = CustomKeyDownVod.create(this);
         mPlayers = Players.create(this);
         mR1 = this::hideControl;
         mR2 = this::setTraffic;
+        mKeyDown.setFull(true);
         setVideoView();
     }
 

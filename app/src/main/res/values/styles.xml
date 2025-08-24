@@ -5,6 +5,11 @@
     </style>
 
     <style name="Vod.Grid">
+        <item name="cornerSizeTopLeft">8dp</item>
+        <item name="cornerSizeTopRight">8dp</item>
+    </style>
+
+    <style name="Vod.Grid.Large">
         <item name="cornerSize">8dp</item>
     </style>
 
@@ -24,7 +29,6 @@
         <item name="use_artwork">true</item>
         <item name="use_controller">false</item>
         <item name="animation_enabled">false</item>
-        <item name="default_artwork">@drawable/radio</item>
     </style>
 
     <style name="Player.Vod">

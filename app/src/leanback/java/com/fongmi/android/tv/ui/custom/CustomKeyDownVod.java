@@ -47,19 +47,19 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
     }
 
     private void check(KeyEvent event) {
-        if (event.getAction() == KeyEvent.ACTION_DOWN && KeyUtil.isLeftKey(event)) {
+        if (KeyUtil.isActionDown(event) && KeyUtil.isLeftKey(event)) {
             listener.onSeeking(subTime());
-        } else if (event.getAction() == KeyEvent.ACTION_DOWN && KeyUtil.isRightKey(event)) {
+        } else if (KeyUtil.isActionDown(event) && KeyUtil.isRightKey(event)) {
             listener.onSeeking(addTime());
-        } else if (event.getAction() == KeyEvent.ACTION_UP && (KeyUtil.isLeftKey(event) || KeyUtil.isRightKey(event))) {
+        } else if (KeyUtil.isActionUp(event) && (KeyUtil.isLeftKey(event) || KeyUtil.isRightKey(event))) {
             App.post(() -> listener.onSeekTo(holdTime), 250);
-        } else if (event.getAction() == KeyEvent.ACTION_UP && KeyUtil.isUpKey(event)) {
+        } else if (KeyUtil.isActionUp(event) && KeyUtil.isUpKey(event)) {
             if (changeSpeed) listener.onSpeedEnd();
             else listener.onKeyUp();
             changeSpeed = false;
-        } else if (event.getAction() == KeyEvent.ACTION_UP && KeyUtil.isDownKey(event)) {
+        } else if (KeyUtil.isActionUp(event) && KeyUtil.isDownKey(event)) {
             listener.onKeyDown();
-        } else if (event.getAction() == KeyEvent.ACTION_UP && KeyUtil.isEnterKey(event)) {
+        } else if (KeyUtil.isActionUp(event) && KeyUtil.isEnterKey(event)) {
             listener.onKeyCenter();
         } else if (event.isLongPress() && KeyUtil.isUpKey(event)) {
             listener.onSpeedUp();

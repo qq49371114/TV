@@ -13,9 +13,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:background="@color/black_20"
-        android:scaleType="center"
-        app:shapeAppearanceOverlay="@style/Vod.Circle"
-        tools:src="@drawable/ic_img_loading" />
+        app:shapeAppearanceOverlay="@style/Vod.Circle" />
 
     <TextView
         android:id="@+id/name"

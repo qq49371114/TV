@@ -54,7 +54,7 @@ public class CollectAdapter extends RecyclerView.Adapter<CollectAdapter.ViewHold
 
     public void setActivated(int position) {
         for (int i = 0; i < mItems.size(); i++) mItems.get(i).setActivated(i == position);
-        notifyDataSetChanged();
+        notifyItemRangeChanged(0, getItemCount());
     }
 
     @Override

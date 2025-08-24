@@ -79,7 +79,7 @@ public class KeepAdapter extends RecyclerView.Adapter<KeepAdapter.ViewHolder> {
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         ViewHolder holder = new ViewHolder(AdapterVodBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
         holder.binding.getRoot().getLayoutParams().width = width;
-        holder.binding.getRoot().getLayoutParams().height = height;
+        holder.binding.image.getLayoutParams().height = height;
         return holder;
     }
 
@@ -90,6 +90,7 @@ public class KeepAdapter extends RecyclerView.Adapter<KeepAdapter.ViewHolder> {
         holder.binding.remark.setVisibility(View.GONE);
         holder.binding.site.setVisibility(View.VISIBLE);
         holder.binding.site.setText(item.getSiteName());
+        holder.binding.progress.setVisibility(View.GONE);
         holder.binding.delete.setVisibility(!delete ? View.GONE : View.VISIBLE);
         ImgUtil.loadVod(item.getVodName(), item.getVodPic(), holder.binding.image);
         setClickListener(holder.binding.getRoot(), item);

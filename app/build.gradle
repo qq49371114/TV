@@ -14,8 +14,8 @@ android {
         minSdk 24
         //noinspection ExpiredTargetSdkVersion
         targetSdk 28
-        versionCode 407
-        versionName "4.0.7"
+        versionCode 408
+        versionName "4.0.8"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString(), "eventBusIndex": "com.fongmi.android.tv.event.EventIndex"]
@@ -31,6 +31,10 @@ android {
         }
         mobile {
             dimension "mode"
+        }
+        x86 {
+            dimension "abi"
+            ndk { abiFilters "x86" }
         }
         arm64_v8a {
             dimension "abi"
@@ -56,6 +60,9 @@ android {
     }
 
     packagingOptions {
+        jniLibs {
+            useLegacyPackaging true
+        }
         resources {
             exclude 'META-INF/beans.xml'
             exclude 'META-INF/versions/9/OSGI-INF/MANIFEST.MF'

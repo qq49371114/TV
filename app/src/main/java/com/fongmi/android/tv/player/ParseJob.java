@@ -30,6 +30,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Headers;
+import okhttp3.Response;
 
 public class ParseJob implements ParseCallback {
 
@@ -112,12 +113,13 @@ public class ParseJob implements ParseCallback {
     }
 
     private void jsonParse(Parse item, String webUrl, boolean error) throws Exception {
-        String body = OkHttp.newCall(item.getUrl() + webUrl, Headers.of(item.getHeaders())).execute().body().string();
-        JsonObject object = Json.parse(body).getAsJsonObject();
+        Response res = OkHttp.newCall(item.getUrl() + webUrl, Headers.of(item.getHeaders())).execute();
+        JsonObject object = Json.parse(res.body().string()).getAsJsonObject();
         String url = Json.safeString(object, "url");
         JsonObject data = object.getAsJsonObject("data");
         if (url.isEmpty()) url = Json.safeString(data, "url");
         checkResult(getHeader(object), url, item.getName(), error);
+        res.close();
     }
 
     private void jsonExtend(String webUrl) throws Throwable {
@@ -211,6 +213,7 @@ public class ParseJob implements ParseCallback {
 
     private void stopWeb() {
         for (CustomWebView webView : webViews) webView.stop(false);
+        for (CustomWebView webView : webViews) webView.destroy();
         if (!webViews.isEmpty()) webViews.clear();
     }
 

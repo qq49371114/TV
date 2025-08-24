@@ -19,7 +19,7 @@
         android:textSize="24sp"
         tools:text="@string/collect_result" />
 
-    <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
+    <androidx.leanback.widget.HorizontalGridView
         android:id="@+id/recycler"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

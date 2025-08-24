@@ -11,7 +11,6 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.text.Html;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -71,7 +70,7 @@ import com.fongmi.android.tv.ui.adapter.QualityAdapter;
 import com.fongmi.android.tv.ui.adapter.QuickAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.base.ViewType;
-import com.fongmi.android.tv.ui.custom.CustomKeyDownVod;
+import com.fongmi.android.tv.ui.custom.CustomKeyDown;
 import com.fongmi.android.tv.ui.custom.CustomMovement;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.ui.dialog.CastDialog;
@@ -113,7 +112,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 
-public class VideoActivity extends BaseActivity implements Clock.Callback, CustomKeyDownVod.Listener, TrackDialog.Listener, ControlDialog.Listener, FlagAdapter.OnClickListener, EpisodeAdapter.OnClickListener, QualityAdapter.OnClickListener, QuickAdapter.OnClickListener, ParseAdapter.OnClickListener, CastDialog.Listener, InfoDialog.Listener {
+public class VideoActivity extends BaseActivity implements Clock.Callback, CustomKeyDown.Listener, TrackDialog.Listener, ControlDialog.Listener, FlagAdapter.OnClickListener, EpisodeAdapter.OnClickListener, QualityAdapter.OnClickListener, QuickAdapter.OnClickListener, ParseAdapter.OnClickListener, CastDialog.Listener, InfoDialog.Listener {
 
     private ActivityVideoBinding mBinding;
     private ViewGroup.LayoutParams mFrameParams;
@@ -125,10 +124,10 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private ControlDialog mControlDialog;
     private QuickAdapter mQuickAdapter;
     private ParseAdapter mParseAdapter;
-    private CustomKeyDownVod mKeyDown;
     private ExecutorService mExecutor;
     private SiteViewModel mViewModel;
     private FlagAdapter mFlagAdapter;
+    private CustomKeyDown mKeyDown;
     private List<Dialog> mDialogs;
     private List<String> mBroken;
     private History mHistory;
@@ -279,7 +278,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Override
     protected void initView(Bundle savedInstanceState) {
-        mKeyDown = CustomKeyDownVod.create(this, mBinding.exo);
+        mKeyDown = CustomKeyDown.create(this, mBinding.exo);
         mFrameParams = mBinding.video.getLayoutParams();
         mBinding.progressLayout.showProgress();
         mBinding.swipeLayout.setEnabled(false);
@@ -468,10 +467,10 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.video.setTag(item.getVodPic(getPic()));
         mBinding.name.setText(item.getVodName(getName()));
         setText(mBinding.remark, 0, item.getVodRemarks());
+        setText(mBinding.content, 0, item.getVodContent());
         setText(mBinding.site, R.string.detail_site, getSite().getName());
-        setText(mBinding.content, 0, Html.fromHtml(item.getVodContent()).toString());
-        setText(mBinding.actor, R.string.detail_actor, Html.fromHtml(item.getVodActor()).toString());
-        setText(mBinding.director, R.string.detail_director, Html.fromHtml(item.getVodDirector()).toString());
+        setText(mBinding.actor, R.string.detail_actor, item.getVodActor());
+        setText(mBinding.director, R.string.detail_director, item.getVodDirector());
         mBinding.contentLayout.setVisibility(mBinding.content.getVisibility());
         mFlagAdapter.addAll(item.getVodFlags());
         setOther(mBinding.other, item);
@@ -540,7 +539,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void setPlayer(Result result) {
         result.getUrl().set(mQualityAdapter.getPosition());
-        if (!result.getDesc().isEmpty()) setText(mBinding.content, R.string.detail_content, Html.fromHtml(result.getDesc()).toString());
+        if (!result.getDesc().isEmpty()) setText(mBinding.content, R.string.detail_content, result.getDesc());
         setUseParse(VodConfig.hasParse() && ((result.getPlayUrl().isEmpty() && VodConfig.get().getFlags().contains(result.getFlag())) || result.getJx() == 1));
         if (mControlDialog != null && mControlDialog.isVisible()) mControlDialog.setParseVisible(isUseParse());
         mBinding.control.parse.setVisibility(isFullscreen() && isUseParse() ? View.VISIBLE : View.GONE);
@@ -986,15 +985,11 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void setArtwork(String url) {
-        ImgUtil.load(url, R.drawable.radio, new CustomTarget<>(ResUtil.getScreenWidth(), ResUtil.getScreenHeight()) {
+        ImgUtil.load(url, new CustomTarget<>(ResUtil.getScreenWidth(), ResUtil.getScreenHeight()) {
             @Override
             public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
                 mBinding.exo.setDefaultArtwork(resource);
-            }
-
-            @Override
-            public void onLoadFailed(@Nullable Drawable error) {
-                mBinding.exo.setDefaultArtwork(error);
+                setMetadata();
             }
 
             @Override
@@ -1077,6 +1072,18 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         keep.save();
     }
 
+    private void updateVod(Vod item) {
+        mHistory.setVodPic(item.getVodPic());
+        mHistory.setVodName(item.getVodName());
+        mBinding.video.setTag(item.getVodPic());
+        mBinding.name.setText(item.getVodName());
+        mBinding.control.title.setText(item.getVodName());
+        setText(mBinding.content, 0, item.getVodContent());
+        setText(mBinding.director, R.string.detail_director, item.getVodDirector());
+        mBinding.contentLayout.setVisibility(mBinding.content.getVisibility());
+        setArtwork(item.getVodPic());
+    }
+
     @Override
     public void onSubtitleClick() {
         App.post(this::hideControl, 200);
@@ -1119,6 +1126,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         if (isRedirect()) return;
         if (event.getType() == RefreshEvent.Type.DETAIL) getDetail();
         else if (event.getType() == RefreshEvent.Type.PLAYER) onRefresh();
+        else if (event.getType() == RefreshEvent.Type.VOD) updateVod(event.getVod());
         else if (event.getType() == RefreshEvent.Type.SUBTITLE) mPlayers.setSub(Sub.from(event.getPath()));
         else if (event.getType() == RefreshEvent.Type.DANMAKU) mPlayers.setDanmaku(Danmaku.from(event.getPath()));
     }
@@ -1500,6 +1508,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Override
     public void onDoubleTap() {
+        if (isLock()) return;
         if (!isFullscreen()) {
             App.post(this::enterFullscreen, 250);
         } else if (mPlayers.isPlaying()) {

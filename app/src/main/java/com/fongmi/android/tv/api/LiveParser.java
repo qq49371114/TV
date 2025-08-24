@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 public class LiveParser {
 
     private static final Pattern M3U = Pattern.compile("^(?!.*#genre#).*#EXT(?:M3U|INF).*", Pattern.MULTILINE);
+    private static final Pattern HTTP_USER_AGENT = Pattern.compile(".*http-user-agent=\"(.?|.+?)\".*");
     private static final Pattern CATCHUP_REPLACE = Pattern.compile(".*catchup-replace=\"(.?|.+?)\".*");
     private static final Pattern CATCHUP_SOURCE = Pattern.compile(".*catchup-source=\"(.?|.+?)\".*");
     private static final Pattern CATCHUP = Pattern.compile(".*catchup=\"(.?|.+?)\".*");
@@ -60,7 +61,8 @@ public class LiveParser {
     public static void text(Live live, String text) {
         int number = 0;
         if (!live.getGroups().isEmpty()) return;
-        if (M3U.matcher(text).find()) m3u(live, text); else txt(live, text);
+        if (M3U.matcher(text).find()) m3u(live, text);
+        else txt(live, text);
         for (Group group : live.getGroups()) {
             for (Channel channel : group.getChannel()) {
                 if (channel.getNumber().isEmpty()) channel.setNumber(++number);
@@ -99,6 +101,7 @@ public class LiveParser {
             } else if (line.startsWith("#EXTINF:")) {
                 Group group = live.find(Group.create(extract(line, GROUP), live.isPass()));
                 channel = group.find(Channel.create(extract(line, NAME)));
+                channel.setUa(extract(line, HTTP_USER_AGENT));
                 channel.setTvgName(extract(line, TVG_NAME));
                 channel.setNumber(extract(line, TVG_CHNO));
                 channel.setLogo(extract(line, TVG_LOGO));

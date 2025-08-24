@@ -202,7 +202,7 @@ public class VodFragment extends BaseFragment implements CustomScroller.Callback
     }
 
     private boolean checkLastSize(List<Vod> items, Style style) {
-        if (mLast == null || items.size() == 0) return false;
+        if (mLast == null || items.isEmpty()) return false;
         int size = Product.getColumn(style) - mLast.size();
         if (size == 0) return false;
         size = Math.min(size, items.size());

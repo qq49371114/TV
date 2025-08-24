@@ -11,7 +11,7 @@
     android:paddingEnd="16dp"
     android:paddingBottom="8dp">
 
-    <com.fongmi.android.tv.ui.custom.CustomHorizontalGridView
+    <androidx.leanback.widget.HorizontalGridView
         android:id="@+id/parse"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

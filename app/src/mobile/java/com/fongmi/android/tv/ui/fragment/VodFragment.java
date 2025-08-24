@@ -23,10 +23,9 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Class;
-import com.fongmi.android.tv.bean.Hot;
+import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Value;
@@ -35,6 +34,7 @@ import com.fongmi.android.tv.event.CastEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.event.StateEvent;
 import com.fongmi.android.tv.impl.Callback;
+import com.fongmi.android.tv.impl.ConfigCallback;
 import com.fongmi.android.tv.impl.FilterCallback;
 import com.fongmi.android.tv.impl.SiteCallback;
 import com.fongmi.android.tv.model.SiteViewModel;
@@ -45,36 +45,27 @@ import com.fongmi.android.tv.ui.activity.VideoActivity;
 import com.fongmi.android.tv.ui.adapter.TypeAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.dialog.FilterDialog;
+import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LinkDialog;
 import com.fongmi.android.tv.ui.dialog.ReceiveDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.utils.FileChooser;
+import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
-import com.github.catvod.net.OkHttp;
-import com.google.common.net.HttpHeaders;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
-import okhttp3.Call;
-import okhttp3.Headers;
-import okhttp3.Response;
-
-public class VodFragment extends BaseFragment implements SiteCallback, FilterCallback, TypeAdapter.OnClickListener {
+public class VodFragment extends BaseFragment implements ConfigCallback, SiteCallback, FilterCallback, TypeAdapter.OnClickListener {
 
     private FragmentVodBinding mBinding;
     private SiteViewModel mViewModel;
     private TypeAdapter mAdapter;
-    private Runnable mRunnable;
-    private List<String> mHots;
     private Result mResult;
 
     public static VodFragment newInstance() {
@@ -97,18 +88,17 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     @Override
     protected void initView() {
         EventBus.getDefault().register(this);
+        mBinding.site.setSelected(true);
         setRecyclerView();
         setViewModel();
         showProgress();
         setLogo();
-        initHot();
-        getHot();
     }
 
     @Override
     protected void initEvent() {
-        mBinding.hot.setOnClickListener(this::onHot);
         mBinding.top.setOnClickListener(this::onTop);
+        mBinding.site.setOnClickListener(this::onSite);
         mBinding.link.setOnClickListener(this::onLink);
         mBinding.logo.setOnClickListener(this::onLogo);
         mBinding.keep.setOnClickListener(this::onKeep);
@@ -137,26 +127,6 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     private void setViewModel() {
         mViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
         mViewModel.result.observe(getViewLifecycleOwner(), result -> setAdapter(mResult = result));
-    }
-
-    private void initHot() {
-        mHots = Hot.get(Setting.getHot());
-        App.post(mRunnable = this::updateHot, 0);
-    }
-
-    private void getHot() {
-        OkHttp.newCall("https://api.web.360kan.com/v1/rank?cat=1", Headers.of(HttpHeaders.REFERER, "https://www.360kan.com/rank/general")).enqueue(new Callback() {
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                mHots = Hot.get(response.body().string());
-            }
-        });
-    }
-
-    private void updateHot() {
-        App.post(mRunnable, TimeUnit.SECONDS.toMillis(10));
-        if (mHots.isEmpty() || mHots.size() < 10) return;
-        mBinding.hot.setText(mHots.get(new Random().nextInt(11)));
     }
 
     private Result handle(Result result) {
@@ -208,6 +178,10 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     }
 
     private void onLogo(View view) {
+        HistoryDialog.create(this).type(0).show();
+    }
+
+    private void onSite(View view) {
         SiteDialog.create(this).change().show();
     }
 
@@ -223,12 +197,8 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         if (mAdapter.getItemCount() > 0) FilterDialog.create().filter(mAdapter.get(mBinding.pager.getCurrentItem()).getFilters()).show(this);
     }
 
-    private void onHot(View view) {
-        CollectActivity.start(getActivity());
-    }
-
     private void onSearch(View view) {
-        CollectActivity.start(getActivity(), mBinding.hot.getText().toString());
+        CollectActivity.start(getActivity());
     }
 
     private void onHistory(View view) {
@@ -249,7 +219,9 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
         setFabVisible(0);
         mAdapter.clear();
         mViewModel.homeContent();
+        String title = getSite().getName();
         mBinding.pager.setAdapter(new PageAdapter(getChildFragmentManager()));
+        mBinding.site.setText(title.isEmpty() ? getString(R.string.app_name) : title);
     }
 
     public Result getResult() {
@@ -309,6 +281,25 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     }
 
     @Override
+    public void setConfig(Config config) {
+        Notify.progress(getActivity());
+        VodConfig.load(config, new Callback() {
+            @Override
+            public void success() {
+                RefreshEvent.config();
+                RefreshEvent.video();
+                Notify.dismiss();
+            }
+
+            @Override
+            public void error(String msg) {
+                Notify.show(msg);
+                Notify.dismiss();
+            }
+        });
+    }
+
+    @Override
     public void setSite(Site item) {
         VodConfig.get().setHome(item);
         homeContent();
@@ -342,7 +333,6 @@ public class VodFragment extends BaseFragment implements SiteCallback, FilterCal
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        App.removeCallbacks(mRunnable);
         EventBus.getDefault().unregister(this);
     }
 

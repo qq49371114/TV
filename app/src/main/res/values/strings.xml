@@ -3,9 +3,6 @@
     <!-- App -->
     <string name="app_name">TV</string>
 
-    <!-- Vod -->
-    <string name="vod_last">Last seen <xliff:g name="name">%s</xliff:g></string>
-
     <!-- Live -->
     <string name="live_pass">Pass</string>
     <string name="live_refresh">Refresh</string>

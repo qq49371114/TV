@@ -6,7 +6,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.text.Html;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -456,9 +455,9 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         setText(mBinding.area, R.string.detail_area, item.getVodArea());
         setText(mBinding.type, R.string.detail_type, item.getTypeName());
         setText(mBinding.site, R.string.detail_site, getSite().getName());
-        setText(mBinding.actor, R.string.detail_actor, Html.fromHtml(item.getVodActor()).toString());
-        setText(mBinding.content, R.string.detail_content, Html.fromHtml(item.getVodContent()).toString());
-        setText(mBinding.director, R.string.detail_director, Html.fromHtml(item.getVodDirector()).toString());
+        setText(mBinding.actor, R.string.detail_actor, item.getVodActor());
+        setText(mBinding.content, R.string.detail_content, item.getVodContent());
+        setText(mBinding.director, R.string.detail_director, item.getVodDirector());
         mFlagAdapter.setItems(item.getVodFlags(), null);
         setPartAdapter(Part.get(item.getVodName()));
         mBinding.content.setMaxLines(getMaxLines());
@@ -527,7 +526,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     private void setPlayer(Result result) {
         result.getUrl().set(mQualityAdapter.getPosition());
-        if (!result.getDesc().isEmpty()) setText(mBinding.content, R.string.detail_content, Html.fromHtml(result.getDesc()).toString());
+        if (!result.getDesc().isEmpty()) setText(mBinding.content, R.string.detail_content, result.getDesc());
         setUseParse(VodConfig.hasParse() && ((result.getPlayUrl().isEmpty() && VodConfig.get().getFlags().contains(result.getFlag())) || result.getJx() == 1));
         mPlayers.start(result, isUseParse(), getSite().isChangeable() ? getSite().getTimeout() : -1);
         mBinding.control.parse.setVisibility(isUseParse() ? View.VISIBLE : View.GONE);
@@ -918,15 +917,11 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void setArtwork(String url) {
-        ImgUtil.load(url, R.drawable.radio, new CustomTarget<>(ResUtil.getScreenWidth(), ResUtil.getScreenHeight()) {
+        ImgUtil.load(url, new CustomTarget<>(ResUtil.getScreenWidth(), ResUtil.getScreenHeight()) {
             @Override
             public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
                 mBinding.exo.setDefaultArtwork(resource);
-            }
-
-            @Override
-            public void onLoadFailed(@Nullable Drawable error) {
-                mBinding.exo.setDefaultArtwork(error);
+                setMetadata();
             }
 
             @Override
@@ -1001,6 +996,18 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         keep.save();
     }
 
+    private void updateVod(Vod item) {
+        mHistory.setVodPic(item.getVodPic());
+        mHistory.setVodName(item.getVodName());
+        mBinding.video.setTag(item.getVodPic());
+        mBinding.name.setText(item.getVodName());
+        mBinding.widget.title.setText(item.getVodName());
+        setText(mBinding.content, R.string.detail_content, item.getVodContent());
+        setText(mBinding.director, R.string.detail_director, item.getVodDirector());
+        mBinding.content.setMaxLines(getMaxLines());
+        setArtwork(item.getVodPic());
+    }
+
     @Override
     public void onSubtitleClick() {
         App.post(this::hideControl, 200);
@@ -1037,6 +1044,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         if (isRedirect()) return;
         if (event.getType() == RefreshEvent.Type.DETAIL) getDetail();
         else if (event.getType() == RefreshEvent.Type.PLAYER) onRefresh();
+        else if (event.getType() == RefreshEvent.Type.VOD) updateVod(event.getVod());
         else if (event.getType() == RefreshEvent.Type.SUBTITLE) mPlayers.setSub(Sub.from(event.getPath()));
         else if (event.getType() == RefreshEvent.Type.DANMAKU) mPlayers.setDanmaku(Danmaku.from(event.getPath()));
     }

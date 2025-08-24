@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.IBinder;
 import android.os.Parcelable;
 import android.provider.Settings;
+import android.text.Html;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.Window;
@@ -96,6 +97,13 @@ public class Util {
         } catch (Exception e) {
             return -1;
         }
+    }
+
+    public static String clean(String text) {
+        text = text.replace("\u00A0", "");
+        text = text.replace("\u3000", "");
+        text = Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY).toString();
+        return text.trim();
     }
 
     public static String getAndroidId() {

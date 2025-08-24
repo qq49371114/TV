@@ -32,7 +32,7 @@ public class CustomUpDownView extends AppCompatTextView {
     }
 
     private boolean hasEvent(KeyEvent event) {
-        return event.getAction() == KeyEvent.ACTION_DOWN && ((upListener != null && KeyUtil.isUpKey(event)) || (downListener != null && KeyUtil.isDownKey(event)));
+        return KeyUtil.isActionDown(event) && ((upListener != null && KeyUtil.isUpKey(event)) || (downListener != null && KeyUtil.isDownKey(event)));
     }
 
     @Override

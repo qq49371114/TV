@@ -8,7 +8,6 @@ import androidx.annotation.NonNull;
 import androidx.leanback.widget.Presenter;
 
 import com.fongmi.android.tv.Product;
-import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.databinding.AdapterVodBinding;
 import com.fongmi.android.tv.utils.ImgUtil;
@@ -53,7 +52,7 @@ public class HistoryPresenter extends Presenter {
     public Presenter.ViewHolder onCreateViewHolder(ViewGroup parent) {
         ViewHolder holder = new ViewHolder(AdapterVodBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
         holder.binding.getRoot().getLayoutParams().width = width;
-        holder.binding.getRoot().getLayoutParams().height = height;
+        holder.binding.image.getLayoutParams().height = height;
         return holder;
     }
 
@@ -64,10 +63,10 @@ public class HistoryPresenter extends Presenter {
         setClickListener(holder.view, item);
         holder.binding.name.setText(item.getVodName());
         holder.binding.site.setText(item.getSiteName());
+        holder.binding.remark.setText(item.getVodRemarks());
         holder.binding.site.setVisibility(item.getSiteVisible());
         holder.binding.remark.setVisibility(delete ? View.GONE : View.VISIBLE);
         holder.binding.delete.setVisibility(!delete ? View.GONE : View.VISIBLE);
-        holder.binding.remark.setText(ResUtil.getString(R.string.vod_last, item.getVodRemarks()));
         ImgUtil.loadVod(item.getVodName(), item.getVodPic(), holder.binding.image);
     }
 

@@ -30,7 +30,7 @@ public class CustomTypeView extends AppCompatTextView {
     }
 
     private boolean hasEvent(KeyEvent event) {
-        return !coolDown && event.getAction() == KeyEvent.ACTION_DOWN && KeyUtil.isUpKey(event);
+        return !coolDown && KeyUtil.isActionDown(event) && KeyUtil.isUpKey(event);
     }
 
     @Override

@@ -1,6 +1,11 @@
 package com.fongmi.android.tv.utils;
 
+import static android.widget.ImageView.ScaleType.CENTER;
+import static android.widget.ImageView.ScaleType.CENTER_CROP;
+import static android.widget.ImageView.ScaleType.FIT_CENTER;
+
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.view.View;
@@ -34,42 +39,38 @@ public class ImgUtil {
         return new ObjectKey(url + "_" + Setting.getQuality());
     }
 
-    public static void load(String url, int error, CustomTarget<Drawable> target) {
-        if (TextUtils.isEmpty(url)) target.onLoadFailed(ResUtil.getDrawable(error));
-        else Glide.with(App.get()).asDrawable().load(getUrl(url)).error(error).skipMemoryCache(true).dontAnimate().signature(getSignature(url)).into(target);
+    public static void load(String url, CustomTarget<Drawable> target) {
+        if (!TextUtils.isEmpty(url)) Glide.with(App.get()).asDrawable().load(getUrl(url)).skipMemoryCache(true).dontAnimate().signature(getSignature(url)).into(target);
     }
 
     public static void rect(String text, String url, ImageView view) {
-        load(text, url, view, ImageView.ScaleType.CENTER, true);
+        load(text, url, view, true);
     }
 
     public static void oval(String text, String url, ImageView view) {
-        load(text, url, view, ImageView.ScaleType.CENTER, false);
+        load(text, url, view, false);
     }
 
-    public static void load(String text, String url, ImageView view, ImageView.ScaleType scaleType, boolean rect) {
-        view.setScaleType(scaleType);
-        if (!TextUtils.isEmpty(url)) Glide.with(App.get()).asBitmap().load(getUrl(url)).placeholder(R.drawable.ic_img_loading).skipMemoryCache(true).dontAnimate().sizeMultiplier(Setting.getThumbnail()).signature(getSignature(url)).listener(getListener(view, scaleType)).into(view);
+    public static void load(String text, String url, ImageView view, boolean rect) {
+        if (!TextUtils.isEmpty(url)) Glide.with(App.get()).asBitmap().load(getUrl(url)).skipMemoryCache(true).dontAnimate().sizeMultiplier(Setting.getThumbnail()).signature(getSignature(url)).listener(getListener(true, view)).into(view);
         else if (!text.isEmpty()) view.setImageDrawable(getTextDrawable(text.substring(0, 1), rect));
-        else view.setImageResource(R.drawable.ic_img_error);
+        else setError(view);
     }
 
     public static void loadVod(String text, String url, ImageView view) {
-        view.setScaleType(ImageView.ScaleType.CENTER);
-        if (!TextUtils.isEmpty(url)) Glide.with(App.get()).asBitmap().load(getUrl(url)).placeholder(R.drawable.ic_img_loading).listener(getListener(view)).into(view);
+        if (!TextUtils.isEmpty(url)) Glide.with(App.get()).asBitmap().load(getUrl(url)).listener(getListener(true, view)).into(view);
         else if (!text.isEmpty()) view.setImageDrawable(getTextDrawable(text.substring(0, 1), true));
-        else view.setImageResource(R.drawable.ic_img_error);
+        else setError(view);
     }
 
     public static void loadLive(String url, ImageView view) {
         view.setVisibility(TextUtils.isEmpty(url) ? View.GONE : View.VISIBLE);
-        if (TextUtils.isEmpty(url)) view.setImageResource(R.drawable.ic_img_empty);
-        else Glide.with(App.get()).asBitmap().load(getUrl(url)).error(R.drawable.ic_img_empty).skipMemoryCache(true).dontAnimate().signature(getSignature(url)).into(view);
+        if (!TextUtils.isEmpty(url)) Glide.with(App.get()).asBitmap().load(getUrl(url)).skipMemoryCache(true).dontAnimate().signature(getSignature(url)).listener(getListener(false, view)).into(view);
     }
 
     private static Drawable getTextDrawable(String text, boolean rect) {
-        TextDrawable.Builder builder = new TextDrawable.Builder().withBorder(ResUtil.dp2px(2), ColorGenerator.get700(text));
-        if (rect) return builder.buildRoundRect(text, ColorGenerator.get400(text), ResUtil.dp2px(8));
+        TextDrawable.Builder builder = new TextDrawable.Builder();
+        if (rect) return builder.buildRect(text, ColorGenerator.get400(text));
         return builder.buildRound(text, ColorGenerator.get400(text));
     }
 
@@ -91,24 +92,33 @@ public class ImgUtil {
         for (Map.Entry<String, String> entry : map.entrySet()) builder.addHeader(UrlUtil.fixHeader(entry.getKey()), entry.getValue());
     }
 
-    private static RequestListener<Bitmap> getListener(ImageView view) {
-        return getListener(view, ImageView.ScaleType.CENTER);
-    }
-
-    private static RequestListener<Bitmap> getListener(ImageView view, ImageView.ScaleType scaleType) {
+    private static RequestListener<Bitmap> getListener(boolean vod, ImageView view) {
         return new RequestListener<>() {
             @Override
             public boolean onLoadFailed(@Nullable GlideException e, Object model, @NonNull Target<Bitmap> target, boolean isFirstResource) {
-                view.setImageResource(R.drawable.ic_img_error);
-                view.setScaleType(scaleType);
+                if (!vod) view.setImageResource(R.drawable.ic_img_error);
+                else setError(view);
                 return true;
             }
 
             @Override
             public boolean onResourceReady(@NonNull Bitmap resource, @NonNull Object model, Target<Bitmap> target, @NonNull DataSource dataSource, boolean isFirstResource) {
-                view.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                view.setScaleType(vod ? CENTER_CROP : FIT_CENTER);
                 return false;
             }
         };
+    }
+
+    private static void setError(ImageView view) {
+        int width = view.getWidth();
+        int height = view.getHeight();
+        if (width <= 0 || height <= 0) return;
+        int size = Math.min(width, height) / 2;
+        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        Drawable drawable = ResUtil.getDrawable(R.drawable.ic_img_error);
+        drawable.setBounds(0, 0, size, size);
+        drawable.draw(new Canvas(bitmap));
+        view.setImageBitmap(bitmap);
+        view.setScaleType(CENTER);
     }
 }

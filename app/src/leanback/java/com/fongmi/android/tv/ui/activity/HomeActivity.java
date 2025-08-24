@@ -109,7 +109,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     protected void initEvent() {
-        mBinding.title.setListener(this);
+        mBinding.site.setListener(this);
         mBinding.recycler.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
             @Override
             public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
@@ -203,15 +203,16 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private void setFocus() {
         setLoading(false);
-        App.post(() -> mBinding.title.setFocusable(true), 500);
-        if (!mBinding.title.hasFocus()) mBinding.recycler.requestFocus();
+        mBinding.site.setSelected(true);
+        App.post(() -> mBinding.site.setFocusable(true), 500);
+        if (!mBinding.site.hasFocus()) mBinding.recycler.requestFocus();
     }
 
     private void getVideo() {
         mResult = Result.empty();
         int index = getRecommendIndex();
         String title = getHome().getName();
-        mBinding.title.setText(title.isEmpty() ? ResUtil.getString(R.string.app_name) : title);
+        mBinding.site.setText(title.isEmpty() ? getString(R.string.app_name) : title);
         if (mAdapter.size() > index) mAdapter.removeItems(index, mAdapter.size() - index);
         if (getHome().getKey().isEmpty()) return;
         mViewModel.homeContent();
@@ -445,6 +446,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (KeyUtil.isMenuKey(event)) showDialog();
+        if (KeyUtil.isActionDown(event) & KeyUtil.isDownKey(event) && getCurrentFocus() == mBinding.site) return mBinding.recycler.getChildAt(0).requestFocus();
         return super.dispatchKeyEvent(event);
     }
 

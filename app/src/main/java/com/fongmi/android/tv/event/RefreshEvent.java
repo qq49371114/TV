@@ -1,11 +1,14 @@
 package com.fongmi.android.tv.event;
 
+import com.fongmi.android.tv.bean.Vod;
+
 import org.greenrobot.eventbus.EventBus;
 
 public class RefreshEvent {
 
     private final Type type;
     private String path;
+    private Vod vod;
 
     public static void config() {
         EventBus.getDefault().post(new RefreshEvent(Type.CONFIG));
@@ -55,6 +58,10 @@ public class RefreshEvent {
         EventBus.getDefault().post(new RefreshEvent(Type.DANMAKU, path));
     }
 
+    public static void vod(Vod vod) {
+        EventBus.getDefault().post(new RefreshEvent(Type.VOD, vod));
+    }
+
     private RefreshEvent(Type type) {
         this.type = type;
     }
@@ -62,6 +69,11 @@ public class RefreshEvent {
     public RefreshEvent(Type type, String path) {
         this.type = type;
         this.path = path;
+    }
+
+    private RefreshEvent(Type type, Vod vod) {
+        this.type = type;
+        this.vod = vod;
     }
 
     public Type getType() {
@@ -72,7 +84,11 @@ public class RefreshEvent {
         return path;
     }
 
+    public Vod getVod() {
+        return vod;
+    }
+
     public enum Type {
-        CONFIG, IMAGE, VIDEO, HISTORY, KEEP, SIZE, WALL, LIVE, DETAIL, PLAYER, SUBTITLE, DANMAKU
+        CONFIG, IMAGE, VIDEO, HISTORY, KEEP, SIZE, WALL, LIVE, DETAIL, PLAYER, SUBTITLE, DANMAKU, VOD
     }
 }

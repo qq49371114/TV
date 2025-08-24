@@ -42,7 +42,7 @@ public class CustomTitleView extends AppCompatTextView {
     }
 
     private boolean hasEvent(KeyEvent event) {
-        return !getSites().isEmpty() && (KeyUtil.isEnterKey(event) || KeyUtil.isLeftKey(event) || KeyUtil.isRightKey(event) || (KeyUtil.isUpKey(event) && !coolDown));
+        return !getSites().isEmpty() && (KeyUtil.isEnterKey(event) || (KeyUtil.isUpKey(event) && !coolDown));
     }
 
     @Override
@@ -54,35 +54,20 @@ public class CustomTitleView extends AppCompatTextView {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (hasEvent(event)) return onKeyDown(event);
-        else return super.dispatchKeyEvent(event);
+        if (!hasEvent(event)) return super.dispatchKeyEvent(event);
+        onKeyDown(event);
+        return true;
     }
 
-    private boolean onKeyDown(KeyEvent event) {
-        if (event.getAction() == KeyEvent.ACTION_UP && KeyUtil.isEnterKey(event)) {
-            listener.showDialog();
-        } else if (event.getAction() == KeyEvent.ACTION_DOWN && KeyUtil.isLeftKey(event)) {
-            listener.setSite(getSite(true));
-        } else if (event.getAction() == KeyEvent.ACTION_DOWN && KeyUtil.isRightKey(event)) {
-            listener.setSite(getSite(false));
-        } else if (event.getAction() == KeyEvent.ACTION_DOWN && KeyUtil.isUpKey(event)) {
-            onKeyUp();
-        }
-        return true;
+    private void onKeyDown(KeyEvent event) {
+        if (KeyUtil.isActionUp(event) && KeyUtil.isEnterKey(event)) listener.showDialog();
+        else if (KeyUtil.isActionDown(event) && KeyUtil.isUpKey(event)) onKeyUp();
     }
 
     private void onKeyUp() {
         App.post(() -> coolDown = false, 3000);
         listener.onRefresh();
         coolDown = true;
-    }
-
-    private Site getSite(boolean next) {
-        List<Site> items = getSites();
-        int position = VodConfig.getHomeIndex();
-        if (next) position = position > 0 ? --position : items.size() - 1;
-        else position = position < items.size() - 1 ? ++position : 0;
-        return items.get(position);
     }
 
     private List<Site> getSites() {

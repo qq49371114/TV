@@ -10,7 +10,6 @@ import androidx.annotation.NonNull;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.utils.KeyUtil;
-import com.fongmi.android.tv.utils.ResUtil;
 
 public class CustomKeyDownLive extends GestureDetector.SimpleOnGestureListener {
 
@@ -50,21 +49,21 @@ public class CustomKeyDownLive extends GestureDetector.SimpleOnGestureListener {
     }
 
     private void check(KeyEvent event) {
-        if (event.getAction() == KeyEvent.ACTION_DOWN && KeyUtil.isLeftKey(event)) {
+        if (KeyUtil.isActionDown(event) && KeyUtil.isLeftKey(event)) {
             listener.onSeeking(subTime());
-        } else if (event.getAction() == KeyEvent.ACTION_DOWN && KeyUtil.isRightKey(event)) {
+        } else if (KeyUtil.isActionDown(event) && KeyUtil.isRightKey(event)) {
             listener.onSeeking(addTime());
-        } else if (event.getAction() == KeyEvent.ACTION_DOWN && KeyUtil.isUpKey(event)) {
+        } else if (KeyUtil.isActionDown(event) && KeyUtil.isUpKey(event)) {
             listener.onKeyUp();
-        } else if (event.getAction() == KeyEvent.ACTION_DOWN && KeyUtil.isDownKey(event)) {
+        } else if (KeyUtil.isActionDown(event) && KeyUtil.isDownKey(event)) {
             listener.onKeyDown();
-        } else if (event.getAction() == KeyEvent.ACTION_UP && KeyUtil.isLeftKey(event)) {
+        } else if (KeyUtil.isActionUp(event) && KeyUtil.isLeftKey(event)) {
             listener.onKeyLeft(holdTime);
-        } else if (event.getAction() == KeyEvent.ACTION_UP && KeyUtil.isRightKey(event)) {
+        } else if (KeyUtil.isActionUp(event) && KeyUtil.isRightKey(event)) {
             listener.onKeyRight(holdTime);
-        } else if (event.getAction() == KeyEvent.ACTION_UP && KeyUtil.isDigitKey(event)) {
+        } else if (KeyUtil.isActionUp(event) && KeyUtil.isDigitKey(event)) {
             onKeyDown(event.getKeyCode());
-        } else if (event.getAction() == KeyEvent.ACTION_UP && KeyUtil.isEnterKey(event)) {
+        } else if (KeyUtil.isActionUp(event) && KeyUtil.isEnterKey(event)) {
             listener.onKeyCenter();
         } else if (KeyUtil.isMenuKey(event) || event.isLongPress() && KeyUtil.isEnterKey(event)) {
             listener.onMenu();
@@ -86,10 +85,7 @@ public class CustomKeyDownLive extends GestureDetector.SimpleOnGestureListener {
 
     @Override
     public boolean onSingleTapConfirmed(@NonNull MotionEvent e) {
-        if (!listener.dispatch(false)) return true;
-        int half = ResUtil.getScreenWidth() / 2;
-        if (e.getX() > half) listener.onDoubleTap();
-        else listener.onSingleTap();
+        if (listener.dispatch(false)) listener.onSingleTap();
         return true;
     }
 

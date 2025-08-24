@@ -7,6 +7,7 @@ import android.view.View;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.utils.Sniffer;
+import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.utils.Trans;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
@@ -118,7 +119,7 @@ public class Vod implements Parcelable {
     }
 
     public String getVodName() {
-        return TextUtils.isEmpty(vodName) ? "" : vodName.trim();
+        return TextUtils.isEmpty(vodName) ? "" : Util.clean(vodName);
     }
 
     public void setVodName(String vodName) {
@@ -150,15 +151,23 @@ public class Vod implements Parcelable {
     }
 
     public String getVodDirector() {
-        return TextUtils.isEmpty(vodDirector) ? "" : vodDirector.trim();
+        return TextUtils.isEmpty(vodDirector) ? "" : Util.clean(vodDirector);
+    }
+
+    public void setVodDirector(String vodDirector) {
+        this.vodDirector = vodDirector;
     }
 
     public String getVodActor() {
-        return TextUtils.isEmpty(vodActor) ? "" : vodActor.trim();
+        return TextUtils.isEmpty(vodActor) ? "" : Util.clean(vodActor);
     }
 
     public String getVodContent() {
-        return TextUtils.isEmpty(vodContent) ? "" : vodContent.trim().replace("\n", "<br>");
+        return TextUtils.isEmpty(vodContent) ? "" : Util.clean(vodContent);
+    }
+
+    public void setVodContent(String vodContent) {
+        this.vodContent = vodContent;
     }
 
     public String getVodPlayFrom() {

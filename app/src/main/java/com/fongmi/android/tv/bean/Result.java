@@ -12,6 +12,7 @@ import com.fongmi.android.tv.gson.DanmakuAdapter;
 import com.fongmi.android.tv.gson.FilterAdapter;
 import com.fongmi.android.tv.gson.MsgAdapter;
 import com.fongmi.android.tv.gson.UrlAdapter;
+import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.utils.Json;
 import com.github.catvod.utils.Trans;
 import com.google.gson.JsonElement;
@@ -231,7 +232,7 @@ public class Result implements Parcelable {
     }
 
     public String getDesc() {
-        return TextUtils.isEmpty(desc) ? "" : desc;
+        return TextUtils.isEmpty(desc) ? "" : Util.clean(desc);
     }
 
     public List<Danmaku> getDanmaku() {

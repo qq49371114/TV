@@ -32,7 +32,7 @@ public class CustomLeftRightLayout extends LinearLayout {
     }
 
     private boolean hasEvent(KeyEvent event) {
-        return event.getAction() == KeyEvent.ACTION_DOWN && ((leftListener != null && KeyUtil.isLeftKey(event)) || (rightListener != null && KeyUtil.isRightKey(event)));
+        return KeyUtil.isActionDown(event) && ((leftListener != null && KeyUtil.isLeftKey(event)) || (rightListener != null && KeyUtil.isRightKey(event)));
     }
 
     @Override
