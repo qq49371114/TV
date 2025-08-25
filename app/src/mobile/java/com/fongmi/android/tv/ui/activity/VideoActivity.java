@@ -227,7 +227,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private Episode getEpisode() {
-        return mEpisodeAdapter.getActivated();
+        return mEpisodeAdapter.isEmpty() ? new Episode() : mEpisodeAdapter.getActivated();
     }
 
     private int getScale() {
@@ -1197,7 +1197,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void setMetadata() {
         String title = mHistory.getVodName();
         String episode = getEpisode().getName();
-        String artist = title.equals(episode) ? "" : getString(R.string.play_now, episode);
+        boolean empty = title.equals(episode) || episode == null;
+        String artist = empty ? "" : getString(R.string.play_now, episode);
         mPlayers.setMetadata(title, artist, mHistory.getVodPic(), mBinding.exo.getDefaultArtwork());
     }
 

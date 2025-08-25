@@ -29,7 +29,7 @@ public class OkProxySelector extends ProxySelector {
     @Override
     public List<java.net.Proxy> select(URI uri) {
         if (proxy.isEmpty() || uri.getHost() == null || "127.0.0.1".equals(uri.getHost())) return Proxy.NO_PROXY;
-        for (Proxy item : proxy) if (Util.containOrMatch(uri.getHost(), item.getHost())) return item.select();
+        for (Proxy item : proxy) for (String host : item.getHosts()) if (Util.containOrMatch(uri.getHost(), host)) return item.select();
         return Proxy.NO_PROXY;
     }
 

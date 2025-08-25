@@ -39,15 +39,17 @@ public class OkAuthenticator implements Authenticator {
     public Request authenticate(@Nullable Route route, @NonNull Response response) {
         if (route == null || response.request().header(HttpHeaders.PROXY_AUTHORIZATION) != null) return null;
         if (!(route.proxy().address() instanceof InetSocketAddress proxyAddress)) return null;
+        String requestHost = response.request().url().host();
         String proxyHost = proxyAddress.getHostName();
-        String host = response.request().url().host();
         for (Proxy item : proxy) {
-            if (Util.containOrMatch(host, item.getHost())) {
-                for (String url : item.getUrls()) {
-                    if (url.contains(proxyHost)) {
-                        String userInfo = Uri.parse(url).getUserInfo();
-                        if (userInfo != null) {
-                            return response.request().newBuilder().header(HttpHeaders.PROXY_AUTHORIZATION, Util.basic(userInfo)).build();
+            for (String host : item.getHosts()) {
+                if (Util.containOrMatch(requestHost, host)) {
+                    for (String url : item.getUrls()) {
+                        if (url.contains(proxyHost)) {
+                            String userInfo = Uri.parse(url).getUserInfo();
+                            if (userInfo != null) {
+                                return response.request().newBuilder().header(HttpHeaders.PROXY_AUTHORIZATION, Util.basic(userInfo)).build();
+                            }
                         }
                     }
                 }

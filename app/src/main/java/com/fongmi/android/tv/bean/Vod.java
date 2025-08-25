@@ -119,7 +119,7 @@ public class Vod implements Parcelable {
     }
 
     public String getVodName() {
-        return TextUtils.isEmpty(vodName) ? "" : Util.clean(vodName);
+        return TextUtils.isEmpty(vodName) ? "" : vodName.trim();
     }
 
     public void setVodName(String vodName) {
@@ -151,7 +151,7 @@ public class Vod implements Parcelable {
     }
 
     public String getVodDirector() {
-        return TextUtils.isEmpty(vodDirector) ? "" : Util.clean(vodDirector);
+        return TextUtils.isEmpty(vodDirector) ? "" : vodDirector.trim();
     }
 
     public void setVodDirector(String vodDirector) {
@@ -159,7 +159,7 @@ public class Vod implements Parcelable {
     }
 
     public String getVodActor() {
-        return TextUtils.isEmpty(vodActor) ? "" : Util.clean(vodActor);
+        return TextUtils.isEmpty(vodActor) ? "" : vodActor.trim();
     }
 
     public String getVodContent() {

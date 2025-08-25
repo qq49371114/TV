@@ -100,10 +100,10 @@ public class Util {
     }
 
     public static String clean(String text) {
-        text = text.replace("\u00A0", "");
-        text = text.replace("\u3000", "");
-        text = Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY).toString();
-        return text.trim();
+        StringBuilder sb = new StringBuilder();
+        text = Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY).toString().replace("\u00A0", "").replace("\u3000", "");
+        for (String line : text.split("\\r?\\n")) if (!line.isEmpty()) sb.append(line.trim()).append("\n");
+        return sb.toString();
     }
 
     public static String getAndroidId() {

@@ -155,17 +155,29 @@ http://127.0.0.1:9978/cache?do=del&key=xxx
 scheme://username:password@host:port
 ```
 
-配置新增 proxy 可指定走哪條代理
+配置新增 proxy 可指定代理
+靠前的 host 匹配到則使用該代理
 
 ```json
 {
   "spider": "",
   "proxy": [
     {
-      "name": "Global",
-      "host": ".*.",
+      "name": "自訂",
+      "hosts": [
+        "googlevideo.com",
+        "raw.githubusercontent.com"
+      ],
       "urls": [
-        "http://127.0.0.1:7890",
+        "http://127.0.0.1:7890"
+      ]
+    },
+    {
+      "name": "全局",
+      "hosts": [
+        ".*."
+      ],
+      "urls": [
         "socks5://127.0.0.1:7891"
       ]
     }

@@ -1,7 +1,6 @@
 package com.github.catvod.bean;
 
 import android.net.Uri;
-import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -17,8 +16,8 @@ import java.util.Objects;
 
 public class Proxy {
 
-    @SerializedName("host")
-    private String host;
+    @SerializedName("hosts")
+    private List<String> hosts;
     @SerializedName("urls")
     private List<String> urls;
 
@@ -34,8 +33,8 @@ public class Proxy {
         }
     }
 
-    public String getHost() {
-        return TextUtils.isEmpty(host) ? "" : host;
+    public List<String> getHosts() {
+        return hosts == null ? Collections.emptyList() : hosts;
     }
 
     public List<String> getUrls() {

@@ -223,7 +223,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private Episode getEpisode() {
-        return (Episode) mEpisodeAdapter.get(getEpisodePosition());
+        return mEpisodeAdapter.size() == 0 ? new Episode() : (Episode) mEpisodeAdapter.get(getEpisodePosition());
     }
 
     private int getFlagPosition() {
@@ -1102,7 +1102,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private void setMetadata() {
         String title = mHistory.getVodName();
         String episode = getEpisode().getName();
-        String artist = title.equals(episode) ? "" : getString(R.string.play_now, episode);
+        boolean empty = title.equals(episode) || episode == null;
+        String artist = empty ? "" : getString(R.string.play_now, episode);
         mPlayers.setMetadata(title, artist, mHistory.getVodPic(), mBinding.exo.getDefaultArtwork());
     }
 
