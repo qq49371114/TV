@@ -50,7 +50,6 @@ import javax.annotation.Nullable;
 public class SettingActivity extends BaseActivity implements ConfigCallback, SiteCallback, LiveCallback, DohCallback {
 
     private ActivitySettingBinding mBinding;
-    private String[] quality;
     private String[] size;
     private int type;
 
@@ -92,7 +91,6 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.dohText.setText(getDohList()[getDohIndex()]);
         mBinding.incognitoText.setText(getSwitch(Setting.isIncognito()));
         mBinding.sizeText.setText((size = ResUtil.getStringArray(R.array.select_size))[Setting.getSize()]);
-        mBinding.qualityText.setText((quality = ResUtil.getStringArray(R.array.select_quality))[Setting.getQuality()]);
     }
 
     private void setCacheText() {
@@ -125,7 +123,6 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.wallDefault.setOnClickListener(this::setWallDefault);
         mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
         mBinding.incognito.setOnClickListener(this::setIncognito);
-        mBinding.quality.setOnClickListener(this::setQuality);
         mBinding.size.setOnClickListener(this::setSize);
         mBinding.doh.setOnClickListener(this::setDoh);
     }
@@ -289,13 +286,6 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
     private void setIncognito(View view) {
         Setting.putIncognito(!Setting.isIncognito());
         mBinding.incognitoText.setText(getSwitch(Setting.isIncognito()));
-    }
-
-    private void setQuality(View view) {
-        int index = Setting.getQuality();
-        Setting.putQuality(index = index == quality.length - 1 ? 0 : ++index);
-        mBinding.qualityText.setText(quality[index]);
-        RefreshEvent.image();
     }
 
     private void setSize(View view) {

@@ -1,6 +1,7 @@
 package com.github.catvod.bean;
 
 import android.net.Uri;
+import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -16,12 +17,14 @@ import java.util.Objects;
 
 public class Proxy {
 
+    @SerializedName("name")
+    private String name;
     @SerializedName("hosts")
     private List<String> hosts;
     @SerializedName("urls")
     private List<String> urls;
 
-    public static List<java.net.Proxy> NO_PROXY = List.of(java.net.Proxy.NO_PROXY);
+    private List<java.net.Proxy> proxies;
 
     public static List<Proxy> arrayFrom(JsonElement element) {
         try {
@@ -33,6 +36,16 @@ public class Proxy {
         }
     }
 
+    public void init() {
+        proxies = new ArrayList<>();
+        for (String url : getUrls()) proxies.add(create(url));
+        proxies.removeIf(Objects::isNull);
+    }
+
+    public String getName() {
+        return TextUtils.isEmpty(name) ? "" : name;
+    }
+
     public List<String> getHosts() {
         return hosts == null ? Collections.emptyList() : hosts;
     }
@@ -41,18 +54,24 @@ public class Proxy {
         return urls == null ? Collections.emptyList() : urls;
     }
 
-    public List<java.net.Proxy> select() {
-        List<java.net.Proxy> items = new ArrayList<>();
-        for (String url : getUrls()) items.add(proxy(url));
-        items.removeIf(Objects::isNull);
-        return items.isEmpty() ? NO_PROXY : items;
+    public List<java.net.Proxy> getProxies() {
+        return proxies == null ? Collections.emptyList() : proxies;
     }
 
-    private java.net.Proxy proxy(String url) {
+    private java.net.Proxy create(String url) {
         Uri uri = Uri.parse(url);
         if (uri.getScheme() == null || uri.getHost() == null || uri.getPort() <= 0) return null;
         if (uri.getScheme().startsWith("http")) return new java.net.Proxy(java.net.Proxy.Type.HTTP, InetSocketAddress.createUnresolved(uri.getHost(), uri.getPort()));
         if (uri.getScheme().startsWith("socks")) return new java.net.Proxy(java.net.Proxy.Type.SOCKS, InetSocketAddress.createUnresolved(uri.getHost(), uri.getPort()));
         return null;
+    }
+
+    public static void sort(List<Proxy> items) {
+        items.sort((o1, o2) -> {
+            boolean g1 = o1.getHosts().stream().anyMatch(h -> h.contains("*"));
+            boolean g2 = o2.getHosts().stream().anyMatch(h -> h.contains("*"));
+            if (g1 == g2) return 0;
+            return g1 ? 1 : -1;
+        });
     }
 }

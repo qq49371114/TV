@@ -55,7 +55,7 @@ public class ReceiveDialog extends BaseDialog {
         History item = event.getHistory();
         binding.name.setText(item.getVodName());
         binding.from.setText(event.getDevice().getName());
-        ImgUtil.loadVod(item.getVodName(), item.getVodPic(), binding.image);
+        ImgUtil.load(item.getVodName(), item.getVodPic(), binding.image);
     }
 
     @Override

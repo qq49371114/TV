@@ -70,7 +70,6 @@
     <string name="setting_wall">Wallpaper</string>
     <string name="setting_player">Player setting</string>
     <string name="setting_incognito">Incognito mode</string>
-    <string name="setting_quality">Image quality</string>
     <string name="setting_size">Image size</string>
     <string name="setting_doh">DoH</string>
     <string name="setting_proxy">Proxy</string>
@@ -162,12 +161,6 @@
     <string-array name="select_render">
         <item>Surface</item>
         <item>Texture</item>
-    </string-array>
-
-    <string-array name="select_quality">
-        <item>Low</item>
-        <item>Medium</item>
-        <item>High</item>
     </string-array>
 
     <string-array name="select_size">

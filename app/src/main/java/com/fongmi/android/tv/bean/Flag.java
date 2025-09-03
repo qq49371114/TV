@@ -129,8 +129,7 @@ public class Flag implements Parcelable {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof Flag)) return false;
-        Flag it = (Flag) obj;
+        if (!(obj instanceof Flag it)) return false;
         return getFlag().equals(it.getFlag());
     }
 

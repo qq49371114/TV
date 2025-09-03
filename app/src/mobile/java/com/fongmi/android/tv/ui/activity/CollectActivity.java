@@ -43,6 +43,7 @@ import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.net.OkHttp;
 import com.google.android.flexbox.FlexDirection;
 import com.google.android.flexbox.FlexboxLayoutManager;
+import com.google.common.net.HttpHeaders;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -50,6 +51,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import okhttp3.Call;
+import okhttp3.Headers;
 import okhttp3.Response;
 
 public class CollectActivity extends BaseActivity implements CustomScroller.Callback, WordAdapter.OnClickListener, RecordAdapter.OnClickListener, CollectAdapter.OnClickListener, VodAdapter.OnClickListener {
@@ -136,7 +138,7 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
     private void setViewType(int viewType) {
         int count = Product.getColumn(this) - 1;
         mSearchAdapter.setViewType(viewType, count);
-        mSearchAdapter.setSize(Product.getSpec(this, ResUtil.dp2px(128 + count * 16), count));
+        mSearchAdapter.setSize(Product.getSpec(this, ResUtil.dp2px(128 + 8 + count * 16), count));
         ((GridLayoutManager) mBinding.recycler.getLayoutManager()).setSpanCount(mSearchAdapter.isGrid() ? count : 1);
         mBinding.view.setImageResource(mSearchAdapter.isGrid() ? R.drawable.ic_action_list : R.drawable.ic_action_grid);
     }
@@ -198,6 +200,14 @@ public class CollectActivity extends BaseActivity implements CustomScroller.Call
     private void getHot() {
         mBinding.word.setText(R.string.search_hot);
         mWordAdapter.addAll(Hot.get(Setting.getHot()));
+        OkHttp.newCall("https://api.web.360kan.com/v1/rank?cat=1", Headers.of(HttpHeaders.REFERER, "https://www.360kan.com/rank/general")).enqueue(new Callback() {
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                List<String> items = Hot.get(response.body().string());
+                if (mWordAdapter.getItemCount() > 0) return;
+                App.post(() -> mWordAdapter.addAll(items));
+            }
+        });
     }
 
     private void getSuggest(String text) {

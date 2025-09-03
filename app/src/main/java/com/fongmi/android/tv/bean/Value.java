@@ -61,8 +61,7 @@ public class Value implements Parcelable {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof Value)) return false;
-        Value it = (Value) obj;
+        if (!(obj instanceof Value it)) return false;
         return getV().equals(it.getV());
     }
 

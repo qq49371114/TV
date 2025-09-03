@@ -119,8 +119,7 @@ public class Parse {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof Parse)) return false;
-        Parse it = (Parse) obj;
+        if (!(obj instanceof Parse it)) return false;
         return getName().equals(it.getName());
     }
 

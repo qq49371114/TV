@@ -25,20 +25,24 @@ import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class VodConfig {
 
+    private Site home;
+    private String wall;
+    private Parse parse;
+    private Config config;
     private List<Doh> doh;
     private List<Rule> rules;
     private List<Site> sites;
-    private List<Parse> parses;
-    private List<String> flags;
     private List<String> ads;
+    private List<String> flags;
+    private List<Parse> parses;
+    private ExecutorService executor;
+
     private boolean loadLive;
-    private Config config;
-    private Parse parse;
-    private String wall;
-    private Site home;
 
     private static class Loader {
         static volatile VodConfig INSTANCE = new VodConfig();
@@ -108,13 +112,14 @@ public class VodConfig {
     }
 
     public void load(Callback callback) {
-        App.execute(() -> loadConfig(callback));
+        if (executor != null) executor.shutdownNow();
+        executor = Executors.newSingleThreadExecutor();
+        executor.execute(() -> loadConfig(callback));
     }
 
     private void loadConfig(Callback callback) {
         try {
-            OkHttp.cancel("vod");
-            checkJson(Json.parse(Decoder.getJson(UrlUtil.convert(config.getUrl()), "vod")).getAsJsonObject(), callback);
+            checkJson(Json.parse(Decoder.getJson(UrlUtil.convert(config.getUrl()))).getAsJsonObject(), callback);
         } catch (Throwable e) {
             if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
             else loadCache(callback, e);
@@ -151,7 +156,7 @@ public class VodConfig {
             initSite(object);
             initParse(object);
             initOther(object);
-            if (loadLive && object.has("lives")) initLive(object);
+            if (loadLive && !Json.isEmpty(object, "lives")) initLive(object);
             String notice = Json.safeString(object, "notice");
             config.logo(Json.safeString(object, "logo"));
             App.post(() -> callback.success(notice));

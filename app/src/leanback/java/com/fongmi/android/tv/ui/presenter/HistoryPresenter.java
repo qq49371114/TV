@@ -67,7 +67,7 @@ public class HistoryPresenter extends Presenter {
         holder.binding.site.setVisibility(item.getSiteVisible());
         holder.binding.remark.setVisibility(delete ? View.GONE : View.VISIBLE);
         holder.binding.delete.setVisibility(!delete ? View.GONE : View.VISIBLE);
-        ImgUtil.loadVod(item.getVodName(), item.getVodPic(), holder.binding.image);
+        ImgUtil.load(item.getVodName(), item.getVodPic(), holder.binding.image);
     }
 
     private void setClickListener(View root, History item) {

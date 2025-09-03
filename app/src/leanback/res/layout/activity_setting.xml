@@ -161,7 +161,6 @@
                 android:background="@drawable/selector_item"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
-                android:nextFocusDown="@id/player"
                 android:orientation="horizontal">
 
                 <TextView
@@ -196,7 +195,6 @@
                 android:background="@drawable/selector_item"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
-                android:nextFocusDown="@id/player"
                 android:padding="8dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_setting_home" />
@@ -208,7 +206,6 @@
                 android:background="@drawable/selector_item"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
-                android:nextFocusDown="@id/player"
                 android:padding="8dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_setting_refresh" />
@@ -271,7 +268,6 @@
             android:background="@drawable/selector_item"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:nextFocusDown="@id/quality"
             android:orientation="horizontal">
 
             <TextView
@@ -294,69 +290,32 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/size"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:background="@drawable/selector_item"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             android:orientation="horizontal">
 
-            <LinearLayout
-                android:id="@+id/quality"
-                android:layout_width="0dp"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
-                android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
+                android:text="@string/setting_size"
+                android:textColor="@color/white"
+                android:textSize="18sp" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="@string/setting_quality"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
-
-                <TextView
-                    android:id="@+id/qualityText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="end"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
-                    tools:text="High" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/size"
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/sizeText"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="@drawable/selector_item"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:orientation="horizontal">
+                android:gravity="end"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                tools:text="Medium" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:text="@string/setting_size"
-                    android:textColor="@color/white"
-                    android:textSize="18sp" />
-
-                <TextView
-                    android:id="@+id/sizeText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="end"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
-                    tools:text="Medium" />
-
-            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout

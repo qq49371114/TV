@@ -324,8 +324,7 @@ public class Site implements Parcelable {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof Site)) return false;
-        Site it = (Site) obj;
+        if (!(obj instanceof Site it)) return false;
         return getKey().equals(it.getKey());
     }
 

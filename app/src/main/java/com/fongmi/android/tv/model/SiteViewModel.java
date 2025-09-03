@@ -23,6 +23,7 @@ import com.fongmi.android.tv.utils.Sniffer;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.net.OkHttp;
+import com.github.catvod.utils.Prefers;
 import com.github.catvod.utils.Trans;
 import com.github.catvod.utils.Util;
 
@@ -64,7 +65,9 @@ public class SiteViewModel extends ViewModel {
             Site site = VodConfig.get().getHome();
             if (site.getType() == 3) {
                 Spider spider = site.recent().spider();
-                String homeContent = spider.homeContent(true);
+                boolean crash = Prefers.getBoolean("crash");
+                String homeContent = crash ? "" : spider.homeContent(true);
+                Prefers.put("crash", false);
                 SpiderDebug.log(homeContent);
                 Result result = Result.fromJson(homeContent);
                 if (!result.getList().isEmpty()) return result;

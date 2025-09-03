@@ -142,8 +142,7 @@ public class Class implements Parcelable {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof Class)) return false;
-        Class it = (Class) obj;
+        if (!(obj instanceof Class it)) return false;
         return getTypeId().equals(it.getTypeId());
     }
 

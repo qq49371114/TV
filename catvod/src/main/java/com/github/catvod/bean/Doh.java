@@ -80,8 +80,7 @@ public class Doh {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof Doh)) return false;
-        Doh it = (Doh) obj;
+        if (!(obj instanceof Doh it)) return false;
         return getUrl().equals(it.getUrl());
     }
 

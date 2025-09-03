@@ -14,10 +14,6 @@ public class RefreshEvent {
         EventBus.getDefault().post(new RefreshEvent(Type.CONFIG));
     }
 
-    public static void image() {
-        EventBus.getDefault().post(new RefreshEvent(Type.IMAGE));
-    }
-
     public static void video() {
         EventBus.getDefault().post(new RefreshEvent(Type.VIDEO));
     }
@@ -89,6 +85,6 @@ public class RefreshEvent {
     }
 
     public enum Type {
-        CONFIG, IMAGE, VIDEO, HISTORY, KEEP, SIZE, WALL, LIVE, DETAIL, PLAYER, SUBTITLE, DANMAKU, VOD
+        CONFIG, VIDEO, HISTORY, KEEP, SIZE, WALL, LIVE, DETAIL, PLAYER, SUBTITLE, DANMAKU, VOD
     }
 }

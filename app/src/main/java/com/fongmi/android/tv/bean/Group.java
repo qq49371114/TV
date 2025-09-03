@@ -157,8 +157,7 @@ public class Group {
     public boolean equals(Object obj) {
         if (obj == null) return false;
         if (this == obj) return true;
-        if (!(obj instanceof Group)) return false;
-        Group it = (Group) obj;
+        if (!(obj instanceof Group it)) return false;
         return getName().equals(it.getName()) && getChannel().size() == it.getChannel().size();
     }
 }

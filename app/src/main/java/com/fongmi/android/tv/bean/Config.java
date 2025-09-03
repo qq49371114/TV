@@ -276,8 +276,7 @@ public class Config {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof Config)) return false;
-        Config it = (Config) obj;
+        if (!(obj instanceof Config it)) return false;
         return getId() == it.getId();
     }
 }

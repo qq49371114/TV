@@ -31,6 +31,6 @@ public class VodOvalHolder extends BaseVodHolder {
         binding.name.setVisibility(item.getNameVisible());
         binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));
         binding.getRoot().setOnLongClickListener(v -> listener.onLongClick(item));
-        ImgUtil.oval(item.getVodName(), item.getVodPic(), binding.image);
+        ImgUtil.load(item.getVodName(), item.getVodPic(), binding.image);
     }
 }

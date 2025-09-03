@@ -117,7 +117,7 @@ public class App extends Application {
         Logger.addLogAdapter(getLogAdapter());
         OkHttp.get().setDoh(Doh.objectFrom(Setting.getDoh()));
         EventBus.builder().addIndex(new EventIndex()).installDefaultEventBus();
-        CaocConfig.Builder.create().backgroundMode(CaocConfig.BACKGROUND_MODE_SILENT).errorActivity(CrashActivity.class).apply();
+        CaocConfig.Builder.create().trackActivities(true).backgroundMode(CaocConfig.BACKGROUND_MODE_SILENT).errorActivity(CrashActivity.class).apply();
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override
             public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {

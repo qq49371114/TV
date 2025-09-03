@@ -36,6 +36,8 @@
             android:layout_weight="1"
             android:ellipsize="marquee"
             android:focusable="false"
+            android:nextFocusLeft="@id/site"
+            android:nextFocusRight="@id/site"
             android:singleLine="true"
             android:text="@string/app_name"
             android:textColor="@color/white"

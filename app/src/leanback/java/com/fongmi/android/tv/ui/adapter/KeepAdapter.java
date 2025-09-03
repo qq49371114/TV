@@ -91,7 +91,7 @@ public class KeepAdapter extends RecyclerView.Adapter<KeepAdapter.ViewHolder> {
         holder.binding.site.setVisibility(View.VISIBLE);
         holder.binding.site.setText(item.getSiteName());
         holder.binding.delete.setVisibility(!delete ? View.GONE : View.VISIBLE);
-        ImgUtil.loadVod(item.getVodName(), item.getVodPic(), holder.binding.image);
+        ImgUtil.load(item.getVodName(), item.getVodPic(), holder.binding.image);
     }
 
     private void setFocusListener(AdapterVodBinding binding) {

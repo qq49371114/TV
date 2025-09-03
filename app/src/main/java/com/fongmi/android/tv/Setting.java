@@ -73,14 +73,6 @@ public class Setting {
         Prefers.put("render", render);
     }
 
-    public static int getQuality() {
-        return Prefers.getInt("quality", 2);
-    }
-
-    public static void putQuality(int quality) {
-        Prefers.put("quality", quality);
-    }
-
     public static int getSize() {
         return Prefers.getInt("size", 2);
     }
@@ -279,10 +271,6 @@ public class Setting {
 
     public static void putSubtitlePosition(float value) {
         Prefers.put("subtitle_position", value);
-    }
-
-    public static float getThumbnail() {
-        return 0.3f * getQuality() + 0.4f;
     }
 
     public static boolean isBackgroundOff() {

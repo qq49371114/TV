@@ -102,7 +102,6 @@ public class VodFragment extends BaseFragment implements ConfigCallback, SiteCal
         mBinding.link.setOnClickListener(this::onLink);
         mBinding.logo.setOnClickListener(this::onLogo);
         mBinding.keep.setOnClickListener(this::onKeep);
-        mBinding.retry.setOnClickListener(this::onRetry);
         mBinding.filter.setOnClickListener(this::onFilter);
         mBinding.search.setOnClickListener(this::onSearch);
         mBinding.history.setOnClickListener(this::onHistory);
@@ -142,7 +141,6 @@ public class VodFragment extends BaseFragment implements ConfigCallback, SiteCal
         mBinding.pager.getAdapter().notifyDataSetChanged();
         setFabVisible(0);
         hideProgress();
-        checkRetry();
     }
 
     private void setFabVisible(int position) {
@@ -159,10 +157,6 @@ public class VodFragment extends BaseFragment implements ConfigCallback, SiteCal
             mBinding.filter.setVisibility(View.GONE);
             mBinding.link.show();
         }
-    }
-
-    private void checkRetry() {
-        mBinding.retry.setVisibility(mAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
     }
 
     private void onTop(View view) {
@@ -189,10 +183,6 @@ public class VodFragment extends BaseFragment implements ConfigCallback, SiteCal
         KeepActivity.start(getActivity());
     }
 
-    private void onRetry(View view) {
-        homeContent();
-    }
-
     private void onFilter(View view) {
         if (mAdapter.getItemCount() > 0) FilterDialog.create().filter(mAdapter.get(mBinding.pager.getCurrentItem()).getFilters()).show(this);
     }
@@ -206,7 +196,6 @@ public class VodFragment extends BaseFragment implements ConfigCallback, SiteCal
     }
 
     private void showProgress() {
-        mBinding.retry.setVisibility(View.GONE);
         mBinding.progress.getRoot().setVisibility(View.VISIBLE);
     }
 

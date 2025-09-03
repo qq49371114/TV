@@ -165,8 +165,7 @@ public class Device {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof Device)) return false;
-        Device it = (Device) obj;
+        if (!(obj instanceof Device it)) return false;
         return getUuid().equals(it.getUuid()) && getName().equals(it.getName());
     }
 

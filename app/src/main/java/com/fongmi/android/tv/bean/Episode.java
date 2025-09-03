@@ -116,8 +116,7 @@ public class Episode implements Parcelable {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof Episode)) return false;
-        Episode it = (Episode) obj;
+        if (!(obj instanceof Episode it)) return false;
         return getUrl().equals(it.getUrl()) && getName().equals(it.getName());
     }
 

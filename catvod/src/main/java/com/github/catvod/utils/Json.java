@@ -44,6 +44,10 @@ public class Json {
         }
     }
 
+    public static boolean isEmpty(JsonObject obj, String key) {
+        return !obj.has(key) || !obj.get(key).isJsonArray() || obj.get(key).getAsJsonArray().isEmpty();
+    }
+
     public static String safeString(JsonObject obj, String key) {
         try {
             return obj.getAsJsonPrimitive(key).getAsString().trim();

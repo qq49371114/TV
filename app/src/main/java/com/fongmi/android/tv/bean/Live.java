@@ -358,8 +358,7 @@ public class Live {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof Live)) return false;
-        Live it = (Live) obj;
+        if (!(obj instanceof Live it)) return false;
         return getName().equals(it.getName());
     }
 }

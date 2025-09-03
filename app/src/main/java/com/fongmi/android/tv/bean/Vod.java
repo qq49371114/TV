@@ -301,8 +301,7 @@ public class Vod implements Parcelable {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof Vod)) return false;
-        Vod it = (Vod) obj;
+        if (!(obj instanceof Vod it)) return false;
         return getVodId().equals(it.getVodId());
     }
 
