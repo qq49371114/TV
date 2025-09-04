@@ -10,17 +10,7 @@ android {
         version = release(36)
     }
 
-    buildTypes {
-        release {
-            // configure signing, minify, etc. as needed
-        }
-    }
-    productFlavors {
-        leanbackX86 {
-            // configure ABI settings here
-        }
-    }
-}
+    
 
     defaultConfig {
         minSdk 24
@@ -43,11 +33,6 @@ android {
         armeabi_v7a {
             dimension "abi"
             ndk { abiFilters "armeabi-v7a" }
-        }
-        leanbackX86 {
-            // configure ABI settings here
-            dimension "abi"
-            ndk { abiFilters "leanbackX86" }
         }
     }
 
