@@ -10,8 +10,6 @@ android {
         version = release(36)
     }
 
-    
-
     defaultConfig {
         minSdk 24
         targetSdk 28
