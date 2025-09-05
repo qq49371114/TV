@@ -78,6 +78,11 @@ public class WallConfig {
 
     private void loadConfig(Callback callback) {
         try {
+            String loadUrl = config.getUrl();
+            // 加载时替换占位符为真实地址（但显示时仍用占位符）
+            if (Constants.BUILTIN_PLACEHOLDER.equals(loadUrl)) {
+                loadUrl = Constants.BUILTIN_URL;
+            }
             File file = write(FileUtil.getWall(0));
             if (file.exists() && file.length() > 0) refresh(0);
             else config(Config.find(VodConfig.get().getWall(), 2));
