@@ -21,6 +21,7 @@ import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.orhanobut.logger.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -87,7 +88,7 @@ public class VodConfig {
         this.sites = new ArrayList<>();
         this.flags = new ArrayList<>();
         this.parses = new ArrayList<>();
-        this.loadLive = false;
+        this.loadLive = true;
         return this;
     }
 
@@ -117,10 +118,6 @@ public class VodConfig {
         executor.execute(() -> loadConfig(callback));
     }
 
-    public void load(Callback callback) {
-        App.execute(() -> loadConfig(callback));
-    }
-
     private void loadConfig(Callback callback) {
         try {
             // 1. 防御性检查Config对象
@@ -145,7 +142,7 @@ public class VodConfig {
 
             // 4. 取消旧请求并加载新配置
             OkHttp.cancel("vod");
-            JsonObject json = Json.parse(Decoder.getJson(UrlUtil.convert(loadUrl), "vod")).getAsJsonObject();
+            JsonObject json = Json.parse(Decoder.getJson(UrlUtil.convert(loadUrl))).getAsJsonObject();
             checkJson(json, callback);
 
         } catch (Throwable e) {
