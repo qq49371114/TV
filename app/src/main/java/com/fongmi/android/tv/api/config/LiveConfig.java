@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.api.config;
 
+
 import android.net.Uri;
 import android.text.TextUtils;
 
@@ -126,7 +127,7 @@ public class LiveConfig {
             if (configUrl.equals(Constants.BUILTIN_PLACEHOLDER)) {
                 configUrl = Constants.BUILTIN_URL; // 替换占位符为真实地址
             }
-            parseConfig(Decoder.getJson(UrlUtil.convert(configUrl), "live"), callback);
+            parseConfig(Decoder.getJson(UrlUtil.convert(configUrl)), callback);
         } catch (Throwable e) {
             if (TextUtils.isEmpty(config.getUrl())) {
                 // 回退到内置源
