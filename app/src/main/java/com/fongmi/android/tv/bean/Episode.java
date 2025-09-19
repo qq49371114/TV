@@ -3,6 +3,8 @@ package com.fongmi.android.tv.bean;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import androidx.annotation.Nullable;
+
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.utils.Trans;
@@ -114,7 +116,7 @@ public class Episode implements Parcelable {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(@Nullable Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof Episode it)) return false;
         return getUrl().equals(it.getUrl()) && getName().equals(it.getName());

@@ -5,14 +5,19 @@ import org.greenrobot.eventbus.EventBus;
 public class PlayerEvent {
 
     public static final int PREPARE = 0;
-    public static final int TRACK = 21;
-    public static final int SIZE = 11;
+    public static final int PLAYING = 10;
+    public static final int TRACK = 11;
+    public static final int SIZE = 12;
 
     private final String tag;
     private final int state;
 
     public static void prepare(String tag) {
         EventBus.getDefault().post(new PlayerEvent(tag, PREPARE));
+    }
+
+    public static void playing(String tag) {
+        EventBus.getDefault().post(new PlayerEvent(tag, PLAYING));
     }
 
     public static void track(String tag) {

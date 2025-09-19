@@ -73,7 +73,7 @@ public class ParseAdapter extends RecyclerView.Adapter<ParseAdapter.ViewHolder> 
         if (holder.lightBinding != null) holder.initView(holder.lightBinding.text, item);
     }
 
-    class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder {
 
         private AdapterParseDarkBinding darkBinding;
         private AdapterParseLightBinding lightBinding;

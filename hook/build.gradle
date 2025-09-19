@@ -5,10 +5,12 @@ plugins {
 android {
     namespace 'com.fongmi.hook'
 
-    compileSdk 36
+    compileSdk {
+        version = release(36)
+    }
 
     defaultConfig {
         minSdk 24
-        targetSdk 28
+        targetSdk 36
     }
 }

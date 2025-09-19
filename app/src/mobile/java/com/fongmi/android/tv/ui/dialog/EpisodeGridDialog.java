@@ -67,7 +67,7 @@ public class EpisodeGridDialog extends BaseDialog {
 
     private void setSpanCount() {
         int total = 0;
-        int row = ResUtil.isLand(getActivity()) ? 5 : 10;
+        int row = ResUtil.isLand(requireActivity()) ? 5 : 10;
         for (Episode item : episodes) total += item.getName().length();
         int offset = (int) Math.ceil((double) total / episodes.size());
         if (offset >= 12) spanCount = 1;
@@ -83,7 +83,7 @@ public class EpisodeGridDialog extends BaseDialog {
     }
 
     private void setPager() {
-        binding.pager.setAdapter(new PageAdapter(getActivity()));
+        binding.pager.setAdapter(new PageAdapter(requireActivity()));
         new TabLayoutMediator(binding.tabs, binding.pager, (tab, position) -> tab.setText(titles.get(position))).attach();
         setCurrentPage();
     }

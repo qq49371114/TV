@@ -41,13 +41,14 @@ public class ScanTask {
 
     public void stop() {
         if (executor != null) executor.shutdownNow();
+        OkHttp.cancel(client, "scan");
         executor = null;
         listener = null;
     }
 
     private void init() {
         if (executor != null) executor.shutdownNow();
-        executor = Executors.newCachedThreadPool();
+        executor = Executors.newFixedThreadPool(20);
         devices.clear();
     }
 
@@ -80,7 +81,7 @@ public class ScanTask {
 
     private void findDevice(CountDownLatch cd, String url) {
         if (url.contains(Server.get().getAddress())) return;
-        try (Response res = OkHttp.newCall(client, url.concat("/device")).execute()) {
+        try (Response res = OkHttp.newCall(client, url.concat("/device"), "scan").execute()) {
             Device device = Device.objectFrom(res.body().string());
             if (device != null) devices.add(device.save());
         } catch (Exception ignored) {

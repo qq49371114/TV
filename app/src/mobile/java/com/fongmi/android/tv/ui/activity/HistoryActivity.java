@@ -3,8 +3,12 @@ package com.fongmi.android.tv.ui.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
+import android.view.Menu;
+import android.view.MenuItem;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.viewbinding.ViewBinding;
 
@@ -37,40 +41,38 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
 
     @Override
     protected void initView(Bundle savedInstanceState) {
+        setSupportActionBar(mBinding.toolbar);
         setRecyclerView();
         getHistory();
     }
 
     @Override
-    protected void initEvent() {
-        mBinding.sync.setOnClickListener(this::onSync);
-        mBinding.delete.setOnClickListener(this::onDelete);
+    public void setSupportActionBar(@Nullable Toolbar toolbar) {
+        super.setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
     private void setRecyclerView() {
         mBinding.recycler.setHasFixedSize(true);
-        mBinding.recycler.getItemAnimator().setChangeDuration(0);
         mBinding.recycler.setLayoutManager(new GridLayoutManager(this, Product.getColumn(this)));
         mBinding.recycler.setAdapter(mAdapter = new HistoryAdapter(this));
-        mAdapter.setSize(Product.getSpec(getActivity()));
+        mAdapter.setSize(Product.getSpec(this));
     }
 
     private void getHistory() {
-        mAdapter.addAll(History.get());
-        mBinding.delete.setVisibility(mAdapter.getItemCount() > 0 ? View.VISIBLE : View.GONE);
+        mAdapter.setItems(History.get());
+        mBinding.progressLayout.showContent(true, mAdapter.getItemCount());
     }
 
-    private void onSync(View view) {
+    private void onSync() {
         SyncDialog.create().history().show(this);
     }
 
-    private void onDelete(View view) {
+    private void onDelete() {
         if (mAdapter.isDelete()) {
             new MaterialAlertDialogBuilder(this).setTitle(R.string.dialog_delete_record).setMessage(R.string.dialog_delete_history).setNegativeButton(R.string.dialog_negative, null).setPositiveButton(R.string.dialog_positive, (dialog, which) -> mAdapter.clear()).show();
         } else if (mAdapter.getItemCount() > 0) {
             mAdapter.setDelete(true);
-        } else {
-            mBinding.delete.setVisibility(View.GONE);
         }
     }
 
@@ -87,9 +89,7 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
     @Override
     public void onItemDelete(History item) {
         mAdapter.remove(item.delete());
-        if (mAdapter.getItemCount() > 0) return;
-        mBinding.delete.setVisibility(View.GONE);
-        mAdapter.setDelete(false);
+        if (mAdapter.getItemCount() == 0) mAdapter.setDelete(false);
     }
 
     @Override
@@ -99,8 +99,22 @@ public class HistoryActivity extends BaseActivity implements HistoryAdapter.OnCl
     }
 
     @Override
-    public void onBackPressed() {
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_history, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) onBackInvoked();
+        else if (item.getItemId() == R.id.delete) onDelete();
+        else if (item.getItemId() == R.id.sync) onSync();
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onBackInvoked() {
         if (mAdapter.isDelete()) mAdapter.setDelete(false);
-        else super.onBackPressed();
+        else super.onBackInvoked();
     }
 }

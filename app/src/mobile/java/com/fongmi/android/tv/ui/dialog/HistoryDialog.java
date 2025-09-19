@@ -32,7 +32,7 @@ public class HistoryDialog implements ConfigAdapter.OnClickListener {
     public HistoryDialog(Fragment fragment) {
         this.callback = (ConfigCallback) fragment;
         this.binding = DialogHistoryBinding.inflate(LayoutInflater.from(fragment.getContext()));
-        this.dialog = new MaterialAlertDialogBuilder(fragment.getActivity()).setView(binding.getRoot()).create();
+        this.dialog = new MaterialAlertDialogBuilder(fragment.requireActivity()).setView(binding.getRoot()).create();
         this.adapter = new ConfigAdapter(this);
     }
 

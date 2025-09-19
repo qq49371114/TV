@@ -3,7 +3,11 @@ package com.fongmi.android.tv.ui.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.R;
@@ -41,11 +45,17 @@ public class FolderActivity extends BaseActivity {
     }
 
     @Override
+    public void setSupportActionBar(@Nullable Toolbar toolbar) {
+        super.setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
+
+    @Override
     protected void initView(Bundle savedInstanceState) {
-        Result result = getResult();
-        Class type = result.getTypes().get(0);
-        mBinding.text.setText(type.getTypeName());
-        getSupportFragmentManager().beginTransaction().replace(R.id.container, TypeFragment.newInstance(getKey(), type.getTypeId(), type.getStyle(), new HashMap<>(), "1".equals(type.getTypeFlag())), "0").commitAllowingStateLoss();
+        setSupportActionBar(mBinding.toolbar);
+        Class type = getResult().getTypes().get(0);
+        setTitle(type.getTypeName());
+        getSupportFragmentManager().beginTransaction().replace(R.id.container, TypeFragment.newInstance(getKey(), type.getTypeId(), type.getStyle(), new HashMap<>(), "1".equals(type.getTypeFlag()), 8), "0").commit();
     }
 
     private TypeFragment getFragment() {
@@ -53,7 +63,13 @@ public class FolderActivity extends BaseActivity {
     }
 
     @Override
-    public void onBackPressed() {
-        if (getFragment().canBack()) super.onBackPressed();
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) onBackInvoked();
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onBackInvoked() {
+        if (getFragment().canBack()) super.onBackInvoked();
     }
 }

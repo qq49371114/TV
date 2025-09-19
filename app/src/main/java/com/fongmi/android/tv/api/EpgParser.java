@@ -41,7 +41,7 @@ public class EpgParser {
     }
 
     private static boolean shouldDownload(File file) {
-        return !file.exists() || !isToday(file.lastModified()) || System.currentTimeMillis() - file.lastModified() > TimeUnit.HOURS.toMillis(6);
+        return !Path.exists(file) || !isToday(file.lastModified()) || System.currentTimeMillis() - file.lastModified() > TimeUnit.HOURS.toMillis(6);
     }
 
     private static boolean isToday(long millis) {

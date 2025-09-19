@@ -28,6 +28,10 @@ public class Path {
         return new File(path.replace("file://", "")).exists();
     }
 
+    public static boolean exists(File file) {
+        return file != null && file.exists() && file.length() > 0;
+    }
+
     public static File root() {
         return Environment.getExternalStorageDirectory();
     }

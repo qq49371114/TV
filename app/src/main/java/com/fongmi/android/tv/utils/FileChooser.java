@@ -1,6 +1,5 @@
 package com.fongmi.android.tv.utils;
 
-import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
@@ -14,7 +13,7 @@ import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 
-import androidx.fragment.app.Fragment;
+import androidx.activity.result.ActivityResultLauncher;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.ui.activity.FileActivity;
@@ -27,25 +26,14 @@ import java.util.List;
 
 public class FileChooser {
 
-    public static final int REQUEST_PICK_FILE = 9999;
+    private final ActivityResultLauncher<Intent> launcher;
 
-    private Activity activity;
-    private Fragment fragment;
-
-    public static FileChooser from(Activity activity) {
-        return new FileChooser(activity);
+    public static FileChooser from(ActivityResultLauncher<Intent> launcher) {
+        return new FileChooser(launcher);
     }
 
-    public static FileChooser from(Fragment fragment) {
-        return new FileChooser(fragment);
-    }
-
-    private FileChooser(Activity activity) {
-        this.activity = activity;
-    }
-
-    private FileChooser(Fragment fragment) {
-        this.fragment = fragment;
+    public FileChooser(ActivityResultLauncher<Intent> launcher) {
+        this.launcher = launcher;
     }
 
     public void show() {
@@ -53,14 +41,14 @@ public class FileChooser {
     }
 
     public void show(String mimeType) {
-        show(mimeType, new String[]{"*/*"}, REQUEST_PICK_FILE);
+        show(mimeType, new String[]{"*/*"});
     }
 
     public void show(String[] mimeTypes) {
-        show("*/*", mimeTypes, REQUEST_PICK_FILE);
+        show("*/*", mimeTypes);
     }
 
-    public void show(String mimeType, String[] mimeTypes, int code) {
+    public void show(String mimeType, String[] mimeTypes) {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.setType(mimeType);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -69,11 +57,9 @@ public class FileChooser {
         intent.putExtra("android.content.extra.SHOW_ADVANCED", true);
         List<ResolveInfo> resolveInfos = App.get().getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
         if (Util.isLeanback() || resolveInfos.isEmpty() || resolveInfos.get(0).activityInfo.packageName.contains("frameworkpackagestubs")) {
-            if (activity != null) activity.startActivityForResult(new Intent(activity, FileActivity.class), code);
-            if (fragment != null) fragment.startActivityForResult(new Intent(fragment.getActivity(), FileActivity.class), code);
+            launcher.launch(new Intent(App.get(), FileActivity.class));
         } else {
-            if (activity != null) activity.startActivityForResult(Intent.createChooser(intent, ""), code);
-            if (fragment != null) fragment.startActivityForResult(Intent.createChooser(intent, ""), code);
+            launcher.launch(Intent.createChooser(intent, ""));
         }
     }
 
@@ -89,7 +75,7 @@ public class FileChooser {
         return getPathFromUri(App.get(), uri);
     }
 
-    public static String getPathFromUri(Context context, Uri uri) {
+    private static String getPathFromUri(Context context, Uri uri) {
         if (uri == null) return null;
         String path = null;
         if (DocumentsContract.isDocumentUri(context, uri)) path = getPathFromDocumentUri(context, uri);

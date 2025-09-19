@@ -51,7 +51,7 @@ public class Module {
         try {
             Uri uri = Uri.parse(url);
             File file = Path.js(uri.getLastPathSegment());
-            return file.exists() ? Path.read(file) : "";
+            return Path.exists(file) ? Path.read(file) : "";
         } catch (Exception e) {
             return "";
         }

@@ -1,6 +1,5 @@
 package com.fongmi.android.tv.ui.custom;
 
-import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PorterDuff;
@@ -17,9 +16,9 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.utils.KeyUtil;
+import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.github.bassaer.library.MDColor;
-import com.permissionx.guolindev.PermissionX;
 
 public class CustomMic extends AppCompatImageView {
 
@@ -47,16 +46,6 @@ public class CustomMic extends AppCompatImageView {
         if (recognizer == null) recognizer = SpeechRecognizer.createSpeechRecognizer(activity);
         this.recognizer.setRecognitionListener(listener);
         this.activity = activity;
-    }
-
-    private void checkPermission() {
-        if (PermissionX.isGranted(activity, Manifest.permission.RECORD_AUDIO)) {
-            start();
-        } else {
-            PermissionX.init(activity).permissions(Manifest.permission.RECORD_AUDIO).request((allGranted, grantedList, deniedList) -> {
-                if (allGranted) start();
-            });
-        }
     }
 
     private void startListening() {
@@ -95,8 +84,10 @@ public class CustomMic extends AppCompatImageView {
     @Override
     protected void onFocusChanged(boolean gainFocus, int direction, @Nullable Rect previouslyFocusedRect) {
         super.onFocusChanged(gainFocus, direction, previouslyFocusedRect);
-        if (gainFocus) checkPermission();
-        else stop();
+        if (!gainFocus) stop();
+        else PermissionUtil.requestAudio(activity, allGranted -> {
+            if (allGranted) start();
+        });
     }
 
     @Override

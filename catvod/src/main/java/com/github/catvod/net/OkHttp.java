@@ -175,12 +175,20 @@ public class OkHttp {
     }
 
     public static void cancel(String tag) {
-        for (Call call : client().dispatcher().queuedCalls()) if (tag.equals(call.request().tag())) call.cancel();
-        for (Call call : client().dispatcher().runningCalls()) if (tag.equals(call.request().tag())) call.cancel();
+        cancel(client(), tag);
+    }
+
+    public static void cancel(OkHttpClient client, String tag) {
+        for (Call call : client.dispatcher().queuedCalls()) if (tag.equals(call.request().tag())) call.cancel();
+        for (Call call : client.dispatcher().runningCalls()) if (tag.equals(call.request().tag())) call.cancel();
     }
 
     public static void cancelAll() {
-        client().dispatcher().cancelAll();
+        cancelAll(client());
+    }
+
+    public static void cancelAll(OkHttpClient client) {
+        client.dispatcher().cancelAll();
     }
 
     public static FormBody toBody(ArrayMap<String, String> params) {

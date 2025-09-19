@@ -76,7 +76,7 @@ public class CollectAdapter extends RecyclerView.Adapter<CollectAdapter.ViewHold
         holder.binding.text.setOnClickListener(v -> mListener.onItemClick(position, item));
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder {
 
         private final AdapterCollectBinding binding;
 

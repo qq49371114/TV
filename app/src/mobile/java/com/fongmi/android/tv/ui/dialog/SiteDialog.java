@@ -36,7 +36,7 @@ public class SiteDialog implements SiteAdapter.OnClickListener {
 
     public SiteDialog(Fragment fragment) {
         if (fragment instanceof SiteCallback) this.callback = (SiteCallback) fragment;
-        init(fragment.getActivity());
+        init(fragment.requireActivity());
     }
 
     private void init(Activity activity) {

@@ -18,7 +18,6 @@ import androidx.media3.common.C;
 import androidx.media3.common.Player;
 import androidx.viewbinding.ViewBinding;
 
-import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
@@ -39,6 +38,7 @@ import com.fongmi.android.tv.event.ErrorEvent;
 import com.fongmi.android.tv.event.PlayerEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Callback;
+import com.fongmi.android.tv.impl.CustomTarget;
 import com.fongmi.android.tv.impl.LiveCallback;
 import com.fongmi.android.tv.impl.PassCallback;
 import com.fongmi.android.tv.model.LiveViewModel;
@@ -91,6 +91,7 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
     private Runnable mR1;
     private Runnable mR2;
     private Runnable mR3;
+    private boolean audioOnly;
     private boolean redirect;
     private boolean rotate;
     private boolean stop;
@@ -159,12 +160,12 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
     @SuppressLint("ClickableViewAccessibility")
     protected void initEvent() {
         mBinding.control.seek.setListener(mPlayers);
+        mBinding.control.back.setOnClickListener(view -> onBack());
         mBinding.control.cast.setOnClickListener(view -> onCast());
         mBinding.control.info.setOnClickListener(view -> onInfo());
         mBinding.control.play.setOnClickListener(view -> checkPlay());
         mBinding.control.next.setOnClickListener(view -> nextChannel());
         mBinding.control.prev.setOnClickListener(view -> prevChannel());
-        mBinding.control.right.back.setOnClickListener(view -> onBack());
         mBinding.control.right.lock.setOnClickListener(view -> onLock());
         mBinding.control.right.rotate.setOnClickListener(view -> onRotate());
         mBinding.control.action.text.setOnClickListener(this::onTrack);
@@ -205,7 +206,7 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
         mBinding.control.action.change.setActivated(Setting.isChange());
         mBinding.control.action.speed.setText(mPlayers.getSpeedText());
         mBinding.control.action.decode.setText(mPlayers.getDecodeText());
-        mBinding.video.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> mPiP.update(getActivity(), view));
+        mBinding.video.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> mPiP.update(this, view));
     }
 
     private void setDecode() {
@@ -311,16 +312,16 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
         mBinding.group.scrollToPosition(position);
     }
 
+    private void onBack() {
+        finish();
+    }
+
     private void onCast() {
         CastDialog.create().video(CastVideo.get(mBinding.control.title.getText().toString(), mPlayers.getUrl())).fm(false).show(this);
     }
 
     private void onInfo() {
         InfoDialog.create(this).title(mBinding.control.title.getText()).headers(mPlayers.getHeaders()).url(mPlayers.getUrl()).show();
-    }
-
-    private void onBack() {
-        finish();
     }
 
     private void onLock() {
@@ -470,13 +471,12 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
         mBinding.control.info.setVisibility(mPlayers.isEmpty() ? View.GONE : View.VISIBLE);
         mBinding.control.cast.setVisibility(mPlayers.isEmpty() ? View.GONE : View.VISIBLE);
         mBinding.control.right.rotate.setVisibility(isLock() ? View.GONE : View.VISIBLE);
-        mBinding.control.right.back.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.center.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.bottom.setVisibility(isLock() ? View.GONE : View.VISIBLE);
+        mBinding.control.back.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.top.setVisibility(isLock() ? View.GONE : View.VISIBLE);
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
         setR1Callback();
-        checkPlayImg();
         hideInfo();
     }
 
@@ -528,10 +528,6 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
             @Override
             public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
                 mBinding.exo.setDefaultArtwork(resource);
-            }
-
-            @Override
-            public void onLoadCleared(@Nullable Drawable placeholder) {
             }
         });
     }
@@ -661,7 +657,6 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
     private void checkPlayImg() {
         mBinding.control.play.setImageResource(mPlayers.isPlaying() ? androidx.media3.ui.R.drawable.exo_icon_pause : androidx.media3.ui.R.drawable.exo_icon_play);
         mPiP.update(this, mPlayers.isPlaying());
-        ActionEvent.update();
     }
 
     private void checkLockImg() {
@@ -728,6 +723,9 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
             nextChannel();
         } else if (ActionEvent.PREV.equals(event.getAction())) {
             prevChannel();
+        } else if (ActionEvent.AUDIO.equals(event.getAction())) {
+            moveTaskToBack(true);
+            setAudioOnly(true);
         } else if (ActionEvent.STOP.equals(event.getAction())) {
             finish();
         }
@@ -752,13 +750,15 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
             case PlayerEvent.PREPARE:
                 setDecode();
                 break;
+            case PlayerEvent.PLAYING:
+                checkPlayImg();
+                break;
             case Player.STATE_BUFFERING:
                 showProgress();
                 break;
             case Player.STATE_READY:
                 hideProgress();
                 checkControl();
-                checkPlayImg();
                 mPlayers.reset();
                 break;
             case Player.STATE_ENDED:
@@ -767,9 +767,6 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
             case PlayerEvent.TRACK:
                 setMetadata();
                 setTrackVisible();
-                break;
-            case PlayerEvent.SIZE:
-                mBinding.control.size.setText(mPlayers.getSizeText());
                 break;
         }
     }
@@ -868,12 +865,18 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
 
     private void onPaused() {
         mPlayers.pause();
-        checkPlayImg();
     }
 
     private void onPlay() {
         mPlayers.play();
-        checkPlayImg();
+    }
+
+    public boolean isAudioOnly() {
+        return audioOnly;
+    }
+
+    public void setAudioOnly(boolean audioOnly) {
+        this.audioOnly = audioOnly;
     }
 
     public boolean isRedirect() {
@@ -1046,6 +1049,8 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
     @Override
     protected void onStart() {
         super.onStart();
+        mBinding.exo.setPlayer(mPlayers.get());
+        setAudioOnly(false);
         setStop(false);
         onPlay();
     }
@@ -1067,11 +1072,12 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
     protected void onStop() {
         super.onStop();
         if (Setting.isBackgroundOff()) onPaused();
-        setStop(true);
+        if (!isAudioOnly()) setStop(true);
+        mBinding.exo.setPlayer(null);
     }
 
     @Override
-    public void onBackPressed() {
+    protected void onBackInvoked() {
         if (isVisible(mBinding.control.getRoot())) {
             hideControl();
         } else if (isVisible(mBinding.widget.info)) {
@@ -1079,7 +1085,7 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
         } else if (isVisible(mBinding.recycler)) {
             hideUI();
         } else if (!isLock()) {
-            super.onBackPressed();
+            super.onBackInvoked();
         }
     }
 

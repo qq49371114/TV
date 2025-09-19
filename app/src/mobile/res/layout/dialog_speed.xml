@@ -15,6 +15,7 @@
         android:stepSize="0.5"
         android:valueFrom="2"
         android:valueTo="5"
+        app:tickColor="@color/accent"
         app:tickVisible="false"
         app:trackColorInactive="@color/blue_50" />
 

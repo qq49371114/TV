@@ -98,7 +98,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaCallback, B
     }
 
     private void onScale(View view) {
-        new MaterialAlertDialogBuilder(getActivity()).setTitle(R.string.player_scale).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(scale, Setting.getScale(), (dialog, which) -> {
+        new MaterialAlertDialogBuilder(requireActivity()).setTitle(R.string.player_scale).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(scale, Setting.getScale(), (dialog, which) -> {
             mBinding.scaleText.setText(scale[which]);
             Setting.putScale(which);
             dialog.dismiss();
@@ -149,7 +149,7 @@ public class SettingPlayerFragment extends BaseFragment implements UaCallback, B
     }
 
     private void onBackground(View view) {
-        new MaterialAlertDialogBuilder(getActivity()).setTitle(R.string.player_background).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(background, Setting.getBackground(), (dialog, which) -> {
+        new MaterialAlertDialogBuilder(requireActivity()).setTitle(R.string.player_background).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(background, Setting.getBackground(), (dialog, which) -> {
             mBinding.backgroundText.setText(background[which]);
             Setting.putBackground(which);
             dialog.dismiss();

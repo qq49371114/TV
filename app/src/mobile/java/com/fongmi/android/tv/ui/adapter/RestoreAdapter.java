@@ -73,7 +73,7 @@ public class RestoreAdapter extends RecyclerView.Adapter<RestoreAdapter.ViewHold
         holder.binding.getRoot().setOnClickListener(v -> mListener.onItemClick(item));
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder {
 
         private final AdapterRestoreBinding binding;
 

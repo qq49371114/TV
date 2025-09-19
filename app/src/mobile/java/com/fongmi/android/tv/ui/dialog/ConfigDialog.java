@@ -1,11 +1,13 @@
 package com.fongmi.android.tv.ui.dialog;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
@@ -22,9 +24,9 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class ConfigDialog {
 
+    private ActivityResultLauncher<Intent> launcher;
     private final DialogConfigBinding binding;
     private final ConfigCallback callback;
-    private final Fragment fragment;
     private AlertDialog dialog;
     private boolean append;
     private boolean edit;
@@ -45,8 +47,12 @@ public class ConfigDialog {
         return this;
     }
 
+    public ConfigDialog launcher(ActivityResultLauncher<Intent> launcher) {
+        this.launcher = launcher;
+        return this;
+    }
+
     public ConfigDialog(Fragment fragment) {
-        this.fragment = fragment;
         this.callback = (ConfigCallback) fragment;
         this.binding = DialogConfigBinding.inflate(LayoutInflater.from(fragment.getContext()));
         this.append = true;
@@ -99,7 +105,7 @@ public class ConfigDialog {
     }
 
     private void onChoose(View view) {
-        FileChooser.from(fragment).show();
+        FileChooser.from(launcher).show();
         dialog.dismiss();
     }
 

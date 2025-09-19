@@ -3,7 +3,6 @@ package com.fongmi.android.tv.utils;
 import static android.widget.ImageView.ScaleType.CENTER_CROP;
 import static android.widget.ImageView.ScaleType.FIT_CENTER;
 
-import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.view.View;
@@ -14,16 +13,22 @@ import androidx.annotation.Nullable;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
+import com.bumptech.glide.load.resource.gif.GifDrawable;
 import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.request.transition.Transition;
+import com.bumptech.glide.signature.ObjectKey;
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.impl.CustomTarget;
 import com.github.catvod.utils.Json;
 import com.google.common.net.HttpHeaders;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -35,7 +40,7 @@ public class ImgUtil {
     private static final Set<String> failed = new HashSet<>();
 
     public static void load(String url, CustomTarget<Drawable> target) {
-        Glide.with(App.get()).asDrawable().load(getUrl(url)).into(target);
+        Glide.with(App.get()).load(getUrl(url)).into(target);
     }
 
     public static void load(String text, String url, ImageView view) {
@@ -45,7 +50,22 @@ public class ImgUtil {
     public static void load(String text, String url, ImageView view, boolean vod) {
         if (!vod) view.setVisibility(TextUtils.isEmpty(url) ? View.GONE : View.VISIBLE);
         if (TextUtils.isEmpty(url) || failed.contains(url)) view.setImageDrawable(getTextDrawable(text, vod));
-        else view.post(() -> Glide.with(App.get()).asBitmap().load(getUrl(url)).override(view.getWidth(), view.getHeight()).listener(getListener(text, url, view, vod)).into(view));
+        else view.post(() -> Glide.with(view).load(getUrl(url)).override(view.getWidth(), view.getHeight()).listener(getListener(text, url, view, vod)).into(view));
+    }
+
+    public static void load(File file, ImageView view) {
+        Glide.with(view).load(file).diskCacheStrategy(DiskCacheStrategy.NONE).error(R.drawable.wallpaper_1).signature(new ObjectKey(file.lastModified())).into(new CustomTarget<Drawable>() {
+            @Override
+            public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
+                if (resource instanceof GifDrawable) ((GifDrawable) resource).start();
+                view.setImageDrawable(resource);
+            }
+
+            @Override
+            public void onLoadFailed(@Nullable Drawable errorDrawable) {
+                view.setImageDrawable(errorDrawable);
+            }
+        });
     }
 
     public static Object getUrl(String url) {
@@ -73,17 +93,17 @@ public class ImgUtil {
         return builder.buildRoundRect(text, ColorGenerator.get400(text), ResUtil.dp2px(4));
     }
 
-    private static RequestListener<Bitmap> getListener(String text, String url, ImageView view, boolean vod) {
+    private static RequestListener<Drawable> getListener(String text, String url, ImageView view, boolean vod) {
         return new RequestListener<>() {
             @Override
-            public boolean onLoadFailed(@Nullable GlideException e, Object model, @NonNull Target<Bitmap> target, boolean isFirstResource) {
+            public boolean onLoadFailed(@Nullable GlideException e, Object model, @NonNull Target<Drawable> target, boolean isFirstResource) {
                 view.setImageDrawable(getTextDrawable(text, vod));
                 failed.add(url);
                 return true;
             }
 
             @Override
-            public boolean onResourceReady(@NonNull Bitmap resource, @NonNull Object model, Target<Bitmap> target, @NonNull DataSource dataSource, boolean isFirstResource) {
+            public boolean onResourceReady(@NonNull Drawable resource, @NonNull Object model, Target<Drawable> target, @NonNull DataSource dataSource, boolean isFirstResource) {
                 view.setScaleType(vod ? CENTER_CROP : FIT_CENTER);
                 return false;
             }

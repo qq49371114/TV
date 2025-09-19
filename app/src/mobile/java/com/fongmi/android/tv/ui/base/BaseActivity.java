@@ -1,39 +1,38 @@
 package com.fongmi.android.tv.ui.base;
 
+import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+
 import android.app.Activity;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.DisplayCutout;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
+import android.window.OnBackInvokedCallback;
+import android.window.OnBackInvokedDispatcher;
 
+import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewbinding.ViewBinding;
 
-import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.Setting;
-import com.fongmi.android.tv.event.RefreshEvent;
-import com.fongmi.android.tv.utils.FileUtil;
+import com.fongmi.android.tv.ui.custom.CustomWallView;
 import com.fongmi.android.tv.utils.ResUtil;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.io.File;
-
 public abstract class BaseActivity extends AppCompatActivity {
+
+    private OnBackInvokedCallback callback;
 
     protected abstract ViewBinding getBinding();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (transparent()) setTransparent(this);
+        enableEdgeToEdge();
         setContentView(getBinding().getRoot());
         EventBus.getDefault().register(this);
         initView(savedInstanceState);
@@ -44,32 +43,22 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     public void setContentView(View view) {
         super.setContentView(view);
-        refreshWall();
+        if (!customWall()) return;
+        ((ViewGroup) findViewById(android.R.id.content)).addView(new CustomWallView(this), 0, new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
     }
 
     protected Activity getActivity() {
         return this;
     }
 
-    protected boolean transparent() {
-        return true;
-    }
-
     protected boolean customWall() {
         return true;
-    }
-
-    protected boolean handleBack() {
-        return false;
     }
 
     protected void initView(Bundle savedInstanceState) {
     }
 
     protected void initEvent() {
-    }
-
-    protected void onBackPress() {
     }
 
     protected boolean isVisible(View view) {
@@ -101,40 +90,37 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     private void setBackCallback() {
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(handleBack()) {
-            @Override
-            public void handleOnBackPressed() {
-                onBackPress();
-            }
-        });
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT, callback = this::onBackInvoked);
+        } else {
+            getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+                @Override
+                public void handleOnBackPressed() {
+                    onBackInvoked();
+                }
+            });
+        }
     }
 
-    private void setTransparent(Activity activity) {
-        activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-        activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-        activity.getWindow().setStatusBarColor(Color.TRANSPARENT);
-    }
-
-    private void refreshWall() {
-        try {
-            if (!customWall()) return;
-            File file = FileUtil.getWall(Setting.getWall());
-            if (file.exists() && file.length() > 0) getWindow().setBackgroundDrawable(Drawable.createFromPath(file.getAbsolutePath()));
-            else getWindow().setBackgroundDrawableResource(ResUtil.getDrawable(file.getName()));
-        } catch (Exception e) {
-            getWindow().setBackgroundDrawableResource(R.drawable.wallpaper_1);
+    private void enableEdgeToEdge() {
+        EdgeToEdge.enable(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            getWindow().setNavigationBarContrastEnforced(false);
         }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onRefreshEvent(RefreshEvent event) {
-        if (event.getType() == RefreshEvent.Type.WALL) refreshWall();
+    public void onSubscribe(Object o) {
+    }
+
+    protected void onBackInvoked() {
+        finish();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         EventBus.getDefault().unregister(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(callback);
     }
 }

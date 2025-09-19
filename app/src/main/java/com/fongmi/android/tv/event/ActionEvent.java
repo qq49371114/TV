@@ -11,6 +11,7 @@ public class ActionEvent {
     public static String NEXT = BuildConfig.APPLICATION_ID.concat(".next");
     public static String PLAY = BuildConfig.APPLICATION_ID.concat(".play");
     public static String PAUSE = BuildConfig.APPLICATION_ID.concat(".pause");
+    public static String AUDIO = BuildConfig.APPLICATION_ID.concat(".audio");
     public static String UPDATE = BuildConfig.APPLICATION_ID.concat(".update");
 
     private final String action;

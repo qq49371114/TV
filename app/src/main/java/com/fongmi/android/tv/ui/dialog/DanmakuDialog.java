@@ -7,6 +7,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -66,7 +68,7 @@ public final class DanmakuDialog extends BaseDialog implements DanmakuAdapter.On
     }
 
     private void showChooser(View view) {
-        FileChooser.from(this).show(new String[]{"text/*"});
+        FileChooser.from(launcher).show(new String[]{"text/*"});
         player.pause();
     }
 
@@ -76,11 +78,9 @@ public final class DanmakuDialog extends BaseDialog implements DanmakuAdapter.On
         dismiss();
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode != Activity.RESULT_OK || requestCode != FileChooser.REQUEST_PICK_FILE) return;
-        player.setDanmaku(Danmaku.from(FileChooser.getPathFromUri(data.getData())));
+    private final ActivityResultLauncher<Intent> launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+        if (result.getResultCode() != Activity.RESULT_OK || result.getData() == null || result.getData().getData() == null) return;
+        player.setDanmaku(Danmaku.from(FileChooser.getPathFromUri(result.getData().getData())));
         dismiss();
-    }
+    });
 }

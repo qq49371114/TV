@@ -1,6 +1,5 @@
 package com.fongmi.android.tv.ui.activity;
 
-import android.Manifest;
 import android.content.Intent;
 import android.net.Uri;
 
@@ -11,9 +10,9 @@ import androidx.viewbinding.ViewBinding;
 import com.fongmi.android.tv.databinding.ActivityFileBinding;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.presenter.FilePresenter;
+import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.github.catvod.utils.Path;
-import com.permissionx.guolindev.PermissionX;
 
 import java.io.File;
 
@@ -38,17 +37,14 @@ public class FileActivity extends BaseActivity implements FilePresenter.OnClickL
         checkPermission();
     }
 
-    private void checkPermission() {
-        PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> {
-            if (allGranted) update(Path.root());
-            else finish();
-        });
-    }
-
     private void setRecyclerView() {
         mBinding.recycler.setHasFixedSize(true);
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(new FilePresenter(this))));
+    }
+
+    private void checkPermission() {
+        PermissionUtil.requestFile(this, allGranted -> update(Path.root()));
     }
 
     private void update(File dir) {
@@ -68,9 +64,9 @@ public class FileActivity extends BaseActivity implements FilePresenter.OnClickL
     }
 
     @Override
-    public void onBackPressed() {
+    protected void onBackInvoked() {
         if (isRoot()) {
-            super.onBackPressed();
+            super.onBackInvoked();
         } else {
             update(dir.getParentFile());
         }

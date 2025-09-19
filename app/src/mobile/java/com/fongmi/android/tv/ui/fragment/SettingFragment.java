@@ -1,12 +1,13 @@
 package com.fongmi.android.tv.ui.fragment;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.viewbinding.ViewBinding;
@@ -39,12 +40,12 @@ import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.permissionx.guolindev.PermissionX;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +75,7 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
     }
 
     private HomeActivity getRoot() {
-        return (HomeActivity) getActivity();
+        return (HomeActivity) requireActivity();
     }
 
     @Override
@@ -134,8 +135,8 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
 
     @Override
     public void setConfig(Config config) {
-        if (config.getUrl().startsWith("file") && !PermissionX.isGranted(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-            PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> load(config));
+        if (config.getUrl().startsWith("file")) {
+            PermissionUtil.requestFile(this, allGranted -> load(config));
         } else {
             load(config);
         }
@@ -144,17 +145,17 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
     private void load(Config config) {
         switch (config.getType()) {
             case 0:
-                Notify.progress(getActivity());
+                Notify.progress(requireActivity());
                 VodConfig.load(config, getCallback(0));
                 mBinding.vodUrl.setText(config.getDesc());
                 break;
             case 1:
-                Notify.progress(getActivity());
+                Notify.progress(requireActivity());
                 LiveConfig.load(config, getCallback(1));
                 mBinding.liveUrl.setText(config.getDesc());
                 break;
             case 2:
-                Notify.progress(getActivity());
+                Notify.progress(requireActivity());
                 WallConfig.load(config, getCallback(2));
                 mBinding.wallUrl.setText(config.getDesc());
                 break;
@@ -218,29 +219,29 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
     }
 
     private void onVod(View view) {
-        ConfigDialog.create(this).type(type = 0).show();
+        ConfigDialog.create(this).launcher(launcher).type(type = 0).show();
     }
 
     private void onLive(View view) {
-        ConfigDialog.create(this).type(type = 1).show();
+        ConfigDialog.create(this).launcher(launcher).type(type = 1).show();
     }
 
     private void onWall(View view) {
-        ConfigDialog.create(this).type(type = 2).show();
+        ConfigDialog.create(this).launcher(launcher).type(type = 2).show();
     }
 
     private boolean onVodEdit(View view) {
-        ConfigDialog.create(this).type(type = 0).edit().show();
+        ConfigDialog.create(this).launcher(launcher).type(type = 0).edit().show();
         return true;
     }
 
     private boolean onLiveEdit(View view) {
-        ConfigDialog.create(this).type(type = 1).edit().show();
+        ConfigDialog.create(this).launcher(launcher).type(type = 1).edit().show();
         return true;
     }
 
     private boolean onWallEdit(View view) {
-        ConfigDialog.create(this).type(type = 2).edit().show();
+        ConfigDialog.create(this).launcher(launcher).type(type = 2).edit().show();
         return true;
     }
 
@@ -265,11 +266,11 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
     }
 
     private void onVersion(View view) {
-        Updater.create().force().release().start(getActivity());
+        Updater.create().force().release().start(requireActivity());
     }
 
     private boolean onVersionDev(View view) {
-        Updater.create().force().dev().start(getActivity());
+        Updater.create().force().dev().start(requireActivity());
         return true;
     }
 
@@ -278,7 +279,7 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
     }
 
     private void setWallRefresh(View view) {
-        Notify.progress(getActivity());
+        Notify.progress(requireActivity());
         WallConfig.get().load(new Callback() {
             @Override
             public void success() {
@@ -294,7 +295,7 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
     }
 
     private void setSize(View view) {
-        new MaterialAlertDialogBuilder(getActivity()).setTitle(R.string.setting_size).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(size, Setting.getSize(), (dialog, which) -> {
+        new MaterialAlertDialogBuilder(requireActivity()).setTitle(R.string.setting_size).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(size, Setting.getSize(), (dialog, which) -> {
             mBinding.sizeText.setText(size[which]);
             Setting.putSize(which);
             RefreshEvent.size();
@@ -303,7 +304,7 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
     }
 
     private void setDoh(View view) {
-        new MaterialAlertDialogBuilder(getActivity()).setTitle(R.string.setting_doh).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(getDohList(), getDohIndex(), (dialog, which) -> {
+        new MaterialAlertDialogBuilder(requireActivity()).setTitle(R.string.setting_doh).setNegativeButton(R.string.dialog_negative, null).setSingleChoiceItems(getDohList(), getDohIndex(), (dialog, which) -> {
             setDoh(VodConfig.get().getDoh().get(which));
             dialog.dismiss();
         }).show();
@@ -312,7 +313,7 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
     private void setDoh(Doh doh) {
         Source.get().stop();
         OkHttp.get().setDoh(doh);
-        Notify.progress(getActivity());
+        Notify.progress(requireActivity());
         Setting.putDoh(doh.toString());
         mBinding.dohText.setText(doh.getName());
         VodConfig.load(Config.vod(), getCallback(0));
@@ -328,7 +329,7 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
     }
 
     private void onBackup(View view) {
-        PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> AppDatabase.backup(new Callback() {
+        PermissionUtil.requestFile(this, allGranted -> AppDatabase.backup(new Callback() {
             @Override
             public void success() {
                 Notify.show(R.string.backup_success);
@@ -342,11 +343,11 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
     }
 
     private void onRestore(View view) {
-        PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> RestoreDialog.create().show(getActivity(), new Callback() {
+        PermissionUtil.requestFile(this, allGranted -> RestoreDialog.create().show(requireActivity(), new Callback() {
             @Override
             public void success() {
                 Notify.show(R.string.restore_success);
-                Notify.progress(getActivity());
+                Notify.progress(requireActivity());
                 setOtherText();
                 initConfig();
             }
@@ -373,10 +374,8 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
         setCacheText();
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode != Activity.RESULT_OK || requestCode != FileChooser.REQUEST_PICK_FILE) return;
-        setConfig(Config.find("file:/" + FileChooser.getPathFromUri(getContext(), data.getData()).replace(Path.rootPath(), ""), type));
-    }
+    private final ActivityResultLauncher<Intent> launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+        if (result.getResultCode() != Activity.RESULT_OK || result.getData() == null || result.getData().getData() == null) return;
+        setConfig(Config.find("file:/" + FileChooser.getPathFromUri(result.getData().getData()).replace(Path.rootPath(), ""), type));
+    });
 }

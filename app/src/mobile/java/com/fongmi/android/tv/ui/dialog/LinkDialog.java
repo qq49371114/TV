@@ -1,12 +1,14 @@
 package com.fongmi.android.tv.ui.dialog;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.text.InputFilter;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
@@ -20,12 +22,18 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class LinkDialog {
 
+    private ActivityResultLauncher<Intent> launcher;
     private final DialogLinkBinding binding;
     private final Fragment fragment;
     private AlertDialog dialog;
 
     public static LinkDialog create(Fragment fragment) {
         return new LinkDialog(fragment);
+    }
+
+    public LinkDialog launcher(ActivityResultLauncher<Intent> launcher) {
+        this.launcher = launcher;
+        return this;
     }
 
     public LinkDialog(Fragment fragment) {
@@ -60,13 +68,13 @@ public class LinkDialog {
     }
 
     private void onChoose(View view) {
-        FileChooser.from(fragment).show();
+        FileChooser.from(launcher).show();
         dialog.dismiss();
     }
 
     private void onPositive(DialogInterface dialog, int which) {
         String text = binding.text.getText().toString().trim();
-        if (!text.isEmpty()) VideoActivity.start(fragment.getActivity(), text);
+        if (!text.isEmpty()) VideoActivity.start(fragment.requireActivity(), text);
         dialog.dismiss();
     }
 

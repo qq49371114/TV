@@ -59,7 +59,7 @@ public class QualityAdapter extends RecyclerView.Adapter<QualityAdapter.ViewHold
         notifyItemRangeChanged(0, getItemCount());
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder {
 
         private final AdapterQualityBinding binding;
 

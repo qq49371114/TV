@@ -67,8 +67,7 @@ public class Sub {
     @Override
     public boolean equals(@Nullable Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof Sub)) return false;
-        Sub it = (Sub) obj;
+        if (!(obj instanceof Sub it)) return false;
         return getUrl().equals(it.getUrl());
     }
 }

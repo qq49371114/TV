@@ -65,7 +65,7 @@ public class PiP {
     public void update(Activity activity, boolean play) {
         if (noPiP()) return;
         List<RemoteAction> actions = new ArrayList<>();
-        actions.add(buildRemoteAction(activity, R.drawable.exo_icon_previous, R.string.exo_controls_previous_description, ActionEvent.PREV));
+        actions.add(buildRemoteAction(activity, com.fongmi.android.tv.R.drawable.ic_action_audio, R.string.exo_controls_hide, ActionEvent.AUDIO));
         actions.add(getPlayPauseAction(activity, play));
         actions.add(buildRemoteAction(activity, R.drawable.exo_icon_next, R.string.exo_controls_next_description, ActionEvent.NEXT));
         try {

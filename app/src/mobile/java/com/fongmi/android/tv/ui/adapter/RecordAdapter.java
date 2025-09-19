@@ -69,7 +69,7 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.ViewHolder
         holder.binding.text.setOnClickListener(v -> mListener.onItemClick(text));
     }
 
-    class ViewHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener {
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener {
 
         private final AdapterCollectRecordBinding binding;
 

@@ -1,17 +1,20 @@
 package com.fongmi.android.tv.ui.activity;
 
-import android.Manifest;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.MenuItem;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.databinding.ActivityFileBinding;
 import com.fongmi.android.tv.ui.adapter.FileAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
+import com.fongmi.android.tv.utils.PermissionUtil;
 import com.github.catvod.utils.Path;
-import com.permissionx.guolindev.PermissionX;
 
 import java.io.File;
 
@@ -31,16 +34,17 @@ public class FileActivity extends BaseActivity implements FileAdapter.OnClickLis
     }
 
     @Override
-    protected void initView(Bundle savedInstanceState) {
-        setRecyclerView();
-        checkPermission();
+    public void setSupportActionBar(@Nullable Toolbar toolbar) {
+        super.setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        setTitle("");
     }
 
-    private void checkPermission() {
-        PermissionX.init(this).permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE).request((allGranted, grantedList, deniedList) -> {
-            if (allGranted) update(Path.root());
-            else finish();
-        });
+    @Override
+    protected void initView(Bundle savedInstanceState) {
+        setSupportActionBar(mBinding.toolbar);
+        setRecyclerView();
+        checkPermission();
     }
 
     private void setRecyclerView() {
@@ -48,9 +52,14 @@ public class FileActivity extends BaseActivity implements FileAdapter.OnClickLis
         mBinding.recycler.setAdapter(mAdapter = new FileAdapter(this));
     }
 
+    private void checkPermission() {
+        PermissionUtil.requestFile(this, allGranted -> update(Path.root()));
+    }
+
     private void update(File dir) {
         mBinding.recycler.scrollToPosition(0);
         mAdapter.addAll(Path.list(this.dir = dir));
+        mBinding.title.setText(dir.getAbsolutePath());
         mBinding.progressLayout.showContent(true, mAdapter.getItemCount());
     }
 
@@ -65,9 +74,15 @@ public class FileActivity extends BaseActivity implements FileAdapter.OnClickLis
     }
 
     @Override
-    public void onBackPressed() {
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) onBackInvoked();
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onBackInvoked() {
         if (isRoot()) {
-            super.onBackPressed();
+            super.onBackInvoked();
         } else {
             update(dir.getParentFile());
         }

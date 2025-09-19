@@ -11,13 +11,16 @@ import java.io.InputStream;
 import master.flame.danmaku.danmaku.loader.ILoader;
 import master.flame.danmaku.danmaku.loader.IllegalDataException;
 import master.flame.danmaku.danmaku.parser.android.AndroidFileSource;
+import okhttp3.OkHttpClient;
 
 public class Loader implements ILoader {
 
+    private OkHttpClient client;
     private AndroidFileSource dataSource;
 
     public Loader(Danmaku item) {
         try {
+            client = OkHttp.client(Constant.TIMEOUT_DANMAKU);
             load(item.getUrl());
         } catch (Exception e) {
             e.printStackTrace();
@@ -27,9 +30,9 @@ public class Loader implements ILoader {
     @Override
     public void load(String url) throws IllegalDataException {
         try {
-            OkHttp.cancel("danmaku");
+            OkHttp.cancel(client, "danmaku");
             if (url.startsWith("/")) url = "file:/" + url;
-            load(OkHttp.newCall(OkHttp.client(Constant.TIMEOUT_DANMAKU), UrlUtil.convert(url), "danmaku").execute().body().byteStream());
+            load(OkHttp.newCall(client, UrlUtil.convert(url), "danmaku").execute().body().byteStream());
         } catch (IOException e) {
             e.printStackTrace();
         }

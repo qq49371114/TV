@@ -181,8 +181,8 @@ public class CollectActivity extends BaseActivity {
     }
 
     @Override
-    public void onBackPressed() {
-        super.onBackPressed();
+    protected void onBackInvoked() {
+        super.onBackInvoked();
         stop();
     }
 

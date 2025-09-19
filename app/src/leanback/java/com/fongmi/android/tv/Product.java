@@ -32,6 +32,6 @@ public class Product {
     }
 
     public static int getEms() {
-        return Math.min(ResUtil.getScreenWidth() / ResUtil.sp2px(24), 35);
+        return Math.min(Math.round((float) ResUtil.getScreenWidth() / ResUtil.sp2px(24)), 35);
     }
 }

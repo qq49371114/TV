@@ -40,7 +40,7 @@ public class LiveDialog implements LiveAdapter.OnClickListener {
 
     private LiveDialog(Fragment fragment) {
         this.callback = (LiveCallback) fragment;
-        init(fragment.getActivity());
+        init(fragment.requireActivity());
     }
 
     private void init(Activity activity) {

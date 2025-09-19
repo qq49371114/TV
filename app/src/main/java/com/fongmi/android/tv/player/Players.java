@@ -6,9 +6,11 @@ import static androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDER
 
 import android.app.Activity;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.media.MediaMetadataCompat;
@@ -74,6 +76,7 @@ public class Players implements Player.Listener, ParseCallback {
     public static final int SOFT = 0;
     public static final int HARD = 1;
 
+    private final AudioManager audioManager;
     private final StringBuilder builder;
     private final Formatter formatter;
     private final Runnable runnable;
@@ -108,6 +111,7 @@ public class Players implements Player.Listener, ParseCallback {
         builder = new StringBuilder();
         runnable = () -> ErrorEvent.timeout(tag);
         formatter = new Formatter(builder, Locale.getDefault());
+        audioManager = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
         createSession(activity);
     }
 
@@ -635,6 +639,13 @@ public class Players implements Player.Listener, ParseCallback {
                 setPlaybackState(PlaybackStateCompat.STATE_STOPPED);
                 break;
         }
+    }
+
+    @Override
+    public void onIsPlayingChanged(boolean isPlaying) {
+        if (isPlaying() && audioManager != null && audioManager.getMode() == AudioManager.MODE_IN_COMMUNICATION) pause();
+        PlayerEvent.playing(tag);
+        ActionEvent.update();
     }
 
     @Override

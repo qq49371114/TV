@@ -4,6 +4,7 @@ import android.text.TextUtils;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.media3.common.C;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
@@ -14,6 +15,7 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.event.RefreshEvent;
+import com.fongmi.android.tv.ui.adapter.diff.Diffable;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 
@@ -23,7 +25,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Entity
-public class History {
+public class History implements Diffable<History> {
 
     @NonNull
     @PrimaryKey
@@ -345,9 +347,26 @@ public class History {
         });
     }
 
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof History it)) return false;
+        return getKey().equals(it.getKey()) && getVodName().equals(it.getVodName()) && getVodPic().equals(it.getVodPic()) && getCreateTime() == it.getCreateTime();
+    }
+
     @NonNull
     @Override
     public String toString() {
         return App.gson().toJson(this);
+    }
+
+    @Override
+    public boolean isSameItem(History other) {
+        return getKey().equals(other.getKey());
+    }
+
+    @Override
+    public boolean isSameContent(History other) {
+        return equals(other);
     }
 }

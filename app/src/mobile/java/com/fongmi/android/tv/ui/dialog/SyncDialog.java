@@ -116,7 +116,7 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
     }
 
     private void getDevice() {
-        adapter.addAll(Device.getAll());
+        adapter.addItems(Device.getAll());
         if (adapter.getItemCount() == 0) App.post(this::onRefresh, 1000);
     }
 
@@ -134,7 +134,7 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
     }
 
     private void onScan() {
-        ScanActivity.start(getActivity());
+        ScanActivity.start(requireActivity());
     }
 
     private void onRefresh() {
@@ -153,7 +153,7 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
 
     @Override
     public void onFind(List<Device> devices) {
-        if (!devices.isEmpty()) adapter.addAll(devices);
+        if (!devices.isEmpty()) adapter.addItems(devices);
     }
 
     @Override

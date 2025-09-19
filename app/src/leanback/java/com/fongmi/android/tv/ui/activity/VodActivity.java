@@ -172,11 +172,11 @@ public class VodActivity extends BaseActivity implements TypePresenter.OnClickLi
     }
 
     @Override
-    public void onBackPressed() {
+    protected void onBackInvoked() {
         Class item = (Class) mAdapter.get(mBinding.pager.getCurrentItem());
         if (item.getFilter() != null && item.getFilter()) updateFilter(item);
         else if (getFragment().canBack()) getFragment().goBack();
-        else if (!coolDown) super.onBackPressed();
+        else if (!coolDown) super.onBackInvoked();
     }
 
     class PageAdapter extends FragmentStatePagerAdapter {

@@ -1,12 +1,14 @@
 package com.fongmi.android.tv.ui.dialog;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentActivity;
 
@@ -31,8 +33,8 @@ import org.greenrobot.eventbus.ThreadMode;
 
 public class ConfigDialog implements DialogInterface.OnDismissListener {
 
+    private ActivityResultLauncher<Intent> launcher;
     private final DialogConfigBinding binding;
-    private final FragmentActivity activity;
     private final ConfigCallback callback;
     private final AlertDialog dialog;
     private boolean append;
@@ -54,8 +56,12 @@ public class ConfigDialog implements DialogInterface.OnDismissListener {
         return this;
     }
 
+    public ConfigDialog launcher(ActivityResultLauncher<Intent> launcher) {
+        this.launcher = launcher;
+        return this;
+    }
+
     public ConfigDialog(FragmentActivity activity) {
-        this.activity = activity;
         this.callback = (ConfigCallback) activity;
         this.binding = DialogConfigBinding.inflate(LayoutInflater.from(activity));
         this.dialog = new MaterialAlertDialogBuilder(activity).setView(binding.getRoot()).create();
@@ -116,7 +122,7 @@ public class ConfigDialog implements DialogInterface.OnDismissListener {
     }
 
     private void onChoose(View view) {
-        FileChooser.from(activity).show();
+        FileChooser.from(launcher).show();
         dialog.dismiss();
     }
 

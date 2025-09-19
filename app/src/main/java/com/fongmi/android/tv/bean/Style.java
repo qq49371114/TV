@@ -80,8 +80,7 @@ public class Style implements Parcelable {
     @Override
     public boolean equals(@Nullable Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof Style)) return false;
-        Style it = (Style) obj;
+        if (!(obj instanceof Style it)) return false;
         return getType().equals(it.getType()) && getRatio() == it.getRatio();
     }
 

@@ -24,7 +24,7 @@
         android:layout_alignBottom="@+id/name"
         android:background="@color/black_50"
         android:scaleType="center"
-        android:src="@drawable/ic_action_delete"
+        android:src="@drawable/ic_vod_delete"
         android:visibility="gone"
         app:shapeAppearanceOverlay="@style/Vod.Grid.Large"
         tools:visibility="visible" />
@@ -59,7 +59,7 @@
         android:layout_below="@+id/image"
         android:layout_alignStart="@+id/image"
         android:layout_alignEnd="@+id/image"
-        android:background="@color/black_30"
+        android:background="@color/black_20"
         app:indicatorColor="@color/white"
         app:trackColor="@color/transparent"
         app:trackStopIndicatorSize="0dp" />

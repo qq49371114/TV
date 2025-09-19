@@ -72,6 +72,11 @@ public class CastActivity extends BaseActivity implements CustomKeyDownVod.Liste
     }
 
     @Override
+    protected boolean customWall() {
+        return false;
+    }
+
+    @Override
     protected ViewBinding getBinding() {
         return mBinding = ActivityCastBinding.inflate(getLayoutInflater());
     }
@@ -279,10 +284,6 @@ public class CastActivity extends BaseActivity implements CustomKeyDownVod.Liste
         this.redirect = redirect;
     }
 
-    private void checkPlayImg() {
-        ActionEvent.update();
-    }
-
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onActionEvent(ActionEvent event) {
         if (ActionEvent.PLAY.equals(event.getAction()) || ActionEvent.PAUSE.equals(event.getAction())) {
@@ -315,7 +316,6 @@ public class CastActivity extends BaseActivity implements CustomKeyDownVod.Liste
                 break;
             case Player.STATE_READY:
                 hideProgress();
-                checkPlayImg();
                 mPlayers.reset();
                 setState(RenderState.PLAYING);
                 break;
@@ -360,7 +360,6 @@ public class CastActivity extends BaseActivity implements CustomKeyDownVod.Liste
     private void onPaused() {
         setState(RenderState.PAUSED);
         mPlayers.pause();
-        checkPlayImg();
         showInfo();
     }
 
@@ -368,7 +367,6 @@ public class CastActivity extends BaseActivity implements CustomKeyDownVod.Liste
         if (mPlayers.isEmpty()) return;
         setState(RenderState.PLAYING);
         mPlayers.play();
-        checkPlayImg();
         hideCenter();
     }
 
@@ -512,6 +510,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownVod.Liste
     @Override
     protected void onStart() {
         super.onStart();
+        mBinding.exo.setPlayer(mPlayers.get());
         mClock.stop().start();
         onPlay();
     }
@@ -534,16 +533,17 @@ public class CastActivity extends BaseActivity implements CustomKeyDownVod.Liste
         super.onStop();
         if (Setting.isBackgroundOff()) onPaused();
         if (Setting.isBackgroundOff()) mClock.stop();
+        mBinding.exo.setPlayer(null);
     }
 
     @Override
-    public void onBackPressed() {
+    protected void onBackInvoked() {
         if (isVisible(mBinding.control.getRoot())) {
             hideControl();
         } else if (isVisible(mBinding.widget.center)) {
             hideCenter();
         } else {
-            super.onBackPressed();
+            super.onBackInvoked();
         }
     }
 

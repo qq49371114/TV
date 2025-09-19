@@ -55,7 +55,7 @@ public class DohAdapter extends RecyclerView.Adapter<DohAdapter.ViewHolder> {
         holder.binding.text.setOnClickListener(v -> mListener.onItemClick(item));
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder {
 
         private final AdapterDohBinding binding;
 

@@ -127,8 +127,8 @@ public class CastDialog extends BaseDialog implements DeviceAdapter.OnClickListe
     }
 
     private void getDevice() {
-        if (fm) adapter.addAll(Device.getAll());
-        adapter.addAll(DLNADevice.get().getAll());
+        if (fm) adapter.addItems(Device.getAll());
+        adapter.addItems(DLNADevice.get().getAll());
     }
 
     private void initDLNA() {
@@ -137,7 +137,7 @@ public class CastDialog extends BaseDialog implements DeviceAdapter.OnClickListe
     }
 
     private void onScan() {
-        ScanActivity.start(getActivity());
+        ScanActivity.start(requireActivity());
     }
 
     private void onRefresh() {
@@ -158,12 +158,12 @@ public class CastDialog extends BaseDialog implements DeviceAdapter.OnClickListe
 
     @Override
     public void onFind(List<Device> devices) {
-        if (!devices.isEmpty()) adapter.addAll(devices);
+        if (!devices.isEmpty()) adapter.addItems(devices);
     }
 
     @Override
     public void onDeviceAdded(@NonNull org.fourthline.cling.model.meta.Device<?, ?, ?> device) {
-        adapter.addAll(DLNADevice.get().add(device));
+        adapter.addItems(DLNADevice.get().add(device));
     }
 
     @Override

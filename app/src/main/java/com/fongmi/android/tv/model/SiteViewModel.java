@@ -213,6 +213,7 @@ public class SiteViewModel extends ViewModel {
             ArrayMap<String, String> params = new ArrayMap<>();
             params.put("wd", Trans.t2s(keyword));
             params.put("quick", String.valueOf(quick));
+            params.put("extend", "");
             String searchContent = call(site, params);
             SpiderDebug.log(site.getName() + "," + searchContent);
             post(site, fetchPic(site, Result.fromType(site.getType(), searchContent)));
@@ -230,6 +231,8 @@ public class SiteViewModel extends ViewModel {
             } else {
                 ArrayMap<String, String> params = new ArrayMap<>();
                 params.put("wd", Trans.t2s(keyword));
+                params.put("quick", "false");
+                params.put("extend", "");
                 params.put("pg", page);
                 String searchContent = call(site, params);
                 SpiderDebug.log(site.getName() + "," + searchContent);
