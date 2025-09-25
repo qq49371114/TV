@@ -26,7 +26,7 @@ import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.ActivityVodBinding;
 import com.fongmi.android.tv.ui.base.BaseActivity;
-import com.fongmi.android.tv.ui.fragment.VodFragment;
+import com.fongmi.android.tv.ui.fragment.FolderFragment;
 import com.fongmi.android.tv.ui.presenter.TypePresenter;
 import com.fongmi.android.tv.utils.KeyUtil;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -35,13 +35,13 @@ import com.github.catvod.utils.Prefers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class VodActivity extends BaseActivity implements TypePresenter.OnClickListener {
 
     private ActivityVodBinding mBinding;
     private ArrayObjectAdapter mAdapter;
     private PageAdapter mPageAdapter;
-    private boolean coolDown;
     private View mOldView;
 
     public static void start(Activity activity, Result result) {
@@ -73,6 +73,14 @@ public class VodActivity extends BaseActivity implements TypePresenter.OnClickLi
         return VodConfig.get().getSite(getKey());
     }
 
+    private Class getType() {
+        return (Class) mAdapter.get(mBinding.pager.getCurrentItem());
+    }
+
+    private FolderFragment getFragment() {
+        return (FolderFragment) mPageAdapter.instantiateItem(mBinding.pager, mBinding.pager.getCurrentItem());
+    }
+
     @Override
     protected ViewBinding getBinding() {
         return mBinding = ActivityVodBinding.inflate(getLayoutInflater());
@@ -102,6 +110,7 @@ public class VodActivity extends BaseActivity implements TypePresenter.OnClickLi
     }
 
     private void setRecyclerView() {
+        mBinding.recycler.requestFocus();
         mBinding.recycler.setHorizontalSpacing(ResUtil.dp2px(16));
         mBinding.recycler.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(new TypePresenter(this))));
@@ -139,19 +148,22 @@ public class VodActivity extends BaseActivity implements TypePresenter.OnClickLi
         }
     };
 
+    private boolean isFilterVisible() {
+        return Optional.ofNullable(getType()).map(Class::getFilter).orElse(false);
+    }
+
+    private void updateFilter() {
+        Optional.ofNullable(getType()).ifPresent(this::updateFilter);
+    }
+
     private void updateFilter(Class item) {
         if (item.getFilter() == null) return;
         getFragment().toggleFilter(item.toggleFilter());
         mAdapter.notifyArrayItemRangeChanged(0, mAdapter.size());
     }
 
-    private VodFragment getFragment() {
-        return (VodFragment) mPageAdapter.instantiateItem(mBinding.pager, mBinding.pager.getCurrentItem());
-    }
-
-    private void setCoolDown() {
-        App.post(() -> coolDown = false, 2000);
-        coolDown = true;
+    public void closeFilter() {
+        if (isFilterVisible()) updateFilter();
     }
 
     @Override
@@ -166,17 +178,15 @@ public class VodActivity extends BaseActivity implements TypePresenter.OnClickLi
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (KeyUtil.isMenuKey(event)) updateFilter((Class) mAdapter.get(mBinding.pager.getCurrentItem()));
-        if (KeyUtil.isBackKey(event) && event.isLongPress() && getFragment().goRoot()) setCoolDown();
+        if (KeyUtil.isMenuKey(event)) updateFilter();
         return super.dispatchKeyEvent(event);
     }
 
     @Override
     protected void onBackInvoked() {
-        Class item = (Class) mAdapter.get(mBinding.pager.getCurrentItem());
-        if (item.getFilter() != null && item.getFilter()) updateFilter(item);
+        if (isFilterVisible()) updateFilter();
         else if (getFragment().canBack()) getFragment().goBack();
-        else if (!coolDown) super.onBackInvoked();
+        else super.onBackInvoked();
     }
 
     class PageAdapter extends FragmentStatePagerAdapter {
@@ -189,7 +199,7 @@ public class VodActivity extends BaseActivity implements TypePresenter.OnClickLi
         @Override
         public Fragment getItem(int position) {
             Class type = (Class) mAdapter.get(position);
-            return VodFragment.newInstance(getKey(), type.getTypeId(), type.getStyle(), type.getExtend(false), "1".equals(type.getTypeFlag()));
+            return FolderFragment.newInstance(getKey(), type.getTypeId(), type.getStyle(), type.getExtend(false), "1".equals(type.getTypeFlag()));
         }
 
         @Override

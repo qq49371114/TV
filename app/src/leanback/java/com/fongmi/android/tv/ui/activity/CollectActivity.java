@@ -158,7 +158,7 @@ public class CollectActivity extends BaseActivity {
         if (child == null) return;
         mOldView = child.itemView;
         mOldView.setActivated(true);
-        App.post(mRunnable, 200);
+        App.post(mRunnable, 100);
     }
 
     private final Runnable mRunnable = new Runnable() {

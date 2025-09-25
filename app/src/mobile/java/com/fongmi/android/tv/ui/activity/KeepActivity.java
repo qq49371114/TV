@@ -64,8 +64,7 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     }
 
     private void getKeep() {
-        mAdapter.setItems(Keep.getVod());
-        mBinding.progressLayout.showContent(true, mAdapter.getItemCount());
+        mAdapter.setItems(Keep.getVod(), () -> mBinding.progressLayout.showContent(true, mAdapter.getItemCount()));
     }
 
     private void onSync() {

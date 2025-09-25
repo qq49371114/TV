@@ -15,7 +15,7 @@
         android:background="@color/black_10"
         app:shapeAppearanceOverlay="@style/Vod.Grid.Large" />
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/site"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -29,14 +29,14 @@
         tools:text="泥巴"
         tools:visibility="visible" />
 
-    <LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_toEndOf="@+id/image"
         android:orientation="vertical"
         android:padding="8dp">
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/name"
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -47,7 +47,7 @@
             android:textSize="14sp"
             tools:text="蜘蛛人" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/remark"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -57,5 +57,5 @@
             android:textSize="12sp"
             tools:text="1080p" />
 
-    </LinearLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 </RelativeLayout>

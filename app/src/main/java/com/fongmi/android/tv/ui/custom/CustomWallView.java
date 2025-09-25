@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.custom;
 
 import static android.widget.ImageView.ScaleType.CENTER_CROP;
+import static androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON;
 
 import android.content.Context;
 import android.media.MediaMetadataRetriever;
@@ -13,7 +14,6 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.media3.common.MediaItem;
-import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.ui.AspectRatioFrameLayout;
 import androidx.media3.ui.PlayerView;
@@ -21,6 +21,7 @@ import androidx.media3.ui.PlayerView;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.event.RefreshEvent;
+import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -51,7 +52,7 @@ public class CustomWallView extends FrameLayout implements DefaultLifecycleObser
     }
 
     private void createPlayer() {
-        player = new ExoPlayer.Builder(App.get()).setLoadControl(new DefaultLoadControl.Builder().setBufferDurationsMs(1000, 1000, 0, 1000).build()).build();
+        player = new ExoPlayer.Builder(App.get()).setRenderersFactory(ExoUtil.buildRenderersFactory(EXTENSION_RENDERER_MODE_ON)).setMediaSourceFactory(ExoUtil.buildMediaSourceFactory()).build();
         player.setRepeatMode(ExoPlayer.REPEAT_MODE_ALL);
         player.setPlayWhenReady(true);
         player.setVolume(0);

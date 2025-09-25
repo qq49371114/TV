@@ -507,11 +507,18 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
         this.count = 0;
     }
 
-    private void setArtwork(String url) {
-        ImgUtil.load(url, new CustomTarget<>(ResUtil.getScreenWidth(), ResUtil.getScreenHeight()) {
+    private void setArtwork() {
+        ImgUtil.load(mChannel.getLogo(), new CustomTarget<>(ResUtil.getScreenWidth(), ResUtil.getScreenHeight()) {
             @Override
             public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
                 mBinding.exo.setDefaultArtwork(resource);
+                setMetadata();
+            }
+
+            @Override
+            public void onLoadFailed(@Nullable Drawable errorDrawable) {
+                mBinding.exo.setDefaultArtwork(errorDrawable);
+                setMetadata();
             }
         });
     }
@@ -575,9 +582,9 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
     }
 
     private void setChannel(Channel item) {
-        setArtwork(item.getLogo());
         App.post(mR0, 100);
         mChannel = item;
+        setArtwork();
         showInfo();
     }
 

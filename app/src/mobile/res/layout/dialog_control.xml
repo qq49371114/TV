@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -8,7 +8,7 @@
     android:padding="16dp"
     tools:background="@color/white">
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/control_speed"
@@ -28,7 +28,7 @@
         app:tickVisible="false"
         app:trackColorInactive="@color/blue_50" />
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/parseText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -51,7 +51,7 @@
         tools:listitem="@layout/adapter_parse_light"
         tools:visibility="visible" />
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
@@ -65,12 +65,12 @@
         android:fillViewport="true"
         android:scrollbars="none">
 
-        <LinearLayout
+        <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/scale_0"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -81,7 +81,7 @@
                 android:textSize="14sp"
                 tools:text="預設" />
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/scale_1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -92,7 +92,7 @@
                 android:textSize="14sp"
                 tools:text="16:9" />
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/scale_2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -103,7 +103,7 @@
                 android:textSize="14sp"
                 tools:text="4:3" />
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/scale_3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -114,7 +114,7 @@
                 android:textSize="14sp"
                 tools:text="填充" />
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/scale_4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -124,10 +124,10 @@
                 android:textSize="14sp"
                 tools:text="裁剪" />
 
-        </LinearLayout>
+        </androidx.appcompat.widget.LinearLayoutCompat>
     </HorizontalScrollView>
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
@@ -142,12 +142,12 @@
         android:fillViewport="true"
         android:scrollbars="none">
 
-        <LinearLayout
+        <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/player"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -157,7 +157,7 @@
                 android:textSize="14sp"
                 tools:text="EXO" />
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/decode"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -167,7 +167,7 @@
                 android:textSize="14sp"
                 tools:text="硬解" />
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/opening"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -177,7 +177,7 @@
                 android:textSize="14sp"
                 tools:text="片頭" />
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/ending"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -187,10 +187,10 @@
                 android:textSize="14sp"
                 tools:text="片尾" />
 
-        </LinearLayout>
+        </androidx.appcompat.widget.LinearLayoutCompat>
     </HorizontalScrollView>
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/track"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -202,12 +202,12 @@
         android:visibility="gone"
         tools:visibility="visible" />
 
-    <LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -220,7 +220,7 @@
             android:visibility="gone"
             tools:visibility="visible" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/audio"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -233,7 +233,7 @@
             android:visibility="gone"
             tools:visibility="visible" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/video"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -245,9 +245,9 @@
             android:visibility="gone"
             tools:visibility="visible" />
 
-    </LinearLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/other"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -257,12 +257,12 @@
         android:textColor="?android:attr/textColorPrimary"
         android:textSize="16sp" />
 
-    <LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/danmaku"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -274,7 +274,7 @@
             android:visibility="gone"
             tools:visibility="visible" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/loop"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -284,7 +284,7 @@
             android:textColor="@color/control"
             android:textSize="14sp" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/timer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -293,5 +293,5 @@
             android:textColor="@color/control"
             android:textSize="14sp" />
 
-    </LinearLayout>
-</LinearLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
+</androidx.appcompat.widget.LinearLayoutCompat>

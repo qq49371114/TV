@@ -34,7 +34,9 @@ public class SearchActivity extends BaseActivity {
 
     @Override
     protected void initView(Bundle savedInstanceState) {
-        getSupportFragmentManager().beginTransaction().add(R.id.container, SearchFragment.newInstance(getKeyword()), SearchFragment.class.getSimpleName()).commit();
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction().replace(R.id.container, SearchFragment.newInstance(getKeyword()), SearchFragment.class.getSimpleName()).commit();
+        }
     }
 
     @Override

@@ -6,10 +6,10 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.fongmi.android.tv.ui.adapter.diff.BaseItemCallback;
-import com.fongmi.android.tv.ui.adapter.diff.Diffable;
+import com.fongmi.android.tv.impl.Diffable;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public abstract class BaseDiffAdapter<T extends Diffable<T>, VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<VH> {
@@ -28,8 +28,12 @@ public abstract class BaseDiffAdapter<T extends Diffable<T>, VH extends Recycler
         return differ.getCurrentList();
     }
 
+    public void setItems(List<T> items, Runnable commitCallback) {
+        differ.submitList(items, commitCallback);
+    }
+
     public void setItems(List<T> items) {
-        differ.submitList(items);
+        setItems(items, null);
     }
 
     public void addItem(T item) {
@@ -44,8 +48,9 @@ public abstract class BaseDiffAdapter<T extends Diffable<T>, VH extends Recycler
         setItems(current);
     }
 
-    public void sort(java.util.Comparator<T> comparator) {
+    public void sort(Comparator<T> comparator) {
         List<T> current = new ArrayList<>(getItems());
+        if (current.size() < 2) return;
         current.sort(comparator);
         setItems(current);
     }

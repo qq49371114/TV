@@ -5,13 +5,13 @@
     android:layout_height="wrap_content"
     android:padding="16dp">
 
-    <ImageView
+    <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/code"
         android:layout_width="180dp"
         android:layout_height="180dp"
         android:scaleType="centerCrop" />
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -42,7 +42,7 @@
         android:singleLine="true"
         android:textSize="18sp" />
 
-    <LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/bottom"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -50,7 +50,7 @@
         android:layout_alignBottom="@+id/code"
         android:orientation="horizontal">
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/positive"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -65,7 +65,7 @@
             android:textColor="@color/white"
             android:textSize="14sp" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/negative"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -79,5 +79,5 @@
             android:textColor="@color/white"
             android:textSize="14sp" />
 
-    </LinearLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 </RelativeLayout>

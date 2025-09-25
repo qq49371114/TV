@@ -3,48 +3,46 @@ package com.fongmi.android.tv.utils;
 import com.android.cast.dlna.dmc.DLNACastManager;
 import com.fongmi.android.tv.bean.Device;
 
-import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DLNADevice {
 
-    private final List<org.fourthline.cling.model.meta.Device<?, ?, ?>> devices;
+    private final Set<org.fourthline.cling.model.meta.Device<?, ?, ?>> devices;
 
     private static class Loader {
-        static volatile DLNADevice INSTANCE = new DLNADevice();
+        static final DLNADevice INSTANCE = new DLNADevice();
     }
 
     public static DLNADevice get() {
         return Loader.INSTANCE;
     }
 
-    public DLNADevice() {
-        this.devices = new ArrayList<>();
+    private DLNADevice() {
+        this.devices = new LinkedHashSet<>();
     }
 
-    public List<com.fongmi.android.tv.bean.Device> getAll() {
-        List<com.fongmi.android.tv.bean.Device> items = new ArrayList<>();
-        for (org.fourthline.cling.model.meta.Device<?, ?, ?> item : devices) items.add(Device.get(item));
-        return items;
+    public List<Device> getAll() {
+        return devices.stream().map(Device::get).collect(Collectors.toList());
     }
 
-    public List<com.fongmi.android.tv.bean.Device> add(org.fourthline.cling.model.meta.Device<?, ?, ?> item) {
-        devices.remove(item);
+    public Device add(org.fourthline.cling.model.meta.Device<?, ?, ?> item) {
         devices.add(item);
-        return getAll();
+        return Device.get(item);
     }
 
-    public Device remove(org.fourthline.cling.model.meta.Device<?, ?, ?> device) {
-        devices.remove(device);
-        return Device.get(device);
+    public Device remove(org.fourthline.cling.model.meta.Device<?, ?, ?> item) {
+        devices.remove(item);
+        return Device.get(item);
     }
 
     public void disconnect() {
-        for (org.fourthline.cling.model.meta.Device<?, ?, ?> device : devices) DLNACastManager.INSTANCE.disconnectDevice(device);
+        devices.forEach(DLNACastManager.INSTANCE::disconnectDevice);
     }
 
-    public org.fourthline.cling.model.meta.Device<?, ?, ?> find(com.fongmi.android.tv.bean.Device item) {
-        for (org.fourthline.cling.model.meta.Device<?, ?, ?> device : devices) if (device.getIdentity().getUdn().getIdentifierString().equals(item.getUuid())) return device;
-        return null;
+    public org.fourthline.cling.model.meta.Device<?, ?, ?> find(Device item) {
+        return devices.stream().filter(d -> d.getIdentity().getUdn().getIdentifierString().equals(item.getUuid())).findFirst().orElse(null);
     }
 }

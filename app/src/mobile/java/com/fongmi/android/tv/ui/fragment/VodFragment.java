@@ -70,8 +70,8 @@ public class VodFragment extends BaseFragment implements ConfigCallback, SiteCal
         return new VodFragment();
     }
 
-    private TypeFragment getFragment() {
-        return (TypeFragment) mBinding.pager.getAdapter().instantiateItem(mBinding.pager, mBinding.pager.getCurrentItem());
+    private FolderFragment getFragment() {
+        return (FolderFragment) mBinding.pager.getAdapter().instantiateItem(mBinding.pager, mBinding.pager.getCurrentItem());
     }
 
     private Site getSite() {
@@ -286,9 +286,10 @@ public class VodFragment extends BaseFragment implements ConfigCallback, SiteCal
 
     @Override
     public boolean canBack() {
-        if (mBinding.pager.getAdapter() == null) return true;
-        if (mBinding.pager.getAdapter().getCount() == 0) return true;
-        return getFragment().canBack();
+        if (mBinding.pager.getAdapter() == null || mBinding.pager.getAdapter().getCount() == 0) return true;
+        if (!getFragment().canBack()) return true;
+        getFragment().goBack();
+        return false;
     }
 
     @Override
@@ -312,7 +313,7 @@ public class VodFragment extends BaseFragment implements ConfigCallback, SiteCal
         @Override
         public Fragment getItem(int position) {
             Class type = mAdapter.get(position);
-            return TypeFragment.newInstance(getSite().getKey(), type.getTypeId(), type.getStyle(), type.getExtend(true), "1".equals(type.getTypeFlag()), 4);
+            return FolderFragment.newInstance(getSite().getKey(), type.getTypeId(), type.getStyle(), type.getExtend(true), "1".equals(type.getTypeFlag()), 4);
         }
 
         @Override

@@ -31,7 +31,7 @@
             android:layout_gravity="center"
             android:background="@drawable/shape_control">
 
-            <ImageView
+            <androidx.appcompat.widget.AppCompatImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/exo_icon_play" />
@@ -39,7 +39,7 @@
         </FrameLayout>
     </FrameLayout>
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -51,7 +51,7 @@
         android:textSize="16sp"
         tools:text="狂飆" />
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/from"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

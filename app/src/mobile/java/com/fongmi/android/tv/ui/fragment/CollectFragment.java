@@ -68,6 +68,7 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
 
     @Override
     protected void initMenu() {
+        if (isHidden()) return;
         AppCompatActivity activity = (AppCompatActivity) requireActivity();
         activity.setSupportActionBar(mBinding.toolbar);
         activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -203,8 +204,15 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
     }
 
     @Override
+    public void onHiddenChanged(boolean hidden) {
+        if (hidden) requireActivity().removeMenuProvider(this);
+        else initMenu();
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
+        requireActivity().removeMenuProvider(this);
         if (mExecutor != null) mExecutor.shutdownNow();
     }
 }

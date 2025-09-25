@@ -8,39 +8,39 @@
     android:paddingEnd="8dp"
     android:scrollbars="none">
 
-    <LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/player"
             style="@style/Control.Action"
             android:text="@string/play_exo" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/decode"
             style="@style/Control.Action"
             tools:text="硬解" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/speed"
             style="@style/Control.Action"
             android:visibility="gone"
             tools:text="速度"
             tools:visibility="visible" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/scale"
             style="@style/Control.Action"
             tools:text="縮放" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/home"
             style="@style/Control.Action"
             tools:text="首頁" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/line"
             style="@style/Control.Action"
             tools:text="來源 1" />
@@ -50,7 +50,7 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/text"
             style="@style/Control.Action"
             android:tag="3"
@@ -58,7 +58,7 @@
             android:visibility="gone"
             tools:visibility="visible" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/audio"
             style="@style/Control.Action"
             android:tag="1"
@@ -66,7 +66,7 @@
             android:visibility="gone"
             tools:visibility="visible" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/video"
             style="@style/Control.Action"
             android:tag="2"
@@ -74,23 +74,23 @@
             android:visibility="gone"
             tools:visibility="visible" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/invert"
             style="@style/Control.Action"
             android:text="@string/play_invert"
             android:textColor="@color/text" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/across"
             style="@style/Control.Action"
             android:text="@string/play_across"
             android:textColor="@color/text" />
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/change"
             style="@style/Control.Action"
             android:text="@string/play_change"
             android:textColor="@color/text" />
 
-    </LinearLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 </HorizontalScrollView>

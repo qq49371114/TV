@@ -111,6 +111,7 @@ public class Action implements Process {
     private void sendHistory(Device device, Map<String, String> params) {
         try {
             Config config = Config.find(Config.objectFrom(params.get("config")));
+            if (config.getUrl() == null) config = Config.vod();
             FormBody.Builder body = new FormBody.Builder();
             body.add("config", config.toString());
             body.add("targets", App.gson().toJson(History.get(config.getId())));
@@ -134,7 +135,8 @@ public class Action implements Process {
     public void syncHistory(Map<String, String> params, boolean force) {
         Config config = Config.find(Config.objectFrom(params.get("config")));
         List<History> targets = History.arrayFrom(params.get("targets"));
-        if (VodConfig.get().getConfig().equals(config)) {
+        if (config.getUrl() == null) return;
+        if (config.getUrl().equals(VodConfig.getUrl())) {
             if (force) History.delete(config.getId());
             History.sync(targets);
         } else {

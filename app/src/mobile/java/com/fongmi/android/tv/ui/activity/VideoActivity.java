@@ -25,7 +25,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
@@ -34,6 +33,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.C;
 import androidx.media3.common.Player;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.transition.ChangeBounds;
+import androidx.transition.TransitionManager;
 import androidx.viewbinding.ViewBinding;
 
 import com.bumptech.glide.request.transition.Transition;
@@ -377,7 +378,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.control.action.danmaku.setVisibility(Setting.isDanmakuLoad() ? View.VISIBLE : View.GONE);
         mBinding.control.action.reset.setText(ResUtil.getStringArray(R.array.select_reset)[Setting.getReset()]);
         mBinding.video.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> mPiP.update(this, view));
-        WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView()).setAppearanceLightStatusBars(false);
         ViewCompat.setOnApplyWindowInsetsListener(mBinding.getRoot(), (v, windowInsets) -> {
             int top = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
             ViewGroup.LayoutParams lp = mBinding.statusBar.getLayoutParams();
@@ -648,7 +648,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void onContent() {
-        mBinding.content.setMaxLines(mBinding.content.getMaxLines() == 2 ? Integer.MAX_VALUE : 2);
+        mBinding.content.setMaxLines(mBinding.content.getMaxLines() == 3 ? Integer.MAX_VALUE : 3);
     }
 
     private void onReverse() {
@@ -873,12 +873,12 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void enterFullscreen() {
         if (isFullscreen()) return;
-        App.post(() -> mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT)), 50);
+        if (isLand()) setTransition();
+        mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
         setRequestedOrientation(mPlayers.isPortrait() ? ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         mBinding.control.title.setVisibility(View.VISIBLE);
         setRotate(mPlayers.isPortrait(), true);
         mPlayers.setDanmakuSize(1.0f);
-        Util.hideSystemUI(this);
         mKeyDown.resetScale();
         App.post(mR3, 2000);
         hideControl();
@@ -886,8 +886,9 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void exitFullscreen() {
         if (!isFullscreen()) return;
+        if (isLand()) setTransition();
         setRequestedOrientation(isPort() ? ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_FULL_USER);
-        App.post(() -> mBinding.episode.scrollToPosition(mEpisodeAdapter.getPosition()), 50);
+        mBinding.episode.postDelayed(() -> mBinding.episode.scrollToPosition(mEpisodeAdapter.getPosition()), 50);
         mBinding.control.title.setVisibility(View.INVISIBLE);
         mBinding.video.setLayoutParams(mFrameParams);
         mPlayers.setDanmakuSize(0.8f);
@@ -895,6 +896,13 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mKeyDown.resetScale();
         App.post(mR3, 2000);
         hideControl();
+    }
+
+    private void setTransition() {
+        ChangeBounds transition = new ChangeBounds();
+        transition.setDuration(150);
+        ViewGroup parent = (ViewGroup) mBinding.video.getParent();
+        TransitionManager.beginDelayedTransition(parent, transition);
     }
 
     private int getLockOrient() {
@@ -987,6 +995,12 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
             @Override
             public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
                 mBinding.exo.setDefaultArtwork(resource);
+                setMetadata();
+            }
+
+            @Override
+            public void onLoadFailed(@Nullable Drawable errorDrawable) {
+                mBinding.exo.setDefaultArtwork(errorDrawable);
                 setMetadata();
             }
         });
@@ -1545,7 +1559,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     public void onDoubleTap() {
         if (isLock()) return;
         if (!isFullscreen()) {
-            App.post(this::enterFullscreen, 250);
+            App.post(this::enterFullscreen, 200);
         } else if (mPlayers.isPlaying()) {
             showControl();
             onPaused();

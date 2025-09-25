@@ -6,11 +6,9 @@ import com.fongmi.android.tv.server.Server;
 import com.github.catvod.net.OkHttp;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -19,14 +17,12 @@ import okhttp3.Response;
 
 public class ScanTask {
 
-    private final List<Device> devices;
     private final OkHttpClient client;
 
     private ExecutorService executor;
     private Listener listener;
 
     public ScanTask(Listener listener) {
-        this.devices = Collections.synchronizedList(new ArrayList<>());
         this.client = OkHttp.client(1000);
         this.listener = listener;
     }
@@ -49,7 +45,7 @@ public class ScanTask {
     private void init() {
         if (executor != null) executor.shutdownNow();
         executor = Executors.newFixedThreadPool(20);
-        devices.clear();
+        OkHttp.cancel(client, "scan");
     }
 
     private void run(List<String> items) {
@@ -58,17 +54,11 @@ public class ScanTask {
             getDevice(items);
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            App.post(() -> {
-                if (listener != null) listener.onFind(devices);
-            });
         }
     }
 
-    private void getDevice(List<String> urls) throws Exception {
-        CountDownLatch cd = new CountDownLatch(urls.size() - 1);
-        for (String url : urls) executor.execute(() -> findDevice(cd, url));
-        cd.await();
+    private void getDevice(List<String> urls) {
+        for (String url : urls) executor.execute(() -> findDevice(url));
     }
 
     private List<String> getUrl(List<String> ips) {
@@ -79,19 +69,19 @@ public class ScanTask {
         return new ArrayList<>(urls);
     }
 
-    private void findDevice(CountDownLatch cd, String url) {
+    private void findDevice(String url) {
         if (url.contains(Server.get().getAddress())) return;
         try (Response res = OkHttp.newCall(client, url.concat("/device"), "scan").execute()) {
             Device device = Device.objectFrom(res.body().string());
-            if (device != null) devices.add(device.save());
+            if (device != null) App.post(() -> {
+                if (listener != null) listener.onFind(device.save());
+            });
         } catch (Exception ignored) {
-        } finally {
-            cd.countDown();
         }
     }
 
     public interface Listener {
 
-        void onFind(List<Device> devices);
+        void onFind(Device device);
     }
 }

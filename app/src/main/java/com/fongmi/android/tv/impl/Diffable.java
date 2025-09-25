@@ -1,4 +1,4 @@
-package com.fongmi.android.tv.ui.adapter.diff;
+package com.fongmi.android.tv.impl;
 
 public interface Diffable<T> {
 

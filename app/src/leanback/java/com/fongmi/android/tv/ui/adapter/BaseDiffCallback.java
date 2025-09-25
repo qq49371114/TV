@@ -1,7 +1,9 @@
-package com.fongmi.android.tv.ui.adapter.diff;
+package com.fongmi.android.tv.ui.adapter;
 
 import androidx.annotation.NonNull;
 import androidx.leanback.widget.DiffCallback;
+
+import com.fongmi.android.tv.impl.Diffable;
 
 public class BaseDiffCallback<T extends Diffable<T>> extends DiffCallback<T> {
 

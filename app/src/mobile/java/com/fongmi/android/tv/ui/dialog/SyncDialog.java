@@ -36,7 +36,6 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Locale;
 
 import okhttp3.Call;
@@ -111,13 +110,14 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
     }
 
     private void setRecyclerView() {
-        binding.recycler.setHasFixedSize(true);
+        binding.recycler.setHasFixedSize(false);
         binding.recycler.setAdapter(adapter = new DeviceAdapter(this));
     }
 
     private void getDevice() {
-        adapter.addItems(Device.getAll());
-        if (adapter.getItemCount() == 0) App.post(this::onRefresh, 1000);
+        adapter.setItems(Device.getAll(), () -> {
+            if (adapter.getItemCount() == 0) onRefresh();
+        });
     }
 
     private void setMode() {
@@ -138,8 +138,8 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
     }
 
     private void onRefresh() {
-        scanTask.start(adapter.getIps());
         adapter.clear();
+        scanTask.start(adapter.getIps());
     }
 
     private void onSuccess() {
@@ -152,8 +152,8 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
     }
 
     @Override
-    public void onFind(List<Device> devices) {
-        if (!devices.isEmpty()) adapter.addItems(devices);
+    public void onFind(Device device) {
+        adapter.addItem(device);
     }
 
     @Override

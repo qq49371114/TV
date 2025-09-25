@@ -28,5 +28,11 @@ public class CacheManager {
     private void create() {
         cache = new SimpleCache(Path.exo(), new NoOpCacheEvictor(), new StandaloneDatabaseProvider(App.get()));
     }
+
+    public void release() {
+        if (cache == null) return;
+        cache.release();
+        cache = null;
+    }
 }
 

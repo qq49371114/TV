@@ -90,5 +90,6 @@ public class EpisodeListDialog implements EpisodeAdapter.OnClickListener {
     @Override
     public void onItemClick(Episode item) {
         viewModel.setEpisode(item);
+        dialog.dismiss();
     }
 }

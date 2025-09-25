@@ -129,7 +129,7 @@ public class PlaybackService extends Service {
 
     private void glide(NotificationCompat.Builder builder) {
         try {
-            cache.put(getArtUri(), Glide.with(this).asBitmap().load(ImgUtil.getUrl(getArtUri())).submit().get());
+            cache.put(getArtUri(), Glide.with(this).asBitmap().load(ImgUtil.getUrl(getArtUri())).error(R.drawable.artwork).submit().get());
             setLargeIcon(builder, cache.get(getArtUri()));
             Notify.show(builder.build());
         } catch (Exception e) {

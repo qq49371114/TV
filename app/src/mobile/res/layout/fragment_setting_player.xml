@@ -1,36 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
-    <com.google.android.material.appbar.AppBarLayout
+    <com.google.android.material.appbar.MaterialToolbar
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/transparent"
-        android:elevation="0dp"
-        app:elevation="0dp"
-        app:liftOnScrollColor="@color/transparent">
-
-        <com.google.android.material.appbar.MaterialToolbar
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:layout_scrollFlags="scroll|enterAlways"
-            app:navigationIconTint="@android:color/white"
-            app:title="@string/setting_player"
-            app:titleTextColor="@android:color/white" />
-
-    </com.google.android.material.appbar.AppBarLayout>
+        android:layout_height="?attr/actionBarSize"
+        app:navigationIconTint="@android:color/white"
+        app:title="@string/setting_player"
+        app:titleTextAppearance="@style/ToolbarTextAppearance" />
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true"
-        android:overScrollMode="never"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:overScrollMode="never">
 
-        <LinearLayout
+        <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:animateLayoutChanges="true"
@@ -39,14 +28,14 @@
             android:paddingEnd="16dp"
             android:paddingBottom="16dp">
 
-            <LinearLayout
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/render"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/shape_item"
                 android:orientation="horizontal">
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
@@ -54,7 +43,7 @@
                     android:textColor="@color/white"
                     android:textSize="16sp" />
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/renderText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -63,9 +52,9 @@
                     android:textSize="16sp"
                     tools:text="Surface" />
 
-            </LinearLayout>
+            </androidx.appcompat.widget.LinearLayoutCompat>
 
-            <LinearLayout
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/scale"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -73,7 +62,7 @@
                 android:background="@drawable/shape_item"
                 android:orientation="horizontal">
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
@@ -81,7 +70,7 @@
                     android:textColor="@color/white"
                     android:textSize="16sp" />
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/scaleText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -90,9 +79,9 @@
                     android:textSize="16sp"
                     tools:text="預設" />
 
-            </LinearLayout>
+            </androidx.appcompat.widget.LinearLayoutCompat>
 
-            <LinearLayout
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/caption"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -100,7 +89,7 @@
                 android:background="@drawable/shape_item"
                 android:orientation="horizontal">
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
@@ -108,7 +97,7 @@
                     android:textColor="@color/white"
                     android:textSize="16sp" />
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/captionText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -119,9 +108,9 @@
                     android:textSize="16sp"
                     tools:text="預設" />
 
-            </LinearLayout>
+            </androidx.appcompat.widget.LinearLayoutCompat>
 
-            <LinearLayout
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/buffer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -129,7 +118,7 @@
                 android:background="@drawable/shape_item"
                 android:orientation="horizontal">
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
@@ -137,7 +126,7 @@
                     android:textColor="@color/white"
                     android:textSize="16sp" />
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/bufferText"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -147,7 +136,7 @@
                     android:textSize="16sp"
                     tools:text="1" />
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
@@ -155,9 +144,9 @@
                     android:textColor="@color/white"
                     android:textSize="16sp" />
 
-            </LinearLayout>
+            </androidx.appcompat.widget.LinearLayoutCompat>
 
-            <LinearLayout
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/speed"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -165,7 +154,7 @@
                 android:background="@drawable/shape_item"
                 android:orientation="horizontal">
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
@@ -173,7 +162,7 @@
                     android:textColor="@color/white"
                     android:textSize="16sp" />
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/speedText"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -183,7 +172,7 @@
                     android:textSize="16sp"
                     tools:text="1" />
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
@@ -191,9 +180,9 @@
                     android:textColor="@color/white"
                     android:textSize="16sp" />
 
-            </LinearLayout>
+            </androidx.appcompat.widget.LinearLayoutCompat>
 
-            <LinearLayout
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/tunnel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -201,7 +190,7 @@
                 android:background="@drawable/shape_item"
                 android:orientation="horizontal">
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
@@ -209,7 +198,7 @@
                     android:textColor="@color/white"
                     android:textSize="16sp" />
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/tunnelText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -218,9 +207,9 @@
                     android:textSize="16sp"
                     tools:text="關" />
 
-            </LinearLayout>
+            </androidx.appcompat.widget.LinearLayoutCompat>
 
-            <LinearLayout
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/audioDecode"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -228,7 +217,7 @@
                 android:background="@drawable/shape_item"
                 android:orientation="horizontal">
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
@@ -236,7 +225,7 @@
                     android:textColor="@color/white"
                     android:textSize="16sp" />
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/audioDecodeText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -245,9 +234,9 @@
                     android:textSize="16sp"
                     tools:text="開" />
 
-            </LinearLayout>
+            </androidx.appcompat.widget.LinearLayoutCompat>
 
-            <LinearLayout
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/videoDecode"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -255,7 +244,7 @@
                 android:background="@drawable/shape_item"
                 android:orientation="horizontal">
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
@@ -263,7 +252,7 @@
                     android:textColor="@color/white"
                     android:textSize="16sp" />
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/videoDecodeText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -272,9 +261,9 @@
                     android:textSize="16sp"
                     tools:text="開" />
 
-            </LinearLayout>
+            </androidx.appcompat.widget.LinearLayoutCompat>
 
-            <LinearLayout
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/aac"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -282,7 +271,7 @@
                 android:background="@drawable/shape_item"
                 android:orientation="horizontal">
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
@@ -290,7 +279,7 @@
                     android:textColor="@color/white"
                     android:textSize="16sp" />
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/aacText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -299,9 +288,9 @@
                     android:textSize="16sp"
                     tools:text="開" />
 
-            </LinearLayout>
+            </androidx.appcompat.widget.LinearLayoutCompat>
 
-            <LinearLayout
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/danmakuLoad"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -309,7 +298,7 @@
                 android:background="@drawable/shape_item"
                 android:orientation="horizontal">
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
@@ -317,7 +306,7 @@
                     android:textColor="@color/white"
                     android:textSize="16sp" />
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/danmakuLoadText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -326,9 +315,9 @@
                     android:textSize="16sp"
                     tools:text="開" />
 
-            </LinearLayout>
+            </androidx.appcompat.widget.LinearLayoutCompat>
 
-            <LinearLayout
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/background"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -336,7 +325,7 @@
                 android:background="@drawable/shape_item"
                 android:orientation="horizontal">
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
@@ -344,7 +333,7 @@
                     android:textColor="@color/white"
                     android:textSize="16sp" />
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/backgroundText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -353,9 +342,9 @@
                     android:textSize="16sp"
                     tools:text="畫中畫" />
 
-            </LinearLayout>
+            </androidx.appcompat.widget.LinearLayoutCompat>
 
-            <LinearLayout
+            <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/ua"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -363,7 +352,7 @@
                 android:background="@drawable/shape_item"
                 android:orientation="horizontal">
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
@@ -371,7 +360,7 @@
                     android:textColor="@color/white"
                     android:textSize="16sp" />
 
-                <TextView
+                <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/uaText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -382,7 +371,7 @@
                     android:textSize="16sp"
                     tools:text="okhttp/4.11.0" />
 
-            </LinearLayout>
-        </LinearLayout>
+            </androidx.appcompat.widget.LinearLayoutCompat>
+        </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.core.widget.NestedScrollView>
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</androidx.appcompat.widget.LinearLayoutCompat>

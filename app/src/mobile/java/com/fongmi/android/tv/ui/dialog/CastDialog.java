@@ -42,6 +42,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import kotlin.Unit;
@@ -122,13 +123,17 @@ public class CastDialog extends BaseDialog implements DeviceAdapter.OnClickListe
     }
 
     private void setRecyclerView() {
-        binding.recycler.setHasFixedSize(true);
+        binding.recycler.setHasFixedSize(false);
         binding.recycler.setAdapter(adapter = new DeviceAdapter(this));
     }
 
     private void getDevice() {
-        if (fm) adapter.addItems(Device.getAll());
-        adapter.addItems(DLNADevice.get().getAll());
+        List<Device> items = new ArrayList<>();
+        if (fm) items.addAll(Device.getAll());
+        items.addAll(DLNADevice.get().getAll());
+        adapter.setItems(items, () -> {
+            if (adapter.getItemCount() == 0) onRefresh();
+        });
     }
 
     private void initDLNA() {
@@ -141,9 +146,9 @@ public class CastDialog extends BaseDialog implements DeviceAdapter.OnClickListe
     }
 
     private void onRefresh() {
-        if (fm) scanTask.start(adapter.getIps());
-        DLNACastManager.INSTANCE.search(null);
         adapter.clear();
+        DLNACastManager.INSTANCE.search(null);
+        if (fm) scanTask.start(adapter.getIps());
     }
 
     private void onCasted() {
@@ -157,18 +162,18 @@ public class CastDialog extends BaseDialog implements DeviceAdapter.OnClickListe
     }
 
     @Override
-    public void onFind(List<Device> devices) {
-        if (!devices.isEmpty()) adapter.addItems(devices);
+    public void onFind(Device device) {
+        adapter.addItem(device);
     }
 
     @Override
     public void onDeviceAdded(@NonNull org.fourthline.cling.model.meta.Device<?, ?, ?> device) {
-        adapter.addItems(DLNADevice.get().add(device));
+        adapter.addItem(DLNADevice.get().add(device));
     }
 
     @Override
     public void onDeviceRemoved(@NonNull org.fourthline.cling.model.meta.Device<?, ?, ?> device) {
-        adapter.remove(DLNADevice.get().remove(device));
+        DLNADevice.get().remove(device);
     }
 
     @Override

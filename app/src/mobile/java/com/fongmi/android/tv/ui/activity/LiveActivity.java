@@ -523,11 +523,18 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
         this.count = 0;
     }
 
-    private void setArtwork(String url) {
-        ImgUtil.load(url, new CustomTarget<>(ResUtil.getScreenWidth(), ResUtil.getScreenHeight()) {
+    private void setArtwork() {
+        ImgUtil.load(mChannel.getUrl(), new CustomTarget<>(ResUtil.getScreenWidth(), ResUtil.getScreenHeight()) {
             @Override
             public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
                 mBinding.exo.setDefaultArtwork(resource);
+                setMetadata();
+            }
+
+            @Override
+            public void onLoadFailed(@Nullable Drawable errorDrawable) {
+                mBinding.exo.setDefaultArtwork(errorDrawable);
+                setMetadata();
             }
         });
     }
@@ -550,8 +557,8 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
             showEpg(item);
         } else {
             mGroup.setPosition(mChannelAdapter.setSelected(item.group(mGroup)));
-            setArtwork(item.getLogo());
             mChannel = item;
+            setArtwork();
             showInfo();
             hideUI();
             fetch();

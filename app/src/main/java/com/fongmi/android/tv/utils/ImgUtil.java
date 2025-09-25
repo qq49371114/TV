@@ -40,7 +40,7 @@ public class ImgUtil {
     private static final Set<String> failed = new HashSet<>();
 
     public static void load(String url, CustomTarget<Drawable> target) {
-        Glide.with(App.get()).load(getUrl(url)).into(target);
+        Glide.with(App.get()).load(getUrl(url)).error(R.drawable.artwork).into(target);
     }
 
     public static void load(String text, String url, ImageView view) {

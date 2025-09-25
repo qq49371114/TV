@@ -15,7 +15,7 @@ import com.fongmi.android.tv.bean.Class;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.databinding.ActivityFolderBinding;
 import com.fongmi.android.tv.ui.base.BaseActivity;
-import com.fongmi.android.tv.ui.fragment.TypeFragment;
+import com.fongmi.android.tv.ui.fragment.FolderFragment;
 
 import java.util.HashMap;
 
@@ -55,11 +55,11 @@ public class FolderActivity extends BaseActivity {
         setSupportActionBar(mBinding.toolbar);
         Class type = getResult().getTypes().get(0);
         setTitle(type.getTypeName());
-        getSupportFragmentManager().beginTransaction().replace(R.id.container, TypeFragment.newInstance(getKey(), type.getTypeId(), type.getStyle(), new HashMap<>(), "1".equals(type.getTypeFlag()), 8), "0").commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.container, FolderFragment.newInstance(getKey(), type.getTypeId(), type.getStyle(), new HashMap<>(), "1".equals(type.getTypeFlag()), 8), "0").commit();
     }
 
-    private TypeFragment getFragment() {
-        return (TypeFragment) getSupportFragmentManager().findFragmentByTag("0");
+    private FolderFragment getFragment() {
+        return (FolderFragment) getSupportFragmentManager().findFragmentByTag("0");
     }
 
     @Override
@@ -70,6 +70,7 @@ public class FolderActivity extends BaseActivity {
 
     @Override
     protected void onBackInvoked() {
-        if (getFragment().canBack()) super.onBackInvoked();
+        if (getFragment().canBack()) getFragment().goBack();
+        else super.onBackInvoked();
     }
 }

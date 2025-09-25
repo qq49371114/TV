@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/black_20">
 
-    <LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/top"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
@@ -15,7 +15,7 @@
         android:paddingStart="4dp"
         android:paddingEnd="4dp">
 
-        <ImageView
+        <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/back"
             android:layout_width="48dp"
             android:layout_height="48dp"
@@ -23,27 +23,33 @@
             android:scaleType="center"
             android:src="@drawable/ic_control_back" />
 
-        <TextView
-            android:id="@+id/title"
+        <FrameLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_marginStart="4dp"
             android:layout_marginEnd="4dp"
-            android:layout_weight="1"
-            android:ellipsize="marquee"
-            android:singleLine="true"
-            android:textColor="@color/white"
-            android:textSize="16sp"
-            android:visibility="invisible"
-            tools:text="慶餘年第一季：第一集" />
+            android:layout_weight="1">
 
-        <LinearLayout
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="marquee"
+                android:singleLine="true"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:visibility="invisible"
+                tools:text="慶餘年第一季：第一集" />
+
+        </FrameLayout>
+
+        <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <ImageView
+            <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/cast"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
@@ -51,7 +57,7 @@
                 android:scaleType="center"
                 android:src="@drawable/ic_control_cast" />
 
-            <ImageView
+            <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/info"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
@@ -59,7 +65,7 @@
                 android:scaleType="center"
                 android:src="@drawable/ic_control_info" />
 
-            <ImageView
+            <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/keep"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
@@ -67,7 +73,7 @@
                 android:scaleType="center"
                 android:src="@drawable/ic_control_keep_off" />
 
-            <ImageView
+            <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/setting"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
@@ -75,10 +81,10 @@
                 android:scaleType="center"
                 android:src="@drawable/ic_control_setting" />
 
-        </LinearLayout>
-    </LinearLayout>
+        </androidx.appcompat.widget.LinearLayoutCompat>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
-    <LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/center"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -94,7 +100,7 @@
             android:visibility="gone"
             tools:visibility="visible">
 
-            <ImageView
+            <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/prev"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
@@ -110,7 +116,7 @@
             android:layout_marginEnd="48dp"
             android:background="@drawable/shape_control">
 
-            <ImageView
+            <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/play"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
@@ -127,7 +133,7 @@
             android:visibility="gone"
             tools:visibility="visible">
 
-            <ImageView
+            <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/next"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
@@ -135,9 +141,9 @@
                 android:src="@drawable/exo_icon_next" />
 
         </FrameLayout>
-    </LinearLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
-    <LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
@@ -146,7 +152,7 @@
         android:gravity="center"
         android:orientation="vertical">
 
-        <ImageView
+        <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/danmaku"
             android:layout_width="48dp"
             android:layout_height="48dp"
@@ -154,7 +160,7 @@
             android:scaleType="center"
             android:src="@drawable/ic_control_danmaku_on" />
 
-    </LinearLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
     <include
         android:id="@+id/right"
@@ -165,7 +171,7 @@
         android:layout_centerVertical="true"
         android:layout_marginEnd="4dp" />
 
-    <LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/bottom"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -199,5 +205,5 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-    </LinearLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 </RelativeLayout>

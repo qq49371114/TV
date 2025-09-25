@@ -1,7 +1,9 @@
-package com.fongmi.android.tv.ui.adapter.diff;
+package com.fongmi.android.tv.ui.adapter;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
+
+import com.fongmi.android.tv.impl.Diffable;
 
 public class BaseItemCallback<T extends Diffable<T>> extends DiffUtil.ItemCallback<T> {
 

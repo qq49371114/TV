@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal">
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/text"
         android:layout_width="0dp"
         android:layout_height="40dp"
@@ -20,7 +20,7 @@
         android:textSize="18sp"
         tools:text="https://fongmi.github.io/cat.json" />
 
-    <ImageView
+    <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/delete"
         android:layout_width="40dp"
         android:layout_height="40dp"
@@ -32,4 +32,4 @@
         android:scaleType="fitCenter"
         android:src="@drawable/ic_setting_delete" />
 
-</LinearLayout>
+</androidx.appcompat.widget.LinearLayoutCompat>

@@ -15,7 +15,7 @@
         android:background="@color/black_20"
         app:shapeAppearanceOverlay="@style/Vod.Circle" />
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

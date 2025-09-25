@@ -47,6 +47,7 @@ import com.fongmi.android.tv.event.PlayerEvent;
 import com.fongmi.android.tv.impl.ParseCallback;
 import com.fongmi.android.tv.impl.SessionCallback;
 import com.fongmi.android.tv.player.danmaku.DanPlayer;
+import com.fongmi.android.tv.player.exo.CacheManager;
 import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.utils.FileUtil;
@@ -397,6 +398,7 @@ public class Players implements Player.Listener, ParseCallback {
         session.release();
         removeTimeoutCheck();
         Server.get().setPlayer(null);
+        CacheManager.get().release();
         App.execute(() -> Source.get().stop());
     }
 

@@ -18,7 +18,7 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.Collect;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Vod;
-import com.fongmi.android.tv.databinding.FragmentVodBinding;
+import com.fongmi.android.tv.databinding.FragmentTypeBinding;
 import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.ui.activity.VideoActivity;
 import com.fongmi.android.tv.ui.activity.VodActivity;
@@ -35,7 +35,7 @@ import java.util.List;
 
 public class CollectFragment extends BaseFragment implements CustomScroller.Callback, VodPresenter.OnClickListener {
 
-    private FragmentVodBinding mBinding;
+    private FragmentTypeBinding mBinding;
     private ArrayObjectAdapter mAdapter;
     private ArrayObjectAdapter mLast;
     private CustomScroller mScroller;
@@ -62,13 +62,14 @@ public class CollectFragment extends BaseFragment implements CustomScroller.Call
 
     @Override
     protected ViewBinding getBinding(@NonNull LayoutInflater inflater, @Nullable ViewGroup container) {
-        return mBinding = FragmentVodBinding.inflate(inflater, container, false);
+        return mBinding = FragmentTypeBinding.inflate(inflater, container, false);
     }
 
     @Override
     protected void initView() {
         setRecyclerView();
         setViewModel();
+        addVideo(mCollect);
     }
 
     private void setRecyclerView() {
@@ -88,13 +89,8 @@ public class CollectFragment extends BaseFragment implements CustomScroller.Call
         });
     }
 
-    @Override
-    protected void initData() {
-        if (mCollect != null) addVideo(mCollect.getList());
-    }
-
     private boolean checkLastSize(List<Vod> items) {
-        if (mLast == null || items.size() == 0) return false;
+        if (mLast == null || items.isEmpty()) return false;
         int size = Product.getColumn() - mLast.size();
         if (size == 0) return false;
         size = Math.min(size, items.size());
@@ -103,8 +99,12 @@ public class CollectFragment extends BaseFragment implements CustomScroller.Call
         return true;
     }
 
+    private void addVideo(Collect collect) {
+        if (collect != null) addVideo(collect.getList());
+    }
+
     public void addVideo(List<Vod> items) {
-        if (checkLastSize(items) || requireActivity() == null || requireActivity().isFinishing()) return;
+        if (checkLastSize(items) || getActivity() == null || requireActivity().isFinishing()) return;
         List<ListRow> rows = new ArrayList<>();
         for (List<Vod> part : Lists.partition(items, Product.getColumn())) {
             mLast = new ArrayObjectAdapter(new VodPresenter(this));

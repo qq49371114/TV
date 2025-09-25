@@ -64,6 +64,11 @@ public class CustomVerticalGridView extends VerticalGridView {
         if (views != null) for (View view : views) view.setVisibility(View.VISIBLE);
     }
 
+    public boolean isHeaderVisible() {
+        if (views != null) for (View view : views) if (view.getId() == R.id.recycler && view.getVisibility() == View.VISIBLE) return true;
+        return false;
+    }
+
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (event.getAction() != KeyEvent.ACTION_DOWN) return super.dispatchKeyEvent(event);

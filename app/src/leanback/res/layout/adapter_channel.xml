@@ -11,7 +11,7 @@
     android:paddingStart="20dp"
     android:paddingEnd="20dp">
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/number"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -22,14 +22,14 @@
         android:textStyle="bold"
         tools:text="01" />
 
-    <ImageView
+    <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/logo"
         android:layout_width="48dp"
         android:layout_height="36dp"
         android:layout_marginEnd="12dp"
         android:visibility="gone" />
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

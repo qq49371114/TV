@@ -37,7 +37,7 @@
         android:layout_gravity="bottom"
         android:visibility="gone" />
 
-    <LinearLayout
+    <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/recycler"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
@@ -67,6 +67,6 @@
             tools:itemCount="5"
             tools:listitem="@layout/adapter_epg_data" />
 
-    </LinearLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
 </FrameLayout>
 
