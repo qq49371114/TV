@@ -74,22 +74,26 @@ public class WallConfig {
         executor.execute(() -> loadConfig(callback));
     }
 
-    private void loadConfig(Callback callback) {
+private void loadConfig(Callback callback) {
         try {
-            byte[] data = OkHttp.bytes(UrlUtil.convert(getUrl()));
-            if (data.length == 0) throw new RuntimeException();
-            Path.write(FileUtil.getWall(0), data);
-            createSnapshot(data);
-            config.update();
-            refresh(0);
+            String loadUrl = config.getUrl();
+            // 加载时替换占位符为真实地址（但显示时仍用占位符）
+            if (Constants.BUILTIN_PLACEHOLDER.equals(loadUrl)) {
+                loadUrl = Constants.BUILTIN_URL;
+            }
+            File file = write(FileUtil.getWall(0));
+            if (file.exists() && file.length() > 0) refresh(0);
+            else config(Config.find(VodConfig.get().getWall(), 2));
             App.post(callback::success);
+            config.update();
         } catch (Throwable e) {
-            if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
-            else App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
+            App.post(() -> callback.error(Notify.getError(R.string.error_config_parse, e)));
+            config(Config.find(VodConfig.get().getWall(), 2));
             e.printStackTrace();
         }
     }
 
+    
     private void createSnapshot(byte[] data) throws Exception {
         Bitmap bitmap = Glide.with(App.get()).asBitmap().load(data).override(ResUtil.getScreenWidth(), ResUtil.getScreenHeight()).submit().get();
         try (FileOutputStream fos = new FileOutputStream(FileUtil.getWallCache())) {
