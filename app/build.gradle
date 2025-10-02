@@ -12,7 +12,6 @@ android {
     defaultConfig {
         applicationId "com.fongmi.android.tv"
         minSdk 24
-        //noinspection ExpiredTargetSdkVersion
         targetSdk 36
         versionCode 42701
         versionName "4.2.7.01"
