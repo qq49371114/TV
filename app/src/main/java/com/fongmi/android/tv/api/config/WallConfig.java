@@ -74,7 +74,7 @@ public class WallConfig {
         executor.execute(() -> loadConfig(callback));
     }
 
-    private void loadConfig(Callback callback) {
+private void loadConfig(Callback callback) {
         try {
             String loadUrl = config.getUrl();
             // 加载时替换占位符为真实地址（但显示时仍用占位符）
@@ -93,13 +93,12 @@ public class WallConfig {
         }
     }
 
-    private File write(File file) throws Exception {
-        if (TextUtils.isEmpty(getUrl())) return file;
-        Path.write(file, OkHttp.bytes(UrlUtil.convert(getUrl())));
-        Bitmap bitmap = Glide.with(App.get()).asBitmap().load(file).centerCrop().override(ResUtil.getScreenWidth(), ResUtil.getScreenHeight()).diskCacheStrategy(DiskCacheStrategy.NONE).submit().get();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, new FileOutputStream(file));
-        bitmap.recycle();
-        return file;
+    
+    private void createSnapshot(byte[] data) throws Exception {
+        Bitmap bitmap = Glide.with(App.get()).asBitmap().load(data).override(ResUtil.getScreenWidth(), ResUtil.getScreenHeight()).submit().get();
+        try (FileOutputStream fos = new FileOutputStream(FileUtil.getWallCache())) {
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+        }
     }
 
     public boolean needSync(String url) {
