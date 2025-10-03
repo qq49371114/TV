@@ -11,8 +11,8 @@ android {
         applicationId "com.fongmi.android.tv"
         minSdk 24
         targetSdk 36
-        versionCode 437
-        versionName "4.3.7"
+        versionCode 43702
+        versionName "4.3.7.02"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString(), "eventBusIndex": "com.fongmi.android.tv.event.EventIndex"]
