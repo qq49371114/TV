@@ -4,7 +4,6 @@ import android.graphics.Bitmap;
 import android.text.TextUtils;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
@@ -18,7 +17,6 @@ import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -78,30 +76,25 @@ public class WallConfig {
 
     private void loadConfig(Callback callback) {
         try {
-            String loadUrl = config.getUrl();
-            // 加载时替换占位符为真实地址（但显示时仍用占位符）
-            if (Constants.BUILTIN_PLACEHOLDER.equals(loadUrl)) {
-                loadUrl = Constants.BUILTIN_URL;
-            }
-            File file = write(FileUtil.getWall(0));
-            if (file.exists() && file.length() > 0) refresh(0);
-            else config(Config.find(VodConfig.get().getWall(), 2));
-            App.post(callback::success);
+            byte[] data = OkHttp.bytes(UrlUtil.convert(getUrl()));
+            if (data.length == 0) throw new RuntimeException();
+            Path.write(FileUtil.getWall(0), data);
+            createSnapshot(data);
             config.update();
+            refresh(0);
+            App.post(callback::success);
         } catch (Throwable e) {
-            App.post(() -> callback.error(Notify.getError(R.string.error_config_parse, e)));
-            config(Config.find(VodConfig.get().getWall(), 2));
+            if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
+            else App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
             e.printStackTrace();
         }
     }
 
-    private File write(File file) throws Exception {
-        if (TextUtils.isEmpty(getUrl())) return file;
-        Path.write(file, OkHttp.bytes(UrlUtil.convert(getUrl())));
-        Bitmap bitmap = Glide.with(App.get()).asBitmap().load(file).centerCrop().override(ResUtil.getScreenWidth(), ResUtil.getScreenHeight()).diskCacheStrategy(DiskCacheStrategy.NONE).submit().get();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, new FileOutputStream(file));
-        bitmap.recycle();
-        return file;
+    private void createSnapshot(byte[] data) throws Exception {
+        Bitmap bitmap = Glide.with(App.get()).asBitmap().load(data).override(ResUtil.getScreenWidth(), ResUtil.getScreenHeight()).submit().get();
+        try (FileOutputStream fos = new FileOutputStream(FileUtil.getWallCache())) {
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+        }
     }
 
     public boolean needSync(String url) {
