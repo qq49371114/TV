@@ -29,10 +29,6 @@ android {
         mobile {
             dimension "mode"
         }
-        x86 {
-            dimension "abi"
-            ndk { abiFilters "x86" }
-        }
         arm64_v8a {
             dimension "abi"
             ndk { abiFilters "arm64-v8a" }
