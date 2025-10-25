@@ -48,7 +48,7 @@ public class SplashActivity extends AppCompatActivity {
         new Handler(Looper.getMainLooper()).postDelayed(this::checkAll, 200);
     }
 
-    // 统一的检查入口
+    // 统一的检查入口，我们的“三道关卡”
     private void checkAll() {
         // 第一关：检查最关键的文件访问权限！
         if (hasPermission()) {
@@ -64,79 +64,68 @@ public class SplashActivity extends AppCompatActivity {
     private void checkTimeAndPassword() {
         // 终极关卡：家长模式检查
         if (App.isParentMode) {
-            goToHome();
+            goToHome(); // 如果是主人，直接放行！
             return;
         }
         // 时间锁检查
         if (isTimeLocked()) {
-            setupLockScreen();
+            setupLockScreen(); // 如果时间不符，锁定！
             return;
         }
         // 密码锁检查
         String storedPassword = SecurePrefs.getString("app_password", "");
         if (TextUtils.isEmpty(storedPassword)) {
-            goToHome();
+            goToHome(); // 没设置密码，也放行
         } else {
-            setupPasswordCheck(storedPassword);
+            setupPasswordCheck(storedPassword); // 有密码，开始盘问
         }
     }
 
-    // --- 核心修改：权限检查与请求逻辑 ---
+    // --- 权限检查与请求逻辑 ---
 
     private boolean hasPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // Android 11 (API 30) 及以上版本，检查“所有文件访问权限”
-            return Environment.isExternalStorageManager();
+            return Environment.isExternalStorageManager(); // Android 11+
         } else {
-            // Android 10 (API 29) 及以下版本，检查旧版的“读写权限”
-            return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+            return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED; // Android 10-
         }
     }
 
     private void requestPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             try {
-                // 引导用户去“设置”页面，手动为我们的 App 授予“所有文件访问权限”
                 Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
                 intent.setData(android.net.Uri.fromParts("package", getPackageName(), null));
                 startActivityForResult(intent, PERMISSION_REQUEST_CODE);
             } catch (Exception e) {
                 e.printStackTrace();
-                // 如果上面的意图失败（某些定制系统可能没有），就用一个更通用的
                 Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
                 startActivityForResult(intent, PERMISSION_REQUEST_CODE);
             }
         } else {
-            // 对于旧版安卓，直接弹出系统权限请求对话框
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
         }
     }
 
-    // --- 核心修改：处理权限请求返回的结果 ---
+    // --- 处理权限请求返回的结果 ---
 
-    // 处理直接在 App 内弹出的权限对话框的结果
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_REQUEST_CODE) {
-            // 无论用户是同意还是拒绝，我们都回到统一入口再检查一遍
-            // 如果同意了，hasPermission() 就会通过，进入下一步
-            // 如果拒绝了，hasPermission() 还是不通过，会再次发起请求（或停留在当前页）
             new Handler(Looper.getMainLooper()).postDelayed(this::checkAll, 200);
         }
     }
 
-    // 处理从系统“设置”页面返回的结果
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PERMISSION_REQUEST_CODE) {
-            // 同样，无论用户在设置里做了什么，我们都回来再检查一遍权限
             new Handler(Looper.getMainLooper()).postDelayed(this::checkAll, 200);
         }
     }
-
-    // (下面的 isTimeLocked, setupLockScreen, setupPasswordCheck, goToHome 方法和之前一样，保持不变)
+    
+    // (下面的 isTimeLocked, setupLockScreen, setupPasswordCheck, goToHome 方法和我们之前设计的一样，现在它们是最终形态)
     
     private boolean isTimeLocked() {
         List<SecurePrefs.TimeSlot> slots = SecurePrefs.getTimeSlots();
