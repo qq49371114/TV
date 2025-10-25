@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import fi.iki.elonen.NanoHTTPD;
 
 public class RemoteControlServer extends NanoHTTPD {
@@ -16,7 +17,23 @@ public class RemoteControlServer extends NanoHTTPD {
     public RemoteControlServer(int port) throws IOException {
         super(port);
         start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
-        System.out.println("\n>>>婉儿守护控制台已启动，请访问 http://<电视IP>:" + port + "\n");
+        System.out.println("\n>>> 婉儿守护控制台已启动，请访问 http://<电视IP>:" + port + "\n");
+    }
+
+    // 我们把 TimeSlot 的定义放在这里，让它属于遥控器，并学会“比对”
+    public static class TimeSlot {
+        public String start;
+        public String end;
+        public TimeSlot(String start, String end) { this.start = start; this.end = end; }
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            TimeSlot timeSlot = (TimeSlot) o;
+            return Objects.equals(start, timeSlot.start) && Objects.equals(end, timeSlot.end);
+        }
+        @Override
+        public int hashCode() { return Objects.hash(start, end); }
     }
 
     @Override
@@ -52,23 +69,33 @@ public class RemoteControlServer extends NanoHTTPD {
                         break;
                 }
             } catch (Exception e) { e.printStackTrace(); }
+            
+            // 【光速响应】处理完后，立刻发一个“刷新”指令给浏览器！
+            Response response = newFixedLengthResponse(Response.Status.REDIRECT, "text/html", "");
+            response.addHeader("Location", "/");
+            return response;
         }
         
-        // 登录成功后，显示功能强大的主控制台
+        // 如果是普通的 GET 请求，才生成主控制台网页
         return newFixedLengthResponse(Response.Status.OK, "text/html", getAdminPanelHtml());
     }
     
-    // --- 核心业务逻辑 (现在都调用 SecurePrefs 来操作加密数据) ---
+    // --- 核心业务逻辑 (使用 SecurePrefs 并增加了去重检查) ---
     private void addTimeSlot(String start, String end) {
         if (start == null || end == null || start.isEmpty() || end.isEmpty()) return;
-        List<SecurePrefs.TimeSlot> slots = SecurePrefs.getTimeSlots();
-        slots.add(new SecurePrefs.TimeSlot(start, end));
-        SecurePrefs.put("allowed_time_slots", App.gson().toJson(slots));
-        showToast("时间段已添加");
+        List<TimeSlot> slots = SecurePrefs.getTimeSlots();
+        TimeSlot newSlot = new TimeSlot(start, end);
+        if (!slots.contains(newSlot)) { // <-- 关键的“去重”检查！
+            slots.add(newSlot);
+            SecurePrefs.put("allowed_time_slots", App.gson().toJson(slots));
+            showToast("时间段已添加");
+        } else {
+            showToast("该时间段已存在，无需重复添加");
+        }
     }
 
     private void deleteTimeSlot(int index) {
-        List<SecurePrefs.TimeSlot> slots = SecurePrefs.getTimeSlots();
+        List<TimeSlot> slots = SecurePrefs.getTimeSlots();
         if (index >= 0 && index < slots.size()) {
             slots.remove(index);
             SecurePrefs.put("allowed_time_slots", App.gson().toJson(slots));
@@ -88,7 +115,7 @@ public class RemoteControlServer extends NanoHTTPD {
         }
     }
 
-    // --- 动态生成 HTML 页面 ---
+    // --- 动态生成 HTML 页面 (和之前一样，但为了完整性，全部提供) ---
     private boolean isLoginRequest(IHTTPSession session) {
         try {
             if (Method.POST.equals(session.getMethod())) {
@@ -106,12 +133,12 @@ public class RemoteControlServer extends NanoHTTPD {
 
     private String getAdminPanelHtml() {
         StringBuilder timeSlotsHtml = new StringBuilder();
-        List<SecurePrefs.TimeSlot> slots = SecurePrefs.getTimeSlots();
+        List<TimeSlot> slots = SecurePrefs.getTimeSlots();
         if (slots.isEmpty()) {
             timeSlotsHtml.append("<p>当前未设置任何时间段 (全天可用)</p>");
         } else {
             for (int i = 0; i < slots.size(); i++) {
-                SecurePrefs.TimeSlot slot = slots.get(i);
+                TimeSlot slot = slots.get(i);
                 timeSlotsHtml.append("<li>").append(slot.start).append(" - ").append(slot.end).append(" <form method='POST' style='display:inline;'><input type='hidden' name='action' value='delete_time'><input type='hidden' name='index' value='").append(i).append("'><button type='submit' style='background:#c0392b;color:white;border:none;padding:2px 8px;font-size:10px;border-radius:3px;'>删除</button></form></li>");
             }
         }
@@ -124,7 +151,7 @@ public class RemoteControlServer extends NanoHTTPD {
                "<form method='POST'><input type='hidden' name='action' value='set_password'><input type='text' name='password' placeholder='输入新密码 (留空则清除)' /><br/><button type='submit' style='margin-top:15px;'>设置密码</button></form></div>" +
                "</body></html>";
     }
-    
+
     private void showToast(String text) {
         App.get().getMainExecutor().execute(() -> Toast.makeText(App.get(), text, Toast.LENGTH_LONG).show());
     }
