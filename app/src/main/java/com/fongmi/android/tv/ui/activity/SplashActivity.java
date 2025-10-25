@@ -44,50 +44,39 @@ public class SplashActivity extends AppCompatActivity {
         lockMessage = findViewById(R.id.lockMessage);
         passwordInput = findViewById(R.id.password);
 
-        // 加一个短暂的延迟，确保界面完全渲染出来，避免闪烁
         new Handler(Looper.getMainLooper()).postDelayed(this::checkAll, 200);
     }
 
-    // 统一的检查入口，我们的“三道关卡”
     private void checkAll() {
-        // 第一关：检查最关键的文件访问权限！
         if (hasPermission()) {
-            // 权限没问题，再进入我们自己的“婉儿守护”检查流程
             checkTimeAndPassword();
         } else {
-            // 权限有问题，就去请求权限！
             requestPermission();
         }
     }
 
-    // “婉儿守护”检查流程
     private void checkTimeAndPassword() {
-        // 终极关卡：家长模式检查
         if (App.isParentMode) {
-            goToHome(); // 如果是主人，直接放行！
+            goToHome();
             return;
         }
-        // 时间锁检查
         if (isTimeLocked()) {
-            setupLockScreen(); // 如果时间不符，锁定！
+            setupLockScreen();
             return;
         }
-        // 密码锁检查
         String storedPassword = SecurePrefs.getString("app_password", "");
         if (TextUtils.isEmpty(storedPassword)) {
-            goToHome(); // 没设置密码，也放行
+            goToHome();
         } else {
-            setupPasswordCheck(storedPassword); // 有密码，开始盘问
+            setupPasswordCheck(storedPassword);
         }
     }
 
-    // --- 权限检查与请求逻辑 ---
-
     private boolean hasPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            return Environment.isExternalStorageManager(); // Android 11+
+            return Environment.isExternalStorageManager();
         } else {
-            return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED; // Android 10-
+            return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
         }
     }
 
@@ -107,8 +96,6 @@ public class SplashActivity extends AppCompatActivity {
         }
     }
 
-    // --- 处理权限请求返回的结果 ---
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -125,15 +112,15 @@ public class SplashActivity extends AppCompatActivity {
         }
     }
     
-    // (下面的 isTimeLocked, setupLockScreen, setupPasswordCheck, goToHome 方法和我们之前设计的一样，现在它们是最终形态)
-    
+    // ▼▼▼ 核心修改在这里！▼▼▼
     private boolean isTimeLocked() {
-        List<SecurePrefs.TimeSlot> slots = SecurePrefs.getTimeSlots();
+        // 它现在知道要去获取 RemoteControlServer 里定义的 TimeSlot 了
+        List<RemoteControlServer.TimeSlot> slots = SecurePrefs.getTimeSlots();
         if (slots.isEmpty()) return false;
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
             Date current = sdf.parse(sdf.format(new Date()));
-            for (SecurePrefs.TimeSlot slot : slots) {
+            for (RemoteControlServer.TimeSlot slot : slots) { // <-- 同样，这里也用新的 TimeSlot
                 Date start = sdf.parse(slot.start);
                 Date end = sdf.parse(slot.end);
                 boolean isAllowed = start.after(end) ? (current.after(start) || current.before(end)) : (current.after(start) && current.before(end));
@@ -150,11 +137,13 @@ public class SplashActivity extends AppCompatActivity {
         passwordInput.setVisibility(View.GONE);
         lockMessage.setVisibility(View.VISIBLE);
         StringBuilder sb = new StringBuilder("休息时间到啦\n允许使用时间段:\n");
-        for (SecurePrefs.TimeSlot slot : SecurePrefs.getTimeSlots()) {
+        // 它现在也知道要去获取 RemoteControlServer 里定义的 TimeSlot 了
+        for (RemoteControlServer.TimeSlot slot : SecurePrefs.getTimeSlots()) { // <-- 这里也用新的 TimeSlot
             sb.append(slot.start).append(" - ").append(slot.end).append("\n");
         }
         lockMessage.setText(sb.toString().trim());
     }
+    // ▲▲▲ 修改完成！▲▲▲
 
     private void setupPasswordCheck(String correctPassword) {
         lockMessage.setVisibility(View.GONE);
