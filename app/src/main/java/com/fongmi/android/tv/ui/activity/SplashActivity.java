@@ -16,9 +16,9 @@
         @Override
         protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-            setContentView(R.layout.activity_splash);
+//            setContentView(R.layout.activity_splash);
     
-            String storedPassword = Prefers.getString("app_password", "");
+//            String storedPassword = Prefers.getString("app_password", "");
     
             if (TextUtils.isEmpty(storedPassword)) {
                 goToHome();
@@ -28,8 +28,8 @@
         }
     
         private void setupPasswordCheck(String correctPassword) {
-            EditText passwordInput = findViewById(R.id.password);
-            passwordInput.setOnEditorActionListener((v, actionId, event) -> {
+//            EditText passwordInput = findViewById(R.id.password);
+//            passwordInput.setOnEditorActionListener((v, actionId, event) -> {
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
                     if (v.getText().toString().equals(correctPassword)) {
                         goToHome();
