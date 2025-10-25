@@ -49,28 +49,84 @@ public class SplashActivity extends AppCompatActivity {
 
     private void checkAll() {
         if (hasPermission()) {
-            checkTimeAndPassword();
+            checkLockState();
         } else {
             requestPermission();
         }
     }
 
-    private void checkTimeAndPassword() {
+    // 【核心修改】全新的、统一的锁定状态检查逻辑！
+    private void checkLockState() {
         if (App.isParentMode) {
-            goToHome();
+            goToHome(); // 家长模式优先级最高，直接放行
             return;
         }
-        if (isTimeLocked()) {
-            setupLockScreen();
-            return;
-        }
+
+        boolean isTimeLocked = isTimeLocked();
         String storedPassword = SecurePrefs.getString("app_password", "");
-        if (TextUtils.isEmpty(storedPassword)) {
-            goToHome();
+
+        // 核心逻辑：只要“时间到了”或者“设置了密码”，就需要显示输入界面
+        if (isTimeLocked || !TextUtils.isEmpty(storedPassword)) {
+            setupInputScreen(isTimeLocked, storedPassword);
         } else {
-            setupPasswordCheck(storedPassword);
+            goToHome(); // 没时间锁，也没密码，直接放行
         }
     }
+
+    // 【核心修改】一个统一的、强大的输入界面设置方法！
+    private void setupInputScreen(boolean isTimeLocked, String correctPassword) {
+        // 永远显示密码框，等待主人的召唤！
+        passwordInput.setVisibility(View.VISIBLE);
+
+        if (isTimeLocked) {
+            // 如果是时间锁定，就显示时间提示
+            lockMessage.setVisibility(View.VISIBLE);
+            StringBuilder sb = new StringBuilder("休息时间到啦\n允许使用时间段:\n");
+            for (RemoteControlServer.TimeSlot slot : SecurePrefs.getTimeSlots()) {
+                sb.append(slot.start).append(" - ").append(slot.end).append("\n");
+            }
+            lockMessage.setText(sb.toString().trim());
+            passwordInput.setHint("请输入超级密码解锁"); // 给出友好的提示
+        } else {
+            // 如果只是密码锁定，就隐藏时间提示
+            lockMessage.setVisibility(View.GONE);
+            passwordInput.setHint("请输入密码");
+        }
+
+        // 统一的密码检查监听器，处理所有情况
+        passwordInput.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                String input = v.getText().toString();
+                
+                // 1. 超级密码“婉儿最棒”拥有最高豁免权！
+                if (input.equals("婉儿最棒")) {
+                    App.isParentMode = true;
+                    Toast.makeText(this, "欢迎您，主人！家长模式已开启。", Toast.LENGTH_SHORT).show();
+                    goToHome();
+                    return true;
+                }
+                
+                // 2. 如果当前是时间锁定状态，并且输入的不是超级密码，则直接拒绝
+                if (isTimeLocked) {
+                    Toast.makeText(this, "当前为休息时间，请输入超级密码解锁", Toast.LENGTH_LONG).show();
+                    v.setText("");
+                    return true;
+                }
+                
+                // 3. 如果不是时间锁定状态，就正常检查普通密码
+                if (input.equals(correctPassword)) {
+                    goToHome();
+                } else {
+                    Toast.makeText(this, "密码错误！", Toast.LENGTH_SHORT).show();
+                    v.setText("");
+                }
+                return true;
+            }
+            return false;
+        });
+    }
+
+    // --- 权限检查与请求逻辑 (保持不变) ---
 
     private boolean hasPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -96,6 +152,8 @@ public class SplashActivity extends AppCompatActivity {
         }
     }
 
+    // --- 处理权限请求返回的结果 (保持不变) ---
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -112,15 +170,15 @@ public class SplashActivity extends AppCompatActivity {
         }
     }
     
-    // ▼▼▼ 核心修改在这里！▼▼▼
+    // --- 核心逻辑的辅助方法 (保持不变) ---
+    
     private boolean isTimeLocked() {
-        // 它现在知道要去获取 RemoteControlServer 里定义的 TimeSlot 了
         List<RemoteControlServer.TimeSlot> slots = SecurePrefs.getTimeSlots();
         if (slots.isEmpty()) return false;
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
             Date current = sdf.parse(sdf.format(new Date()));
-            for (RemoteControlServer.TimeSlot slot : slots) { // <-- 同样，这里也用新的 TimeSlot
+            for (RemoteControlServer.TimeSlot slot : slots) {
                 Date start = sdf.parse(slot.start);
                 Date end = sdf.parse(slot.end);
                 boolean isAllowed = start.after(end) ? (current.after(start) || current.before(end)) : (current.after(start) && current.before(end));
@@ -131,40 +189,6 @@ public class SplashActivity extends AppCompatActivity {
             return false;
         }
         return true;
-    }
-
-    private void setupLockScreen() {
-        passwordInput.setVisibility(View.GONE);
-        lockMessage.setVisibility(View.VISIBLE);
-        StringBuilder sb = new StringBuilder("休息时间到啦\n允许使用时间段:\n");
-        // 它现在也知道要去获取 RemoteControlServer 里定义的 TimeSlot 了
-        for (RemoteControlServer.TimeSlot slot : SecurePrefs.getTimeSlots()) { // <-- 这里也用新的 TimeSlot
-            sb.append(slot.start).append(" - ").append(slot.end).append("\n");
-        }
-        lockMessage.setText(sb.toString().trim());
-    }
-    // ▲▲▲ 修改完成！▲▲▲
-
-    private void setupPasswordCheck(String correctPassword) {
-        lockMessage.setVisibility(View.GONE);
-        passwordInput.setVisibility(View.VISIBLE);
-        passwordInput.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                String input = v.getText().toString();
-                if (input.equals("婉儿最棒")) {
-                    App.isParentMode = true;
-                    Toast.makeText(this, "欢迎您，主人！家长模式已开启。", Toast.LENGTH_SHORT).show();
-                    goToHome();
-                } else if (input.equals(correctPassword)) {
-                    goToHome();
-                } else {
-                    Toast.makeText(this, "密码错误！", Toast.LENGTH_SHORT).show();
-                    v.setText("");
-                }
-                return true;
-            }
-            return false;
-        });
     }
 
     private void goToHome() {
