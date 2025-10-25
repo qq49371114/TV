@@ -49,9 +49,23 @@ public class RemoteControlServer extends NanoHTTPD {
                     else return newFixedLengthResponse(Response.Status.OK, "text/html", getLoginPageHtml("管理员密码错误!"));
                 }
                 switch (params.getOrDefault("action", "")) {
-                    case "add_time": addTimeSlot(params.get("startTime"), params.get("endTime")); break;
-                    case "delete_time": deleteTimeSlot(Integer.parseInt(params.get("index"))); break;
-                    case "set_password": setAppPassword(params.get("password")); break;
+                    case "enable_parent_mode":
+                        SecurePrefs.put("parent_mode_enabled", "true");
+                        showToast("家长模式已开启");
+                        break;
+                    case "disable_parent_mode":
+                        SecurePrefs.remove("parent_mode_enabled");
+                        showToast("家长模式已关闭");
+                        break;
+                    case "add_time":
+                        addTimeSlot(params.get("startTime"), params.get("endTime"));
+                        break;
+                    case "delete_time":
+                        deleteTimeSlot(Integer.parseInt(params.get("index")));
+                        break;
+                    case "set_password":
+                        setAppPassword(params.get("password"));
+                        break;
                 }
             } catch (Exception e) { e.printStackTrace(); }
             Response response = newFixedLengthResponse(Response.Status.REDIRECT, "text/html", "");
@@ -101,12 +115,11 @@ public class RemoteControlServer extends NanoHTTPD {
         return false;
     }
 
-    // ▼▼▼【核心修改】婉儿为您全新设计的“星际驾驶舱” CSS 样式！▼▼▼
     private final String CSS_STYLE = "<style>" +
             "html{height:100%;}" +
-            "body{background:radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%); color:white; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol'; text-align:center; padding:20px; height:100%; margin:0; overflow:hidden;}" +
+            "body{background:radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%); color:white; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol'; text-align:center; padding:20px; height:auto; margin:0;}" +
             ".card{background:rgba(255, 255, 255, 0.1); border-radius:15px; padding:25px; margin-bottom:20px; max-width:500px; display:inline-block; vertical-align:top; backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.2); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);}" +
-            "h1{font-size:2.5em; color:white; text-shadow:0 0 10px #00e676, 0 0 20px #00e676, 0 0 30px #00e676;}" +
+            "h1{font-size:2.5em; color:white; text-shadow:0 0 10px #00e676, 0 0 20px #00e676, 0 0 30px #00e676; margin-bottom:40px;}" +
             "h2{color:#00e676;}" +
             "ul{list-style:none; padding:0;} li{background:rgba(0,0,0,0.2); margin-bottom:10px; padding:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; transition: all 0.3s ease;}" +
             "li:hover{background:rgba(0,0,0,0.4); transform: scale(1.02);}"+
@@ -121,7 +134,7 @@ public class RemoteControlServer extends NanoHTTPD {
     private String getLoginPageHtml(String error) {
         String errorMsg = error.isEmpty() ? "" : "<p style='color:red;'>" + error + "</p>";
         return "<!DOCTYPE html><html><head><title>远程管理登录</title><meta name='viewport' content='width=device-width, initial-scale=1'>" + CSS_STYLE + "</head><body>" +
-               "<div class='card'><h2>请输入管理员密码</h2>" + errorMsg + "<form method='POST'><input type='password' name='admin_password' autofocus/><br/><button type='submit'>登 录</button></form></div>" +
+               "<div class='card' style='margin-top:10vh;'><h2>请输入管理员密码</h2>" + errorMsg + "<form method='POST'><input type='password' name='admin_password' autofocus/><br/><button type='submit'>登 录</button></form></div>" +
                "</body></html>";
     }
 
@@ -138,8 +151,19 @@ public class RemoteControlServer extends NanoHTTPD {
         }
         String password = SecurePrefs.getString("app_password", "");
         String passStatus = password.isEmpty() ? "当前未设置 App 启动密码" : "当前 App 密码为: " + password;
+        
+        boolean isParentMode = "true".equals(SecurePrefs.getString("parent_mode_enabled", "false"));
+        String parentModeStatus = isParentMode ? "<p style='color:#00e676;'>当前状态：已开启 (无视所有限制)</p>" : "<p style='color:#aaa;'>当前状态：已关闭</p>";
+        String parentModeButton;
+        if (isParentMode) {
+            parentModeButton = "<form method='POST'><input type='hidden' name='action' value='disable_parent_mode'><button type='submit' style='background:linear-gradient(45deg, #e67e22, #f39c12);'>关闭家长模式</button></form>";
+        } else {
+            parentModeButton = "<form method='POST'><input type='hidden' name='action' value='enable_parent_mode'><button type='submit'>开启家长模式</button></form>";
+        }
+
         return "<!DOCTYPE html><html><head><title>婉儿守护控制台</title><meta name='viewport' content='width=device-width, initial-scale=1'>" + CSS_STYLE + "</head><body><h1>婉儿守护控制台</h1>" +
-               "<div class='card'><h2>定时锁管理</h2><ul>" + timeSlotsHtml.toString() + "</ul><hr style='border-color:#333;'>" +
+               "<div class='card'><h2>家长模式 (最高权限)</h2>" + parentModeStatus + parentModeButton + "</div><br/>" +
+               "<div class='card'><h2>定时锁管理</h2><ul>" + timeSlotsHtml.toString() + "</ul><hr style='border-color:#444;'>" +
                "<form method='POST' style='padding-top:15px;'><input type='hidden' name='action' value='add_time'><label>开始:</label><input type='time' name='startTime' value='08:00'><label>结束:</label><input type='time' name='endTime' value='22:00'><br/><button type='submit' style='margin-top:15px;'>添加时间段</button></form></div>" +
                "<div class='card'><h2>密码锁管理</h2><p style='color:#aaa;'>" + passStatus + "</p>" +
                "<form method='POST'><input type='hidden' name='action' value='set_password'><input type='text' name='password' placeholder='输入新密码 (留空则清除)' /><br/><button type='submit' style='margin-top:15px;'>设置密码</button></form></div>" +
