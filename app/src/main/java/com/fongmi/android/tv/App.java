@@ -36,6 +36,10 @@ import java.util.concurrent.Executors;
 
 import cat.ereza.customactivityoncrash.config.CaocConfig;
 
+import android.content.Intent;
+import com.fongmi.android.tv.ui.activity.SplashActivity;
+
+
 public class App extends Application {
 
     private final ExecutorService executor;
