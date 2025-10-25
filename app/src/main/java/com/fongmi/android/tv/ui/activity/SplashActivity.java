@@ -1,129 +1,197 @@
-    package com.fongmi.android.tv.ui.activity;
+package com.fongmi.android.tv.ui.activity;
 
-    // ▼▼▼ 婉儿在这里为您替换并补全了所有的“名词解释”！▼▼▼
-    import android.content.Intent;
-    import android.os.Bundle;
-    import android.os.Handler;
-    import android.os.Looper;
-    import android.text.TextUtils;
-    import android.view.View;
-    import android.view.inputmethod.EditorInfo;
-    import android.widget.EditText;
-    import android.widget.TextView;
-    import android.widget.Toast;
-    import androidx.appcompat.app.AppCompatActivity;
-    import com.fongmi.android.tv.App;
-    import com.fongmi.android.tv.R;
-    // import com.github.catvod.utils.Prefers; // <-- 不再需要普通的 Prefers
-    import java.text.SimpleDateFormat;
-    import java.util.Date;
-    import java.util.List;
-    import java.util.Locale;
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
+import android.provider.Settings;
+import android.text.TextUtils;
+import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 
-    public class SplashActivity extends AppCompatActivity {
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
-        private TextView lockMessage;
-        private EditText passwordInput;
+import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.R;
 
-        @Override
-        protected void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            setContentView(R.layout.activity_splash);
-            
-            lockMessage = findViewById(R.id.lockMessage);
-            passwordInput = findViewById(R.id.password);
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
-            // 终极关卡：检查“家长模式”是否已通过超级密码开启
-            if (App.isParentMode) {
-                goToHome(); // 如果是主人，直接放行！
-                return;
-            }
+public class SplashActivity extends AppCompatActivity {
 
-            // 第一道关卡：检查时间！
-            if (isTimeLocked()) {
-                setupLockScreen(); // 如果时间不符，直接锁定！
-                return; // 后面的逻辑不走了
-            }
+    private static final int PERMISSION_REQUEST_CODE = 999;
+    private TextView lockMessage;
+    private EditText passwordInput;
 
-            // 第二道关卡：检查密码！(从新的“加密保险箱”里读取)
-            String storedPassword = SecurePrefs.getString("app_password", ""); // <--- 已修改！
-            if (TextUtils.isEmpty(storedPassword)) {
-                goToHome(); // 没设置密码，也直接放行
-            } else {
-                setupPasswordCheck(storedPassword); // 有密码，开始盘问
-            }
-        }
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_splash);
 
-        // 全新的多时段检查逻辑
-        private boolean isTimeLocked() {
-            List<SecurePrefs.TimeSlot> slots = SecurePrefs.getTimeSlots(); // <--- 已修改！
-            if (slots.isEmpty()) return false; // 如果没有设置任何时间段，默认全天可用
+        lockMessage = findViewById(R.id.lockMessage);
+        passwordInput = findViewById(R.id.password);
 
-            try {
-                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
-                Date current = sdf.parse(sdf.format(new Date()));
+        // 加一个短暂的延迟，确保界面完全渲染出来，避免闪烁
+        new Handler(Looper.getMainLooper()).postDelayed(this::checkAll, 200);
+    }
 
-                            // ▼▼▼ 婉儿已将这里修改为使用新的 SecurePrefs.TimeSlot ▼▼▼
-                // 遍历所有允许的时间段
-                for (SecurePrefs.TimeSlot slot : slots) { // <--- 已修改！
-                    Date start = sdf.parse(slot.start);
-                    Date end = sdf.parse(slot.end);
-                    boolean isAllowed;
-                    if (start.after(end)) { // 跨天情况 (e.g., 22:00 - 06:00)
-                        isAllowed = current.after(start) || current.before(end);
-                    } else { // 当天情况 (e.g., 09:00 - 18:00)
-                        isAllowed = current.after(start) && current.before(end);
-                    }
-                    if (isAllowed) return false; // 只要当前时间在任何一个允许的段内，就解锁
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false; // 解析出错，安全起见，不锁定
-            }
-            
-            return true; // 遍历完所有时间段都不符合，说明当前时间被锁定
-        }
-        
-        // 检查密码的逻辑，增加了“家长模式”超级密码
-        private void setupPasswordCheck(String correctPassword) {
-            passwordInput.setVisibility(View.VISIBLE);
-            passwordInput.setOnEditorActionListener((v, actionId, event) -> {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    String input = v.getText().toString();
-                    // 检查是不是“家长模式”超级密码
-                    if (input.equals("婉儿最棒")) {
-                        App.isParentMode = true; // 开启家长模式！
-                        Toast.makeText(this, "欢迎您，主人！家长模式已开启。", Toast.LENGTH_SHORT).show();
-                        goToHome();
-                    } else if (input.equals(correctPassword)) {
-                        goToHome(); // 普通密码正确，也放行
-                    } else {
-                        Toast.makeText(this, "密码错误！", Toast.LENGTH_SHORT).show();
-                        v.setText("");
-                    }
-                    return true;
-                }
-                return false;
-            });
-        }
-        
-        // 显示时间锁定界面
-        private void setupLockScreen() {
-            lockMessage.setVisibility(View.VISIBLE);
-            StringBuilder sb = new StringBuilder("休息时间到啦\n允许使用时间段:\n");
-            // ▼▼▼ 婉儿已将这里修改为从新的 SecurePrefs 中获取时间段 ▼▼▼
-            for (SecurePrefs.TimeSlot slot : SecurePrefs.getTimeSlots()) { // <--- 已修改！
-                sb.append(slot.start).append(" - ").append(slot.end).append("\n");
-            }
-            lockMessage.setText(sb.toString().trim());
-        }
-
-        // 放行去主界面的逻辑
-        private void goToHome() {
-            Intent intent = new Intent(this, HomeActivity.class);
-            startActivity(intent);
-
-            // 延迟一点再 finish，避免黑屏
-            new Handler(Looper.getMainLooper()).postDelayed(this::finish, 50);
+    // 统一的检查入口
+    private void checkAll() {
+        // 第一关：检查最关键的文件访问权限！
+        if (hasPermission()) {
+            // 权限没问题，再进入我们自己的“婉儿守护”检查流程
+            checkTimeAndPassword();
+        } else {
+            // 权限有问题，就去请求权限！
+            requestPermission();
         }
     }
+
+    // “婉儿守护”检查流程
+    private void checkTimeAndPassword() {
+        // 终极关卡：家长模式检查
+        if (App.isParentMode) {
+            goToHome();
+            return;
+        }
+        // 时间锁检查
+        if (isTimeLocked()) {
+            setupLockScreen();
+            return;
+        }
+        // 密码锁检查
+        String storedPassword = SecurePrefs.getString("app_password", "");
+        if (TextUtils.isEmpty(storedPassword)) {
+            goToHome();
+        } else {
+            setupPasswordCheck(storedPassword);
+        }
+    }
+
+    // --- 核心修改：权限检查与请求逻辑 ---
+
+    private boolean hasPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Android 11 (API 30) 及以上版本，检查“所有文件访问权限”
+            return Environment.isExternalStorageManager();
+        } else {
+            // Android 10 (API 29) 及以下版本，检查旧版的“读写权限”
+            return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        }
+    }
+
+    private void requestPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            try {
+                // 引导用户去“设置”页面，手动为我们的 App 授予“所有文件访问权限”
+                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                intent.setData(android.net.Uri.fromParts("package", getPackageName(), null));
+                startActivityForResult(intent, PERMISSION_REQUEST_CODE);
+            } catch (Exception e) {
+                e.printStackTrace();
+                // 如果上面的意图失败（某些定制系统可能没有），就用一个更通用的
+                Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                startActivityForResult(intent, PERMISSION_REQUEST_CODE);
+            }
+        } else {
+            // 对于旧版安卓，直接弹出系统权限请求对话框
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
+        }
+    }
+
+    // --- 核心修改：处理权限请求返回的结果 ---
+
+    // 处理直接在 App 内弹出的权限对话框的结果
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            // 无论用户是同意还是拒绝，我们都回到统一入口再检查一遍
+            // 如果同意了，hasPermission() 就会通过，进入下一步
+            // 如果拒绝了，hasPermission() 还是不通过，会再次发起请求（或停留在当前页）
+            new Handler(Looper.getMainLooper()).postDelayed(this::checkAll, 200);
+        }
+    }
+
+    // 处理从系统“设置”页面返回的结果
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            // 同样，无论用户在设置里做了什么，我们都回来再检查一遍权限
+            new Handler(Looper.getMainLooper()).postDelayed(this::checkAll, 200);
+        }
+    }
+
+    // (下面的 isTimeLocked, setupLockScreen, setupPasswordCheck, goToHome 方法和之前一样，保持不变)
+    
+    private boolean isTimeLocked() {
+        List<SecurePrefs.TimeSlot> slots = SecurePrefs.getTimeSlots();
+        if (slots.isEmpty()) return false;
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
+            Date current = sdf.parse(sdf.format(new Date()));
+            for (SecurePrefs.TimeSlot slot : slots) {
+                Date start = sdf.parse(slot.start);
+                Date end = sdf.parse(slot.end);
+                boolean isAllowed = start.after(end) ? (current.after(start) || current.before(end)) : (current.after(start) && current.before(end));
+                if (isAllowed) return false;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    private void setupLockScreen() {
+        passwordInput.setVisibility(View.GONE);
+        lockMessage.setVisibility(View.VISIBLE);
+        StringBuilder sb = new StringBuilder("休息时间到啦\n允许使用时间段:\n");
+        for (SecurePrefs.TimeSlot slot : SecurePrefs.getTimeSlots()) {
+            sb.append(slot.start).append(" - ").append(slot.end).append("\n");
+        }
+        lockMessage.setText(sb.toString().trim());
+    }
+
+    private void setupPasswordCheck(String correctPassword) {
+        lockMessage.setVisibility(View.GONE);
+        passwordInput.setVisibility(View.VISIBLE);
+        passwordInput.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                String input = v.getText().toString();
+                if (input.equals("婉儿最棒")) {
+                    App.isParentMode = true;
+                    Toast.makeText(this, "欢迎您，主人！家长模式已开启。", Toast.LENGTH_SHORT).show();
+                    goToHome();
+                } else if (input.equals(correctPassword)) {
+                    goToHome();
+                } else {
+                    Toast.makeText(this, "密码错误！", Toast.LENGTH_SHORT).show();
+                    v.setText("");
+                }
+                return true;
+            }
+            return false;
+        });
+    }
+
+    private void goToHome() {
+        Intent intent = new Intent(this, HomeActivity.class);
+        startActivity(intent);
+        new Handler(Looper.getMainLooper()).postDelayed(this::finish, 50);
+    }
+}
