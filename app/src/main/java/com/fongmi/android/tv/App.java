@@ -3,6 +3,7 @@ package com.fongmi.android.tv;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,10 +13,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.os.HandlerCompat;
 
-import com.fongmi.android.tv.ui.activity.RemoteControlServer;
-
 import com.fongmi.android.tv.event.EventIndex;
 import com.fongmi.android.tv.ui.activity.CrashActivity;
+import com.fongmi.android.tv.ui.activity.RemoteControlServer;
+import com.fongmi.android.tv.ui.activity.SplashActivity;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.hook.Hook;
 import com.github.catvod.Init;
@@ -30,28 +31,22 @@ import com.orhanobut.logger.PrettyFormatStrategy;
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import cat.ereza.customactivityoncrash.config.CaocConfig;
-
-import android.content.Intent;
-import com.fongmi.android.tv.ui.activity.SplashActivity;
-
 
 public class App extends Application {
 
     private final ExecutorService executor;
     private final Handler handler;
     private static App instance;
-    public static boolean isParentMode = false; // <--- ▼▼▼ 婉儿帮您在这里添加了“家长模式”开关！▼▼▼
+    public static boolean isParentMode = false; // 家长模式开关
     private Activity activity;
     private final Gson gson;
     private final long time;
     private Hook hook;
     private RemoteControlServer server;
-
 
     public App() {
         instance = this;
@@ -134,32 +129,26 @@ public class App extends Application {
             public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
                 if (activity != activity()) setActivity(activity);
             }
-
             @Override
             public void onActivityStarted(@NonNull Activity activity) {
                 if (activity != activity()) setActivity(activity);
             }
-
             @Override
             public void onActivityResumed(@NonNull Activity activity) {
                 if (activity != activity()) setActivity(activity);
             }
-
             @Override
             public void onActivityPaused(@NonNull Activity activity) {
                 if (activity == activity()) setActivity(null);
             }
-
             @Override
             public void onActivityStopped(@NonNull Activity activity) {
                 if (activity == activity()) setActivity(null);
             }
-
             @Override
             public void onActivityDestroyed(@NonNull Activity activity) {
                 if (activity == activity()) setActivity(null);
             }
-
             @Override
             public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
             }
@@ -172,18 +161,13 @@ public class App extends Application {
         }
     }
 
-    // ▼▼▼ 婉儿帮您在这里添加了 restart() 方法 ▼▼▼
     public void restart() {
-        // 重启后，自动退出家长模式，需要重新用超级密码登录
         App.isParentMode = false;
-        // 创建一个意图，指向 App 的主入口（我们改造后的 SplashActivity）
         Intent intent = new Intent(this, SplashActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
-        // 杀掉当前 App 的进程，实现一个彻底的、干净的重启
         android.os.Process.killProcess(android.os.Process.myPid());
     }
-    // ▲▲▲ 就是这里哦！▲▲▲
 
     @Override
     public PackageManager getPackageManager() {
