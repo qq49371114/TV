@@ -1,21 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:background="#212121">
+
+        <TextView
+            android:id="@+id/lockMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="现在是休息时间哦"
+            android:textColor="@android:color/white"
+            android:textSize="24sp"
+            android:visibility="gone" />
+
+        <EditText
+            android:id="@+id/password"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:hint="请输入密码"
+            android:inputType="textPassword"
+            android:maxLines="1"
+            android:textColor="@android:color/white"
+            android:textColorHint="#80FFFFFF"
+            android:backgroundTint="@android:color/white"
             android:gravity="center"
-            android:background="#212121">
+            android:imeOptions="actionDone"
+            android:visibility="gone" />
 
-            <EditText
-                android:id="@+id/password"
-                android:layout_width="200dp"
-                android:layout_height="wrap_content"
-                android:hint="请输入密码"
-                android:inputType="textPassword"
-                android:maxLines="1"
-                android:textColor="@android:color/white"
-                android:textColorHint="#80FFFFFF"
-                android:backgroundTint="@android:color/white"
-                android:gravity="center"
-                android:imeOptions="actionDone" />
-
-        </RelativeLayout>
+    </RelativeLayout>
