@@ -41,7 +41,6 @@ public class App extends Application {
     private final ExecutorService executor;
     private final Handler handler;
     private static App instance;
-    public static boolean isParentMode = false; // 家长模式开关
     private Activity activity;
     private final Gson gson;
     private final long time;
@@ -162,7 +161,6 @@ public class App extends Application {
     }
 
     public void restart() {
-        App.isParentMode = false;
         Intent intent = new Intent(this, SplashActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
