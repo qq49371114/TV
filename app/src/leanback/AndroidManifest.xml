@@ -26,14 +26,25 @@
             android:name="design_height_in_dp"
             android:value="540" />
 
-        <!-- ▼▼▼ 婉儿在这里把 HomeActivity 的启动器删掉了 ▼▼▼ -->
+        <!-- ▼▼▼ 我们的新“门卫”在这里上岗，成为了唯一的启动器！ ▼▼▼ -->
+        <activity
+            android:name=".ui.activity.SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.App">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- ▼▼▼ 原来的“客厅”被撤销了启动器身份 ▼▼▼ -->
         <activity
             android:name=".ui.activity.HomeActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:exported="true"
             android:screenOrientation="sensorLandscape"
             android:theme="@style/Theme.Splash">
-            <!-- 您看，原来这里的 LAUNCHER intent-filter 已经没有啦！ -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -72,19 +83,6 @@
                 <data android:scheme="jianpian" />
             </intent-filter>
         </activity>
-
-        <!-- ▼▼▼ 婉儿在这里任命了新的“门卫”为启动器 ▼▼▼ -->
-        <activity
-            android:name=".ui.activity.SplashActivity"
-            android:exported="true"
-            android:theme="@style/Theme.Splash">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <!-- ▲▲▲ 这是我们新加的哦 ▲▲▲ -->
 
         <activity
             android:name=".ui.activity.CastActivity"
