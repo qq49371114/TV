@@ -17,7 +17,6 @@
 
         @Override
         public Response serve(IHTTPSession session) {
-            // 如果是 POST 请求（用户提交了新密码），就处理密码修改
             if (Method.POST.equals(session.getMethod())) {
                 try {
                     session.parseBody(session.getHeaders());
@@ -28,7 +27,8 @@
                             Prefers.remove("app_password");
                             showToast("启动密码已清除");
                         } else {
-                            Prefers.putString("app_password", newPassword);
+                            // ▼▼▼ 婉儿已经帮您把 putString 改成 put 啦！▼▼▼
+                            Prefers.put("app_password", newPassword);
                             showToast("启动密码已更新为：" + newPassword);
                         }
                     }
@@ -37,7 +37,6 @@
                     return newFixedLengthResponse("Error processing request.");
                 }
             }
-            // 不管是什么请求，都返回一个漂亮的密码设置网页
             String html = getPasswordPageHtml();
             return newFixedLengthResponse(Response.Status.OK, "text/html", html);
         }
