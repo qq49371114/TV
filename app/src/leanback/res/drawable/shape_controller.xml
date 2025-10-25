@@ -2,8 +2,13 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
 
-    <solid android:color="@color/white_90" />
+    <!-- 用下面的 <gradient> 替换掉原来的 <solid> -->
+    <gradient
+        android:angle="270"
+        android:endColor="#C0000000"
+        android:startColor="#00000000" />
 
+    <!-- 保留圆角效果 -->
     <corners
         android:topLeftRadius="8dp"
         android:topRightRadius="8dp" />
