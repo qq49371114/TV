@@ -109,6 +109,7 @@ dependencies {
     implementation 'androidx.media3:media3-ui:' + media3Version
     implementation 'androidx.palette:palette:1.0.0'
     implementation 'androidx.room:room-runtime:2.8.2'
+    implementation 'androidx.security:security-crypto:1.1.0-alpha06'
     implementation 'cat.ereza:customactivityoncrash:2.4.0'
     implementation 'com.airbnb.android:lottie:6.6.10'
     implementation 'com.github.bassaer:materialdesigncolors:1.0.0'
