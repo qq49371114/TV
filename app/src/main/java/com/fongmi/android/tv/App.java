@@ -12,9 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.os.HandlerCompat;
 
-// ▼▼▼ 婉儿帮您在这里添加了 import ▼▼▼
 import com.fongmi.android.tv.ui.activity.RemoteControlServer;
-// ▲▲▲ 这一行是新加的哦 ▲▲▲
 
 import com.fongmi.android.tv.event.EventIndex;
 import com.fongmi.android.tv.ui.activity.CrashActivity;
@@ -31,9 +29,7 @@ import com.orhanobut.logger.PrettyFormatStrategy;
 
 import org.greenrobot.eventbus.EventBus;
 
-// ▼▼▼ 婉儿帮您在这里添加了 import ▼▼▼
 import java.io.IOException;
-// ▲▲▲ 这一行是新加的哦 ▲▲▲
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,14 +41,12 @@ public class App extends Application {
     private final ExecutorService executor;
     private final Handler handler;
     private static App instance;
+    public static boolean isParentMode = false; // <--- ▼▼▼ 婉儿帮您在这里添加了“家长模式”开关！▼▼▼
     private Activity activity;
     private final Gson gson;
     private final long time;
     private Hook hook;
-
-    // ▼▼▼ 婉儿帮您在这里添加了 server 变量 ▼▼▼
     private RemoteControlServer server;
-    // ▲▲▲ 这一行是新加的哦 ▲▲▲
 
 
     public App() {
@@ -167,15 +161,25 @@ public class App extends Application {
             }
         });
         
-        // ▼▼▼ 婉儿已经帮您把启动服务器的代码加在这里啦！▼▼▼
         try {
-            // 在 8080 端口启动我们的网页密码管理服务
             server = new RemoteControlServer(8080);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        // ▲▲▲ 就是这里哦！▲▲▲
     }
+
+    // ▼▼▼ 婉儿帮您在这里添加了 restart() 方法 ▼▼▼
+    public void restart() {
+        // 重启后，自动退出家长模式，需要重新用超级密码登录
+        App.isParentMode = false;
+        // 创建一个意图，指向 App 的主入口（我们改造后的 SplashActivity）
+        Intent intent = new Intent(this, SplashActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        // 杀掉当前 App 的进程，实现一个彻底的、干净的重启
+        android.os.Process.killProcess(android.os.Process.myPid());
+    }
+    // ▲▲▲ 就是这里哦！▲▲▲
 
     @Override
     public PackageManager getPackageManager() {
