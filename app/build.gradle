@@ -5,11 +5,11 @@ plugins {
 android {
     namespace 'com.fongmi.android.tv'
 
-    compileSdk = 36
+    compileSdk = 34
     defaultConfig {
         applicationId "com.fongmi.android.tv"
         minSdk 24
-        targetSdk 28
+        targetSdk 34
         versionCode 45901
         versionName "4.5.9.01"
         javaCompileOptions {
