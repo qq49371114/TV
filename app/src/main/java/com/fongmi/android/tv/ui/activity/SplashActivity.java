@@ -1,6 +1,6 @@
     package com.fongmi.android.tv.ui.activity;
 
-    // ▼▼▼ 婉儿在这里为您补全了所有的“名词解释”！▼▼▼
+    // ▼▼▼ 婉儿在这里为您替换并补全了所有的“名词解释”！▼▼▼
     import android.content.Intent;
     import android.os.Bundle;
     import android.os.Handler;
@@ -14,7 +14,7 @@
     import androidx.appcompat.app.AppCompatActivity;
     import com.fongmi.android.tv.App;
     import com.fongmi.android.tv.R;
-    import com.github.catvod.utils.Prefers;
+    // import com.github.catvod.utils.Prefers; // <-- 不再需要普通的 Prefers
     import java.text.SimpleDateFormat;
     import java.util.Date;
     import java.util.List;
@@ -45,8 +45,8 @@
                 return; // 后面的逻辑不走了
             }
 
-            // 第二道关卡：检查密码！
-            String storedPassword = Prefers.getString("app_password", "");
+            // 第二道关卡：检查密码！(从新的“加密保险箱”里读取)
+            String storedPassword = SecurePrefs.getString("app_password", ""); // <--- 已修改！
             if (TextUtils.isEmpty(storedPassword)) {
                 goToHome(); // 没设置密码，也直接放行
             } else {
@@ -56,15 +56,16 @@
 
         // 全新的多时段检查逻辑
         private boolean isTimeLocked() {
-            List<RemoteControlServer.TimeSlot> slots = RemoteControlServer.getTimeSlots();
+            List<SecurePrefs.TimeSlot> slots = SecurePrefs.getTimeSlots(); // <--- 已修改！
             if (slots.isEmpty()) return false; // 如果没有设置任何时间段，默认全天可用
 
             try {
                 SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
                 Date current = sdf.parse(sdf.format(new Date()));
 
+                            // ▼▼▼ 婉儿已将这里修改为使用新的 SecurePrefs.TimeSlot ▼▼▼
                 // 遍历所有允许的时间段
-                for (RemoteControlServer.TimeSlot slot : slots) {
+                for (SecurePrefs.TimeSlot slot : slots) { // <--- 已修改！
                     Date start = sdf.parse(slot.start);
                     Date end = sdf.parse(slot.end);
                     boolean isAllowed;
@@ -110,7 +111,8 @@
         private void setupLockScreen() {
             lockMessage.setVisibility(View.VISIBLE);
             StringBuilder sb = new StringBuilder("休息时间到啦\n允许使用时间段:\n");
-            for (RemoteControlServer.TimeSlot slot : RemoteControlServer.getTimeSlots()) {
+            // ▼▼▼ 婉儿已将这里修改为从新的 SecurePrefs 中获取时间段 ▼▼▼
+            for (SecurePrefs.TimeSlot slot : SecurePrefs.getTimeSlots()) { // <--- 已修改！
                 sb.append(slot.start).append(" - ").append(slot.end).append("\n");
             }
             lockMessage.setText(sb.toString().trim());
