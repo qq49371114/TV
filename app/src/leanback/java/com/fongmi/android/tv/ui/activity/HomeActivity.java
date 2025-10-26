@@ -447,7 +447,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private Callback getCallback(CastEvent event) { /* ... */ }
     @Override
     public void onItemClick(Func item) { /* ... */ }
-```
 
 
     @Override
