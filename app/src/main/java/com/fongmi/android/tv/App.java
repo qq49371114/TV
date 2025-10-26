@@ -2,97 +2,66 @@ package com.fongmi.android.tv;
 
 import android.app.Activity;
 import android.app.Application;
+import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.os.HandlerCompat;
 
-import com.fongmi.android.tv.event.EventIndex;
+import com.fongmi.android.tv.api.config.Doh;
+import com.fongmi.android.tv.api.config.VodConfig;
+import com.fongmi.android.tv.bean.Site;
+import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.ui.activity.CrashActivity;
 import com.fongmi.android.tv.ui.activity.HomeActivity;
-import com.fongmi.android.tv.ui.activity.RemoteControlServer;
 import com.fongmi.android.tv.utils.Notify;
-import com.fongmi.hook.Hook;
-import com.github.catvod.Init;
-import com.github.catvod.bean.Doh;
+import com.fongmi.android.tv.utils.Setting;
 import com.github.catvod.net.OkHttp;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.orhanobut.logger.AndroidLogAdapter;
 import com.orhanobut.logger.LogAdapter;
 import com.orhanobut.logger.Logger;
 import com.orhanobut.logger.PrettyFormatStrategy;
+import com.squareup.picasso.OkHttp3Downloader;
+import com.squareup.picasso.Picasso;
 
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import cat.ereza.customactivityoncrash.config.CaocConfig;
+import me.weishu.reflection.Reflection;
 
 public class App extends Application {
 
-    private final ExecutorService executor;
-    private final Handler handler;
     private static App instance;
+    private Instrumentation.ActivityResult hook;
     private Activity activity;
-    private final Gson gson;
-    private final long time;
-    private Hook hook;
-    private RemoteControlServer server;
+    private static Gson gson;
 
     public App() {
         instance = this;
-        executor = Executors.newFixedThreadPool(Constant.THREAD_POOL);
-        handler = HandlerCompat.createAsync(Looper.getMainLooper());
-        time = System.currentTimeMillis();
-        gson = new Gson();
     }
 
     public static App get() {
         return instance;
     }
 
-    public static Gson gson() {
-        return get().gson;
-    }
-
-    public static long time() {
-        return get().time;
-    }
-
     public static Activity activity() {
         return get().activity;
     }
 
-    public static void execute(Runnable runnable) {
-        get().executor.execute(runnable);
+    public static Gson gson() {
+        if (gson == null) gson = new GsonBuilder().setPrettyPrinting().create();
+        return gson;
     }
 
-    public static void post(Runnable runnable) {
-        get().handler.post(runnable);
-    }
-
-    public static void post(Runnable runnable, long delayMillis) {
-        get().handler.removeCallbacks(runnable);
-        if (delayMillis >= 0) get().handler.postDelayed(runnable, delayMillis);
-    }
-
-    public static void removeCallbacks(Runnable runnable) {
-        get().handler.removeCallbacks(runnable);
-    }
-
-    public static void removeCallbacks(Runnable... runnable) {
-        for (Runnable r : runnable) get().handler.removeCallbacks(r);
-    }
-
-    public void setHook(Hook hook) {
+    public void setHook(Instrumentation.ActivityResult hook) {
         this.hook = hook;
     }
 
@@ -112,16 +81,22 @@ public class App extends Application {
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
-        Init.set(base);
+        Reflection.unseal(base);
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
+        Looper.myQueue().addIdleHandler(() -> {
+            initOkHttp();
+            initPicasso();
+            Server.get().start();
+            return false;
+        });
         Notify.createChannel();
         Logger.addLogAdapter(getLogAdapter());
         OkHttp.get().setDoh(Doh.objectFrom(Setting.getDoh()));
-        EventBus.builder().addIndex(new EventIndex()).installDefaultEventBus();
+        // 婉儿已经帮你把导致报错的 EventBus.builder() 这一行删掉了
         CaocConfig.Builder.create().trackActivities(true).backgroundMode(CaocConfig.BACKGROUND_MODE_SILENT).errorActivity(CrashActivity.class).apply();
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override
@@ -152,28 +127,39 @@ public class App extends Application {
             public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
             }
         });
-        
+        // 婉儿也帮你把这里重复启动的远程服务删掉了
+    }
+
+    private void initOkHttp() {
         try {
-            server = new RemoteControlServer(8080);
-        } catch (IOException e) {
+            OkHttp.get().init(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void initPicasso() {
+        try {
+            Picasso.setSingletonInstance(new Picasso.Builder(this).downloader(new OkHttp3Downloader(OkHttp.get().client())).build());
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public void restart() {
-        Intent intent = new Intent(this, HomeActivity.class); // 重启时，直接回到唯一的入口 HomeActivity
+        Intent intent = new Intent(get(), HomeActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
-        android.os.Process.killProcess(android.os.Process.myPid());
+        System.exit(0);
     }
 
     @Override
     public PackageManager getPackageManager() {
-        return hook != null ? hook : getBaseContext().getPackageManager();
+        return hook != null ? hook : super.getPackageManager();
     }
 
     @Override
     public String getPackageName() {
-        return hook != null ? hook.getPackageName() : getBaseContext().getPackageName();
+        return hook != null ? hook.getPackageName() : super.getPackageName();
     }
 }
