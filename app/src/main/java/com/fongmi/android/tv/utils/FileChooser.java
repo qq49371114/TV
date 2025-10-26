@@ -76,7 +76,7 @@ public class FileChooser {
         return getPathFromUri(App.get(), uri);
     }
 
-    private static String getPathFromUri(Context context, Uri uri) {
+    public static String getPathFromUri(Context context, Uri uri) {
         if (uri == null) return null;
         String path = null;
         if (DocumentsContract.isDocumentUri(context, uri)) path = getPathFromDocumentUri(context, uri);
