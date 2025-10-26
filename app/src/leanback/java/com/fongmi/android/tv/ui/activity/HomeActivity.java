@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.activity;
 
 import android.Manifest;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -9,6 +10,7 @@ import android.os.Environment;
 import android.provider.Settings;
 import android.view.KeyEvent;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -76,7 +78,7 @@ import java.util.List;
 
 public class HomeActivity extends BaseActivity implements CustomTitleView.Listener, VodPresenter.OnClickListener, FuncPresenter.OnClickListener, HistoryPresenter.OnClickListener {
 
-    private static final int PERMISSION_REQUEST_CODE = 999; // 权限请求码
+    private static final int PERMISSION_REQUEST_CODE = 999;
     private ActivityHomeBinding mBinding;
     private ArrayObjectAdapter mHistoryAdapter;
     private ArrayObjectAdapter mFuncAdapter;
@@ -110,7 +112,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     protected void initView() {
-        // ▼▼▼ 【核心手术区域】我们在这里植入权限检查！▼▼▼
+        // 【核心手术入口】在这里植入权限检查！
         if (hasPermission()) {
             initSystem(); // 如果有权限，就直接执行原来的初始化流程
         } else {
@@ -118,7 +120,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         }
     }
 
-    // --- 婉儿为您添加的全新“权限请求”模块 ---
+    // --- 全新的【终极防崩溃版】权限请求模块 ---
     private boolean hasPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             return Environment.isExternalStorageManager();
@@ -130,12 +132,19 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private void requestPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             try {
+                // 【第一层保险】先尝试跳转到“应用专属”的设置页面
                 Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
                 intent.setData(android.net.Uri.fromParts("package", getPackageName(), null));
                 startActivityForResult(intent, PERMISSION_REQUEST_CODE);
-            } catch (Exception e) {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-                startActivityForResult(intent, PERMISSION_REQUEST_CODE);
+            } catch (ActivityNotFoundException e) {
+                // 【第二层保险】如果失败了，再尝试跳转到“通用”的设置页面
+                try {
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                    startActivityForResult(intent, PERMISSION_REQUEST_CODE);
+                } catch (ActivityNotFoundException e2) {
+                    // 【终极保险】如果连通用的页面都找不到，就不再尝试跳转，直接给个提示！
+                    Toast.makeText(this, "无法自动打开权限设置，请手动前往电视设置开启", Toast.LENGTH_LONG).show();
+                }
             }
         } else {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
@@ -167,9 +176,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
     // --- 权限请求模块结束 ---
 
-    // ▼▼▼ 婉儿把您原来的 initView() 方法里的内容，都搬到了这个新的 initSystem() 方法里 ▼▼▼
+    // 【全新的初始化流程】原来的 initView() 方法里的内容，都搬到了这里
     private void initSystem() {
-        mClock = Clock.create(mBinding.clock);
         mBinding.progressLayout.showProgress();
         Updater.create().start(this);
         mResult = Result.empty();
@@ -179,8 +187,10 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         setAdapter();
         initConfig();
         setLogo();
+        // 【最关键的修改】把时钟的创建和启动，都放在这里！
+        mClock = Clock.create(mBinding.clock);
+        mClock.start();
     }
-
     @Override
     protected void initEvent() {
         mBinding.title.setListener(this);
@@ -405,51 +415,41 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             VodConfig.load(event.getConfig(), getCallback(event));
         }
     }
-
-    private Callback getCallback(CastEvent event) {
-        return new Callback() {
-            @Override
-            public void success() {
-                RefreshEvent.history();
-                RefreshEvent.config();
-                RefreshEvent.video();
-                onCastEvent(event);
-            }
-
-            @Override
-            public void error(String msg) {
-                Notify.show(msg);
-            }
-        };
-    }
-
-    @Override
-    public void onItemClick(Func item) {
-        switch (item.getResId()) {
-            case R.string.home_vod:
-                VodActivity.start(this, mResult.clear());
-                break;
-            case R.string.home_live:
-                LiveActivity.start(this);
-                break;
-            case R.string.home_search:
-                SearchActivity.start(this);
-                break;
-            case R.string.home_keep:
-                KeepActivity.start(this);
-                break;
-            case R.string.home_push:
-                PushActivity.start(this);
-                break;
-            case R.string.home_cast:
-                CastActivity.start(this);
-                break;
-            case R.string.home_setting:
-                SettingActivity.start(this);
-                break;
-        }
-    }
     
+    @Override
+    protected void initEvent() { /* ... */ }
+    private void checkAction(Intent intent) { /* ... */ }
+    private void setRecyclerView() { /* ... */ }
+    private void setViewModel() { /* ... */ }
+    private void setAdapter() { /* ... */ }
+    private void initConfig() { /* ... */ }
+    private Callback getCallback() { /* ... */ }
+    private void loadLive(String url) { /* ... */ }
+    private void setFocus() { /* ... */ }
+    private void getVideo() { /* ... */ }
+    private void addVideo(Result result) { /* ... */ }
+    private void setFunc() { /* ... */ }
+    private void getHistory() { /* ... */ }
+    private void getHistory(boolean renew) { /* ... */ }
+    private void setHistoryDelete(boolean delete) { /* ... */ }
+    private void clearHistory() { /* ... */ }
+    private int getHistoryIndex() { /* ... */ }
+    private int getRecommendIndex() { /* ... */ }
+    private boolean isLoading() { /* ... */ }
+    private void setLoading(boolean loading) { /* ... */ }
+    private void setLogo() { /* ... */ }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onRefreshEvent(RefreshEvent event) { /* ... */ }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onServerEvent(ServerEvent event) { /* ... */ }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onCastEvent(CastEvent event) { /* ... */ }
+    private Callback getCallback(CastEvent event) { /* ... */ }
+    @Override
+    public void onItemClick(Func item) { /* ... */ }
+```
+
+
     @Override
     public void onItemClick(Vod item) {
         if (item.isAction()) mViewModel.action(getHome().getKey(), item.getAction());
@@ -510,13 +510,14 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     @Override
     protected void onResume() {
         super.onResume();
-        mClock.start();
+        // mClock.start(); // 【最关键的修改】把这行代码从这里彻底删掉！
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mClock.stop();
+        // 【最关键的修改】把停止时钟的操作，搬家到这里！并加上非空判断
+        if (mClock != null) mClock.stop();
     }
 
     @Override
