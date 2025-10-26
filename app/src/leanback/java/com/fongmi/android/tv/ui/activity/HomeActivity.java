@@ -11,6 +11,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.text.TextUtils;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.splashscreen.SplashScreen;
