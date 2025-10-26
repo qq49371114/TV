@@ -33,7 +33,7 @@ public class SplashActivity extends AppCompatActivity {
         lockMessage = findViewById(R.id.lockMessage);
         passwordInput = findViewById(R.id.password);
 
-        // 我们不再检查权限了！直接检查我们自己的锁！
+        // 我们不再检查权限了！直接检查我们自己的“婉儿守护”系统！
         new Handler(Looper.getMainLooper()).postDelayed(this::checkLockState, 200);
     }
 
