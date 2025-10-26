@@ -397,7 +397,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     public void onItemClick(Vod item) {
-        if (item.isAction()) mViewModel.action(getHome(), item.getAction());
+        if (item.isAction()) mViewModel.action(getHome().getKey(), item.getAction());
         else if (getHome().isIndex()) CollectActivity.start(this, item.getVodName());
         else VideoActivity.start(this, getHome().getKey(), item.getVodId(), item.getVodName(), item.getVodPic());
     }
@@ -424,6 +424,13 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     public boolean onLongClick(History item) {
+    if (mPresenter.isDelete()) clearHistory();
+    else setHistoryDelete(true);
+    return true;
+}
+
+    @Override
+    public boolean onLongClick() {
         if (mPresenter.isDelete()) clearHistory();
         else setHistoryDelete(true);
         return true;
