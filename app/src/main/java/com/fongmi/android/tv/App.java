@@ -12,7 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.os.HandlerCompat;
 
-import com.fongmi.android.tv.event.EventIndex;
+//import com.fongmi.android.tv.event.EventIndex;
 import com.fongmi.android.tv.ui.activity.CrashActivity;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.hook.Hook;
@@ -116,7 +116,7 @@ public class App extends Application {
         Notify.createChannel();
         Logger.addLogAdapter(getLogAdapter());
         OkHttp.get().setDoh(Doh.objectFrom(Setting.getDoh()));
-        EventBus.builder().addIndex(new EventIndex()).installDefaultEventBus();
+        //EventBus.builder().addIndex(new EventIndex()).installDefaultEventBus();
         CaocConfig.Builder.create().trackActivities(true).backgroundMode(CaocConfig.BACKGROUND_MODE_SILENT).errorActivity(CrashActivity.class).apply();
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override
