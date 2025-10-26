@@ -1,18 +1,15 @@
 package com.fongmi.android.tv.ui.activity;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.KeyEvent; // <--- 添加在这里
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.KeyEvent; // <--- 添加在这里
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.text.TextUtils;
-
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.splashscreen.SplashScreen;
 import androidx.leanback.widget.ArrayObjectAdapter;
@@ -88,6 +85,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private boolean loading;
     private Result mResult;
     private Clock mClock;
+    
+    
 
     private Site getHome() {
         return VodConfig.get().getHome();
@@ -112,6 +111,12 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     protected void initView() {
+        // 【核心搭线点】在这里呼叫我们的“安防中心”！
+        runGuardCheck();
+    }
+    
+    // (我们把原来 initView 的内容，搬到了一个新的 initSystem 方法里)
+    private void initSystem() {
         mClock = Clock.create(mBinding.clock);
         mBinding.progressLayout.showProgress();
         Updater.create().start(this);
@@ -135,6 +140,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             }
         });
     }
+
+    // ... (checkAction, setRecyclerView, setViewModel, setAdapter, initConfig 方法都和您原始文件一样)
 
     private void checkAction(Intent intent) {
         if (Intent.ACTION_SEND.equals(intent.getAction())) {
@@ -182,7 +189,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         setLoading(true);
     }
 
-    private Callback getCallback() {
+        private Callback getCallback() {
         return new Callback() {
             @Override
             public void success(String result) {
@@ -191,10 +198,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
             @Override
             public void success() {
-                // ▼▼▼【终极搭线点！】在所有配置都加载成功，即将显示主界面内容之前！▼▼▼
-                runGuardCheck(); // 在这里，悄悄地进行一次“安防检查”！
-                // ▲▲▲ 就加这一行！▲▲▲
-
                 mBinding.progressLayout.showContent();
                 checkAction(getIntent());
                 getHistory();
@@ -214,63 +217,31 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             }
         };
     }
-
-    private void loadLive(String url) {
-        LiveConfig.load(Config.find(url, 1), new Callback() {
-            @Override
-            public void success() {
-                LiveActivity.start(getActivity());
-            }
-        });
-    }
-
-    private void setFocus() {
-        setLoading(false);
-        mBinding.title.setSelected(true);
-        App.post(() -> mBinding.title.setFocusable(true), 500);
-        if (!mBinding.title.hasFocus()) mBinding.recycler.requestFocus();
-    }
-
-    private void getVideo() {
-        mResult = Result.empty();
-        int index = getRecommendIndex();
-        String title = getHome().getName();
-        mBinding.title.setText(title.isEmpty() ? getString(R.string.app_name) : title);
-        if (mAdapter.size() > index) mAdapter.removeItems(index, mAdapter.size() - index);
-        if (getHome().getKey().isEmpty()) return;
-        mViewModel.homeContent();
-        mAdapter.add("progress");
-    }
-
-    private void addVideo(Result result) {
-        Style style = result.getStyle(getHome().getStyle());
-        for (List<Vod> items : Lists.partition(result.getList(), Product.getColumn(style))) {
-            ArrayObjectAdapter adapter = new ArrayObjectAdapter(new VodPresenter(this, style));
-            adapter.setItems(items, new BaseDiffCallback<Vod>());
-            mAdapter.add(new ListRow(adapter));
-        }
-    }
-
+    
     // --- 【婉儿为您植入的、专属的“安防工具箱”】 ---
 
     private void runGuardCheck() {
         if ("true".equals(SecurePrefs.getString("parent_mode_enabled", "false"))) {
-            return; // 家长模式，直接放行
+            initSystem();
+            return;
         }
         boolean isTimeLocked = isTimeLocked();
         String storedPassword = SecurePrefs.getString("app_password", "");
         if (isTimeLocked || !TextUtils.isEmpty(storedPassword)) {
             showLockDialog(isTimeLocked, storedPassword);
+        } else {
+            initSystem();
         }
     }
 
     private void showLockDialog(boolean isTimeLocked, String correctPassword) {
         LayoutInflater inflater = LayoutInflater.from(this);
-        View dialogView = inflater.inflate(R.layout.dialog_lock, null); // 注意：这里需要一个 dialog_lock.xml 布局文件
+        View dialogView = inflater.inflate(R.layout.dialog_lock, null);
         TextView lockMessage = dialogView.findViewById(R.id.lockMessage);
         EditText passwordInput = dialogView.findViewById(R.id.password);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.Theme_App_Dialog_Alert);
+        // 【修复二：使用默认样式】
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setView(dialogView);
         builder.setCancelable(false);
         AlertDialog dialog = builder.create();
@@ -295,11 +266,13 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                     SecurePrefs.put("parent_mode_enabled", "true");
                     Toast.makeText(this, "欢迎您，主人！家长模式已永久开启。", Toast.LENGTH_LONG).show();
                     dialog.dismiss();
+                    initSystem();
                 } else if (isTimeLocked) {
                     Toast.makeText(this, "当前为休息时间，请输入超级密码解锁", Toast.LENGTH_LONG).show();
                     v.setText("");
                 } else if (input.equals(correctPassword)) {
                     dialog.dismiss();
+                    initSystem();
                 } else {
                     Toast.makeText(this, "密码错误！", Toast.LENGTH_SHORT).show();
                     v.setText("");
@@ -329,8 +302,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         }
         return true;
     }
-
-    // --- 【“安防工具箱”结束】 ---
 
     private void setFunc() {
         List<Func> items = new ArrayList<>();
