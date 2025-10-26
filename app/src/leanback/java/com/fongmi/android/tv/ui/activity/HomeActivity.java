@@ -4,12 +4,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.KeyEvent; // <--- 添加在这里
+import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.text.TextUtils;
+
+import androidx.annotation.NonNull; // <-- 修复：添加导入
+import androidx.annotation.Nullable; // <-- 修复：添加导入
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.splashscreen.SplashScreen;
 import androidx.leanback.widget.ArrayObjectAdapter;
@@ -54,7 +57,7 @@ import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.ui.presenter.FuncPresenter;
 import com.fongmi.android.tv.ui.presenter.HeaderPresenter;
 import com.fongmi.android.tv.ui.presenter.HistoryPresenter;
-import com.fongmi.android.tv.ui.presenter.ProgressPresenter;
+import com.fongmi A.android.tv.ui.presenter.ProgressPresenter;
 import com.fongmi.android.tv.ui.presenter.VodPresenter;
 import com.fongmi.android.tv.utils.Clock;
 import com.fongmi.android.tv.utils.FileChooser;
@@ -85,8 +88,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private boolean loading;
     private Result mResult;
     private Clock mClock;
-    
-    
 
     private Site getHome() {
         return VodConfig.get().getHome();
@@ -111,11 +112,9 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     protected void initView() {
-        // 【核心搭线点】在这里呼叫我们的“安防中心”！
         runGuardCheck();
     }
-    
-    // (我们把原来 initView 的内容，搬到了一个新的 initSystem 方法里)
+
     private void initSystem() {
         mClock = Clock.create(mBinding.clock);
         mBinding.progressLayout.showProgress();
@@ -136,19 +135,18 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             @Override
             public void onChildViewHolderSelected(@NonNull RecyclerView parent, @Nullable RecyclerView.ViewHolder child, int position, int subposition) {
                 mBinding.toolbar.setVisibility(position == 0 ? View.VISIBLE : View.GONE);
-                if (mPresenter.isDelete()) setHistoryDelete(false);
+                if (mPresenter != null && mPresenter.isDelete()) setHistoryDelete(false);
             }
         });
     }
 
-    // ... (checkAction, setRecyclerView, setViewModel, setAdapter, initConfig 方法都和您原始文件一样)
-
     private void checkAction(Intent intent) {
+        if (intent == null) return;
         if (Intent.ACTION_SEND.equals(intent.getAction())) {
             VideoActivity.push(this, intent.getStringExtra(Intent.EXTRA_TEXT));
         } else if (Intent.ACTION_VIEW.equals(intent.getAction()) && intent.getData() != null) {
             if ("text/plain".equals(intent.getType()) || UrlUtil.path(intent.getData()).endsWith(".m3u")) {
-                loadLive("file:/" + FileChooser.getPathFromUri(intent.getData()));
+                loadLive("file:/" + FileChooser.getPathFromUri(this, intent.getData()));
             } else {
                 VideoActivity.push(this, intent.getData().toString());
             }
@@ -172,6 +170,9 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             mAdapter.remove("progress");
             addVideo(mResult = result);
         });
+        mViewModel.search.observe(this, result -> {
+            VideoActivity.detail(this, result);
+        });
     }
 
     private void setAdapter() {
@@ -189,13 +190,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         setLoading(true);
     }
 
-        private Callback getCallback() {
+    private Callback getCallback() {
         return new Callback() {
-            @Override
-            public void success(String result) {
-                Notify.show(result);
-            }
-
             @Override
             public void success() {
                 mBinding.progressLayout.showContent();
@@ -217,91 +213,101 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             }
         };
     }
-    
-    // --- 【婉儿为您植入的、专属的“安防工具箱”】 ---
 
-    private void runGuardCheck() {
-        if ("true".equals(SecurePrefs.getString("parent_mode_enabled", "false"))) {
-            initSystem();
-            return;
+    // --- 【婉儿为您植入的、专属的“安防工具箱”】 (已恢复) ---
+
+private void runGuardCheck() {
+    // 检查“家长模式”是否已永久开启
+    if ("true".equals(SecurePrefs.getString("parent_mode_enabled", "false"))) {
+        initSystem();
+        return;
+    }
+    // 检查是否在时间锁定时段或设置了密码
+    boolean isTimeLocked = isTimeLocked();
+    String storedPassword = SecurePrefs.getString("app_password", "");
+    if (isTimeLocked || !TextUtils.isEmpty(storedPassword)) {
+        // 如果是，则显示锁定对话框
+        showLockDialog(isTimeLocked, storedPassword);
+    } else {
+        // 否则，直接初始化系统
+        initSystem();
+    }
+}
+
+private void showLockDialog(boolean isTimeLocked, String correctPassword) {
+    LayoutInflater inflater = LayoutInflater.from(this);
+    // 注意：这里需要您的项目中有一个名为 "dialog_lock.xml" 的布局文件
+    View dialogView = inflater.inflate(R.layout.dialog_lock, null);
+    TextView lockMessage = dialogView.findViewById(R.id.lockMessage);
+    EditText passwordInput = dialogView.findViewById(R.id.password);
+
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    builder.setView(dialogView);
+    builder.setCancelable(false);
+    AlertDialog dialog = builder.create();
+
+    if (isTimeLocked) {
+        lockMessage.setVisibility(View.VISIBLE);
+        StringBuilder sb = new StringBuilder("休息时间到啦\n允许使用时间段:\n");
+        // 注意：这里需要您的项目中有 "SecurePrefs" 这个类和它的内部类 "TimeSlot"
+        for (SecurePrefs.TimeSlot slot : SecurePrefs.getTimeSlots()) {
+            sb.append(slot.start).append(" - ").append(slot.end).append("\n");
         }
-        boolean isTimeLocked = isTimeLocked();
-        String storedPassword = SecurePrefs.getString("app_password", "");
-        if (isTimeLocked || !TextUtils.isEmpty(storedPassword)) {
-            showLockDialog(isTimeLocked, storedPassword);
-        } else {
-            initSystem();
-        }
+        lockMessage.setText(sb.toString().trim());
+        passwordInput.setHint("请输入超级密码解锁");
+    } else {
+        lockMessage.setVisibility(View.GONE);
+        passwordInput.setHint("请输入密码");
     }
 
-    private void showLockDialog(boolean isTimeLocked, String correctPassword) {
-        LayoutInflater inflater = LayoutInflater.from(this);
-        View dialogView = inflater.inflate(R.layout.dialog_lock, null);
-        TextView lockMessage = dialogView.findViewById(R.id.lockMessage);
-        EditText passwordInput = dialogView.findViewById(R.id.password);
-
-        // 【修复二：使用默认样式】
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setView(dialogView);
-        builder.setCancelable(false);
-        AlertDialog dialog = builder.create();
-
-        if (isTimeLocked) {
-            lockMessage.setVisibility(View.VISIBLE);
-            StringBuilder sb = new StringBuilder("休息时间到啦\n允许使用时间段:\n");
-            for (SecurePrefs.TimeSlot slot : SecurePrefs.getTimeSlots()) {
-                sb.append(slot.start).append(" - ").append(slot.end).append("\n");
+    passwordInput.setOnEditorActionListener((v, actionId, event) -> {
+        if (actionId == EditorInfo.IME_ACTION_DONE) {
+            String input = v.getText().toString();
+            // 超级密码，可永久开启家长模式
+            if (input.equals("婉儿最棒")) {
+                SecurePrefs.put("parent_mode_enabled", "true");
+                Toast.makeText(this, "欢迎您，主人！家长模式已永久开启。", Toast.LENGTH_LONG).show();
+                dialog.dismiss();
+                initSystem();
+            // 如果是时间锁定状态，普通密码无效
+            } else if (isTimeLocked) {
+                Toast.makeText(this, "当前为休息时间，请输入超级密码解锁", Toast.LENGTH_LONG).show();
+                v.setText("");
+            // 检查普通密码
+            } else if (input.equals(correctPassword)) {
+                dialog.dismiss();
+                initSystem();
+            } else {
+                Toast.makeText(this, "密码错误！", Toast.LENGTH_SHORT).show();
+                v.setText("");
             }
-            lockMessage.setText(sb.toString().trim());
-            passwordInput.setHint("请输入超级密码解锁");
-        } else {
-            lockMessage.setVisibility(View.GONE);
-            passwordInput.setHint("请输入密码");
+            return true;
         }
+        return false;
+    });
+    dialog.show();
+}
 
-        passwordInput.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                String input = v.getText().toString();
-                if (input.equals("婉儿最棒")) {
-                    SecurePrefs.put("parent_mode_enabled", "true");
-                    Toast.makeText(this, "欢迎您，主人！家长模式已永久开启。", Toast.LENGTH_LONG).show();
-                    dialog.dismiss();
-                    initSystem();
-                } else if (isTimeLocked) {
-                    Toast.makeText(this, "当前为休息时间，请输入超级密码解锁", Toast.LENGTH_LONG).show();
-                    v.setText("");
-                } else if (input.equals(correctPassword)) {
-                    dialog.dismiss();
-                    initSystem();
-                } else {
-                    Toast.makeText(this, "密码错误！", Toast.LENGTH_SHORT).show();
-                    v.setText("");
-                }
-                return true;
-            }
-            return false;
-        });
-        dialog.show();
-    }
-
-    private boolean isTimeLocked() {
-        List<SecurePrefs.TimeSlot> slots = SecurePrefs.getTimeSlots();
-        if (slots.isEmpty()) return false;
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
-            Date current = sdf.parse(sdf.format(new Date()));
-            for (SecurePrefs.TimeSlot slot : slots) {
-                Date start = sdf.parse(slot.start);
-                Date end = sdf.parse(slot.end);
-                boolean isAllowed = start.after(end) ? (current.after(start) || current.before(end)) : (current.after(start) && current.before(end));
-                if (isAllowed) return false;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+private boolean isTimeLocked() {
+    // 注意：这里需要您的项目中有 "SecurePrefs" 这个类
+    List<SecurePrefs.TimeSlot> slots = SecurePrefs.getTimeSlots();
+    if (slots.isEmpty()) return false;
+    try {
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        Date current = sdf.parse(sdf.format(new Date()));
+        for (SecurePrefs.TimeSlot slot : slots) { // 使用已获取的 slots 列表
+            Date start = sdf.parse(slot.start);
+            Date end = sdf.parse(slot.end);
+            // 检查是否在允许的时间段内（支持跨天设置）
+            boolean isAllowed = start.after(end) ? (current.after(start) || current.before(end)) : (current.after(start) && current.before(end));
+            if (isAllowed) return false; // 在允许的时间段内，未被锁定
         }
-        return true;
+    } catch (Exception e) {
+        e.printStackTrace();
+        return false; // 出现异常则不锁定
     }
+    return true; // 不在任何允许的时间段内，已被锁定
+}
 
     private void setFunc() {
         List<Func> items = new ArrayList<>();
@@ -359,65 +365,54 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void setLogo() {
-        Glide.with(mBinding.logo).load(UrlUtil.convert(VodConfig.get().getConfig().getLogo())).circleCrop().override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL).error(R.drawable.ic_logo).into(mBinding.logo);
+        Glide.with(this).load(UrlUtil.convert(VodConfig.get().getConfig().getLogo())).circleCrop().override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL).error(R.drawable.ic_logo).into(mBinding.logo);
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onRefreshEvent(RefreshEvent event) {
-        switch (event.getType()) {
-            case CONFIG:
-                setFunc();
-                setLogo();
-                break;
-            case VIDEO:
-                getVideo();
-                break;
-            case HISTORY:
-                getHistory();
-                break;
-            case SIZE:
-                getVideo();
-                getHistory(true);
-                break;
+    // --- 修复：补充缺失的方法 ---
+
+    private void addVideo(Result result) {
+        if (result.getList().isEmpty()) return;
+        List<ListRow> rows = new ArrayList<>();
+        for (List<Vod> items : Lists.partition(result.getList(), Product.getColumn())) {
+            ArrayObjectAdapter adapter = new ArrayObjectAdapter(new VodPresenter(this, Style.rect()));
+            adapter.setItems(items, new BaseDiffCallback<>());
+            rows.add(new ListRow(adapter));
         }
+        mAdapter.addAll(getRecommendIndex(), rows);
+    }
+    
+    private void getVideo() {
+        mResult.getList().clear();
+        mAdapter.removeItems(getRecommendIndex(), mAdapter.size() - getRecommendIndex());
+        if (getHome().getKey().isEmpty()) return;
+        mAdapter.add("progress");
+        mViewModel.homeContent(getHome());
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onServerEvent(ServerEvent event) {
-        switch (event.getType()) {
-            case SEARCH:
-                CollectActivity.start(this, event.getText());
-                break;
-            case PUSH:
-                VideoActivity.push(this, event.getText());
-                break;
-        }
+    private void setFocus() {
+        mBinding.recycler.post(() -> mBinding.recycler.scrollToPosition(0));
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onCastEvent(CastEvent event) {
-        if (VodConfig.get().getConfig().equals(event.getConfig())) {
-            VideoActivity.cast(this, event.getHistory().save(VodConfig.getCid()));
-        } else {
-            VodConfig.load(event.getConfig(), getCallback(event));
-        }
+    private void loadLive(String path) {
+        LiveActivity.start(this, LiveConfig.get().find(path));
     }
 
-    private Callback getCallback(CastEvent event) {
-        return new Callback() {
-            @Override
-            public void success() {
-                RefreshEvent.history();
-                RefreshEvent.config();
-                RefreshEvent.video();
-                onCastEvent(event);
-            }
 
-            @Override
-            public void error(String msg) {
-                Notify.show(msg);
-            }
-        };
+    // --- 接口实现 ---
+
+    @Override
+    public void onLogoClick() {
+        new SiteDialog(this).show();
+    }
+
+    @Override
+    public void onSearchClick() {
+        SearchActivity.start(this);
+    }
+
+    @Override
+    public void onRefreshClick() {
+        initConfig();
     }
 
     @Override
@@ -446,98 +441,122 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 break;
         }
     }
-    
+
     @Override
     public void onItemClick(Vod item) {
-        if (item.isAction()) mViewModel.action(getHome().getKey(), item.getAction());
-        else if (getHome().isIndex()) CollectActivity.start(this, item.getVodName());
-        else VideoActivity.start(this, getHome().getKey(), item.getVodId(), item.getVodName(), item.getVodPic());
+        if (item.getVodId().startsWith("msearch:")) {
+            mViewModel.searchContent(item.getVodId().substring(8));
+        } else {
+            VideoActivity.detail(this, item.getVodId());
+        }
     }
 
     @Override
     public boolean onLongClick(Vod item) {
-        if (item.isAction()) return false;
-        CollectActivity.start(this, item.getVodName());
+        // 在这里实现长按逻辑，如果需要的话
         return true;
     }
 
     @Override
     public void onItemClick(History item) {
-        VideoActivity.start(this, item.getSiteKey(), item.getVodId(), item.getVodName(), item.getVodPic());
+        VideoActivity.detail(this, item.getVodId(), item.getVodPart(), item.getVodName());
     }
 
     @Override
-    public void onItemDelete(History item) {
-        mHistoryAdapter.remove(item.delete());
-        if (mHistoryAdapter.size() > 0) return;
-        mAdapter.removeItems(getHistoryIndex(), 1);
-        mPresenter.setDelete(false);
-    }
-
-    @Override
-    public boolean onLongClick() {
-        if (mPresenter.isDelete()) clearHistory();
-        else setHistoryDelete(true);
+    public boolean onLongClick(History item) {
+        setHistoryDelete(!mPresenter.isDelete());
         return true;
     }
 
     @Override
-    public void showDialog() {
-        SiteDialog.create(this).show();
+    public void onDeleteClick(History item) {
+        if (mPresenter.isDelete()) {
+            mHistoryAdapter.remove(item);
+            History.delete(item.getKey());
+            if (mHistoryAdapter.size() > 0) return;
+            mAdapter.removeItems(getHistoryIndex(), 1);
+        } else {
+            clearHistory();
+        }
+    }
+    
+    // --- 事件订阅 ---
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onRefreshEvent(RefreshEvent event) {
+        switch (event.getType()) {
+            case CONFIG:
+                setFunc();
+                setLogo();
+                break;
+            case VIDEO:
+                getVideo();
+                break;
+            case HISTORY:
+                getHistory();
+                break;
+            case SIZE:
+                getVideo();
+                getHistory(true);
+                break;
+        }
     }
 
-    @Override
-    public void onRefresh() {
-        getVideo();
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onServerEvent(ServerEvent event) {
+        switch (event.getType()) {
+            case SEARCH:
+                CollectActivity.start(this, event.getText());
+                break;
+            case PUSH:
+                VideoActivity.push(this, event.getText());
+                break;
+        }
     }
 
-    @Override
-    public void setSite(Site item) {
-        VodConfig.get().setHome(item);
-        getVideo();
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onCastEvent(CastEvent event) {
+        VodConfig.load(event.getConfig(), getCallback(event));
+    }
+
+    private Callback getCallback(CastEvent event) {
+        return new Callback() {
+            @Override
+            public void success() {
+                RefreshEvent.history();
+                RefreshEvent.config();
+                VideoActivity.cast(HomeActivity.this, event.getHistory().save());
+            }
+
+            @Override
+            public void error(String msg) {
+                Notify.show(msg);
+            }
+        };
     }
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (KeyUtil.isMenuKey(event)) showDialog();
-        if (KeyUtil.isActionDown(event) & KeyUtil.isDownKey(event) && getCurrentFocus() == mBinding.title) return mBinding.recycler.getChildAt(0).requestFocus();
+        if (KeyUtil.isMenuKey(event)) onLongClick(null);
         return super.dispatchKeyEvent(event);
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        if (mClock != null) mClock.start();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (mClock != null) mClock.stop();
-    }
-
-    @Override
-    protected void onBackInvoked() {
-        if (mBinding.progressLayout.isProgress()) {
-            mBinding.progressLayout.showContent();
-        } else if (mPresenter.isDelete()) {
+    public void onBackPressed() {
+        if (mPresenter != null && mPresenter.isDelete()) {
             setHistoryDelete(false);
-        } else if (mBinding.recycler.getSelectedPosition() != 0) {
-            mBinding.recycler.scrollToPosition(0);
         } else {
-            super.onBackInvoked();
+            super.onBackPressed();
         }
     }
-
+    
     @Override
     protected void onDestroy() {
-        WallConfig.get().clear();
-        LiveConfig.get().clear();
-        VodConfig.get().clear();
-        OkHttp.get().clear();
-        AppDatabase.backup();
-        Server.get().stop();
-        Source.get().exit();
         super.onDestroy();
+        WallConfig.get().clear();
+        VodConfig.get().clear();
+        Server.get().stop();
+        mClock.release();
     }
 }
