@@ -84,6 +84,8 @@
     <string name="setting_choose">Choose</string>
     <string name="setting_off">Off</string>
     <string name="setting_on">On</string>
+    <string name="error_permission">获取权限失败，应用可能无法正常工作！</string>
+
 
     <!-- Backup & Restore -->
     <string name="restore_select">Select backup</string>
