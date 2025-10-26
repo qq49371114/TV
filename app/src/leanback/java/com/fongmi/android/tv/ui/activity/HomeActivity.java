@@ -1,12 +1,19 @@
 package com.fongmi.android.tv.ui.activity;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.Settings;
 import android.view.KeyEvent;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.splashscreen.SplashScreen;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.ItemBridgeAdapter;
@@ -56,7 +63,6 @@ import com.fongmi.android.tv.utils.Clock;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.KeyUtil;
 import com.fongmi.android.tv.utils.Notify;
-import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.net.OkHttp;
@@ -70,6 +76,7 @@ import java.util.List;
 
 public class HomeActivity extends BaseActivity implements CustomTitleView.Listener, VodPresenter.OnClickListener, FuncPresenter.OnClickListener, HistoryPresenter.OnClickListener {
 
+    private static final int PERMISSION_REQUEST_CODE = 999; // 权限请求码
     private ActivityHomeBinding mBinding;
     private ArrayObjectAdapter mHistoryAdapter;
     private ArrayObjectAdapter mFuncAdapter;
@@ -103,9 +110,67 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     protected void initView() {
+        // ▼▼▼ 【核心手术区域】我们在这里植入权限检查！▼▼▼
+        if (hasPermission()) {
+            initSystem(); // 如果有权限，就直接执行原来的初始化流程
+        } else {
+            requestPermission(); // 如果没权限，就去请求权限！
+        }
+    }
+
+    // --- 婉儿为您添加的全新“权限请求”模块 ---
+    private boolean hasPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return Environment.isExternalStorageManager();
+        } else {
+            return ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        }
+    }
+
+    private void requestPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            try {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                intent.setData(android.net.Uri.fromParts("package", getPackageName(), null));
+                startActivityForResult(intent, PERMISSION_REQUEST_CODE);
+            } catch (Exception e) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                startActivityForResult(intent, PERMISSION_REQUEST_CODE);
+            }
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (hasPermission()) {
+                initSystem();
+            } else {
+                Notify.show(R.string.error_permission);
+            }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (hasPermission()) {
+                initSystem();
+            } else {
+                Notify.show(R.string.error_permission);
+            }
+        }
+    }
+    // --- 权限请求模块结束 ---
+
+    // ▼▼▼ 婉儿把您原来的 initView() 方法里的内容，都搬到了这个新的 initSystem() 方法里 ▼▼▼
+    private void initSystem() {
         mClock = Clock.create(mBinding.clock);
         mBinding.progressLayout.showProgress();
-        PermissionUtil.requestNotify(this);
         Updater.create().start(this);
         mResult = Result.empty();
         Server.get().start();
@@ -191,6 +256,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 setFunc();
                 setLogo();
             }
+
+
 
             @Override
             public void error(String msg) {
@@ -382,7 +449,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 break;
         }
     }
-
+    
     @Override
     public void onItemClick(Vod item) {
         if (item.isAction()) mViewModel.action(getHome().getKey(), item.getAction());
