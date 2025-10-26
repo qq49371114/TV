@@ -2,6 +2,7 @@ package com.fongmi.android.tv.ui.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.KeyEvent; // <--- 添加在这里
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
