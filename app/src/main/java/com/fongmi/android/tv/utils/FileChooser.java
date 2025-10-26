@@ -85,7 +85,7 @@ public class FileChooser {
         return path != null ? URLDecoder.decode(path, StandardCharsets.UTF_8) : createFileFromUri(context, uri);
     }
 
-    private static String getPathFromDocumentUri(Context context, Uri uri) {
+     public static String getPathFromDocumentUri(Context context, Uri uri) {
         String docId = DocumentsContract.getDocumentId(uri);
         String[] split = docId.split(":");
         if (isExternalStorageDocument(uri)) return getPath(docId, split);
