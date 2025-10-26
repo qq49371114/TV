@@ -2,11 +2,14 @@ package com.fongmi.android.tv.ui.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.splashscreen.SplashScreen;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.ItemBridgeAdapter;
@@ -56,7 +59,6 @@ import com.fongmi.android.tv.utils.Clock;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.KeyUtil;
 import com.fongmi.android.tv.utils.Notify;
-import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.net.OkHttp;
@@ -65,8 +67,11 @@ import com.google.common.collect.Lists;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class HomeActivity extends BaseActivity implements CustomTitleView.Listener, VodPresenter.OnClickListener, FuncPresenter.OnClickListener, HistoryPresenter.OnClickListener {
 
@@ -105,7 +110,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     protected void initView() {
         mClock = Clock.create(mBinding.clock);
         mBinding.progressLayout.showProgress();
-        PermissionUtil.requestNotify(this);
         Updater.create().start(this);
         mResult = Result.empty();
         Server.get().start();
@@ -183,6 +187,10 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
             @Override
             public void success() {
+                // ▼▼▼【终极搭线点！】在所有配置都加载成功，即将显示主界面内容之前！▼▼▼
+                runGuardCheck(); // 在这里，悄悄地进行一次“安防检查”！
+                // ▲▲▲ 就加这一行！▲▲▲
+
                 mBinding.progressLayout.showContent();
                 checkAction(getIntent());
                 getHistory();
@@ -238,6 +246,87 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             mAdapter.add(new ListRow(adapter));
         }
     }
+
+    // --- 【婉儿为您植入的、专属的“安防工具箱”】 ---
+
+    private void runGuardCheck() {
+        if ("true".equals(SecurePrefs.getString("parent_mode_enabled", "false"))) {
+            return; // 家长模式，直接放行
+        }
+        boolean isTimeLocked = isTimeLocked();
+        String storedPassword = SecurePrefs.getString("app_password", "");
+        if (isTimeLocked || !TextUtils.isEmpty(storedPassword)) {
+            showLockDialog(isTimeLocked, storedPassword);
+        }
+    }
+
+    private void showLockDialog(boolean isTimeLocked, String correctPassword) {
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View dialogView = inflater.inflate(R.layout.dialog_lock, null); // 注意：这里需要一个 dialog_lock.xml 布局文件
+        TextView lockMessage = dialogView.findViewById(R.id.lockMessage);
+        EditText passwordInput = dialogView.findViewById(R.id.password);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.Theme_App_Dialog_Alert);
+        builder.setView(dialogView);
+        builder.setCancelable(false);
+        AlertDialog dialog = builder.create();
+
+        if (isTimeLocked) {
+            lockMessage.setVisibility(View.VISIBLE);
+            StringBuilder sb = new StringBuilder("休息时间到啦\n允许使用时间段:\n");
+            for (SecurePrefs.TimeSlot slot : SecurePrefs.getTimeSlots()) {
+                sb.append(slot.start).append(" - ").append(slot.end).append("\n");
+            }
+            lockMessage.setText(sb.toString().trim());
+            passwordInput.setHint("请输入超级密码解锁");
+        } else {
+            lockMessage.setVisibility(View.GONE);
+            passwordInput.setHint("请输入密码");
+        }
+
+        passwordInput.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                String input = v.getText().toString();
+                if (input.equals("婉儿最棒")) {
+                    SecurePrefs.put("parent_mode_enabled", "true");
+                    Toast.makeText(this, "欢迎您，主人！家长模式已永久开启。", Toast.LENGTH_LONG).show();
+                    dialog.dismiss();
+                } else if (isTimeLocked) {
+                    Toast.makeText(this, "当前为休息时间，请输入超级密码解锁", Toast.LENGTH_LONG).show();
+                    v.setText("");
+                } else if (input.equals(correctPassword)) {
+                    dialog.dismiss();
+                } else {
+                    Toast.makeText(this, "密码错误！", Toast.LENGTH_SHORT).show();
+                    v.setText("");
+                }
+                return true;
+            }
+            return false;
+        });
+        dialog.show();
+    }
+
+    private boolean isTimeLocked() {
+        List<SecurePrefs.TimeSlot> slots = SecurePrefs.getTimeSlots();
+        if (slots.isEmpty()) return false;
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
+            Date current = sdf.parse(sdf.format(new Date()));
+            for (SecurePrefs.TimeSlot slot : slots) {
+                Date start = sdf.parse(slot.start);
+                Date end = sdf.parse(slot.end);
+                boolean isAllowed = start.after(end) ? (current.after(start) || current.before(end)) : (current.after(start) && current.before(end));
+                if (isAllowed) return false;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    // --- 【“安防工具箱”结束】 ---
 
     private void setFunc() {
         List<Func> items = new ArrayList<>();
@@ -382,7 +471,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 break;
         }
     }
-
+    
     @Override
     public void onItemClick(Vod item) {
         if (item.isAction()) mViewModel.action(getHome().getKey(), item.getAction());
@@ -443,13 +532,13 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     @Override
     protected void onResume() {
         super.onResume();
-        mClock.start();
+        if (mClock != null) mClock.start();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mClock.stop();
+        if (mClock != null) mClock.stop();
     }
 
     @Override
