@@ -1,5 +1,7 @@
 package com.fongmi.android.tv.ui.activity;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.KeyEvent; // <--- 添加在这里
