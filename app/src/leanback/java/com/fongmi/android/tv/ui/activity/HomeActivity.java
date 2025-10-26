@@ -423,11 +423,11 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     @Override
-    public boolean onLongClick(History item) {
-    if (mPresenter.isDelete()) clearHistory();
-    else setHistoryDelete(true);
-    return true;
-}
+    public boolean onLongClick() {
+        if (mPresenter.isDelete()) clearHistory();
+        else setHistoryDelete(true);
+        return true;
+    }
 
      @Override
      public boolean onLongClick(History item) {
