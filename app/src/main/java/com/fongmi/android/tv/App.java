@@ -15,8 +15,8 @@ import androidx.core.os.HandlerCompat;
 
 import com.fongmi.android.tv.event.EventIndex;
 import com.fongmi.android.tv.ui.activity.CrashActivity;
+import com.fongmi.android.tv.ui.activity.HomeActivity;
 import com.fongmi.android.tv.ui.activity.RemoteControlServer;
-import com.fongmi.android.tv.ui.activity.SplashActivity;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.hook.Hook;
 import com.github.catvod.Init;
@@ -161,7 +161,7 @@ public class App extends Application {
     }
 
     public void restart() {
-        Intent intent = new Intent(this, SplashActivity.class);
+        Intent intent = new Intent(this, HomeActivity.class); // 重启时，直接回到唯一的入口 HomeActivity
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         android.os.Process.killProcess(android.os.Process.myPid());
