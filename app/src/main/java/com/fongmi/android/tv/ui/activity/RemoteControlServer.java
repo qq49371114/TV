@@ -9,6 +9,10 @@ import java.util.Map;
 import java.util.Objects;
 import fi.iki.elonen.NanoHTTPD;
 
+// ▼▼▼ 婉儿已经帮您把最重要的“介绍信”补上啦！▼▼▼
+import com.fongmi.android.tv.ui.activity.SecurePrefs;
+// ▲▲▲ 就是这一句！它现在认识我们的“加密管家”啦！▲▲▲
+
 public class RemoteControlServer extends NanoHTTPD {
 
     private static final String ADMIN_PASSWORD = "admin";
