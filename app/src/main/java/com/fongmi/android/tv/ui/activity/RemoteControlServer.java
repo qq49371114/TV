@@ -9,10 +9,6 @@ import java.util.Map;
 import java.util.Objects;
 import fi.iki.elonen.NanoHTTPD;
 
-// ▼▼▼ 婉儿已经帮您把最重要的“介绍信”补上啦！▼▼▼
-import com.fongmi.android.tv.ui.activity.SecurePrefs;
-// ▲▲▲ 就是这一句！它现在认识我们的“加密管家”啦！▲▲▲
-
 public class RemoteControlServer extends NanoHTTPD {
 
     private static final String ADMIN_PASSWORD = "admin";
@@ -22,21 +18,6 @@ public class RemoteControlServer extends NanoHTTPD {
         super(port);
         start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
         System.out.println("\n>>> 婉儿守护控制台已启动，请访问 http://<电视IP>:" + port + "\n");
-    }
-
-    public static class TimeSlot {
-        public String start;
-        public String end;
-        public TimeSlot(String start, String end) { this.start = start; this.end = end; }
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            TimeSlot ts = (TimeSlot) o;
-            return Objects.equals(start, ts.start) && Objects.equals(end, ts.end);
-        }
-        @Override
-        public int hashCode() { return Objects.hash(start, end); }
     }
 
     @Override
@@ -81,9 +62,18 @@ public class RemoteControlServer extends NanoHTTPD {
     
     private void addTimeSlot(String start, String end) {
         if (start == null || end == null || start.isEmpty() || end.isEmpty()) return;
-        List<TimeSlot> slots = SecurePrefs.getTimeSlots();
-        TimeSlot newSlot = new TimeSlot(start, end);
-        if (!slots.contains(newSlot)) {
+        List<SecurePrefs.TimeSlot> slots = SecurePrefs.getTimeSlots();
+        SecurePrefs.TimeSlot newSlot = new SecurePrefs.TimeSlot(start, end);
+        
+        boolean exists = false;
+        for (SecurePrefs.TimeSlot slot : slots) {
+            if (Objects.equals(slot.start, newSlot.start) && Objects.equals(slot.end, newSlot.end)) {
+                exists = true;
+                break;
+            }
+        }
+
+        if (!exists) {
             slots.add(newSlot);
             SecurePrefs.put("allowed_time_slots", App.gson().toJson(slots));
             showToast("时间段已添加");
@@ -93,7 +83,7 @@ public class RemoteControlServer extends NanoHTTPD {
     }
 
     private void deleteTimeSlot(int index) {
-        List<TimeSlot> slots = SecurePrefs.getTimeSlots();
+        List<SecurePrefs.TimeSlot> slots = SecurePrefs.getTimeSlots();
         if (index >= 0 && index < slots.size()) {
             slots.remove(index);
             SecurePrefs.put("allowed_time_slots", App.gson().toJson(slots));
@@ -144,12 +134,12 @@ public class RemoteControlServer extends NanoHTTPD {
 
     private String getAdminPanelHtml() {
         StringBuilder timeSlotsHtml = new StringBuilder();
-        List<TimeSlot> slots = SecurePrefs.getTimeSlots();
+        List<SecurePrefs.TimeSlot> slots = SecurePrefs.getTimeSlots();
         if (slots.isEmpty()) {
             timeSlotsHtml.append("<p>当前未设置任何时间段 (全天可用)</p>");
         } else {
             for (int i = 0; i < slots.size(); i++) {
-                TimeSlot slot = slots.get(i);
+                SecurePrefs.TimeSlot slot = slots.get(i);
                 timeSlotsHtml.append("<li><span>").append(slot.start).append(" - ").append(slot.end).append("</span> <form method='POST' style='display:inline;'><input type='hidden' name='action' value='delete_time'><input type='hidden' name='index' value='").append(i).append("'><button type='submit' class='btn-delete'>删除</button></form></li>");
             }
         }
