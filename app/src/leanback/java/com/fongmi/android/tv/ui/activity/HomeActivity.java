@@ -191,6 +191,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         mClock = Clock.create(mBinding.clock);
         mClock.start();
     }
+
     @Override
     protected void initEvent() {
         mBinding.title.setListener(this);
@@ -415,41 +416,51 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             VodConfig.load(event.getConfig(), getCallback(event));
         }
     }
+
+    private Callback getCallback(CastEvent event) {
+        return new Callback() {
+            @Override
+            public void success() {
+                RefreshEvent.history();
+                RefreshEvent.config();
+                RefreshEvent.video();
+                onCastEvent(event);
+            }
+
+            @Override
+            public void error(String msg) {
+                Notify.show(msg);
+            }
+        };
+    }
+
+    @Override
+    public void onItemClick(Func item) {
+        switch (item.getResId()) {
+            case R.string.home_vod:
+                VodActivity.start(this, mResult.clear());
+                break;
+            case R.string.home_live:
+                LiveActivity.start(this);
+                break;
+            case R.string.home_search:
+                SearchActivity.start(this);
+                break;
+            case R.string.home_keep:
+                KeepActivity.start(this);
+                break;
+            case R.string.home_push:
+                PushActivity.start(this);
+                break;
+            case R.string.home_cast:
+                CastActivity.start(this);
+                break;
+            case R.string.home_setting:
+                SettingActivity.start(this);
+                break;
+        }
+    }
     
-    @Override
-    protected void initEvent() { /* ... */ }
-    private void checkAction(Intent intent) { /* ... */ }
-    private void setRecyclerView() { /* ... */ }
-    private void setViewModel() { /* ... */ }
-    private void setAdapter() { /* ... */ }
-    private void initConfig() { /* ... */ }
-    private Callback getCallback() { /* ... */ }
-    private void loadLive(String url) { /* ... */ }
-    private void setFocus() { /* ... */ }
-    private void getVideo() { /* ... */ }
-    private void addVideo(Result result) { /* ... */ }
-    private void setFunc() { /* ... */ }
-    private void getHistory() { /* ... */ }
-    private void getHistory(boolean renew) { /* ... */ }
-    private void setHistoryDelete(boolean delete) { /* ... */ }
-    private void clearHistory() { /* ... */ }
-    private int getHistoryIndex() { /* ... */ }
-    private int getRecommendIndex() { /* ... */ }
-    private boolean isLoading() { /* ... */ }
-    private void setLoading(boolean loading) { /* ... */ }
-    private void setLogo() { /* ... */ }
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onRefreshEvent(RefreshEvent event) { /* ... */ }
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onServerEvent(ServerEvent event) { /* ... */ }
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onCastEvent(CastEvent event) { /* ... */ }
-    private Callback getCallback(CastEvent event) { /* ... */ }
-    @Override
-    public void onItemClick(Func item) { /* ... */ }
-
-
-
     @Override
     public void onItemClick(Vod item) {
         if (item.isAction()) mViewModel.action(getHome().getKey(), item.getAction());
@@ -510,7 +521,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     @Override
     protected void onResume() {
         super.onResume();
-        // mClock.start(); // 【最关键的修改】把这行代码从这里彻底删掉！
+        // 【最关键的修改】我们把 mClock.start() 从这里彻底删掉了！
     }
 
     @Override
