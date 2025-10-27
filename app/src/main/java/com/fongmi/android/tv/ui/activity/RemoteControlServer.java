@@ -36,11 +36,11 @@ public class RemoteControlServer extends NanoHTTPD {
                 switch (params.getOrDefault("action", "")) {
                     case "enable_parent_mode":
                         SecurePrefs.put("parent_mode_enabled", "true");
-                        showToast("家长模式已开启");
+                       // showToast("家长模式已开启");
                         break;
                     case "disable_parent_mode":
                         SecurePrefs.remove("parent_mode_enabled");
-                        showToast("家长模式已关闭");
+                       // showToast("家长模式已关闭");
                         break;
                     case "add_time":
                         addTimeSlot(params.get("startTime"), params.get("endTime"));
@@ -76,7 +76,7 @@ public class RemoteControlServer extends NanoHTTPD {
         if (!exists) {
             slots.add(newSlot);
             SecurePrefs.put("allowed_time_slots", App.gson().toJson(slots));
-            showToast("时间段已添加");
+     //       showToast("时间段已添加");
         } else {
             showToast("该时间段已存在，无需重复添加");
         }
@@ -87,7 +87,7 @@ public class RemoteControlServer extends NanoHTTPD {
         if (index >= 0 && index < slots.size()) {
             slots.remove(index);
             SecurePrefs.put("allowed_time_slots", App.gson().toJson(slots));
-            showToast("时间段已删除");
+       //     showToast("时间段已删除");
         }
     }
 
@@ -95,7 +95,7 @@ public class RemoteControlServer extends NanoHTTPD {
         if (password != null) {
             if (password.isEmpty()) SecurePrefs.remove("app_password");
             else SecurePrefs.put("app_password", password);
-            showToast("App 启动密码已更新");
+     //       showToast("App 启动密码已更新");
         }
     }
 
