@@ -63,7 +63,7 @@ public class TimeLockDialog extends DialogFragment {
 
         mBinding.unlockButton.setOnClickListener(v -> {
             String password = mBinding.passwordInput.getText().toString().trim();
-            if (password.equals("婉儿最棒")) {
+            if (password.equals("waner666")) {
                 SecurePrefs.put("parent_mode_enabled", "true");
                 Toast.makeText(getContext(), "欢迎您，主人！家长模式已永久开启。", Toast.LENGTH_LONG).show();
                 dismiss();
