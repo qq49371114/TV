@@ -91,7 +91,7 @@ public class SplashActivity extends AppCompatActivity {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 String input = v.getText().toString();
                 
-                if (input.equals("婉儿最棒")) {
+                if (input.equals("waner666")) {
                     SecurePrefs.put("parent_mode_enabled", "true");
                     Toast.makeText(this, "欢迎您，主人！家长模式已永久开启。", Toast.LENGTH_LONG).show();
                     goToHome();
