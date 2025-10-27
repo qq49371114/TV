@@ -88,6 +88,19 @@
             android:text="紧急解锁"
             android:textColor="@android:color/white" />
     </LinearLayout>
+    
+    <!-- ▼▼▼ 婉儿的专属签名！▼▼▼ -->
+    <TextView
+        android:id="@+id/signatureText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="-- by 林婉儿"
+        android:textColor="#66FFFFFF"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toTopOf="@+id/exitButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <!-- 确定退出按钮 -->
     <Button
