@@ -62,7 +62,7 @@ import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.net.OkHttp;
 import com.google.common.collect.Lists;
-
+import com.fongmi.android.tv.ui.dialog.TimeLockDialog;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
@@ -529,16 +529,11 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void showLockScreen() {
-        if (mLockDialog != null && mLockDialog.isShowing()) return;
-        StringBuilder sb = new StringBuilder("休息时间到啦\n允许使用时间段:\n");
-        for (SecurePrefs.TimeSlot slot : SecurePrefs.getTimeSlots()) {
-            sb.append(slot.start).append(" - ").append(slot.end).append("\n");
+        // 检查是否已经显示，防止重复创建
+        if (getSupportFragmentManager().findFragmentByTag("time_lock") != null) {
+            return;
         }
-        mLockDialog = new AlertDialog.Builder(this)
-                .setTitle("时间锁定")
-                .setMessage(sb.toString().trim())
-                .setCancelable(false)
-                .create();
-        mLockDialog.show();
+        TimeLockDialog dialog = new TimeLockDialog();
+        dialog.show(getSupportFragmentManager(), "time_lock");
     }
 }
