@@ -39,12 +39,22 @@ public class TimeLockDialog extends DialogFragment {
     }
 
     private void initView() {
-        // 根据我们约定的 V4.0 版本，弹窗不可通过返回键或外部点击取消
         setCancelable(false);
 
-        // 更新允许使用的时间段文本
-        // 注意: 这里的实现是简化的，如果时间段是动态的，我们需要从外部传进来
-        // mBinding.timeRangeText.setText(...) 
+        // ▼▼▼ 婉儿在这里加上动态获取和显示时间段的逻辑！▼▼▼
+        List<SecurePrefs.TimeSlot> slots = SecurePrefs.getTimeSlots();
+        if (slots.isEmpty()) {
+            // 如果后台没有设置任何时间段，我们就给一个提示
+            mBinding.timeRangeText.setText("当前未设置任何允许使用的时间段");
+        } else {
+            // 如果有，我们就把它们都显示出来
+            StringBuilder sb = new StringBuilder("允许使用时间段:\n");
+            for (SecurePrefs.TimeSlot slot : slots) {
+                sb.append(slot.start).append(" - ").append(slot.end).append("\n");
+            }
+            // 去掉最后一个多余的换行符，让界面更整洁
+            mBinding.timeRangeText.setText(sb.toString().trim());
+        }
     }
 
     private void initEvent() {
