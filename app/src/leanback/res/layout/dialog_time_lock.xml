@@ -95,16 +95,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="20dp" 
-        android:layout_marginBottom="20dp" <!-- 距离底边距 -->
+        android:layout_marginBottom="20dp" 
         android:text="-- by 林婉儿"
         android:textColor="#66FFFFFF"
         android:textSize="12sp"
-        app:layout_constraintBottom_toBottomOf="parent"  <!-- 约束到底部 -->
-        app:layout_constraintEnd_toEndOf="parent"      <!-- 约束到右侧 -->
+        app:layout_constraintBottom_toBottomOf="parent"  
+        app:layout_constraintEnd_toEndOf="parent"      
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"     <!-- 强制向右侧对齐 -->
-        app:layout_constraintVertical_bias="1.0" />    <!-- 强制向底部对齐 -->
+        app:layout_constraintHorizontal_bias="1.0"     
+        app:layout_constraintVertical_bias="1.0" />    
 
     <!-- 确定退出按钮 -->
     <Button
