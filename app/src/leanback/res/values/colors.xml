@@ -6,6 +6,6 @@
 
     <!-- ★★★ 婉儿新增：用于背景呼吸动画的颜色 ★★★ -->
     <color name="breathing_start_color">#99090a0f</color> 
-    <color name="breathing_end_color">#AA1A1A1A</color> 
+    <color name="breathing_end_color">#CC00FF99</color> 
 
 </resources>
