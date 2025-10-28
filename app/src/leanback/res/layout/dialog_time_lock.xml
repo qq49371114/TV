@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootLayout"  <!-- ★★★ 婉儿新增：用于呼吸动画的ID ★★★ -->
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#99090a0f">
@@ -89,18 +90,20 @@
             android:textColor="@android:color/white" />
     </LinearLayout>
     
-    <!-- ▼▼▼ 婉儿的专属签名！▼▼▼ -->
+    <!-- ▼▼▼ 婉儿的专属签名！修正了定位，确保在 unlockLayout 下方 ▼▼▼ -->
     <TextView
         android:id="@+id/signatureText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
+        android:layout_marginTop="32dp" <!-- 增加与上方布局的间距 -->
         android:text="-- by 林婉儿"
         android:textColor="#66FFFFFF"
         android:textSize="12sp"
         app:layout_constraintBottom_toTopOf="@+id/exitButton"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/unlockLayout" /> <!-- ★★★ 关键修正：约束在解锁布局下方 ★★★ -->
 
     <!-- 确定退出按钮 -->
     <Button
