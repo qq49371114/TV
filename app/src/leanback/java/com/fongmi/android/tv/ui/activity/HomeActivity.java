@@ -463,7 +463,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     protected void onResume() {
         super.onResume();
         mClock.start();
-        checkTimeLock();
     }
 
     @Override
@@ -496,18 +495,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         }
     }
 
-    private void checkTimeLock() {
-        if ("true".equals(SecurePrefs.getString("parent_mode_enabled", "false"))) {
-            return;
-        }
-        if (isTimeLocked()) {
-            showLockScreen();
-        } else {
-            if (mLockDialog != null && mLockDialog.isShowing()) {
-                mLockDialog.dismiss();
-            }
-        }
-    }
 
     private boolean isTimeLocked() {
         List<SecurePrefs.TimeSlot> slots = SecurePrefs.getTimeSlots();
