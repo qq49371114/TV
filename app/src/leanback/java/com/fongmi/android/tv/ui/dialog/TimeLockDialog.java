@@ -53,7 +53,7 @@ public class TimeLockDialog extends DialogFragment {
 
         // 2. 创建 ValueAnimator
         backgroundAnimator = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
-        backgroundAnimator.setDuration(4000); // 呼吸周期：4秒
+        backgroundAnimator.setDuration(6000); // 呼吸周期：6秒
         
         // 3. 更新背景颜色。mBinding.getRoot() 就是你的 ConstraintLayout (rootLayout)
         backgroundAnimator.addUpdateListener(animator -> {
