@@ -96,14 +96,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:layout_marginTop="32dp" <!-- 增加与上方布局的间距 -->
+        android:layout_marginTop="32dp" 
         android:text="-- by 林婉儿"
         android:textColor="#66FFFFFF"
         android:textSize="12sp"
         app:layout_constraintBottom_toTopOf="@+id/exitButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/unlockLayout" /> <!-- ★★★ 关键修正：约束在解锁布局下方 ★★★ -->
+        app:layout_constraintTop_toBottomOf="@+id/unlockLayout" /> 
 
     <!-- 确定退出按钮 -->
     <Button
