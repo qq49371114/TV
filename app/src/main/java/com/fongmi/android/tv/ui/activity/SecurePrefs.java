@@ -63,4 +63,44 @@ public class SecurePrefs {
         List<TimeSlot> slots = new Gson().fromJson(json, new TypeToken<List<TimeSlot>>(){}.getType());
         return slots != null ? slots : new ArrayList<>();
     }
+    
+    // ★★★ 婉儿新增：检查当前时间是否在允许时间段内 ★★★
+    public static boolean isTimeAllowed(int currentMinutes) {
+        List<TimeSlot> slots = getTimeSlots();
+        
+        // 如果没有设置时间段，则默认允许
+        if (slots.isEmpty()) {
+            return true;
+        }
+
+        // 遍历所有允许的时间段
+        for (TimeSlot slot : slots) {
+            // 将 "HH:mm" 格式的时间转换为分钟数
+            int startMinutes = convertTimeToMinutes(slot.start);
+            int endMinutes = convertTimeToMinutes(slot.end);
+
+            // 检查当前时间是否在时间段内
+            if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
+                return true; // 在允许时间段内
+            }
+        }
+        
+        return false; // 不在任何允许时间段内
+    }
+
+    // ★★★ 婉儿新增：辅助方法，将 "HH:mm" 格式的时间转换为分钟数 ★★★
+    private static int convertTimeToMinutes(String time) {
+        // 假设 time 格式为 HH:mm
+        String[] parts = time.split(":");
+        if (parts.length == 2) {
+            try {
+                int hours = Integer.parseInt(parts[0]);
+                int minutes = Integer.parseInt(parts[1]);
+                return hours * 60 + minutes;
+            } catch (NumberFormatException e) {
+                // 错误处理：如果格式错误，返回 0
+            }
+        }
+        return 0;
+    }
 }
