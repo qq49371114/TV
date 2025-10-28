@@ -1,5 +1,7 @@
 package com.fongmi.android.tv.ui.dialog;
 
+import android.animation.ArgbEvaluator; // ★★★ 婉儿新增：动画所需
+import android.animation.ValueAnimator; // ★★★ 婉儿新增：动画所需
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,16 +10,19 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat; // ★★★ 婉儿新增：获取颜色所需
 import androidx.fragment.app.DialogFragment;
 
+import com.fongmi.android.tv.R; // ★★★ 婉儿新增：需要导入R文件来获取颜色资源
 import com.fongmi.android.tv.databinding.DialogTimeLockBinding;
 import com.fongmi.android.tv.ui.activity.SecurePrefs;
 
-import java.util.List; // ▼▼▼ 婉儿把这行最重要的“引路”代码加上啦！▼▼▼
+import java.util.List;
 
 public class TimeLockDialog extends DialogFragment {
 
     private DialogTimeLockBinding mBinding;
+    private ValueAnimator backgroundAnimator; // ★★★ 婉儿新增：动画对象
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -37,6 +42,40 @@ public class TimeLockDialog extends DialogFragment {
         super.onViewCreated(view, savedInstanceState);
         initView();
         initEvent();
+        startBreathingAnimation(); // ★★★ 婉儿新增：启动动画 ★★★
+    }
+
+    // ★★★ 婉儿新增：背景呼吸动画函数 ★★★
+    private void startBreathingAnimation() {
+        // 1. 定义颜色（确保你在 res/values/colors.xml 中定义了这两个颜色）
+        int colorFrom = ContextCompat.getColor(requireContext(), R.color.breathing_start_color); 
+        int colorTo = ContextCompat.getColor(requireContext(), R.color.breathing_end_color); 
+
+        // 2. 创建 ValueAnimator
+        backgroundAnimator = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
+        backgroundAnimator.setDuration(4000); // 呼吸周期：4秒
+        
+        // 3. 更新背景颜色。mBinding.getRoot() 就是你的 ConstraintLayout (rootLayout)
+        backgroundAnimator.addUpdateListener(animator -> {
+            mBinding.getRoot().setBackgroundColor((int) animator.getAnimatedValue());
+        });
+        
+        // 4. 设置无限循环和反向播放
+        backgroundAnimator.setRepeatMode(ValueAnimator.REVERSE);
+        backgroundAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        
+        // 5. 启动动画
+        backgroundAnimator.start();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // ★★★ 婉儿新增：在视图销毁时停止动画，防止内存泄漏 ★★★
+        if (backgroundAnimator != null) {
+            backgroundAnimator.cancel();
+        }
+        mBinding = null;
     }
 
     private void initView() {
