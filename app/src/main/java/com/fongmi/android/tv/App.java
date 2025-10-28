@@ -11,9 +11,11 @@ import android.os.Looper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.os.HandlerCompat;
+import androidx.fragment.app.FragmentActivity; // ★★★ 婉儿新增：用于获取 FragmentManager
 
-//import com.fongmi.android.tv.event.EventIndex;
 import com.fongmi.android.tv.ui.activity.CrashActivity;
+import com.fongmi.android.tv.ui.activity.SecurePrefs; // ★★★ 婉儿新增：获取时间段
+import com.fongmi.android.tv.ui.dialog.TimeLockDialog; // ★★★ 婉儿新增：锁屏对话框
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.hook.Hook;
 import com.github.catvod.Init;
@@ -27,6 +29,7 @@ import com.orhanobut.logger.PrettyFormatStrategy;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.util.Calendar; // ★★★ 婉儿新增：检查时间
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -41,6 +44,9 @@ public class App extends Application {
     private final Gson gson;
     private final long time;
     private Hook hook;
+    
+    // ★★★ 婉儿新增：定时检查间隔 (10分钟) ★★★
+    private static final long LOCK_CHECK_INTERVAL = 600000; 
 
     public App() {
         instance = this;
@@ -153,6 +159,9 @@ public class App extends Application {
             public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
             }
         });
+        
+        // ★★★ 婉儿新增：启动全局定时锁屏检查 ★★★
+        post(lockCheckRunnable, LOCK_CHECK_INTERVAL);
     }
 
     @Override
@@ -163,5 +172,38 @@ public class App extends Application {
     @Override
     public String getPackageName() {
         return hook != null ? hook.getPackageName() : getBaseContext().getPackageName();
+    }
+    
+    // ★★★ 婉儿新增：定时检查任务 Runnable ★★★
+    private final Runnable lockCheckRunnable = new Runnable() {
+        @Override
+        public void run() {
+            checkAndShowLockScreen();
+            // 循环调用，实现定时
+            post(this, LOCK_CHECK_INTERVAL);
+        }
+    };
+
+    // ★★★ 婉儿新增：检查时间并显示锁屏的逻辑 ★★★
+    private void checkAndShowLockScreen() {
+        // 1. 检查当前时间是否在允许时间段内
+        Calendar calendar = Calendar.getInstance();
+        int currentMinutes = calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE);
+
+        boolean isAllowed = SecurePrefs.isTimeAllowed(currentMinutes); // 假设 SecurePrefs 有一个检查方法
+
+        // 2. 如果不在允许时间段内 并且 当前有 Activity 处于前台
+        if (!isAllowed && activity != null) {
+            // 3. 检查当前 Activity 是否是 FragmentActivity (用于支持 DialogFragment)
+            if (activity instanceof FragmentActivity) {
+                FragmentActivity fragmentActivity = (FragmentActivity) activity;
+                
+                // 4. 检查是否已经显示，防止重复创建
+                if (fragmentActivity.getSupportFragmentManager().findFragmentByTag("time_lock") == null) {
+                    TimeLockDialog dialog = new TimeLockDialog();
+                    dialog.show(fragmentActivity.getSupportFragmentManager(), "time_lock");
+                }
+            }
+        }
     }
 }
