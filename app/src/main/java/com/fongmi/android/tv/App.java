@@ -174,5 +174,28 @@ public class App extends Application {
     public String getPackageName() {
         return hook != null ? hook.getPackageName() : getBaseContext().getPackageName();
     }
- }
+    
+    public static void checkTimeLock() {
+    // 1. 获取当前时间（分钟数）
+    Calendar calendar = Calendar.getInstance();
+    int currentMinutes = calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE);
+
+    // 2. 判断是否在允许的时间段内
+    boolean isAllowed = SecurePrefs.isTimeAllowed(currentMinutes);
+
+    // 3. 如果不在允许时间段内，并且 App 在前台
+    if (!isAllowed && App.activity() != null) {
+        // 确保是 FragmentActivity，这样才能显示 DialogFragment
+        if (App.activity() instanceof FragmentActivity) {
+            FragmentActivity fragmentActivity = (FragmentActivity) App.activity();
+            
+            // 检查是否已经显示，防止重复弹窗
+            if (fragmentActivity.getSupportFragmentManager().findFragmentByTag("time_lock") == null) {
+                TimeLockDialog dialog = new TimeLockDialog();
+                dialog.show(fragmentActivity.getSupportFragmentManager(), "time_lock");
+            }
+        }
+    }
+}
+
 
