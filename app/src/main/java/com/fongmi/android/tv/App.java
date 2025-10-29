@@ -175,4 +175,4 @@ public class App extends Application {
         return hook != null ? hook.getPackageName() : getBaseContext().getPackageName();
     }
  }
-}
+
