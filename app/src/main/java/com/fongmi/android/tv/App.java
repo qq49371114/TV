@@ -216,4 +216,5 @@ public class App extends Application {
             Logger.d("TimeLockCheck: Current activity is not a FragmentActivity.");
         }
     }
+  }
 }
