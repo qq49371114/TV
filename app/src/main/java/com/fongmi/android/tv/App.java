@@ -5,13 +5,15 @@ import android.app.Application;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.Observer; // ★★★ 婉儿新增 ★★★
-import androidx.work.ExistingPeriodicWorkPolicy;
-import androidx.work.OneTimeWorkRequest; // ★★★ 婉儿新增：用于调试 ★★★
-import androidx.work.WorkInfo; // ★★★ 婉儿新增 ★★★
+import androidx.core.os.HandlerCompat;
+import androidx.lifecycle.Observer;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
 import com.fongmi.android.tv.ui.activity.CrashActivity;
@@ -36,6 +38,7 @@ import cat.ereza.customactivityoncrash.config.CaocConfig;
 public class App extends Application {
 
     private final ExecutorService executor;
+    private final Handler handler; // ★★★ 婉儿加回：这是 post 方法需要的 Handler
     private static App instance;
     private Activity activity;
     private final Gson gson;
@@ -45,6 +48,7 @@ public class App extends Application {
     public App() {
         instance = this;
         executor = Executors.newFixedThreadPool(Constant.THREAD_POOL);
+        handler = HandlerCompat.createAsync(Looper.getMainLooper()); // ★★★ 婉儿加回：Handler 的初始化
         time = System.currentTimeMillis();
         gson = new Gson();
     }
@@ -52,6 +56,29 @@ public class App extends Application {
     public static App get() {
         return instance;
     }
+
+    // ★★★ 婉儿加回：你项目中所有地方都在用的核心方法！★★★
+    public static void execute(Runnable runnable) {
+        get().executor.execute(runnable);
+    }
+
+    public static void post(Runnable runnable) {
+        get().handler.post(runnable);
+    }
+
+    public static void post(Runnable runnable, long delayMillis) {
+        get().handler.removeCallbacks(runnable);
+        if (delayMillis >= 0) get().handler.postDelayed(runnable, delayMillis);
+    }
+
+    public static void removeCallbacks(Runnable runnable) {
+        get().handler.removeCallbacks(runnable);
+    }
+    
+    public static void removeCallbacks(Runnable... runnable) {
+        for (Runnable r : runnable) get().handler.removeCallbacks(r);
+    }
+    // ★★★ 以上是加回的核心方法 ★★★
 
     public static Gson gson() {
         return get().gson;
@@ -96,43 +123,56 @@ public class App extends Application {
         OkHttp.get().setDoh(Doh.objectFrom(Setting.getDoh()));
         CaocConfig.Builder.create().trackActivities(true).backgroundMode(CaocConfig.BACKGROUND_MODE_SILENT).errorActivity(CrashActivity.class).apply();
         
-        // ★★★ 婉儿新增：启动 WorkManager 全局定时锁屏检查 (调试版) ★★★
         startTimeLockCheckForDebug();
 
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
+            // ... (生命周期回调不变) ...
             @Override
-            public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
-                if (activity != activity()) setActivity(activity);
-            }
-
+            public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) { if (activity != activity()) setActivity(activity); }
             @Override
-            public void onActivityStarted(@NonNull Activity activity) {
-                if (activity != activity()) setActivity(activity);
-            }
-
+            public void onActivityStarted(@NonNull Activity activity) { if (activity != activity()) setActivity(activity); }
             @Override
-            public void onActivityResumed(@NonNull Activity activity) {
-                if (activity != activity()) setActivity(activity);
-            }
-
+            public void onActivityResumed(@NonNull Activity activity) { if (activity != activity()) setActivity(activity); }
             @Override
-            public void onActivityPaused(@NonNull Activity activity) {
-                if (activity == activity()) setActivity(null);
-            }
-
+            public void onActivityPaused(@NonNull Activity activity) { if (activity == activity()) setActivity(null); }
             @Override
-            public void onActivityStopped(@NonNull Activity activity) {
-                if (activity == activity()) setActivity(null);
-            }
-
+            public void onActivityStopped(@NonNull Activity activity) { if (activity == activity()) setActivity(null); }
             @Override
-            public void onActivityDestroyed(@NonNull Activity activity) {
-                if (activity == activity()) setActivity(null);
-            }
-
+            public void onActivityDestroyed(@NonNull Activity activity) { if (activity == activity()) setActivity(null); }
             @Override
-            public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
-            }
+            public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) { }
         });
     }
+
+    // ★★★ WorkManager 调试版调度方法 (保持不变) ★★★
+    private void startTimeLockCheckForDebug() {
+        OneTimeWorkRequest timeLockRequest =
+                new OneTimeWorkRequest.Builder(TimeLockWorker.class)
+                        .setInitialDelay(1, TimeUnit.MINUTES)
+                        .build();
+
+        WorkManager.getInstance(this).getWorkInfoByIdLiveData(timeLockRequest.getId())
+                .observeForever(new Observer<WorkInfo>() {
+                    @Override
+                    public void onChanged(WorkInfo workInfo) {
+                        if (workInfo != null && workInfo.getState() == WorkInfo.State.SUCCEEDED) {
+                            startTimeLockCheckForDebug();
+                            WorkManager.getInstance(App.this).getWorkInfoByIdLiveData(timeLockRequest.getId()).removeObserver(this);
+                        }
+                    }
+                });
+
+        WorkManager.getInstance(this).enqueue(timeLockRequest);
     }
+
+    @Override
+    public PackageManager getPackageManager() {
+        return hook != null ? hook : getBaseContext().getPackageManager();
+    }
+
+    @Override
+    public String getPackageName() {
+        return hook != null ? hook.getPackageName() : getBaseContext().getPackageName();
+    }
+ }
+}
