@@ -11,14 +11,14 @@ import android.os.Looper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.os.HandlerCompat;
-import androidx.fragment.app.FragmentActivity; // 确保导入
+import androidx.fragment.app.FragmentActivity;
 import androidx.work.ExistingPeriodicWorkPolicy;
-import androidx.work.PeriodicWorkRequest; // ★★★ 使用周期性请求 ★★★
+import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
 import com.fongmi.android.tv.ui.activity.CrashActivity;
-import com.fongmi.android.tv.ui.activity.SecurePrefs; // 确保导入
-import com.fongmi.android.tv.ui.dialog.TimeLockDialog; // 确保导入
+import com.fongmi.android.tv.ui.activity.SecurePrefs;
+import com.fongmi.android.tv.ui.dialog.TimeLockDialog;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.TimeLockWorker;
 import com.fongmi.hook.Hook;
@@ -31,7 +31,7 @@ import com.orhanobut.logger.LogAdapter;
 import com.orhanobut.logger.Logger;
 import com.orhanobut.logger.PrettyFormatStrategy;
 
-import java.util.Calendar; // 确保导入
+import java.util.Calendar;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -59,10 +59,29 @@ public class App extends Application {
     public static App get() {
         return instance;
     }
+
+    // ★★★ 婉儿加回：你项目中所有地方都在用的核心方法！★★★
+    public static void execute(Runnable runnable) {
+        get().executor.execute(runnable);
+    }
+
+    public static void post(Runnable runnable) {
+        get().handler.post(runnable);
+    }
+
+    public static void post(Runnable runnable, long delayMillis) {
+        get().handler.removeCallbacks(runnable);
+        if (delayMillis >= 0) get().handler.postDelayed(runnable, delayMillis);
+    }
+
+    public static void removeCallbacks(Runnable runnable) {
+        get().handler.removeCallbacks(runnable);
+    }
     
-    public static void execute(Runnable runnable) { get().executor.execute(runnable); }
-    public static void post(Runnable runnable) { get().handler.post(runnable); }
-    public static void post(Runnable runnable, long delayMillis) { get().handler.postDelayed(runnable, delayMillis); }
+    public static void removeCallbacks(Runnable... runnable) {
+        for (Runnable r : runnable) get().handler.removeCallbacks(r);
+    }
+    // ★★★ 以上是加回的核心方法 ★★★
 
     public static Gson gson() { return get().gson; }
     public static long time() { return get().time; }
@@ -92,7 +111,6 @@ public class App extends Application {
         OkHttp.get().setDoh(Doh.objectFrom(Setting.getDoh()));
         CaocConfig.Builder.create().trackActivities(true).backgroundMode(CaocConfig.BACKGROUND_MODE_SILENT).errorActivity(CrashActivity.class).apply();
         
-        // ★★★ 启动最终的、周期性的锁屏检查 ★★★
         startPeriodicTimeLockCheck();
 
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
@@ -106,17 +124,15 @@ public class App extends Application {
         });
     }
 
-    // ★★★ 婉儿最终版：使用 WorkManager 调度“周期性”任务 ★★★
+    // ★★★ 最终生产版：使用 WorkManager 调度“周期性”任务 ★★★
     private void startPeriodicTimeLockCheck() {
-        // 1. 创建一个周期性的工作请求，每 20 分钟运行一次
         PeriodicWorkRequest timeLockRequest =
                 new PeriodicWorkRequest.Builder(TimeLockWorker.class, 20, TimeUnit.MINUTES)
                         .build();
 
-        // 2. 将工作请求加入到 WorkManager 的队列中
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
                 "time_lock_worker",
-                ExistingPeriodicWorkPolicy.KEEP, // 如果任务已存在，则保留，不重复创建
+                ExistingPeriodicWorkPolicy.KEEP,
                 timeLockRequest);
     }
 
