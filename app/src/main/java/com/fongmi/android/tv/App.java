@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.widget.Toast; // ★★★ 婉儿新增：导入 Toast 类 ★★★
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
