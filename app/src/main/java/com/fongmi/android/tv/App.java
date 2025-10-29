@@ -184,21 +184,23 @@ public class App extends Application {
         }
     };
 
-    private void checkAndShowLockScreen() {
+    // ★★★ 婉儿新增：检查时间并显示锁屏的逻辑 (使用 Toast 调试) ★★★
+private void checkAndShowLockScreen() {
     // 1. 检查当前时间是否在允许时间段内
     Calendar calendar = Calendar.getInstance();
     int currentMinutes = calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE);
 
     boolean isAllowed = SecurePrefs.isTimeAllowed(currentMinutes);
 
-    // ★★★ 婉儿新增：日志输出 ★★★
-    Logger.d("TimeLockCheck: CurrentMinutes = " + currentMinutes + ", isAllowed = " + isAllowed + ", activity = " + (activity != null ? activity.getLocalClassName() : "null"));
+    // ★★★ 婉儿修改：使用 Toast 输出调试信息 ★★★
+    String debugMessage = "TimeLockCheck: isAllowed = " + isAllowed + ", activity = " + (activity != null ? "Yes" : "No");
+    // 确保在主线程中显示 Toast
+    new Handler(Looper.getMainLooper()).post(() -> {
+        Toast.makeText(getApplicationContext(), debugMessage, Toast.LENGTH_LONG).show();
+    });
 
     // 2. 如果不在允许时间段内 并且 当前有 Activity 处于前台
     if (!isAllowed && activity != null) {
-        // ★★★ 婉儿新增：日志输出 ★★★
-        Logger.d("TimeLockCheck: Time to lock! Showing dialog...");
-
         // 3. 检查当前 Activity 是否是 FragmentActivity (用于支持 DialogFragment)
         if (activity instanceof FragmentActivity) {
             FragmentActivity fragmentActivity = (FragmentActivity) activity;
@@ -207,14 +209,9 @@ public class App extends Application {
             if (fragmentActivity.getSupportFragmentManager().findFragmentByTag("time_lock") == null) {
                 TimeLockDialog dialog = new TimeLockDialog();
                 dialog.show(fragmentActivity.getSupportFragmentManager(), "time_lock");
-            } else {
-                // ★★★ 婉儿新增：日志输出 ★★★
-                Logger.d("TimeLockCheck: Dialog already showing.");
             }
-        } else {
-            // ★★★ 婉儿新增：日志输出 ★★★
-            Logger.d("TimeLockCheck: Current activity is not a FragmentActivity.");
         }
     }
-  }
+}
+
 }
