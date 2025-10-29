@@ -25,5 +25,7 @@
     <color name="white_70">#B3FFFFFF</color>
     <color name="white_80">#CCFFFFFF</color>
     <color name="white_90">#E6FFFFFF</color>
+    <color name="breathing_start_color">#99090a0f</color> 
+    <color name="breathing_end_color">#CC00FF99</color> 
 
 </resources>
