@@ -11,12 +11,14 @@ import android.os.Looper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.os.HandlerCompat;
-import androidx.lifecycle.Observer;
-import androidx.work.OneTimeWorkRequest;
-import androidx.work.WorkInfo;
+import androidx.fragment.app.FragmentActivity; // 确保导入
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.PeriodicWorkRequest; // ★★★ 使用周期性请求 ★★★
 import androidx.work.WorkManager;
 
 import com.fongmi.android.tv.ui.activity.CrashActivity;
+import com.fongmi.android.tv.ui.activity.SecurePrefs; // 确保导入
+import com.fongmi.android.tv.ui.dialog.TimeLockDialog; // 确保导入
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.TimeLockWorker;
 import com.fongmi.hook.Hook;
@@ -29,6 +31,7 @@ import com.orhanobut.logger.LogAdapter;
 import com.orhanobut.logger.Logger;
 import com.orhanobut.logger.PrettyFormatStrategy;
 
+import java.util.Calendar; // 确保导入
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +41,7 @@ import cat.ereza.customactivityoncrash.config.CaocConfig;
 public class App extends Application {
 
     private final ExecutorService executor;
-    private final Handler handler; // ★★★ 婉儿加回：这是 post 方法需要的 Handler
+    private final Handler handler;
     private static App instance;
     private Activity activity;
     private final Gson gson;
@@ -48,7 +51,7 @@ public class App extends Application {
     public App() {
         instance = this;
         executor = Executors.newFixedThreadPool(Constant.THREAD_POOL);
-        handler = HandlerCompat.createAsync(Looper.getMainLooper()); // ★★★ 婉儿加回：Handler 的初始化
+        handler = HandlerCompat.createAsync(Looper.getMainLooper());
         time = System.currentTimeMillis();
         gson = new Gson();
     }
@@ -56,56 +59,22 @@ public class App extends Application {
     public static App get() {
         return instance;
     }
-
-    // ★★★ 婉儿加回：你项目中所有地方都在用的核心方法！★★★
-    public static void execute(Runnable runnable) {
-        get().executor.execute(runnable);
-    }
-
-    public static void post(Runnable runnable) {
-        get().handler.post(runnable);
-    }
-
-    public static void post(Runnable runnable, long delayMillis) {
-        get().handler.removeCallbacks(runnable);
-        if (delayMillis >= 0) get().handler.postDelayed(runnable, delayMillis);
-    }
-
-    public static void removeCallbacks(Runnable runnable) {
-        get().handler.removeCallbacks(runnable);
-    }
     
-    public static void removeCallbacks(Runnable... runnable) {
-        for (Runnable r : runnable) get().handler.removeCallbacks(r);
-    }
-    // ★★★ 以上是加回的核心方法 ★★★
+    public static void execute(Runnable runnable) { get().executor.execute(runnable); }
+    public static void post(Runnable runnable) { get().handler.post(runnable); }
+    public static void post(Runnable runnable, long delayMillis) { get().handler.postDelayed(runnable, delayMillis); }
 
-    public static Gson gson() {
-        return get().gson;
-    }
-
-    public static long time() {
-        return get().time;
-    }
-
-    public static Activity activity() {
-        return get().activity;
-    }
+    public static Gson gson() { return get().gson; }
+    public static long time() { return get().time; }
+    public static Activity activity() { return get().activity; }
     
-    public void setHook(Hook hook) {
-        this.hook = hook;
-    }
-
-    private void setActivity(Activity activity) {
-        this.activity = activity;
-    }
+    public void setHook(Hook hook) { this.hook = hook; }
+    private void setActivity(Activity activity) { this.activity = activity; }
     
     private LogAdapter getLogAdapter() {
         return new AndroidLogAdapter(PrettyFormatStrategy.newBuilder().methodCount(0).showThreadInfo(false).tag("").build()) {
             @Override
-            public boolean isLoggable(int priority, String tag) {
-                return true;
-            }
+            public boolean isLoggable(int priority, String tag) { return true; }
         };
     }
 
@@ -123,46 +92,49 @@ public class App extends Application {
         OkHttp.get().setDoh(Doh.objectFrom(Setting.getDoh()));
         CaocConfig.Builder.create().trackActivities(true).backgroundMode(CaocConfig.BACKGROUND_MODE_SILENT).errorActivity(CrashActivity.class).apply();
         
-        startTimeLockCheckForDebug();
+        // ★★★ 启动最终的、周期性的锁屏检查 ★★★
+        startPeriodicTimeLockCheck();
 
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
-            // ... (生命周期回调不变) ...
-            @Override
-            public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) { if (activity != activity()) setActivity(activity); }
-            @Override
-            public void onActivityStarted(@NonNull Activity activity) { if (activity != activity()) setActivity(activity); }
-            @Override
-            public void onActivityResumed(@NonNull Activity activity) { if (activity != activity()) setActivity(activity); }
-            @Override
-            public void onActivityPaused(@NonNull Activity activity) { if (activity == activity()) setActivity(null); }
-            @Override
-            public void onActivityStopped(@NonNull Activity activity) { if (activity == activity()) setActivity(null); }
-            @Override
-            public void onActivityDestroyed(@NonNull Activity activity) { if (activity == activity()) setActivity(null); }
-            @Override
-            public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) { }
+            @Override public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) { if (activity != activity()) setActivity(activity); }
+            @Override public void onActivityStarted(@NonNull Activity activity) { if (activity != activity()) setActivity(activity); }
+            @Override public void onActivityResumed(@NonNull Activity activity) { if (activity != activity()) setActivity(activity); }
+            @Override public void onActivityPaused(@NonNull Activity activity) { if (activity == activity()) setActivity(null); }
+            @Override public void onActivityStopped(@NonNull Activity activity) { if (activity == activity()) setActivity(null); }
+            @Override public void onActivityDestroyed(@NonNull Activity activity) { if (activity == activity()) setActivity(null); }
+            @Override public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) { }
         });
     }
 
-    // ★★★ WorkManager 调试版调度方法 (保持不变) ★★★
-    private void startTimeLockCheckForDebug() {
-        OneTimeWorkRequest timeLockRequest =
-                new OneTimeWorkRequest.Builder(TimeLockWorker.class)
-                        .setInitialDelay(20, TimeUnit.MINUTES)
+    // ★★★ 婉儿最终版：使用 WorkManager 调度“周期性”任务 ★★★
+    private void startPeriodicTimeLockCheck() {
+        // 1. 创建一个周期性的工作请求，每 20 分钟运行一次
+        PeriodicWorkRequest timeLockRequest =
+                new PeriodicWorkRequest.Builder(TimeLockWorker.class, 20, TimeUnit.MINUTES)
                         .build();
 
-        WorkManager.getInstance(this).getWorkInfoByIdLiveData(timeLockRequest.getId())
-                .observeForever(new Observer<WorkInfo>() {
-                    @Override
-                    public void onChanged(WorkInfo workInfo) {
-                        if (workInfo != null && workInfo.getState() == WorkInfo.State.SUCCEEDED) {
-                            startTimeLockCheckForDebug();
-                            WorkManager.getInstance(App.this).getWorkInfoByIdLiveData(timeLockRequest.getId()).removeObserver(this);
-                        }
-                    }
-                });
+        // 2. 将工作请求加入到 WorkManager 的队列中
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                "time_lock_worker",
+                ExistingPeriodicWorkPolicy.KEEP, // 如果任务已存在，则保留，不重复创建
+                timeLockRequest);
+    }
 
-        WorkManager.getInstance(this).enqueue(timeLockRequest);
+    // ★★★ “门卫”和“哨兵”都要使用的公共检查方法 ★★★
+    public static void checkTimeLock() {
+        Calendar calendar = Calendar.getInstance();
+        int currentMinutes = calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE);
+        boolean isAllowed = SecurePrefs.isTimeAllowed(currentMinutes);
+
+        if (!isAllowed && App.activity() != null) {
+            if (App.activity() instanceof FragmentActivity) {
+                FragmentActivity fragmentActivity = (FragmentActivity) App.activity();
+                if (fragmentActivity.getSupportFragmentManager().findFragmentByTag("time_lock") == null) {
+                    TimeLockDialog dialog = new TimeLockDialog();
+                    dialog.show(fragmentActivity.getSupportFragmentManager(), "time_lock");
+                }
+            }
+        }
     }
 
     @Override
@@ -174,28 +146,4 @@ public class App extends Application {
     public String getPackageName() {
         return hook != null ? hook.getPackageName() : getBaseContext().getPackageName();
     }
-    
-    public static void checkTimeLock() {
-    // 1. 获取当前时间（分钟数）
-    Calendar calendar = Calendar.getInstance();
-    int currentMinutes = calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE);
-
-    // 2. 判断是否在允许的时间段内
-    boolean isAllowed = SecurePrefs.isTimeAllowed(currentMinutes);
-
-    // 3. 如果不在允许时间段内，并且 App 在前台
-    if (!isAllowed && App.activity() != null) {
-        // 确保是 FragmentActivity，这样才能显示 DialogFragment
-        if (App.activity() instanceof FragmentActivity) {
-            FragmentActivity fragmentActivity = (FragmentActivity) App.activity();
-            
-            // 检查是否已经显示，防止重复弹窗
-            if (fragmentActivity.getSupportFragmentManager().findFragmentByTag("time_lock") == null) {
-                TimeLockDialog dialog = new TimeLockDialog();
-                dialog.show(fragmentActivity.getSupportFragmentManager(), "time_lock");
-            }
-        }
-    }
 }
-
-
