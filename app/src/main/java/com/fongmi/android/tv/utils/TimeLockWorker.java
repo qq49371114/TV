@@ -23,13 +23,12 @@ public class TimeLockWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-        // ★★★ 这里就是我们的后台工作核心！★★★
-        checkAndShowLockScreen();
-        
-        // 告诉 WorkManager 任务已成功完成
-        return Result.success();
-    }
-
+    // ★★★ 婉儿修改：直接调用 App 中的公共检查方法 ★★★
+    new Handler(Looper.getMainLooper()).post(() -> App.checkTimeLock());
+    
+    // 告诉 WorkManager 任务已成功完成
+    return Result.success();
+}
     private void checkAndShowLockScreen() {
         // 1. 检查当前时间是否在允许时间段内
         Calendar calendar = Calendar.getInstance();
