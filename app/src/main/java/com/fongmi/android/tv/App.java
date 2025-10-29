@@ -184,26 +184,36 @@ public class App extends Application {
         }
     };
 
-    // ★★★ 婉儿新增：检查时间并显示锁屏的逻辑 ★★★
     private void checkAndShowLockScreen() {
-        // 1. 检查当前时间是否在允许时间段内
-        Calendar calendar = Calendar.getInstance();
-        int currentMinutes = calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE);
+    // 1. 检查当前时间是否在允许时间段内
+    Calendar calendar = Calendar.getInstance();
+    int currentMinutes = calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE);
 
-        boolean isAllowed = SecurePrefs.isTimeAllowed(currentMinutes); // 假设 SecurePrefs 有一个检查方法
+    boolean isAllowed = SecurePrefs.isTimeAllowed(currentMinutes);
 
-        // 2. 如果不在允许时间段内 并且 当前有 Activity 处于前台
-        if (!isAllowed && activity != null) {
-            // 3. 检查当前 Activity 是否是 FragmentActivity (用于支持 DialogFragment)
-            if (activity instanceof FragmentActivity) {
-                FragmentActivity fragmentActivity = (FragmentActivity) activity;
-                
-                // 4. 检查是否已经显示，防止重复创建
-                if (fragmentActivity.getSupportFragmentManager().findFragmentByTag("time_lock") == null) {
-                    TimeLockDialog dialog = new TimeLockDialog();
-                    dialog.show(fragmentActivity.getSupportFragmentManager(), "time_lock");
-                }
+    // ★★★ 婉儿新增：日志输出 ★★★
+    Logger.d("TimeLockCheck: CurrentMinutes = " + currentMinutes + ", isAllowed = " + isAllowed + ", activity = " + (activity != null ? activity.getLocalClassName() : "null"));
+
+    // 2. 如果不在允许时间段内 并且 当前有 Activity 处于前台
+    if (!isAllowed && activity != null) {
+        // ★★★ 婉儿新增：日志输出 ★★★
+        Logger.d("TimeLockCheck: Time to lock! Showing dialog...");
+
+        // 3. 检查当前 Activity 是否是 FragmentActivity (用于支持 DialogFragment)
+        if (activity instanceof FragmentActivity) {
+            FragmentActivity fragmentActivity = (FragmentActivity) activity;
+            
+            // 4. 检查是否已经显示，防止重复创建
+            if (fragmentActivity.getSupportFragmentManager().findFragmentByTag("time_lock") == null) {
+                TimeLockDialog dialog = new TimeLockDialog();
+                dialog.show(fragmentActivity.getSupportFragmentManager(), "time_lock");
+            } else {
+                // ★★★ 婉儿新增：日志输出 ★★★
+                Logger.d("TimeLockCheck: Dialog already showing.");
             }
+        } else {
+            // ★★★ 婉儿新增：日志输出 ★★★
+            Logger.d("TimeLockCheck: Current activity is not a FragmentActivity.");
         }
     }
 }
