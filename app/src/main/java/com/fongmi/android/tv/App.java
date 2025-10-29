@@ -8,13 +8,15 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.work.ExistingPeriodicWorkPolicy; // ★★★ 婉儿新增 ★★★
-import androidx.work.PeriodicWorkRequest;      // ★★★ 婉儿新增 ★★★
-import androidx.work.WorkManager;             // ★★★ 婉儿新增 ★★★
+import androidx.lifecycle.Observer; // ★★★ 婉儿新增 ★★★
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.OneTimeWorkRequest; // ★★★ 婉儿新增：用于调试 ★★★
+import androidx.work.WorkInfo; // ★★★ 婉儿新增 ★★★
+import androidx.work.WorkManager;
 
 import com.fongmi.android.tv.ui.activity.CrashActivity;
 import com.fongmi.android.tv.utils.Notify;
-import com.fongmi.android.tv.utils.TimeLockWorker; // ★★★ 婉儿新增 ★★★
+import com.fongmi.android.tv.utils.TimeLockWorker;
 import com.fongmi.hook.Hook;
 import com.github.catvod.Init;
 import com.github.catvod.bean.Doh;
@@ -27,7 +29,7 @@ import com.orhanobut.logger.PrettyFormatStrategy;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit; // ★★★ 婉儿新增 ★★★
+import java.util.concurrent.TimeUnit;
 
 import cat.ereza.customactivityoncrash.config.CaocConfig;
 
@@ -70,7 +72,7 @@ public class App extends Application {
     private void setActivity(Activity activity) {
         this.activity = activity;
     }
-
+    
     private LogAdapter getLogAdapter() {
         return new AndroidLogAdapter(PrettyFormatStrategy.newBuilder().methodCount(0).showThreadInfo(false).tag("").build()) {
             @Override
@@ -94,8 +96,8 @@ public class App extends Application {
         OkHttp.get().setDoh(Doh.objectFrom(Setting.getDoh()));
         CaocConfig.Builder.create().trackActivities(true).backgroundMode(CaocConfig.BACKGROUND_MODE_SILENT).errorActivity(CrashActivity.class).apply();
         
-        // ★★★ 婉儿新增：启动 WorkManager 全局定时锁屏检查 ★★★
-        startPeriodicTimeLockCheck();
+        // ★★★ 婉儿新增：启动 WorkManager 全局定时锁屏检查 (调试版) ★★★
+        startTimeLockCheckForDebug();
 
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override
@@ -133,34 +135,3 @@ public class App extends Application {
             }
         });
     }
-
-    // ★★★ 婉儿新增：使用 WorkManager 调度周期性任务的方法 ★★★
-private void startPeriodicTimeLockCheck() {
-    // 1. 创建一个“一次性”的工作请求
-    OneTimeWorkRequest timeLockRequest =
-            new OneTimeWorkRequest.Builder(TimeLockWorker.class)
-                    .setInitialDelay(1, TimeUnit.MINUTES) // ★★★ 延迟 1 分钟执行
-                    .build();
-
-    // 2. 将工作请求加入队列，并在完成后再次调度自己，实现“伪循环”
-    WorkManager.getInstance(this).getWorkInfoByIdLiveData(timeLockRequest.getId())
-            .observeForever(workInfo -> {
-                if (workInfo != null && workInfo.getState() == WorkInfo.State.SUCCEEDED) {
-                    // 当任务成功后，再次调度一个新的 1 分钟任务
-                    startPeriodicTimeLockCheck();
-                }
-            });
-
-    WorkManager.getInstance(this).enqueue(timeLockRequest);
-}
-
-    @Override
-    public PackageManager getPackageManager() {
-        return hook != null ? hook : getBaseContext().getPackageManager();
-    }
-
-    @Override
-    public String getPackageName() {
-        return hook != null ? hook.getPackageName() : getBaseContext().getPackageName();
-    }
-}
