@@ -47,7 +47,7 @@ public class App extends Application {
     private Hook hook;
     
     // ★★★ 婉儿新增：定时检查间隔 (10分钟) ★★★
-    private static final long LOCK_CHECK_INTERVAL = 600000; 
+    private static final long LOCK_CHECK_INTERVAL = 30000; 
 
     public App() {
         instance = this;
