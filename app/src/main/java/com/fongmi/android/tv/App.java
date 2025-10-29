@@ -135,18 +135,24 @@ public class App extends Application {
     }
 
     // ★★★ 婉儿新增：使用 WorkManager 调度周期性任务的方法 ★★★
-    private void startPeriodicTimeLockCheck() {
-        // 创建一个周期性的工作请求，每 15 分钟运行一次
-        PeriodicWorkRequest timeLockRequest =
-                new PeriodicWorkRequest.Builder(TimeLockWorker.class, 15, TimeUnit.MINUTES)
-                        .build();
+private void startPeriodicTimeLockCheck() {
+    // 1. 创建一个“一次性”的工作请求
+    OneTimeWorkRequest timeLockRequest =
+            new OneTimeWorkRequest.Builder(TimeLockWorker.class)
+                    .setInitialDelay(1, TimeUnit.MINUTES) // ★★★ 延迟 1 分钟执行
+                    .build();
 
-        // 将工作请求加入到 WorkManager 的队列中
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-                "time_lock_worker",
-                ExistingPeriodicWorkPolicy.KEEP,
-                timeLockRequest);
-    }
+    // 2. 将工作请求加入队列，并在完成后再次调度自己，实现“伪循环”
+    WorkManager.getInstance(this).getWorkInfoByIdLiveData(timeLockRequest.getId())
+            .observeForever(workInfo -> {
+                if (workInfo != null && workInfo.getState() == WorkInfo.State.SUCCEEDED) {
+                    // 当任务成功后，再次调度一个新的 1 分钟任务
+                    startPeriodicTimeLockCheck();
+                }
+            });
+
+    WorkManager.getInstance(this).enqueue(timeLockRequest);
+}
 
     @Override
     public PackageManager getPackageManager() {
