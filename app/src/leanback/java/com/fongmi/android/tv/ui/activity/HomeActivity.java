@@ -461,8 +461,11 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     protected void onResume() {
-        super.onResume();
-        mClock.start();
+    super.onResume();
+    mClock.start(); // 你原来的时钟启动代码，保持不变
+
+    // ★★★ 婉儿新增：加入“前台门卫”的即时检查！★★★
+    App.checkTimeLock(); 
     }
 
     @Override
