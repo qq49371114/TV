@@ -148,7 +148,7 @@ public class App extends Application {
     private void startTimeLockCheckForDebug() {
         OneTimeWorkRequest timeLockRequest =
                 new OneTimeWorkRequest.Builder(TimeLockWorker.class)
-                        .setInitialDelay(1, TimeUnit.MINUTES)
+                        .setInitialDelay(20, TimeUnit.MINUTES)
                         .build();
 
         WorkManager.getInstance(this).getWorkInfoByIdLiveData(timeLockRequest.getId())
