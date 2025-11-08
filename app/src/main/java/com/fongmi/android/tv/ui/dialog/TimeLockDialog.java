@@ -17,6 +17,8 @@ import android.app.Activity;
 import com.fongmi.android.tv.R; // ★★★ 婉儿新增：需要导入R文件来获取颜色资源
 import com.fongmi.android.tv.databinding.DialogTimeLockBinding;
 import com.fongmi.android.tv.ui.activity.SecurePrefs;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentActivity;
 
 import java.util.List;
 
@@ -95,7 +97,12 @@ public class TimeLockDialog extends DialogFragment {
     }
 
     public static void show(Activity activity) {
-    new TimeLockDialog().show(activity.getFragmentManager(), "TimeLockDialog");
+    //new TimeLockDialog().show(activity.getFragmentManager(), "TimeLockDialog");
+    new TimeLockDialog().show(
+       ((FragmentActivity) activity).getSupportFragmentManager(),
+       "TimeLockDialog"
+   );
+
    }
 
 
