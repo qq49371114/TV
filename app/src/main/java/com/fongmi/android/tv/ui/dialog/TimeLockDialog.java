@@ -93,6 +93,11 @@ public class TimeLockDialog extends DialogFragment {
         }
     }
 
+    public static void show(Activity activity) {
+    new TimeLockDialog().show(activity.getFragmentManager(), "TimeLockDialog");
+   }
+
+
     private void initEvent() {
         mBinding.exitButton.setOnClickListener(v -> {
             if (getActivity() != null) {
