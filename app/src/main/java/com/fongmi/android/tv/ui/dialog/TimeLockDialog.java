@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat; // ★★★ 婉儿新增：获取颜色所需
 import androidx.fragment.app.DialogFragment;
+import android.app.Activity;
 
 import com.fongmi.android.tv.R; // ★★★ 婉儿新增：需要导入R文件来获取颜色资源
 import com.fongmi.android.tv.databinding.DialogTimeLockBinding;
