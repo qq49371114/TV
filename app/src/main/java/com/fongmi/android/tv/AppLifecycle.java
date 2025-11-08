@@ -5,7 +5,9 @@ import android.app.Application;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import com.fongmi.android.tv.ui.overlay.TimeLockOverlay;
+//import com.fongmi.android.tv.ui.overlay.TimeLockOverlay;
+import com.fongmi.android.tv.ui.dialog.TimeLockDialog;
+
 
 
 /**
@@ -36,7 +38,7 @@ public class AppLifecycle implements Application.ActivityLifecycleCallbacks {
     @Override public void onActivityDestroyed(Activity activity) {}
 
     private void scheduleLock(Activity activity) {
-        lockTask = () -> TimeLockOverlay.show(activity);
+        lockTask = () -> TimeLockDialog.show(activity);
         handler.postDelayed(lockTask, LOCK_DELAY);
     }
 
