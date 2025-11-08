@@ -5,6 +5,8 @@ import android.app.Application;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import com.fongmi.android.tv.ui.overlay.TimeLockOverlay;
+
 
 /**
  * 全局生命周期监听 → 统一锁屏计时器
