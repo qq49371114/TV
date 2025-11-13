@@ -1,31 +1,58 @@
-- name: 生成签名配置
-  run: |
-    mkdir -p app
-    cat > app/signing.gradle <<'EOF'
-    android {
-        if (project.hasProperty('FONGMIBOX_STORE_FILE')) {
-            signingConfigs {
-                myConfig {
-                    storeFile file(FONGMIBOX_STORE_FILE)
-                    storePassword FONGMIBOX_STORE_PASSWORD
-                    keyAlias FONGMIBOX_KEY_ALIAS
-                    keyPassword FONGMIBOX_KEY_PASSWORD
-                    v1SigningEnabled true
-                    v2SigningEnabled true
-                    enableV3Signing true
-                    enableV4Signing true
-                }
-            }
-            buildTypes.release.signingConfig signingConfigs.myConfig
-        }
-    }
-    EOF
+name: Build Release APK
 
-- name: 写入密钥文件
-  run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release.keystore
+on:
+  push:
+    branches: [ fongmi476 ]
 
-- name: 编译 Release
-  run: ./gradlew assembleRelease -PFONGMIBOX_STORE_FILE=../release.keystore \
-                               -PFONGMIBOX_STORE_PASSWORD=${{ secrets.STORE_PASSWORD }} \
-                               -PFONGMIBOX_KEY_ALIAS=${{ secrets.KEY_ALIAS }} \
-                               -PFONGMIBOX_KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 生成 local.properties
+        run: echo "sdk.dir=$ANDROID_SDK_ROOT" >> local.properties
+
+      - name: 解码并写出签名配置
+        run: |
+          mkdir -p app
+          cat > app/signing.gradle <<'EOF'
+          android {
+              if (project.hasProperty('FONGMIBOX_STORE_FILE')) {
+                  signingConfigs {
+                      release {
+                          storeFile file(FONGMIBOX_STORE_FILE)
+                          storePassword FONGMIBOX_STORE_PASSWORD
+                          keyAlias FONGMIBOX_KEY_ALIAS
+                          keyPassword FONGMIBOX_KEY_PASSWORD
+                          v1SigningEnabled true
+                          v2SigningEnabled true
+                          enableV3Signing true
+                          enableV4Signing true
+                      }
+                  }
+                  buildTypes.release.signingConfig signingConfigs.release
+              }
+          }
+          EOF
+
+      - name: 写出 keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release.keystore
+
+      - name: 构建 Release
+        run: ./gradlew assembleRelease \
+             -PFONGMIBOX_STORE_FILE=../release.keystore \
+             -PFONGMIBOX_STORE_PASSWORD=${{ secrets.STORE_PASSWORD }} \
+             -PFONGMIBOX_KEY_ALIAS=${{ secrets.KEY_ALIAS }} \
+             -PFONGMIBOX_KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}
+
+      - name: 上传 APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: tvbox-release
+          path: app/build/outputs/apk/release/*.apk
