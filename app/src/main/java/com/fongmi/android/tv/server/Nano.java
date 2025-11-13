@@ -80,7 +80,8 @@ public class Nano extends NanoHTTPD {
             InputStream is = Asset.open(path);
             return newFixedLengthResponse(Response.Status.OK, getMimeTypeForFile(path), is, is.available());
         } catch (Exception e) {
-            return newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_HTML, null, 0);
+            // 核心补丁：非空实体，防止底层吞 status
+            return newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_HTML, "");
         }
     }
 }
