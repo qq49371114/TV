@@ -6,14 +6,13 @@ android {
     namespace 'com.fongmi.android.tv'
 
     compileSdk = 36
-
     defaultConfig {
         applicationId "com.fongmi.android.tv"
         minSdk 24
         //noinspection ExpiredTargetSdkVersion
-        targetSdk 28
-        versionCode 476
-        versionName "4.7.6"
+        targetSdk 36
+        versionCode 47601
+        versionName "4.7.6.01"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString(), "eventBusIndex": "com.fongmi.android.tv.event.EventIndex"]

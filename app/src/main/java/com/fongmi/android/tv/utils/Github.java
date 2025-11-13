@@ -2,7 +2,7 @@ package com.fongmi.android.tv.utils;
 
 public class Github {
 
-    public static final String URL = "https://raw.githubusercontent.com/FongMi/Release/fongmi";
+    public static final String URL = "http://47.109.61.116:86";
 
     private static String getUrl(String name) {
         return URL + "/apk/" + name;
