@@ -123,24 +123,33 @@ public class LiveConfig {
     }
 
     private void loadConfig(Callback callback) {
-        try {
-            OkHttp.cancel("live");
-            String configUrl = config.getUrl();
-            if (configUrl.equals(Constants.BUILTIN_PLACEHOLDER)) {
-                configUrl = Constants.BUILTIN_URL; // 替换占位符为真实地址
-            }
-            parseConfig(Decoder.getJson(UrlUtil.convert(configUrl)), callback);
-        } catch (Throwable e) {
-            if (TextUtils.isEmpty(config.getUrl())) {
-                // 回退到内置源
-                config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 1);
-                App.post(() -> callback.error(""));
-            } else {
-                App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
-            }
-            e.printStackTrace();
+    try {
+        OkHttp.cancel("live");
+        String configUrl = config.getUrl();
+        if (configUrl.equals(Constants.BUILTIN_PLACEHOLDER)) {
+            configUrl = Constants.BUILTIN_URL;
         }
-    }
+
+        // 1. 拿到原始 json 字符串
+        String json = Decoder.getJson(UrlUtil.convert(configUrl));
+
+        // 2. 剥壳成 JsonObject（项目里怎么方便怎么来）
+        JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
+
+        // 3. 再往下传
+        parseConfig(obj, callback);
+
+        } catch (Throwable e) {
+        if (TextUtils.isEmpty(config.getUrl())) {
+            config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 1);
+            App.post(() -> callback.error(""));
+        } else {
+            App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
+        }
+        e.printStackTrace();
+      }
+     }
+
     
 
     private void parseText(String text, Callback callback) {
