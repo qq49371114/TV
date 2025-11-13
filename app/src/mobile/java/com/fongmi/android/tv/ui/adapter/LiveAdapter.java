@@ -24,10 +24,6 @@ public class LiveAdapter extends RecyclerView.Adapter<LiveAdapter.ViewHolder> {
         this.mItems = LiveConfig.get().getLives();
     }
 
-    public void setAction(boolean action) {
-        this.action = action;
-    }
-
     public interface OnClickListener {
 
         void onItemClick(Live item);
@@ -39,6 +35,10 @@ public class LiveAdapter extends RecyclerView.Adapter<LiveAdapter.ViewHolder> {
         boolean onBootLongClick(Live item);
 
         boolean onPassLongClick(Live item);
+    }
+
+    public void setAction(boolean action) {
+        this.action = action;
     }
 
     @Override

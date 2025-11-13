@@ -6,18 +6,14 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.fongmi.android.tv.databinding.AdapterCollectWordBinding;
+import com.fongmi.android.tv.bean.Word;
+import com.fongmi.android.tv.databinding.AdapterSearchWordBinding;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
+public class WordAdapter extends BaseDiffAdapter<Word.Data, WordAdapter.ViewHolder> {
 
     private final OnClickListener listener;
-    private final List<String> mItems;
 
     public WordAdapter(OnClickListener listener) {
-        this.mItems = new ArrayList<>();
         this.listener = listener;
     }
 
@@ -26,35 +22,24 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
         void onItemClick(String text);
     }
 
-    public void addAll(List<String> items) {
-        mItems.clear();
-        mItems.addAll(items.subList(0, Math.min(items.size(), 20)));
-        notifyDataSetChanged();
-    }
-
-    @Override
-    public int getItemCount() {
-        return mItems.size();
-    }
-
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ViewHolder(AdapterCollectWordBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+        return new ViewHolder(AdapterSearchWordBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        String item = mItems.get(position);
-        holder.binding.text.setText(item);
-        holder.binding.text.setOnClickListener(v -> listener.onItemClick(item));
+        Word.Data item = getItem(position);
+        holder.binding.text.setText(item.getTitle());
+        holder.binding.text.setOnClickListener(v -> listener.onItemClick(item.getTitle()));
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
-        private final AdapterCollectWordBinding binding;
+        private final AdapterSearchWordBinding binding;
 
-        ViewHolder(@NonNull AdapterCollectWordBinding binding) {
+        public ViewHolder(@NonNull AdapterSearchWordBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
         }

@@ -12,7 +12,6 @@ import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -112,9 +111,9 @@ public class LiveParser {
                 unknown.setReplace(extract(line, CATCHUP_REPLACE));
                 channel.setCatchup(Catchup.decide(unknown, catchup));
             } else if (!line.startsWith("#") && line.contains("://")) {
-                String[] split = line.split("\\|");
-                if (split.length > 1) setting.headers(Arrays.copyOfRange(split, 1, split.length));
-                channel.getUrls().add(split[0]);
+                String[] parts = line.split("\\|", 2);
+                if (parts.length > 1) setting.headers(parts[1]);
+                channel.getUrls().add(parts[0]);
                 setting.copy(channel).clear();
             }
         }
@@ -133,8 +132,12 @@ public class LiveParser {
             if (split.length > 1 && split[1].contains("://")) {
                 Group group = live.getGroups().get(live.getGroups().size() - 1);
                 Channel channel = group.find(Channel.create(split[0]));
-                channel.addUrls(split[1].split("#"));
-                setting.copy(channel);
+                for (String url : split[1].split("#")) {
+                    String[] parts = url.split("\\|", 2);
+                    if (parts.length > 1) setting.headers(parts[1]);
+                    channel.getUrls().add(parts[0]);
+                    setting.copy(channel);
+                }
             }
         }
     }
@@ -253,7 +256,7 @@ public class LiveParser {
 
         private void key(String line) {
             try {
-                key = line.split("license_key=")[1].trim();
+                key = line.contains("license_key=") ? line.split("license_key=")[1].trim() : line;
                 if (!key.startsWith("http")) convert();
             } catch (Exception e) {
                 key = null;
@@ -262,7 +265,7 @@ public class LiveParser {
 
         private void type(String line) {
             try {
-                type = line.split("license_type=")[1].trim();
+                type = line.contains("license_type=") ? line.split("license_type=")[1].trim() : line;
             } catch (Exception e) {
                 type = null;
             }
@@ -271,9 +274,8 @@ public class LiveParser {
         public void drmLegacy(String line) {
             try {
                 line = line.split("drm_legacy=")[1].trim();
-                type = line.split("\\|")[0].trim();
-                key = line.split("\\|")[1].trim();
-                if (!key.startsWith("http")) convert();
+                type(line.split("\\|")[0].trim());
+                key(line.split("\\|")[1].trim());
             } catch (Exception e) {
                 type = null;
                 key = null;
@@ -291,7 +293,9 @@ public class LiveParser {
 
         private void headers(String line) {
             try {
-                headers(line.split("headers=")[1].trim().split("&"));
+                if (line.contains("headers=")) headers(line.split("headers=")[1].trim().split("&"));
+                else if (line.contains("|")) for (String text : line.split("\\|")) headers(text);
+                else headers(line.trim().split("&"));
             } catch (Exception ignored) {
             }
         }
@@ -301,7 +305,11 @@ public class LiveParser {
             for (String param : params) {
                 if (!param.contains("=")) continue;
                 String[] a = param.split("=", 2);
-                header.put(a[0].trim(), a[1].trim().replace("\"", ""));
+                String k = a[0].trim().replace("\"", "");
+                String v = a[1].trim().replace("\"", "");
+                if ("drmScheme".equals(k)) type(v);
+                else if ("drmLicense".equals(k)) key(v);
+                else header.put(k, v);
             }
         }
 

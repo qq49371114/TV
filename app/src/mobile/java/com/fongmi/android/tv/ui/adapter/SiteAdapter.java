@@ -28,6 +28,19 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
         this.addAll();
     }
 
+    public interface OnClickListener {
+
+        void onTextClick(Site item);
+
+        void onSearchClick(int position, Site item);
+
+        void onChangeClick(int position, Site item);
+
+        boolean onSearchLongClick(Site item);
+
+        boolean onChangeLongClick(Site item);
+    }
+
     public SiteAdapter search(boolean search) {
         this.search = search;
         return this;
@@ -44,19 +57,6 @@ public class SiteAdapter extends RecyclerView.Adapter<SiteAdapter.ViewHolder> {
 
     public List<Site> getItems() {
         return mItems;
-    }
-
-    public interface OnClickListener {
-
-        void onTextClick(Site item);
-
-        void onSearchClick(int position, Site item);
-
-        void onChangeClick(int position, Site item);
-
-        boolean onSearchLongClick(Site item);
-
-        boolean onChangeLongClick(Site item);
     }
 
     @Override

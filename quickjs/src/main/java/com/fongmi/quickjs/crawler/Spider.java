@@ -25,12 +25,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import dalvik.system.DexClassLoader;
-import java9.util.concurrent.CompletableFuture;
 
 public class Spider extends com.github.catvod.crawler.Spider {
 
@@ -42,16 +42,11 @@ public class Spider extends com.github.catvod.crawler.Spider {
     private final String api;
     private boolean cat;
 
-    public Spider(String key, String api, DexClassLoader dex) throws Exception {
+    public Spider(String key, String api, DexClassLoader dex) {
         this.executor = Executors.newSingleThreadExecutor();
         this.key = key;
         this.api = api;
         this.dex = dex;
-        initializeJS();
-    }
-
-    private void submit(Runnable runnable) {
-        executor.submit(runnable);
     }
 
     private <T> Future<T> submit(Callable<T> callable) {
@@ -64,6 +59,7 @@ public class Spider extends com.github.catvod.crawler.Spider {
 
     @Override
     public void init(Context context, String extend) throws Exception {
+        initializeJS();
         if (cat) call("init", submit(() -> cfg(extend)).get());
         else call("init", Json.isObj(extend) ? ctx.parse(extend) : extend);
     }
@@ -138,11 +134,21 @@ public class Spider extends com.github.catvod.crawler.Spider {
         } catch (Throwable e) {
             e.printStackTrace();
         }
-        submit(() -> {
+        try {
+            releaseJS();
+        } catch (Throwable e) {
+            e.printStackTrace();
+        } finally {
             executor.shutdownNow();
+        }
+    }
+
+    private void releaseJS() throws Exception {
+        submit(() -> {
             jsObject.release();
             ctx.destroy();
-        });
+            return null;
+        }).get();
     }
 
     private void initializeJS() throws Exception {

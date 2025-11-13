@@ -27,6 +27,7 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.bean.Channel;
+import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Epg;
 import com.fongmi.android.tv.bean.EpgData;
 import com.fongmi.android.tv.bean.Group;
@@ -39,6 +40,7 @@ import com.fongmi.android.tv.event.ErrorEvent;
 import com.fongmi.android.tv.event.PlayerEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Callback;
+import com.fongmi.android.tv.impl.ConfigCallback;
 import com.fongmi.android.tv.impl.CustomTarget;
 import com.fongmi.android.tv.impl.LiveCallback;
 import com.fongmi.android.tv.impl.PassCallback;
@@ -46,11 +48,11 @@ import com.fongmi.android.tv.model.LiveViewModel;
 import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.player.exo.ExoUtil;
-import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownLive;
 import com.fongmi.android.tv.ui.custom.CustomLiveListView;
+import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.PassDialog;
 import com.fongmi.android.tv.ui.dialog.SubtitleDialog;
@@ -72,7 +74,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
-public class LiveActivity extends BaseActivity implements GroupPresenter.OnClickListener, ChannelPresenter.OnClickListener, EpgDataPresenter.OnClickListener, CustomKeyDownLive.Listener, CustomLiveListView.Callback, TrackDialog.Listener, PassCallback, LiveCallback {
+public class LiveActivity extends BaseActivity implements GroupPresenter.OnClickListener, ChannelPresenter.OnClickListener, EpgDataPresenter.OnClickListener, CustomKeyDownLive.Listener, CustomLiveListView.Callback, TrackDialog.Listener, PassCallback, ConfigCallback, LiveCallback {
 
     private ActivityLiveBinding mBinding;
     private ArrayObjectAdapter mChannelAdapter;
@@ -93,12 +95,13 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
     private Runnable mR3;
     private Runnable mR4;
     private Clock mClock;
+    private View mFocus2;
     private boolean redirect;
     private String tag;
     private int count;
 
     public static void start(Context context) {
-        if (!LiveConfig.isEmpty()) context.startActivity(new Intent(context, LiveActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK).putExtra("empty", false));
+        context.startActivity(new Intent(context, LiveActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK).putExtra("empty", LiveConfig.isEmpty()));
     }
 
     private boolean isEmpty() {
@@ -140,7 +143,6 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
         mR2 = this::setTraffic;
         mR3 = this::hideInfo;
         mR4 = this::hideUI;
-        Server.get().start();
         setRecyclerView();
         setVideoView();
         setViewModel();
@@ -165,6 +167,7 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
         mBinding.control.line.setOnClickListener(view -> onLine());
         mBinding.control.scale.setOnClickListener(view -> onScale());
         mBinding.control.speed.setOnClickListener(view -> onSpeed());
+        mBinding.control.config.setOnClickListener(view -> onConfig());
         mBinding.control.action.setOnClickListener(view -> onAction());
         mBinding.control.invert.setOnClickListener(view -> onInvert());
         mBinding.control.across.setOnClickListener(view -> onAcross());
@@ -196,7 +199,7 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
         setScale(Setting.getLiveScale());
         ExoUtil.setSubtitleView(mBinding.exo);
         mPlayers.setTag(tag = UUID.randomUUID().toString());
-        findViewById(R.id.timeBar).setNextFocusUpId(R.id.home);
+        findViewById(R.id.timeBar).setNextFocusUpId(R.id.config);
         mBinding.control.invert.setActivated(Setting.isInvert());
         mBinding.control.across.setActivated(Setting.isAcross());
         mBinding.control.change.setActivated(Setting.isChange());
@@ -220,7 +223,6 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
         mViewModel.epg.observeForever(mObserveEpg);
         mViewModel.live.observe(this, live -> {
             mViewModel.getXml(live);
-            hideProgress();
             setGroup(live);
             setWidth(live);
         });
@@ -379,6 +381,11 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
     private boolean onSpeedLong() {
         mBinding.control.speed.setText(mPlayers.toggleSpeed());
         return true;
+    }
+
+    private void onConfig() {
+        HistoryDialog.create(this).readOnly().type(1).show();
+        hideControl();
     }
 
     private void onAction() {
@@ -548,7 +555,7 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
     public void onItemClick(Channel item) {
         if (!item.getData().getList().isEmpty() && item.isSelected() && mChannel != null && mChannel.equals(item) && mChannel.getGroup().equals(mGroup)) {
             showEpg(item);
-        } else {
+        } else if (mGroup != null) {
             mGroup.setPosition(mBinding.channel.getSelectedPosition());
             setChannel(item.group(mGroup));
             hideUI();
@@ -631,7 +638,7 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
     }
 
     private void setEpg(Epg epg) {
-        if (mChannel != null && mChannel.getTvgName().equals(epg.getKey())) setEpg();
+        if (mChannel != null && mChannel.getTvgId().equals(epg.getKey())) setEpg();
     }
 
     private void fetch(EpgData item) {
@@ -673,8 +680,36 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
 
     @Override
     public void onSubtitleClick() {
-        App.post(this::hideControl, 200);
-        App.post(() -> SubtitleDialog.create().view(mBinding.exo.getSubtitleView()).full(true).show(this), 200);
+        SubtitleDialog.create().view(mBinding.exo.getSubtitleView()).full(true).show(this);
+        App.post(this::hideControl, 100);
+    }
+
+    @Override
+    public void setConfig(Config config) {
+        Config current = LiveConfig.get().getConfig();
+        LiveConfig.load(config, getCallback(current));
+    }
+
+    private Callback getCallback(Config config) {
+        return new Callback() {
+            @Override
+            public void start() {
+                showProgress();
+            }
+
+            @Override
+            public void success() {
+                RefreshEvent.config();
+                setLive(getHome());
+            }
+
+            @Override
+            public void error(String msg) {
+                LiveConfig.get().config(config).load();
+                Notify.show(msg);
+                hideProgress();
+            }
+        };
     }
 
     @Override
@@ -885,9 +920,14 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
         this.redirect = redirect;
     }
 
+    private View getFocus2() {
+        return mFocus2 == null || mFocus2.getVisibility() != View.VISIBLE ? mBinding.control.config : mFocus2;
+    }
+
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (isVisible(mBinding.control.getRoot())) setR1Callback();
+        if (isVisible(mBinding.control.getRoot())) mFocus2 = getCurrentFocus();
         if (mKeyDown.hasEvent(event)) mKeyDown.onKeyDown(event);
         return super.dispatchKeyEvent(event);
     }
@@ -956,7 +996,7 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
 
     @Override
     public void onMenu() {
-        showControl(mBinding.control.home);
+        showControl(getFocus2());
     }
 
     @Override
@@ -976,13 +1016,11 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
         super.onStart();
         mBinding.exo.setPlayer(mPlayers.get());
         mClock.stop().start();
-        onPlay();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (isRedirect()) onPlay();
         setRedirect(false);
     }
 
@@ -1015,12 +1053,12 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         mPlayers.release();
         Source.get().exit();
         PlaybackService.stop();
         mViewModel.url.removeObserver(mObserveUrl);
         mViewModel.epg.removeObserver(mObserveEpg);
         App.removeCallbacks(mR0, mR1, mR3, mR3, mR4);
+        super.onDestroy();
     }
 }

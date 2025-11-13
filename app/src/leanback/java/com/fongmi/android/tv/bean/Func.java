@@ -70,7 +70,7 @@ public class Func implements Diffable<Func> {
 
     @Override
     public boolean isSameItem(Func other) {
-        return getResId() == other.getResId();
+        return equals(other);
     }
 
     @Override

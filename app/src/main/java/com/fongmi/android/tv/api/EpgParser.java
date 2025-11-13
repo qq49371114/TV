@@ -5,7 +5,6 @@ import android.net.Uri;
 import com.fongmi.android.tv.bean.Channel;
 import com.fongmi.android.tv.bean.Epg;
 import com.fongmi.android.tv.bean.EpgData;
-import com.fongmi.android.tv.bean.Group;
 import com.fongmi.android.tv.bean.Live;
 import com.fongmi.android.tv.bean.Tv;
 import com.fongmi.android.tv.utils.Download;
@@ -17,14 +16,16 @@ import org.simpleframework.xml.core.Persister;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.AbstractMap;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class EpgParser {
 
@@ -38,6 +39,13 @@ public class EpgParser {
         if (file.getName().endsWith(".gz")) readGzip(live, file);
         else readXml(live, file);
         return true;
+    }
+
+    public static Epg getEpg(String xml, String key) throws Exception {
+        Tv tv = new Persister().read(Tv.class, xml, false);
+        Epg epg = Epg.create(key, formatDate.format(parse(formatFull, tv.getDate())));
+        tv.getProgramme().forEach(programme -> epg.getList().add(getEpgData(programme)));
+        return epg;
     }
 
     private static boolean shouldDownload(File file) {
@@ -57,44 +65,58 @@ public class EpgParser {
     }
 
     private static void readXml(Live live, File file) throws Exception {
-        Set<String> exist = new HashSet<>();
+        Map<String, Channel> liveChannelMap = prepareLiveChannels(live);
+        XmlData xmlData = parseXmlData(file);
+        String today = formatDate.format(new Date());
+        bindResultsToLive(live, processProgramme(xmlData, liveChannelMap, today));
+    }
+
+    private static Map<String, Channel> prepareLiveChannels(Live live) {
+        return live.getGroups().stream()
+                .flatMap(group -> group.getChannel().stream())
+                .flatMap(channel -> Stream.of(channel.getTvgId(), channel.getTvgName(), channel.getName()).filter(key -> !key.isEmpty()).map(key -> new AbstractMap.SimpleEntry<>(key, channel)))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (oldValue, newValue) -> oldValue, HashMap::new));
+    }
+
+    private static XmlData parseXmlData(File file) throws Exception {
+        Tv tv = new Persister().read(Tv.class, file, false);
+        Map<String, Tv.Channel> map = tv.getChannel().stream().collect(Collectors.toMap(Tv.Channel::getId, channel -> channel));
+        return new XmlData(tv, map);
+    }
+
+    private static ProgrammeResult processProgramme(XmlData data, Map<String, Channel> liveChannelMap, String today) {
         Map<String, Epg> epgMap = new HashMap<>();
         Map<String, String> srcMap = new HashMap<>();
-        Map<String, Tv.Channel> mapping = new HashMap<>();
-        String today = formatDate.format(new Date());
-        Tv tv = new Persister().read(Tv.class, file, false);
-        for (Group group : live.getGroups()) for (Channel channel : group.getChannel()) exist.add(channel.getTvgId());
-        for (Tv.Channel channel : tv.getChannel()) mapping.put(channel.getId(), channel);
-        for (Tv.Programme programme : tv.getProgramme()) {
-            String key = programme.getChannel();
-            Tv.Channel channel = mapping.get(key);
-            if (!exist.contains(key)) key = find(exist, channel);
+        for (Tv.Programme programme : data.tv.getProgramme()) {
+            String xmlChannelId = programme.getChannel();
+            Channel targetChannel = findTargetChannel(xmlChannelId, liveChannelMap, data.map);
+            if (targetChannel == null) continue;
             Date startDate = parse(formatFull, programme.getStart());
+            if (!isToday(startDate.getTime())) continue;
+            String liveTvgId = targetChannel.getTvgId();
             Date endDate = parse(formatFull, programme.getStop());
-            if (!exist.contains(key) || !isToday(startDate.getTime())) continue;
-            if (!epgMap.containsKey(key)) epgMap.put(key, Epg.create(key, today));
-            epgMap.get(key).getList().add(getEpgData(startDate, endDate, programme));
-            if (channel != null && channel.hasSrc()) srcMap.put(key, channel.getSrc());
+            epgMap.computeIfAbsent(liveTvgId, key -> Epg.create(key, today)).getList().add(getEpgData(startDate, endDate, programme));
+            Optional.ofNullable(data.map.get(xmlChannelId)).filter(Tv.Channel::hasSrc).ifPresent(ch -> srcMap.putIfAbsent(liveTvgId, ch.getSrc()));
         }
-        for (Group group : live.getGroups()) {
-            for (Channel channel : group.getChannel()) {
-                if (epgMap.containsKey(channel.getTvgId())) channel.setData(epgMap.get(channel.getTvgId()));
-                if (srcMap.containsKey(channel.getTvgId())) channel.setLogo(srcMap.get(channel.getTvgId()));
-            }
-        }
+        return new ProgrammeResult(epgMap, srcMap);
     }
 
-    private static String find(Set<String> exist, Tv.Channel channel) {
-        if (channel == null) return "";
-        for (Tv.DisplayName name : channel.getDisplayName()) if (exist.contains(name.getText())) return name.getText();
-        return "";
+    private static Channel findTargetChannel(String xmlChannelId, Map<String, Channel> liveChannelMap, Map<String, Tv.Channel> xmlChannelIdMap) {
+        Channel targetChannel = liveChannelMap.get(xmlChannelId);
+        if (targetChannel != null) return targetChannel;
+        return Optional.ofNullable(xmlChannelIdMap.get(xmlChannelId)).flatMap(xmlChannel -> xmlChannel.getDisplayName().stream()
+                .map(Tv.DisplayName::getText).filter(name -> !name.isEmpty()).filter(liveChannelMap::containsKey)
+                .findFirst().map(liveChannelMap::get)).orElse(null);
     }
 
-    public static Epg getEpg(String xml, String key) throws Exception {
-        Tv tv = new Persister().read(Tv.class, xml, false);
-        Epg epg = Epg.create(key, formatDate.format(parse(formatFull, tv.getDate())));
-        for (Tv.Programme programme : tv.getProgramme()) epg.getList().add(getEpgData(programme));
-        return epg;
+    private static void bindResultsToLive(Live live, ProgrammeResult result) {
+        live.getGroups().stream()
+                .flatMap(group -> group.getChannel().stream())
+                .forEach(channel -> {
+                    String tvgId = channel.getTvgId();
+                    Optional.ofNullable(result.epgMap.get(tvgId)).ifPresent(channel::setData);
+                    Optional.ofNullable(result.srcMap.get(tvgId)).ifPresent(channel::setLogo);
+                });
     }
 
     private static EpgData getEpgData(Tv.Programme programme) {
@@ -121,9 +143,29 @@ public class EpgParser {
         try {
             return format.parse(source);
         } catch (Exception e) {
-            Date date = new Date();
-            date.setTime(0);
-            return date;
+            return new Date(0);
+        }
+    }
+
+    private static class XmlData {
+
+        Tv tv;
+        Map<String, Tv.Channel> map;
+
+        public XmlData(Tv tv, Map<String, Tv.Channel> map) {
+            this.tv = tv;
+            this.map = map;
+        }
+    }
+
+    private static class ProgrammeResult {
+
+        Map<String, Epg> epgMap;
+        Map<String, String> srcMap;
+
+        public ProgrammeResult(Map<String, Epg> epgMap, Map<String, String> srcMap) {
+            this.epgMap = epgMap;
+            this.srcMap = srcMap;
         }
     }
 }

@@ -66,7 +66,7 @@
                 android:paddingEnd="8dp"
                 android:paddingBottom="8dp"
                 tools:itemCount="5"
-                tools:listitem="@layout/adapter_collect_record" />
+                tools:listitem="@layout/adapter_search_record" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/word"
@@ -92,7 +92,7 @@
                 android:paddingEnd="8dp"
                 android:paddingBottom="8dp"
                 tools:itemCount="5"
-                tools:listitem="@layout/adapter_collect_word" />
+                tools:listitem="@layout/adapter_search_word" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.core.widget.NestedScrollView>

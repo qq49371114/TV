@@ -30,7 +30,6 @@ import androidx.media3.common.Tracks;
 import androidx.media3.common.VideoSize;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.drm.FrameworkMediaDrm;
-import androidx.media3.exoplayer.util.EventLogger;
 import androidx.media3.ui.PlayerView;
 
 import com.bumptech.glide.request.transition.Transition;
@@ -51,7 +50,6 @@ import com.fongmi.android.tv.impl.CustomTarget;
 import com.fongmi.android.tv.impl.ParseCallback;
 import com.fongmi.android.tv.impl.SessionCallback;
 import com.fongmi.android.tv.player.danmaku.DanPlayer;
-import com.fongmi.android.tv.player.exo.CacheManager;
 import com.fongmi.android.tv.player.exo.ErrorMsgProvider;
 import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.server.Server;
@@ -141,7 +139,6 @@ public class Players implements Player.Listener, ParseCallback {
     private void setPlayer(PlayerView view) {
         exoPlayer = new ExoPlayer.Builder(App.get()).setLoadControl(ExoUtil.buildLoadControl()).setTrackSelector(ExoUtil.buildTrackSelector()).setRenderersFactory(ExoUtil.buildRenderersFactory(isHard() ? EXTENSION_RENDERER_MODE_ON : EXTENSION_RENDERER_MODE_PREFER)).setMediaSourceFactory(ExoUtil.buildMediaSourceFactory()).build();
         exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, true);
-        exoPlayer.addAnalyticsListener(new EventLogger());
         exoPlayer.setHandleAudioBecomingNoisy(true);
         exoPlayer.setPlayWhenReady(true);
         exoPlayer.addListener(this);
@@ -405,7 +402,6 @@ public class Players implements Player.Listener, ParseCallback {
         session.release();
         removeTimeoutCheck();
         Server.get().setPlayer(null);
-        CacheManager.get().release();
         App.execute(() -> Source.get().stop());
     }
 
@@ -497,11 +493,11 @@ public class Players implements Player.Listener, ParseCallback {
 
     private void setMediaItem(Map<String, String> headers, String url, String format, Drm drm, List<Sub> subs, List<Danmaku> danmakus, long timeout) {
         if (exoPlayer != null) exoPlayer.setMediaItem(ExoUtil.getMediaItem(this.headers = checkUa(headers), UrlUtil.uri(this.url = url), this.format = format, this.drm = drm, checkSub(this.subs = subs), decode));
+        Logger.t(TAG).d("headers=%s\nurl=%s\nformat=%s\ndrm=%s\nsubs=%s\ndanmakus=%s\ntimeout=%s", this.headers, url, format, drm, this.subs, danmakus, timeout);
         if (danPlayer != null) setDanmaku(this.danmakus = danmakus);
         App.post(runnable, timeout);
         PlayerEvent.prepare(tag);
         session.setActive(true);
-        Logger.t(TAG).d(url);
         prepare();
     }
 
@@ -687,7 +683,6 @@ public class Players implements Player.Listener, ParseCallback {
 
     @Override
     public void onPlayerError(@NonNull PlaybackException error) {
-        Logger.t(TAG).e(error.errorCode + "," + url);
         if (retried()) ErrorEvent.extract(tag, provider.get(error));
         else switch (error.errorCode) {
             case PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW:

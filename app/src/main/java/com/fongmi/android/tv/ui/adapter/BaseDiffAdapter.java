@@ -11,6 +11,7 @@ import com.fongmi.android.tv.impl.Diffable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 public abstract class BaseDiffAdapter<T extends Diffable<T>, VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<VH> {
 
@@ -18,6 +19,16 @@ public abstract class BaseDiffAdapter<T extends Diffable<T>, VH extends Recycler
 
     public BaseDiffAdapter() {
         this.differ = new AsyncListDiffer<>(this, new BaseItemCallback<T>());
+    }
+
+    private boolean listsAreSame(List<T> oldList, List<T> newList) {
+        if (oldList.size() != newList.size()) return false;
+        for (int i = 0; i < oldList.size(); i++) {
+            T oldItem = oldList.get(i);
+            T newItem = newList.get(i);
+            if (!oldItem.isSameItem(newItem) || !oldItem.isSameContent(newItem)) return false;
+        }
+        return true;
     }
 
     public T getItem(int position) {
@@ -29,30 +40,38 @@ public abstract class BaseDiffAdapter<T extends Diffable<T>, VH extends Recycler
     }
 
     public void setItems(List<T> items) {
-        setItems(items, null);
+        setItems(items, () -> {});
     }
 
     public void setItems(List<T> items, Runnable runnable) {
-        differ.submitList(items, runnable);
+        differ.submitList(Objects.requireNonNullElseGet(items, ArrayList::new), runnable);
     }
 
-    public void addItem(T item) {
-        addItem(item, null);
+    public void setItems(List<T> items, Callback callback) {
+        List<T> oldItems = getItems();
+        List<T> newItems = Objects.requireNonNullElseGet(items, ArrayList::new);
+        boolean hasChange = !listsAreSame(oldItems, newItems);
+        if (!hasChange) callback.onUpdateFinished(false);
+        else differ.submitList(newItems, () -> callback.onUpdateFinished(true));
     }
 
-    public void addItem(T item, Runnable runnable) {
+    public void add(T item) {
+        add(item, null);
+    }
+
+    public void add(T item, Runnable runnable) {
         List<T> current = new ArrayList<>(getItems());
         current.add(item);
         setItems(current, runnable);
     }
 
-    public void addItems(List<T> items) {
+    public void addAll(List<T> items) {
         List<T> current = new ArrayList<>(getItems());
         current.addAll(items);
         setItems(current);
     }
 
-    public void addItemSort(T item, Comparator<T> comparator) {
+    public void sort(T item, Comparator<T> comparator) {
         List<T> current = new ArrayList<>(getItems());
         current.add(item);
         if (current.size() >= 2) current.sort(comparator);
@@ -87,4 +106,9 @@ public abstract class BaseDiffAdapter<T extends Diffable<T>, VH extends Recycler
 
     @Override
     public abstract void onBindViewHolder(@NonNull VH holder, int position);
+
+    public interface Callback {
+
+        void onUpdateFinished(boolean hasChange);
+    }
 }

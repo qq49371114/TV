@@ -306,9 +306,9 @@ public class Result implements Parcelable {
 
     public Result trans() {
         if (Trans.pass()) return this;
-        for (Class type : getTypes()) type.trans();
-        for (Vod vod : getList()) vod.trans();
-        for (Sub sub : getSubs()) sub.trans();
+        getTypes().forEach(Class::trans);
+        getList().forEach(Vod::trans);
+        getSubs().forEach(Sub::trans);
         return this;
     }
 

@@ -23,17 +23,17 @@ public class DohAdapter extends RecyclerView.Adapter<DohAdapter.ViewHolder> {
         this.listener = listener;
     }
 
+    public interface OnClickListener {
+
+        void onItemClick(Doh item);
+    }
+
     public void setSelect(int select) {
         this.select = select;
     }
 
     public int getSelect() {
         return select;
-    }
-
-    public interface OnClickListener {
-
-        void onItemClick(Doh item);
     }
 
     @Override

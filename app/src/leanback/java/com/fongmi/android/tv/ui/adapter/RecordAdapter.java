@@ -41,7 +41,7 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.ViewHolder
     private void checkToAdd(String item) {
         mItems.remove(item);
         mItems.add(0, item);
-        if (mItems.size() > 8) mItems.remove(8);
+        if (mItems.size() > 9) mItems.remove(9);
     }
 
     public void add(String item) {
@@ -63,23 +63,19 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.ViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.binding.record.setText(mItems.get(position));
+        String text = mItems.get(position);
+        holder.binding.text.setText(text);
+        holder.binding.text.setOnClickListener(v -> listener.onItemClick(text));
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener {
 
         private final AdapterSearchRecordBinding binding;
 
         public ViewHolder(@NonNull AdapterSearchRecordBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
-            itemView.setOnClickListener(this);
             itemView.setOnLongClickListener(this);
-        }
-
-        @Override
-        public void onClick(View view) {
-            listener.onItemClick(mItems.get(getLayoutPosition()));
         }
 
         @Override

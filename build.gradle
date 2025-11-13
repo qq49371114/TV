@@ -12,5 +12,5 @@ project.ext {
     gsonVersion = '2.13.2'
     glideVersion = '5.0.5'
     media3Version = '1.8.0'
-    okhttpVersion = '5.2.1'
+    okhttpVersion = '5.3.0'
 }

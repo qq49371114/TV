@@ -2,6 +2,7 @@ package com.github.catvod.net;
 
 import androidx.annotation.NonNull;
 
+import com.github.catvod.bean.Doh;
 import com.github.catvod.utils.Util;
 
 import java.net.InetAddress;
@@ -11,6 +12,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import okhttp3.Dns;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
 import okhttp3.dnsoverhttps.DnsOverHttps;
 
 public class OkDns implements Dns {
@@ -22,8 +25,9 @@ public class OkDns implements Dns {
         this.map = new ConcurrentHashMap<>();
     }
 
-    public void setDoh(DnsOverHttps doh) {
-        this.doh = doh;
+    public void setDoh(Doh item) {
+        if (item.getUrl().isEmpty()) return;
+        this.doh = new DnsOverHttps.Builder().client(new OkHttpClient()).url(HttpUrl.get(item.getUrl())).bootstrapDnsHosts(item.getHosts()).build();
     }
 
     public void clear() {

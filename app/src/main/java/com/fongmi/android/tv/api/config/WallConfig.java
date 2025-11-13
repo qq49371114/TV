@@ -23,14 +23,12 @@ import com.github.catvod.utils.Path;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class WallConfig {
 
     private Config config;
-    private ExecutorService executor;
-
+    private Future<?> future;
     private boolean sync;
 
     private static class Loader {
@@ -59,7 +57,7 @@ public class WallConfig {
 
     public WallConfig config(Config config) {
         this.config = config;
-        if (config.getUrl() == null) return this;
+        if (config.isEmpty()) return this;
         this.sync = config.getUrl().equals(VodConfig.get().getWall());
         return this;
     }
@@ -78,9 +76,9 @@ public class WallConfig {
     }
 
     public void load(Callback callback) {
-        if (executor != null) executor.shutdownNow();
-        executor = Executors.newSingleThreadExecutor();
-        executor.execute(() -> loadConfig(callback));
+        if (future != null && !future.isDone()) future.cancel(true);
+        future = App.submit(() -> loadConfig(callback));
+        callback.start();
     }
 
     private void loadConfig(Callback callback) {

@@ -70,7 +70,7 @@ public class Filter implements Parcelable {
 
     public Filter trans() {
         if (Trans.pass()) return this;
-        for (Value value : getValue()) value.trans();
+        getValue().forEach(Value::trans);
         return this;
     }
 

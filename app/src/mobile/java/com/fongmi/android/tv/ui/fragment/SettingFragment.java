@@ -29,7 +29,6 @@ import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.impl.ConfigCallback;
 import com.fongmi.android.tv.impl.LiveCallback;
 import com.fongmi.android.tv.impl.SiteCallback;
-import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.ui.activity.HomeActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
@@ -46,6 +45,10 @@ import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,6 +88,7 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
 
     @Override
     protected void initView() {
+        EventBus.getDefault().register(this);
         mBinding.vodUrl.setText(VodConfig.getDesc());
         mBinding.liveUrl.setText(LiveConfig.getDesc());
         mBinding.wallUrl.setText(WallConfig.getDesc());
@@ -145,26 +149,25 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
     private void load(Config config) {
         switch (config.getType()) {
             case 0:
-                Notify.progress(requireActivity());
                 VodConfig.load(config, getCallback(0));
-                mBinding.vodUrl.setText(config.getDesc());
                 break;
             case 1:
-                Notify.progress(requireActivity());
                 LiveConfig.load(config, getCallback(1));
-                mBinding.liveUrl.setText(config.getDesc());
                 break;
             case 2:
                 Setting.putWall(0);
-                Notify.progress(requireActivity());
                 WallConfig.load(config, getCallback(2));
-                mBinding.wallUrl.setText(config.getDesc());
                 break;
         }
     }
 
     private Callback getCallback(int type) {
         return new Callback() {
+            @Override
+            public void start() {
+                Notify.progress(requireActivity());
+            }
+
             @Override
             public void success(String result) {
                 Notify.show(result);
@@ -184,28 +187,10 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
     }
 
     private void setConfig(int type) {
-        switch (type) {
-            case 0:
-                setCacheText();
-                Notify.dismiss();
-                RefreshEvent.video();
-                RefreshEvent.config();
-                mBinding.vodUrl.setText(VodConfig.getDesc());
-                mBinding.liveUrl.setText(LiveConfig.getDesc());
-                mBinding.wallUrl.setText(WallConfig.getDesc());
-                break;
-            case 1:
-                setCacheText();
-                Notify.dismiss();
-                RefreshEvent.config();
-                mBinding.liveUrl.setText(LiveConfig.getDesc());
-                break;
-            case 2:
-                setCacheText();
-                Notify.dismiss();
-                mBinding.wallUrl.setText(WallConfig.getDesc());
-                break;
-        }
+        setCacheText();
+        Notify.dismiss();
+        RefreshEvent.config();
+        if (type == 0) RefreshEvent.video();
     }
 
     @Override
@@ -277,7 +262,6 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
 
     private void setWallRefresh(View view) {
         Setting.putWall(0);
-        Notify.progress(requireActivity());
         WallConfig.get().load(getCallback(2));
     }
 
@@ -308,12 +292,9 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
     }
 
     private void setDoh(Doh doh) {
-        Source.get().stop();
-        OkHttp.get().setDoh(doh);
-        Notify.progress(requireActivity());
+        OkHttp.dns().setDoh(doh);
         Setting.putDoh(doh.toString());
         mBinding.dohText.setText(doh.getName());
-        VodConfig.load(Config.vod(), getCallback(0));
     }
 
     private void onCache(View view) {
@@ -344,7 +325,6 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
             @Override
             public void success() {
                 Notify.show(R.string.restore_success);
-                Notify.progress(requireActivity());
                 setOtherText();
                 initConfig();
             }
@@ -362,13 +342,24 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
         VodConfig.get().init().load(getCallback(0));
     }
 
-    @Override
-    public void onHiddenChanged(boolean hidden) {
-        if (hidden) return;
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onRefreshEvent(RefreshEvent event) {
+        if (event.getType() != RefreshEvent.Type.CONFIG) return;
         mBinding.vodUrl.setText(VodConfig.getDesc());
         mBinding.liveUrl.setText(LiveConfig.getDesc());
         mBinding.wallUrl.setText(WallConfig.getDesc());
+    }
+
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        if (hidden) return;
         setCacheText();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        EventBus.getDefault().unregister(this);
     }
 
     private final ActivityResultLauncher<Intent> launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {

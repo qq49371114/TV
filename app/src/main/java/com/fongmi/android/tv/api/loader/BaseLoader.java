@@ -2,6 +2,7 @@ package com.fongmi.android.tv.api.loader;
 
 import android.text.TextUtils;
 
+import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Live;
@@ -33,15 +34,17 @@ public class BaseLoader {
     }
 
     private BaseLoader() {
-        this.jarLoader = new JarLoader();
-        this.pyLoader = new PyLoader();
-        this.jsLoader = new JsLoader();
+        jarLoader = new JarLoader();
+        pyLoader = new PyLoader();
+        jsLoader = new JsLoader();
     }
 
     public void clear() {
-        this.jarLoader.clear();
-        this.pyLoader.clear();
-        this.jsLoader.clear();
+        App.execute(() -> {
+            jarLoader.clear();
+            pyLoader.clear();
+            jsLoader.clear();
+        });
     }
 
     public Spider getSpider(String key, String api, String ext, String jar) {

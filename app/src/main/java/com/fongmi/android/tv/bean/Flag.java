@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.impl.Diffable;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.utils.Trans;
 import com.google.gson.annotations.SerializedName;
@@ -20,7 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-public class Flag implements Parcelable {
+public class Flag implements Parcelable, Diffable<Flag> {
 
     @Attribute(name = "flag", required = false)
     @SerializedName("flag")
@@ -134,6 +135,11 @@ public class Flag implements Parcelable {
         return getFlag().equals(it.getFlag());
     }
 
+    @Override
+    public int hashCode() {
+        return getFlag().hashCode();
+    }
+
     @NonNull
     @Override
     public String toString() {
@@ -175,4 +181,14 @@ public class Flag implements Parcelable {
             return new Flag[size];
         }
     };
+
+    @Override
+    public boolean isSameItem(Flag other) {
+        return equals(other);
+    }
+
+    @Override
+    public boolean isSameContent(Flag other) {
+        return equals(other);
+    }
 }

@@ -20,7 +20,7 @@ public class PyLoader {
     }
 
     public void clear() {
-        for (Spider spider : spiders.values()) App.execute(spider::destroy);
+        spiders.values().forEach(Spider::destroy);
         spiders.clear();
     }
 

@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.leanback.widget.Presenter;
 
+import com.bumptech.glide.Glide;
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.databinding.AdapterVodBinding;
@@ -33,6 +34,13 @@ public class HistoryPresenter extends Presenter {
         boolean onLongClick();
     }
 
+    private void setLayoutSize() {
+        int space = ResUtil.dp2px(48) + ResUtil.dp2px(16 * (Product.getColumn() - 1));
+        int base = ResUtil.getScreenWidth() - space;
+        width = base / Product.getColumn();
+        height = (int) (width / 0.75f);
+    }
+
     public boolean isDelete() {
         return delete;
     }
@@ -41,11 +49,12 @@ public class HistoryPresenter extends Presenter {
         this.delete = delete;
     }
 
-    private void setLayoutSize() {
-        int space = ResUtil.dp2px(48) + ResUtil.dp2px(16 * (Product.getColumn() - 1));
-        int base = ResUtil.getScreenWidth() - space;
-        width = base / Product.getColumn();
-        height = (int) (width / 0.75f);
+    private void setClickListener(View root, History item) {
+        root.setOnLongClickListener(view -> listener.onLongClick());
+        root.setOnClickListener(view -> {
+            if (isDelete()) listener.onItemDelete(item);
+            else listener.onItemClick(item);
+        });
     }
 
     @NonNull
@@ -71,16 +80,10 @@ public class HistoryPresenter extends Presenter {
         ImgUtil.load(item.getVodName(), item.getVodPic(), holder.binding.image);
     }
 
-    private void setClickListener(View root, History item) {
-        root.setOnLongClickListener(view -> listener.onLongClick());
-        root.setOnClickListener(view -> {
-            if (isDelete()) listener.onItemDelete(item);
-            else listener.onItemClick(item);
-        });
-    }
-
     @Override
     public void onUnbindViewHolder(@NonNull Presenter.ViewHolder viewHolder) {
+        ViewHolder holder = (ViewHolder) viewHolder;
+        Glide.with(holder.binding.image).clear(holder.binding.image);
     }
 
     public static class ViewHolder extends Presenter.ViewHolder {

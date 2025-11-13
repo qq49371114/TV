@@ -1,6 +1,5 @@
 package com.fongmi.android.tv.ui.fragment;
 
-import android.animation.ValueAnimator;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -30,11 +29,10 @@ import com.fongmi.android.tv.ui.adapter.CollectAdapter;
 import com.fongmi.android.tv.ui.adapter.SearchAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.custom.CustomScroller;
-import com.fongmi.android.tv.utils.PauseExecutor;
 import com.fongmi.android.tv.utils.ResUtil;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CollectFragment extends BaseFragment implements MenuProvider, CollectAdapter.OnClickListener, SearchAdapter.OnClickListener, CustomScroller.Callback {
 
@@ -43,9 +41,7 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
     private SearchAdapter mSearchAdapter;
     private CustomScroller mScroller;
     private SiteViewModel mViewModel;
-    private PauseExecutor mExecutor;
-    private ValueAnimator mAnimator;
-    private int maxWidth;
+    private List<Site> mSites;
 
     public static CollectFragment newInstance(String keyword) {
         Bundle args = new Bundle();
@@ -76,11 +72,11 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
 
     @Override
     protected void initView() {
-        maxWidth = ResUtil.getScreenWidth() / (getCount() + 1) - ResUtil.dp2px(32);
         mScroller = new CustomScroller(this);
         setRecyclerView();
         setViewModel();
-        setAnimator();
+        setSites();
+        setWidth();
         search();
     }
 
@@ -100,36 +96,27 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
         mViewModel.result.observe(this, this::setSearch);
     }
 
-    private void setAnimator() {
-        mAnimator = new ValueAnimator();
-        mAnimator.addUpdateListener(animation -> {
-            ViewGroup.LayoutParams params = mBinding.collect.getLayoutParams();
-            params.width = (Integer) animation.getAnimatedValue();
-            mBinding.collect.setLayoutParams(params);
-        });
+    private void setSites() {
+        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).collect(Collectors.toList());
     }
 
-    private List<Site> getSites() {
-        List<Site> items = new ArrayList<>();
-        for (Site site : VodConfig.get().getSites()) if (site.isSearchable()) items.add(site);
-        return items;
+    private void setWidth() {
+        int width = 0;
+        int space = ResUtil.dp2px(48);
+        int maxWidth = ResUtil.getScreenWidth() / (getCount() + 1) - ResUtil.dp2px(40);
+        for (Site site : mSites) width = Math.max(width, ResUtil.getTextWidth(site.getName(), 14));
+        int contentWidth = width + space;
+        int minWidth = ResUtil.dp2px(120);
+        int finalWidth = Math.max(minWidth, Math.min(contentWidth, maxWidth));
+        ViewGroup.LayoutParams params = mBinding.collect.getLayoutParams();
+        params.width = finalWidth;
+        mBinding.collect.setLayoutParams(params);
     }
 
     private void search() {
-        List<Site> sites = getSites();
-        if (sites.isEmpty()) return;
-        if (mExecutor != null) mExecutor.shutdownNow();
-        mExecutor = new PauseExecutor(20, sites.size());
-        mCollectAdapter.setItems(List.of(Collect.all()), () -> {
-            for (Site site : sites) mExecutor.execute(() -> search(site, getKeyword()));
-        });
-    }
-
-    private void search(Site site, String keyword) {
-        try {
-            mViewModel.searchContent(site, keyword, false);
-        } catch (Throwable ignored) {
-        }
+        mViewModel.stopSearch();
+        if (mSites.isEmpty()) return;
+        mCollectAdapter.setItems(List.of(Collect.all()), () -> mViewModel.searchContent(mSites, getKeyword(), false));
     }
 
     private int getCount() {
@@ -139,32 +126,17 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
     }
 
     private void setCollect(Result result) {
-        if (result == null) return;
-        if (mCollectAdapter.getPosition() == 0) mSearchAdapter.addItems(result.getList());
-        mCollectAdapter.addItem(Collect.create(result.getList()), this::setWidth);
+        if (result == null || result.getList().isEmpty()) return;
+        if (mCollectAdapter.getPosition() == 0) mSearchAdapter.addAll(result.getList());
+        mCollectAdapter.add(Collect.create(result.getList()));
         mCollectAdapter.add(result.getList());
-    }
-
-    private void setWidth() {
-        int maxTextWidth = 0;
-        int space = ResUtil.dp2px(48);
-        for (Collect item : mCollectAdapter.getItems()) maxTextWidth = Math.max(maxTextWidth, ResUtil.getTextWidth(item.getSite().getName(), 14));
-        int contentWidth = maxTextWidth + space;
-        int minWidth = ResUtil.dp2px(120);
-        int finalWidth = Math.max(minWidth, Math.min(contentWidth, maxWidth));
-        int startWidth = mBinding.collect.getWidth();
-        if (finalWidth == startWidth) return;
-        if (mAnimator.isRunning()) mAnimator.cancel();
-        mAnimator.setIntValues(startWidth, finalWidth);
-        mAnimator.setDuration(300);
-        mAnimator.start();
     }
 
     private void setSearch(Result result) {
         if (result == null) return;
         boolean same = !result.getList().isEmpty() && mCollectAdapter.getActivated().getSite().equals(result.getList().get(0).getSite());
         if (same) mCollectAdapter.getActivated().getList().addAll(result.getList());
-        if (same) mSearchAdapter.addItems(result.getList());
+        if (same) mSearchAdapter.addAll(result.getList());
         mScroller.endLoading(result);
     }
 
@@ -185,7 +157,7 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
     public void onLoadMore(String page) {
         Collect activated = mCollectAdapter.getActivated();
         if ("all".equals(activated.getSite().getKey())) return;
-        mViewModel.searchContent(activated.getSite(), getKeyword(), page);
+        mViewModel.searchContent(activated.getSite(), getKeyword(), false, page);
         activated.setPage(Integer.parseInt(page));
         mScroller.setLoading(true);
     }
@@ -201,18 +173,6 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        if (mExecutor != null) mExecutor.resume();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        if (mExecutor != null) mExecutor.pause();
-    }
-
-    @Override
     public void onHiddenChanged(boolean hidden) {
         if (hidden) requireActivity().removeMenuProvider(this);
         else initMenu();
@@ -221,7 +181,7 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        mViewModel.stopSearch();
         requireActivity().removeMenuProvider(this);
-        if (mExecutor != null) mExecutor.shutdownNow();
     }
 }

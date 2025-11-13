@@ -139,6 +139,7 @@ public class Action implements Process {
         if (config.getUrl().equals(VodConfig.getUrl())) {
             if (force) History.delete(config.getId());
             History.sync(targets);
+            RefreshEvent.history();
         } else {
             VodConfig.load(config, getCallback(targets));
         }
@@ -151,6 +152,7 @@ public class Action implements Process {
                 RefreshEvent.config();
                 RefreshEvent.video();
                 History.sync(targets);
+                RefreshEvent.history();
             }
 
             @Override
@@ -168,6 +170,7 @@ public class Action implements Process {
         } else {
             if (force) Keep.deleteAll();
             Keep.sync(configs, targets);
+            RefreshEvent.keep();
         }
     }
 
@@ -175,10 +178,11 @@ public class Action implements Process {
         return new Callback() {
             @Override
             public void success() {
-                RefreshEvent.history();
                 RefreshEvent.config();
                 RefreshEvent.video();
                 Keep.sync(configs, targets);
+                RefreshEvent.history();
+                RefreshEvent.keep();
             }
 
             @Override

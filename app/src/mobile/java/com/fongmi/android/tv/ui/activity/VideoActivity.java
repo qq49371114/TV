@@ -90,7 +90,6 @@ import com.fongmi.android.tv.utils.Clock;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.Notify;
-import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.PiP;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Sniffer;
@@ -111,8 +110,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 
 public class VideoActivity extends BaseActivity implements Clock.Callback, CustomKeyDown.Listener, TrackDialog.Listener, ControlDialog.Listener, FlagAdapter.OnClickListener, EpisodeAdapter.OnClickListener, QualityAdapter.OnClickListener, QuickAdapter.OnClickListener, ParseAdapter.OnClickListener, CastDialog.Listener, InfoDialog.Listener {
@@ -127,7 +124,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private ControlDialog mControlDialog;
     private QuickAdapter mQuickAdapter;
     private ParseAdapter mParseAdapter;
-    private ExecutorService mExecutor;
     private SiteViewModel mViewModel;
     private FlagAdapter mFlagAdapter;
     private ValueAnimator mAnimator;
@@ -160,7 +156,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     public static void file(FragmentActivity activity, String path) {
         if (TextUtils.isEmpty(path)) return;
         String name = new File(path).getName();
-        PermissionUtil.requestFile(activity, allGranted -> start(activity, "push_agent", "file://" + path, name));
+        start(activity, "push_agent", "file://" + path, name);
     }
 
     public static void cast(Activity activity, History history) {
@@ -270,7 +266,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         if (TextUtils.isEmpty(id) || id.equals(getId())) return;
         mBinding.swipeLayout.setRefreshing(true);
         getIntent().putExtras(intent);
-        stopSearch();
         setOrient();
         checkId();
     }
@@ -278,6 +273,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @Override
     protected void initView(Bundle savedInstanceState) {
         ViewCompat.setOnApplyWindowInsetsListener(mBinding.getRoot(), (v, insets) -> setStatusBar(insets));
+        mBinding.swipeLayout.setColorSchemeResources(R.color.accent);
         mKeyDown = CustomKeyDown.create(this, mBinding.exo);
         mFrameParams = mBinding.video.getLayoutParams();
         mBinding.progressLayout.showProgress();
@@ -403,6 +399,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mAnimator = new ValueAnimator();
         mAnimator.setInterpolator(new DecelerateInterpolator());
         mAnimator.addUpdateListener(animation -> {
+            if (isLand() || isFullscreen() || isInPictureInPictureMode()) return;
             mFrameParams.height = (int) animation.getAnimatedValue();
             mBinding.video.setLayoutParams(mFrameParams);
         });
@@ -449,6 +446,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mClock.setCallback(null);
         mPlayers.reset();
         mPlayers.stop();
+        saveHistory();
         getDetail();
     }
 
@@ -475,7 +473,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         showError(getString(R.string.error_detail));
         mBinding.swipeLayout.setEnabled(true);
         mBinding.progressLayout.showEmpty();
-        stopSearch();
     }
 
     private void setDetail(Vod item) {
@@ -860,6 +857,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private boolean onTextLong() {
+        if (!mPlayers.haveTrack(C.TRACK_TYPE_TEXT)) return false;
         onSubtitleClick();
         return true;
     }
@@ -883,10 +881,10 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void enterFullscreen() {
         if (isFullscreen()) return;
         if (isLand()) setTransition();
+        setRotate(mPlayers.isPortrait(), true);
         mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
         setRequestedOrientation(mPlayers.isPortrait() ? ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         mBinding.control.title.setVisibility(View.VISIBLE);
-        setRotate(mPlayers.isPortrait(), true);
         mPlayers.setDanmakuSize(1.0f);
         mKeyDown.resetScale();
         App.post(mR3, 2000);
@@ -916,7 +914,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private int getLockOrient() {
         if (isLock()) {
-            return ResUtil.isLand(this) ? ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT;
+            return ResUtil.getScreenOrientation(this);
         } else if (isRotate()) {
             return ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT;
         } else if (isPort() && isAutoRotate()) {
@@ -1049,13 +1047,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void saveHistory() {
-        if (mHistory == null) return;
-        if (Setting.isIncognito()) return;
-        long position = mPlayers.getPosition();
-        long duration = mPlayers.getDuration();
-        if (position >= 0 && duration > 0) {
-            mHistory.setPosition(position);
-            mHistory.setDuration(duration);
+        if (mHistory == null || Setting.isIncognito()) return;
+        if (mHistory.getPosition() > 0 && mHistory.getDuration() > 0) {
             App.execute(() -> mHistory.merge().save());
         }
     }
@@ -1125,14 +1118,15 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Override
     public void onSubtitleClick() {
-        App.post(this::hideControl, 200);
-        App.post(() -> SubtitleDialog.create().view(mBinding.exo.getSubtitleView()).full(isFullscreen()).show(this), 200);
+        SubtitleDialog.create().view(mBinding.exo.getSubtitleView()).full(isFullscreen()).show(this);
+        hideControl();
     }
 
     @Override
     public void onTimeChanged() {
-        long position = mPlayers.getPosition();
-        long duration = mPlayers.getDuration();
+        long position, duration;
+        mHistory.setPosition(position = mPlayers.getPosition());
+        mHistory.setDuration(duration = mPlayers.getDuration());
         if (mHistory.getEnding() > 0 && duration > 0 && mHistory.getEnding() + position >= duration) {
             checkEnded(false);
         }
@@ -1199,7 +1193,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
                 mClock.setCallback(this);
                 break;
             case PlayerEvent.SIZE:
-                mBinding.video.post(this::changeHeight);
+                changeHeight();
                 checkOrientation();
                 break;
         }
@@ -1224,10 +1218,10 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         int videoWidth = mPlayers.getVideoWidth();
         int videoHeight = mPlayers.getVideoHeight();
         if (videoWidth == 0 || videoHeight == 0) return;
+        int viewWidth = ResUtil.getScreenWidth();
         int minHeight = ResUtil.dp2px(150);
         int maxHeight = ResUtil.getScreenHeight() / 2;
-        int parentWidth = ((View) mBinding.video.getParent()).getWidth();
-        int calculated = (int) (parentWidth * ((float) videoHeight / videoWidth));
+        int calculated = (int) (viewWidth * ((float) videoHeight / videoWidth));
         int finalHeight = Math.max(minHeight, Math.min(maxHeight, calculated));
         if (finalHeight == mBinding.video.getHeight()) return;
         if (mAnimator.isRunning()) mAnimator.cancel();
@@ -1310,7 +1304,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void initSearch(String keyword, boolean auto) {
-        stopSearch();
         setAutoMode(auto);
         setInitAuto(auto);
         startSearch(keyword);
@@ -1323,23 +1316,10 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void startSearch(String keyword) {
         mQuickAdapter.clear();
+        mViewModel.stopSearch();
         List<Site> sites = new ArrayList<>();
-        mExecutor = Executors.newFixedThreadPool(20);
         for (Site item : VodConfig.get().getSites()) if (isPass(item)) sites.add(item);
-        for (Site site : sites) mExecutor.execute(() -> search(site, keyword));
-    }
-
-    private void stopSearch() {
-        if (mExecutor == null) return;
-        mExecutor.shutdownNow();
-        mExecutor = null;
-    }
-
-    private void search(Site site, String keyword) {
-        try {
-            mViewModel.searchContent(site, keyword, true);
-        } catch (Throwable ignored) {
-        }
+        mViewModel.searchContent(sites, keyword, true);
     }
 
     private void setSearch(Result result) {
@@ -1385,7 +1365,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void onPaused() {
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mPlayers.pause();
-        saveHistory();
     }
 
     private void onPlay() {
@@ -1579,7 +1558,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     public void onDoubleTap() {
         if (isLock()) return;
         if (!isFullscreen()) {
-            App.post(this::enterFullscreen, 200);
+            enterFullscreen();
         } else if (mPlayers.isPlaying()) {
             showControl();
             onPaused();
@@ -1644,13 +1623,11 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mClock.stop().start();
         setAudioOnly(false);
         setStop(false);
-        onPlay();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (isRedirect()) onPlay();
         setRedirect(false);
     }
 
@@ -1676,15 +1653,13 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         } else if (isFullscreen() && !isLock()) {
             exitFullscreen();
         } else if (!isLock()) {
-            stopSearch();
+            mViewModel.stopSearch();
             super.onBackInvoked();
         }
     }
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
-        stopSearch();
         saveHistory();
         mClock.release();
         mPlayers.release();
@@ -1696,5 +1671,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mViewModel.result.removeObserver(mObserveDetail);
         mViewModel.player.removeObserver(mObservePlayer);
         mViewModel.search.removeObserver(mObserveSearch);
+        super.onDestroy();
     }
 }

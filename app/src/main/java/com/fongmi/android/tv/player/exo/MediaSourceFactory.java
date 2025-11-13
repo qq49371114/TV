@@ -98,7 +98,7 @@ public class MediaSourceFactory implements MediaSource.Factory {
     }
 
     private HttpDataSource.Factory getHttpDataSourceFactory() {
-        if (httpDataSourceFactory == null) httpDataSourceFactory = new OkHttpDataSource.Factory(OkHttp.client());
+        if (httpDataSourceFactory == null) httpDataSourceFactory = new OkHttpDataSource.Factory(OkHttp.player());
         return httpDataSourceFactory;
     }
 }

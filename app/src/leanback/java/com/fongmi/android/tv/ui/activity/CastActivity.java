@@ -389,8 +389,8 @@ public class CastActivity extends BaseActivity implements CustomKeyDownVod.Liste
 
     @Override
     public void onSubtitleClick() {
-        App.post(this::hideControl, 200);
-        App.post(() -> SubtitleDialog.create().view(mBinding.exo.getSubtitleView()).full(true).show(this), 200);
+        SubtitleDialog.create().view(mBinding.exo.getSubtitleView()).full(true).show(this);
+        App.post(this::hideControl, 100);
     }
 
     @Override
@@ -512,13 +512,11 @@ public class CastActivity extends BaseActivity implements CustomKeyDownVod.Liste
         super.onStart();
         mBinding.exo.setPlayer(mPlayers.get());
         mClock.stop().start();
-        onPlay();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (isRedirect()) onPlay();
         setRedirect(false);
     }
 
@@ -549,12 +547,12 @@ public class CastActivity extends BaseActivity implements CustomKeyDownVod.Liste
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         mClock.release();
         mPlayers.release();
         unbindService(this);
         PlaybackService.stop();
         mService.bindRealPlayer(null);
         App.removeCallbacks(mR1, mR2);
+        super.onDestroy();
     }
 }

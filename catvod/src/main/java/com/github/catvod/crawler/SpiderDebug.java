@@ -15,4 +15,8 @@ public class SpiderDebug {
     public static void log(String msg) {
         if (!TextUtils.isEmpty(msg)) Logger.t(TAG).d(msg);
     }
+
+    public static void log(String tag, String msg, Object... args) {
+        if (!TextUtils.isEmpty(msg)) Logger.t(tag).d(msg, args);
+    }
 }

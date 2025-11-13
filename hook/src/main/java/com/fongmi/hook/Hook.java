@@ -1,6 +1,5 @@
 package com.fongmi.hook;
 
-import android.annotation.TargetApi;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -24,7 +23,11 @@ import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.UserHandle;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 
 import java.util.List;
 
@@ -43,134 +46,144 @@ public class Hook extends PackageManager {
     }
 
     @Override
-    public PackageInfo getPackageInfo(String packageName, int flags) {
+    public PackageInfo getPackageInfo(@NonNull String packageName, int flags) {
         PackageInfo info = new PackageInfo();
         info.signatures = new Signature[]{new Signature(sign)};
         return info;
     }
 
     @Override
-    @TargetApi(26)
-    public PackageInfo getPackageInfo(VersionedPackage versionedPackage, int flags) {
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public PackageInfo getPackageInfo(@NonNull VersionedPackage versionedPackage, int flags) {
         return getPackageInfo(versionedPackage.getPackageName(), flags);
     }
 
     @Override
-    public String[] currentToCanonicalPackageNames(String[] packageNames) {
+    public String[] currentToCanonicalPackageNames(@NonNull String[] packageNames) {
         return new String[0];
     }
 
     @Override
-    public String[] canonicalToCurrentPackageNames(String[] packageNames) {
+    public String[] canonicalToCurrentPackageNames(@NonNull String[] packageNames) {
         return new String[0];
     }
 
     @Override
-    public Intent getLaunchIntentForPackage(String packageName) {
+    public Intent getLaunchIntentForPackage(@NonNull String packageName) {
         return null;
     }
 
     @Override
-    public Intent getLeanbackLaunchIntentForPackage(String packageName) {
+    public Intent getLeanbackLaunchIntentForPackage(@NonNull String packageName) {
         return null;
     }
 
     @Override
-    public int[] getPackageGids(String packageName) {
+    public int[] getPackageGids(@NonNull String packageName) {
         return new int[0];
     }
 
     @Override
-    public int[] getPackageGids(String packageName, int flags) {
+    public int[] getPackageGids(@NonNull String packageName, int flags) {
         return new int[0];
     }
 
     @Override
-    public int getPackageUid(String packageName, int flags) {
+    public int getPackageUid(@NonNull String packageName, int flags) {
         return 0;
     }
 
     @Override
-    public PermissionInfo getPermissionInfo(String permName, int flags) {
+    public PermissionInfo getPermissionInfo(@NonNull String permName, int flags) {
         return null;
     }
 
+    @NonNull
     @Override
     public List<PermissionInfo> queryPermissionsByGroup(String permissionGroup, int flags) {
         return null;
     }
 
+    @NonNull
     @Override
-    public PermissionGroupInfo getPermissionGroupInfo(String groupName, int flags) {
+    public PermissionGroupInfo getPermissionGroupInfo(@NonNull String groupName, int flags) {
         return null;
     }
 
+    @NonNull
     @Override
     public List<PermissionGroupInfo> getAllPermissionGroups(int flags) {
         return null;
     }
 
+    @NonNull
     @Override
-    public ApplicationInfo getApplicationInfo(String packageName, int flags) {
+    public ApplicationInfo getApplicationInfo(@NonNull String packageName, int flags) {
         return null;
     }
 
+    @NonNull
     @Override
-    public ActivityInfo getActivityInfo(ComponentName component, int flags) {
+    public ActivityInfo getActivityInfo(@NonNull ComponentName component, int flags) {
         return null;
     }
 
+    @NonNull
     @Override
-    public ActivityInfo getReceiverInfo(ComponentName component, int flags) {
+    public ActivityInfo getReceiverInfo(@NonNull ComponentName component, int flags) {
         return null;
     }
 
+    @NonNull
     @Override
-    public ServiceInfo getServiceInfo(ComponentName component, int flags) {
+    public ServiceInfo getServiceInfo(@NonNull ComponentName component, int flags) {
         return null;
     }
 
+    @NonNull
     @Override
-    public ProviderInfo getProviderInfo(ComponentName component, int flags) {
+    public ProviderInfo getProviderInfo(@NonNull ComponentName component, int flags) {
         return null;
     }
 
+    @NonNull
     @Override
     public List<PackageInfo> getInstalledPackages(int flags) {
         return null;
     }
 
+    @NonNull
     @Override
-    public List<PackageInfo> getPackagesHoldingPermissions(String[] permissions, int flags) {
+    public List<PackageInfo> getPackagesHoldingPermissions(@NonNull String[] permissions, int flags) {
         return null;
     }
 
     @Override
-    public int checkPermission(String permName, String packageName) {
+    public int checkPermission(@NonNull String permName, @NonNull String packageName) {
         return android.content.pm.PackageManager.PERMISSION_GRANTED;
     }
 
     @Override
-    public boolean isPermissionRevokedByPolicy(String permName, String packageName) {
+    public boolean isPermissionRevokedByPolicy(@NonNull String permName, @NonNull String packageName) {
         return false;
     }
 
     @Override
-    public boolean addPermission(PermissionInfo info) {
+    public boolean addPermission(@NonNull PermissionInfo info) {
         return false;
     }
 
     @Override
-    public boolean addPermissionAsync(PermissionInfo info) {
+    public boolean addPermissionAsync(@NonNull PermissionInfo info) {
         return false;
     }
 
     @Override
-    public void removePermission(String permName) {
+    public void removePermission(@NonNull String permName) {
     }
 
     @Override
-    public int checkSignatures(String packageName1, String packageName2) {
+    public int checkSignatures(@NonNull String packageName1, @NonNull String packageName2) {
         return android.content.pm.PackageManager.SIGNATURE_MATCH;
     }
 
@@ -189,6 +202,7 @@ public class Hook extends PackageManager {
         return null;
     }
 
+    @NonNull
     @Override
     public List<ApplicationInfo> getInstalledApplications(int flags) {
         return null;
@@ -200,7 +214,7 @@ public class Hook extends PackageManager {
     }
 
     @Override
-    public boolean isInstantApp(String packageName) {
+    public boolean isInstantApp(@NonNull String packageName) {
         return false;
     }
 
@@ -209,6 +223,7 @@ public class Hook extends PackageManager {
         return 0;
     }
 
+    @NonNull
     @Override
     public byte[] getInstantAppCookie() {
         return new byte[0];
@@ -227,6 +242,7 @@ public class Hook extends PackageManager {
         return new String[0];
     }
 
+    @NonNull
     @Override
     public List<SharedLibraryInfo> getSharedLibraries(int flags) {
         return null;
@@ -237,188 +253,209 @@ public class Hook extends PackageManager {
         return null;
     }
 
+    @NonNull
     @Override
     public FeatureInfo[] getSystemAvailableFeatures() {
         return new FeatureInfo[0];
     }
 
     @Override
-    public boolean hasSystemFeature(String featureName) {
+    public boolean hasSystemFeature(@NonNull String featureName) {
         return false;
     }
 
     @Override
-    public boolean hasSystemFeature(String featureName, int version) {
+    public boolean hasSystemFeature(@NonNull String featureName, int version) {
         return false;
     }
 
     @Override
-    public ResolveInfo resolveActivity(Intent intent, int flags) {
+    public ResolveInfo resolveActivity(@NonNull Intent intent, int flags) {
+        return null;
+    }
+
+    @NonNull
+    @Override
+    public List<ResolveInfo> queryIntentActivities(@NonNull Intent intent, int flags) {
+        return null;
+    }
+
+    @NonNull
+    @Override
+    public List<ResolveInfo> queryIntentActivityOptions(ComponentName caller, Intent[] specifics, @NonNull Intent intent, int flags) {
+        return null;
+    }
+
+    @NonNull
+    @Override
+    public List<ResolveInfo> queryBroadcastReceivers(@NonNull Intent intent, int flags) {
         return null;
     }
 
     @Override
-    public List<ResolveInfo> queryIntentActivities(Intent intent, int flags) {
+    public ResolveInfo resolveService(@NonNull Intent intent, int flags) {
         return null;
     }
 
+    @NonNull
     @Override
-    public List<ResolveInfo> queryIntentActivityOptions(ComponentName caller, Intent[] specifics, Intent intent, int flags) {
+    public List<ResolveInfo> queryIntentServices(@NonNull Intent intent, int flags) {
         return null;
     }
 
-    @Override
-    public List<ResolveInfo> queryBroadcastReceivers(Intent intent, int flags) {
-        return null;
-    }
-
-    @Override
-    public ResolveInfo resolveService(Intent intent, int flags) {
-        return null;
-    }
-
-    @Override
-    public List<ResolveInfo> queryIntentServices(Intent intent, int flags) {
-        return null;
-    }
-
+    @NonNull
     @Override
     public List<ResolveInfo> queryIntentContentProviders(Intent intent, int flags) {
         return null;
     }
 
     @Override
-    public ProviderInfo resolveContentProvider(String authority, int flags) {
+    public ProviderInfo resolveContentProvider(@NonNull String authority, int flags) {
         return null;
     }
 
+    @NonNull
     @Override
     public List<ProviderInfo> queryContentProviders(String processName, int uid, int flags) {
         return null;
     }
 
+    @NonNull
     @Override
-    public InstrumentationInfo getInstrumentationInfo(ComponentName className, int flags) {
+    public InstrumentationInfo getInstrumentationInfo(@NonNull ComponentName className, int flags) {
+        return null;
+    }
+
+    @NonNull
+    @Override
+    public List<InstrumentationInfo> queryInstrumentation(@NonNull String targetPackage, int flags) {
         return null;
     }
 
     @Override
-    public List<InstrumentationInfo> queryInstrumentation(String targetPackage, int flags) {
+    public Drawable getDrawable(@NonNull String packageName, int resId, ApplicationInfo appInfo) {
+        return null;
+    }
+
+    @NonNull
+    @Override
+    public Drawable getActivityIcon(@NonNull ComponentName activityName) {
+        return null;
+    }
+
+    @NonNull
+    @Override
+    public Drawable getActivityIcon(@NonNull Intent intent) {
         return null;
     }
 
     @Override
-    public Drawable getDrawable(String packageName, int resid, ApplicationInfo appInfo) {
+    public Drawable getActivityBanner(@NonNull ComponentName activityName) {
         return null;
     }
 
     @Override
-    public Drawable getActivityIcon(ComponentName activityName) {
+    public Drawable getActivityBanner(@NonNull Intent intent) {
         return null;
     }
 
-    @Override
-    public Drawable getActivityIcon(Intent intent) {
-        return null;
-    }
-
-    @Override
-    public Drawable getActivityBanner(ComponentName activityName) {
-        return null;
-    }
-
-    @Override
-    public Drawable getActivityBanner(Intent intent) {
-        return null;
-    }
-
+    @NonNull
     @Override
     public Drawable getDefaultActivityIcon() {
         return null;
     }
 
+    @NonNull
     @Override
-    public Drawable getApplicationIcon(ApplicationInfo info) {
+    public Drawable getApplicationIcon(@NonNull ApplicationInfo info) {
+        return null;
+    }
+
+    @NonNull
+    @Override
+    public Drawable getApplicationIcon(@NonNull String packageName) {
         return null;
     }
 
     @Override
-    public Drawable getApplicationIcon(String packageName) {
+    public Drawable getApplicationBanner(@NonNull ApplicationInfo info) {
         return null;
     }
 
     @Override
-    public Drawable getApplicationBanner(ApplicationInfo info) {
+    public Drawable getApplicationBanner(@NonNull String packageName) {
         return null;
     }
 
     @Override
-    public Drawable getApplicationBanner(String packageName) {
+    public Drawable getActivityLogo(@NonNull ComponentName activityName) {
         return null;
     }
 
     @Override
-    public Drawable getActivityLogo(ComponentName activityName) {
+    public Drawable getActivityLogo(@NonNull Intent intent) {
         return null;
     }
 
     @Override
-    public Drawable getActivityLogo(Intent intent) {
+    public Drawable getApplicationLogo(@NonNull ApplicationInfo info) {
         return null;
     }
 
     @Override
-    public Drawable getApplicationLogo(ApplicationInfo info) {
+    public Drawable getApplicationLogo(@NonNull String packageName) {
+        return null;
+    }
+
+    @NonNull
+    @Override
+    public Drawable getUserBadgedIcon(@NonNull Drawable drawable, @NonNull UserHandle user) {
+        return null;
+    }
+
+    @NonNull
+    @Override
+    public Drawable getUserBadgedDrawableForDensity(@NonNull Drawable drawable, @NonNull UserHandle user, Rect badgeLocation, int badgeDensity) {
+        return null;
+    }
+
+    @NonNull
+    @Override
+    public CharSequence getUserBadgedLabel(@NonNull CharSequence label, @NonNull UserHandle user) {
         return null;
     }
 
     @Override
-    public Drawable getApplicationLogo(String packageName) {
+    public CharSequence getText(@NonNull String packageName, int resId, ApplicationInfo appInfo) {
         return null;
     }
 
     @Override
-    public Drawable getUserBadgedIcon(Drawable drawable, UserHandle user) {
+    public XmlResourceParser getXml(@NonNull String packageName, int resId, ApplicationInfo appInfo) {
         return null;
     }
 
+    @NonNull
     @Override
-    public Drawable getUserBadgedDrawableForDensity(Drawable drawable, UserHandle user, Rect badgeLocation, int badgeDensity) {
+    public CharSequence getApplicationLabel(@NonNull ApplicationInfo info) {
         return null;
     }
 
+    @NonNull
     @Override
-    public CharSequence getUserBadgedLabel(CharSequence label, UserHandle user) {
+    public Resources getResourcesForActivity(@NonNull ComponentName activityName) {
         return null;
     }
 
+    @NonNull
     @Override
-    public CharSequence getText(String packageName, int resid, ApplicationInfo appInfo) {
+    public Resources getResourcesForApplication(@NonNull ApplicationInfo app) {
         return null;
     }
 
+    @NonNull
     @Override
-    public XmlResourceParser getXml(String packageName, int resid, ApplicationInfo appInfo) {
-        return null;
-    }
-
-    @Override
-    public CharSequence getApplicationLabel(ApplicationInfo info) {
-        return null;
-    }
-
-    @Override
-    public Resources getResourcesForActivity(ComponentName activityName) {
-        return null;
-    }
-
-    @Override
-    public Resources getResourcesForApplication(ApplicationInfo app) {
-        return null;
-    }
-
-    @Override
-    public Resources getResourcesForApplication(String packageName) {
+    public Resources getResourcesForApplication(@NonNull String packageName) {
         return null;
     }
 
@@ -431,55 +468,56 @@ public class Hook extends PackageManager {
     }
 
     @Override
-    public void setInstallerPackageName(String targetPackage, String installerPackageName) {
+    public void setInstallerPackageName(@NonNull String targetPackage, String installerPackageName) {
     }
 
     @Override
-    public String getInstallerPackageName(String packageName) {
+    public String getInstallerPackageName(@NonNull String packageName) {
         return null;
     }
 
     @Override
-    public void addPackageToPreferred(String packageName) {
+    public void addPackageToPreferred(@NonNull String packageName) {
     }
 
     @Override
-    public void removePackageFromPreferred(String packageName) {
+    public void removePackageFromPreferred(@NonNull String packageName) {
     }
 
+    @NonNull
     @Override
     public List<PackageInfo> getPreferredPackages(int flags) {
         return null;
     }
 
     @Override
-    public void addPreferredActivity(IntentFilter filter, int match, ComponentName[] set, ComponentName activity) {
+    public void addPreferredActivity(@NonNull IntentFilter filter, int match, ComponentName[] set, @NonNull ComponentName activity) {
     }
 
     @Override
-    public void clearPackagePreferredActivities(String packageName) {
+    public void clearPackagePreferredActivities(@NonNull String packageName) {
     }
 
     @Override
-    public int getPreferredActivities(List<IntentFilter> outFilters, List<ComponentName> outActivities, String packageName) {
+    public int getPreferredActivities(@NonNull List<IntentFilter> outFilters, @NonNull List<ComponentName> outActivities, String packageName) {
         return 0;
     }
 
     @Override
-    public void setComponentEnabledSetting(ComponentName componentName, int newState, int flags) {
+    public void setComponentEnabledSetting(@NonNull ComponentName componentName, int newState, int flags) {
     }
 
     @Override
-    public int getComponentEnabledSetting(ComponentName componentName) {
+    public int getComponentEnabledSetting(@NonNull ComponentName componentName) {
         return android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;
     }
 
     @Override
-    public void setApplicationEnabledSetting(String packageName, int newState, int flags) {
+    public void setApplicationEnabledSetting(@NonNull String packageName, int newState, int flags) {
     }
 
     @Override
-    public int getApplicationEnabledSetting(String packageName) {
+    public int getApplicationEnabledSetting(@NonNull String packageName) {
         return android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;
     }
 
@@ -489,9 +527,10 @@ public class Hook extends PackageManager {
     }
 
     @Override
-    public void setApplicationCategoryHint(String packageName, int categoryHint) {
+    public void setApplicationCategoryHint(@NonNull String packageName, int categoryHint) {
     }
 
+    @NonNull
     @Override
     public PackageInstaller getPackageInstaller() {
         return null;

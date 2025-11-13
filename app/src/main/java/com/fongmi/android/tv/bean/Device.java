@@ -12,8 +12,8 @@ import androidx.room.PrimaryKey;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.db.AppDatabase;
-import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.impl.Diffable;
+import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.google.gson.annotations.SerializedName;
@@ -167,7 +167,12 @@ public class Device implements Diffable<Device> {
     public boolean equals(@Nullable Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof Device it)) return false;
-        return getUuid().equals(it.getUuid()) && getName().equals(it.getName()) && getType() == it.getType();
+        return getUuid().equals(it.getUuid());
+    }
+
+    @Override
+    public int hashCode() {
+        return getUuid().hashCode();
     }
 
     @NonNull
@@ -178,12 +183,12 @@ public class Device implements Diffable<Device> {
 
     @Override
     public boolean isSameItem(Device other) {
-        return getUuid().equals(other.getUuid());
+        return equals(other);
     }
 
     @Override
     public boolean isSameContent(Device other) {
-        return equals(other);
+        return getName().equals(other.getName()) && getType() == other.getType();
     }
 
     public static class Sorter implements Comparator<Device> {

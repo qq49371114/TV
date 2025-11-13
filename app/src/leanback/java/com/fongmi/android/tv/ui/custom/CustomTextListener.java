@@ -41,7 +41,7 @@ public abstract class CustomTextListener implements TextWatcher, RecognitionList
         List<String> texts = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
         for (String text : texts) sb.append(text).append("\n");
         String result = sb.toString().trim();
-        if (result.length() > 0) onResults(result);
+        if (!result.isEmpty()) onResults(result);
     }
 
     @Override

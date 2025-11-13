@@ -2,9 +2,11 @@ package com.fongmi.android.tv.bean;
 
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
 import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
 
+import com.fongmi.android.tv.App;
 import com.github.catvod.utils.Json;
 import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
@@ -61,5 +63,11 @@ public class Drm {
         builder.setForceDefaultLicenseUri(isForceKey());
         builder.setLicenseUri(getKey());
         return builder.build();
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return App.gson().toJson(this);
     }
 }

@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.server;
 
+import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.player.Players;
 import com.github.catvod.Proxy;
 import com.github.catvod.utils.Util;
@@ -41,7 +42,7 @@ public class Server {
         return "http://" + (local ? "127.0.0.1" : Util.getIp()) + ":" + Proxy.getPort();
     }
 
-    public void start() {
+    public synchronized void start() {
         if (nano != null) return;
         for (int i = 9978; i < 9999; i++) {
             try {
@@ -56,7 +57,10 @@ public class Server {
     }
 
     public void stop() {
-        if (nano != null) nano.stop();
-        nano = null;
+        App.execute(() -> {
+            if (nano != null) nano.stop();
+            player = null;
+            nano = null;
+        });
     }
 }

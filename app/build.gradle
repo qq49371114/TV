@@ -9,6 +9,7 @@ android {
     defaultConfig {
         applicationId "com.fongmi.android.tv"
         minSdk 24
+        //noinspection ExpiredTargetSdkVersion
         targetSdk 36
         versionCode 47601
         versionName "4.7.6.01"
@@ -90,7 +91,7 @@ dependencies {
     implementation project(':chaquo')
     implementation project(':quickjs')
     implementation 'androidx.appcompat:appcompat:1.7.1'
-    implementation 'androidx.core:core-splashscreen:1.0.1'
+    implementation 'androidx.core:core-splashscreen:1.2.0'
     implementation 'androidx.media:media:1.7.1'
     implementation 'androidx.media3:media3-common:' + media3Version
     implementation 'androidx.media3:media3-container:' + media3Version
@@ -108,9 +109,10 @@ dependencies {
     implementation 'androidx.media3:media3-extractor:' + media3Version
     implementation 'androidx.media3:media3-ui:' + media3Version
     implementation 'androidx.palette:palette:1.0.0'
-    implementation 'androidx.room:room-runtime:2.8.2'
+    implementation 'androidx.room:room-runtime:2.8.3'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     implementation 'cat.ereza:customactivityoncrash:2.4.0'
-    implementation 'com.airbnb.android:lottie:6.6.10'
+    implementation 'com.airbnb.android:lottie:6.7.1'
     implementation 'com.github.bassaer:materialdesigncolors:1.0.0'
     implementation 'com.github.bumptech.glide:glide:' + glideVersion
     implementation 'com.github.bumptech.glide:annotations:' + glideVersion
@@ -135,10 +137,9 @@ dependencies {
     leanbackImplementation 'androidx.leanback:leanback:1.2.0'
     leanbackImplementation 'com.github.JessYanCoding:AndroidAutoSize:1.2.1'
     mobileImplementation 'androidx.biometric:biometric:1.1.0'
-    mobileImplementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     mobileImplementation 'com.google.android.flexbox:flexbox:3.0.0'
     mobileImplementation('com.journeyapps:zxing-android-embedded:4.3.0') { transitive = false }
-    annotationProcessor 'androidx.room:room-compiler:2.8.2'
+    annotationProcessor 'androidx.room:room-compiler:2.8.3'
     annotationProcessor 'com.github.bumptech.glide:compiler:' + glideVersion
     annotationProcessor 'org.greenrobot:eventbus-annotation-processor:3.3.1'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.1.5'

@@ -21,6 +21,7 @@ android {
 dependencies {
     api 'androidx.annotation:annotation:1.9.1'
     api 'androidx.preference:preference:1.2.1'
+    api 'androidx.startup:startup-runtime:1.2.0'
     api 'com.github.thegrizzlylabs:sardine-android:0.9'
     api 'com.google.code.gson:gson:' + gsonVersion
     api 'com.google.zxing:core:3.5.3'

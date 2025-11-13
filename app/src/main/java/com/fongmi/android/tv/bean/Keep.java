@@ -8,7 +8,6 @@ import androidx.room.PrimaryKey;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.db.AppDatabase;
-import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Diffable;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
@@ -154,37 +153,31 @@ public class Keep implements Diffable<Keep> {
         return this;
     }
 
-    private static void startSync(List<Config> configs, List<Keep> targets) {
-        for (Keep target : targets) {
-            for (Config config : configs) {
-                if (target.getCid() == config.getId()) {
-                    target.save(Config.find(config).getId());
-                }
-            }
-        }
-    }
-
     public static void sync(List<Config> configs, List<Keep> targets) {
-        App.execute(() -> {
-            startSync(configs, targets);
-            RefreshEvent.keep();
-        });
+        targets.forEach(target -> configs.stream()
+                .filter(config -> target.getCid() == config.getId()).findFirst()
+                .ifPresent(config -> target.save(Config.find(config).getId())));
     }
 
     @Override
     public boolean equals(@Nullable Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof Keep it)) return false;
-        return getKey().equals(it.getKey()) && getVodName().equals(it.getVodName()) && getVodPic().equals(it.getVodPic()) && getCreateTime() == it.getCreateTime();
+        return getKey().equals(it.getKey());
+    }
+
+    @Override
+    public int hashCode() {
+        return getKey().hashCode();
     }
 
     @Override
     public boolean isSameItem(Keep other) {
-        return getKey().equals(other.getKey());
+        return equals(other);
     }
 
     @Override
     public boolean isSameContent(Keep other) {
-        return equals(other);
+        return getVodName().equals(other.getVodName()) && getVodPic().equals(other.getVodPic()) && getCreateTime() == other.getCreateTime();
     }
 }

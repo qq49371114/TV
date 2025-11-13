@@ -6,11 +6,8 @@ import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.bean.Danmaku;
 import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.utils.ResUtil;
-import com.orhanobut.logger.Logger;
 
 import java.util.HashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import master.flame.danmaku.controller.DrawHandler;
 import master.flame.danmaku.danmaku.model.BaseDanmaku;
@@ -22,14 +19,12 @@ import master.flame.danmaku.ui.widget.DanmakuView;
 public class DanPlayer implements DrawHandler.Callback {
 
     private static final String TAG = DanPlayer.class.getSimpleName();
-    private final ExecutorService executor;
     private final DanmakuContext context;
     private DanmakuView view;
     private Players player;
 
     public DanPlayer() {
         context = DanmakuContext.create();
-        executor = Executors.newCachedThreadPool();
         HashMap<Integer, Integer> maxLines = new HashMap<>();
         maxLines.put(BaseDanmaku.TYPE_FIX_TOP, 2);
         maxLines.put(BaseDanmaku.TYPE_SCROLL_RL, 2);
@@ -53,41 +48,40 @@ public class DanPlayer implements DrawHandler.Callback {
     }
 
     public void seekTo(long time) {
-        executor.execute(() -> {
+        App.execute(() -> {
             if (isDanmakuPrepared()) view.seekTo(time);
             if (isDanmakuPrepared()) view.hide();
         });
     }
 
     public void play() {
-        executor.execute(() -> {
+        App.execute(() -> {
             if (isDanmakuPrepared()) view.resume();
         });
     }
 
     public void pause() {
-        executor.execute(() -> {
+        App.execute(() -> {
             if (isDanmakuPrepared()) view.pause();
         });
     }
 
     public void stop() {
-        executor.execute(() -> {
+        App.execute(() -> {
             if (isDanmakuPrepared()) view.stop();
         });
     }
 
     public void release() {
-        executor.execute(() -> {
+        App.execute(() -> {
             if (isDanmakuPrepared()) view.release();
         });
     }
 
     public void setDanmaku(Danmaku item) {
-        executor.execute(() -> {
+        App.execute(() -> {
             view.release();
             if (item.isEmpty()) return;
-            Logger.t(TAG).d(item.getUrl());
             view.prepare(new Parser().load(new Loader(item).getDataSource()), context);
         });
     }
@@ -106,7 +100,7 @@ public class DanPlayer implements DrawHandler.Callback {
         App.post(() -> {
             boolean playing = player.isPlaying();
             long position = player.getPosition();
-            executor.execute(() -> {
+            App.execute(() -> {
                 if (!isDanmakuPrepared()) return;
                 if (playing) view.start(position);
                 else view.pause();

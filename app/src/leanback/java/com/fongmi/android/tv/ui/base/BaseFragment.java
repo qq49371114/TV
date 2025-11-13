@@ -23,8 +23,12 @@ public abstract class BaseFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         initView();
+        initEvent();
     }
 
     protected void initView() {
+    }
+
+    protected void initEvent() {
     }
 }

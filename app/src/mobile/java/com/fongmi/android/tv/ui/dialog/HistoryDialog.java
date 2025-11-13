@@ -1,6 +1,8 @@
 package com.fongmi.android.tv.ui.dialog;
 
+import android.app.Activity;
 import android.view.LayoutInflater;
+import android.view.WindowManager;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
@@ -10,15 +12,22 @@ import com.fongmi.android.tv.databinding.DialogHistoryBinding;
 import com.fongmi.android.tv.impl.ConfigCallback;
 import com.fongmi.android.tv.ui.adapter.ConfigAdapter;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
+import com.fongmi.android.tv.utils.ResUtil;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class HistoryDialog implements ConfigAdapter.OnClickListener {
 
-    private final DialogHistoryBinding binding;
     private final ConfigCallback callback;
-    private final ConfigAdapter adapter;
-    private final AlertDialog dialog;
+    private DialogHistoryBinding binding;
+    private ConfigAdapter adapter;
+    private AlertDialog dialog;
+    private boolean readOnly;
+    private boolean full;
     private int type;
+
+    public static HistoryDialog create(Activity activity) {
+        return new HistoryDialog(activity);
+    }
 
     public static HistoryDialog create(Fragment fragment) {
         return new HistoryDialog(fragment);
@@ -29,11 +38,26 @@ public class HistoryDialog implements ConfigAdapter.OnClickListener {
         return this;
     }
 
+    public HistoryDialog(Activity activity) {
+        this.callback = (ConfigCallback) activity;
+        this.full = true;
+        init(activity);
+    }
+
     public HistoryDialog(Fragment fragment) {
         this.callback = (ConfigCallback) fragment;
-        this.binding = DialogHistoryBinding.inflate(LayoutInflater.from(fragment.getContext()));
-        this.dialog = new MaterialAlertDialogBuilder(fragment.requireActivity()).setView(binding.getRoot()).create();
+        init(fragment.requireActivity());
+    }
+
+    private void init(Activity activity) {
+        this.binding = DialogHistoryBinding.inflate(LayoutInflater.from(activity));
+        this.dialog = new MaterialAlertDialogBuilder(activity).setView(binding.getRoot()).create();
         this.adapter = new ConfigAdapter(this);
+    }
+
+    public HistoryDialog readOnly() {
+        this.readOnly = true;
+        return this;
     }
 
     public void show() {
@@ -44,13 +68,16 @@ public class HistoryDialog implements ConfigAdapter.OnClickListener {
     private void setRecyclerView() {
         binding.recycler.setItemAnimator(null);
         binding.recycler.setHasFixedSize(false);
-        binding.recycler.setAdapter(adapter.addAll(type));
         binding.recycler.addItemDecoration(new SpaceItemDecoration(1, 8));
-        binding.recycler.post(() -> binding.recycler.scrollToPosition(0));
+        binding.recycler.setAdapter(adapter.readOnly(readOnly).addAll(type));
+        if (full) binding.recycler.setMaxHeight(ResUtil.dp2px(264));
     }
 
     private void setDialog() {
         if (adapter.getItemCount() == 0) return;
+        WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
+        if (full && ResUtil.isLand(dialog.getContext())) params.width = (int) (ResUtil.getScreenWidth() * 0.5f);
+        dialog.getWindow().setAttributes(params);
         dialog.getWindow().setDimAmount(0);
         dialog.show();
     }

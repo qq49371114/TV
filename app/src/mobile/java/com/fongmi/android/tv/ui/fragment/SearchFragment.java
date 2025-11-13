@@ -25,8 +25,7 @@ import androidx.viewbinding.ViewBinding;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
-import com.fongmi.android.tv.bean.Hot;
-import com.fongmi.android.tv.bean.Suggest;
+import com.fongmi.android.tv.bean.Word;
 import com.fongmi.android.tv.databinding.FragmentSearchBinding;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.ui.adapter.RecordAdapter;
@@ -42,7 +41,6 @@ import com.google.common.net.HttpHeaders;
 
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.util.List;
 import java.util.Optional;
 
 import okhttp3.Call;
@@ -151,27 +149,30 @@ public class SearchFragment extends BaseFragment implements MenuProvider, WordAd
 
     private void getHot() {
         mBinding.word.setText(R.string.search_hot);
-        mWordAdapter.addAll(Hot.get(Setting.getHot()));
-        OkHttp.newCall("https://api.web.360kan.com/v1/rank?cat=1", Headers.of(HttpHeaders.REFERER, "https://www.360kan.com/rank/general")).enqueue(new Callback() {
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                List<String> items = Hot.get(response.body().string());
-                if (mWordAdapter.getItemCount() > 0) return;
-                App.post(() -> mWordAdapter.addAll(items));
-            }
-        });
+        mWordAdapter.setItems(Word.objectFrom(Setting.getHot()).getData());
+        OkHttp.newCall("https://api.web.360kan.com/v1/rank?cat=1", Headers.of(HttpHeaders.REFERER, "https://www.360kan.com/rank/general")).enqueue(getCallback(true));
     }
 
     private void getSuggest(String text) {
         mBinding.word.setText(R.string.search_suggest);
-        OkHttp.newCall("https://suggest.video.iqiyi.com/?if=mobile&key=" + URLEncoder.encode(text)).enqueue(new Callback() {
+        OkHttp.newCall("https://suggest.video.iqiyi.com/?if=mobile&key=" + URLEncoder.encode(text)).enqueue(getCallback(false));
+    }
+
+    private Callback getCallback(boolean hot) {
+        return new Callback() {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                if (mBinding.keyword.getText().toString().trim().isEmpty()) return;
-                List<String> items = Suggest.get(response.body().string());
-                App.post(() -> mWordAdapter.addAll(items));
+                String result = response.body().string();
+                if (TextUtils.isEmpty(result)) return;
+                App.post(() -> setWordAdapter(result, hot));
             }
-        });
+        };
+    }
+
+    private void setWordAdapter(String result, boolean save) {
+        if (!save && mBinding.keyword.getText().toString().trim().isEmpty()) return;
+        mWordAdapter.setItems(Word.objectFrom(result).getData());
+        if (save) Setting.putHot(result);
     }
 
     private void onReset() {

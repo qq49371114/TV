@@ -24,13 +24,6 @@ public class KeepAdapter extends BaseDiffAdapter<Keep, KeepAdapter.ViewHolder> {
         setLayoutSize();
     }
 
-    private void setLayoutSize() {
-        int space = ResUtil.dp2px(48) + ResUtil.dp2px(16 * (Product.getColumn() - 1));
-        int base = ResUtil.getScreenWidth() - space;
-        width = base / Product.getColumn();
-        height = (int) (width / 0.75f);
-    }
-
     public interface OnClickListener {
 
         void onItemClick(Keep item);
@@ -40,13 +33,28 @@ public class KeepAdapter extends BaseDiffAdapter<Keep, KeepAdapter.ViewHolder> {
         boolean onLongClick();
     }
 
+    private void setLayoutSize() {
+        int space = ResUtil.dp2px(48) + ResUtil.dp2px(16 * (Product.getColumn() - 1));
+        int base = ResUtil.getScreenWidth() - space;
+        width = base / Product.getColumn();
+        height = (int) (width / 0.75f);
+    }
+
+    public boolean isDelete() {
+        return delete;
+    }
+
     public void setDelete(boolean delete) {
         this.delete = delete;
         notifyItemRangeChanged(0, getItemCount());
     }
 
-    public boolean isDelete() {
-        return delete;
+    private void setClickListener(View root, Keep item) {
+        root.setOnLongClickListener(view -> listener.onLongClick());
+        root.setOnClickListener(view -> {
+            if (isDelete()) listener.onItemDelete(item);
+            else listener.onItemClick(item);
+        });
     }
 
     @NonNull
@@ -70,14 +78,6 @@ public class KeepAdapter extends BaseDiffAdapter<Keep, KeepAdapter.ViewHolder> {
         ImgUtil.load(item.getVodName(), item.getVodPic(), holder.binding.image);
     }
 
-    private void setClickListener(View root, Keep item) {
-        root.setOnLongClickListener(view -> listener.onLongClick());
-        root.setOnClickListener(view -> {
-            if (isDelete()) listener.onItemDelete(item);
-            else listener.onItemClick(item);
-        });
-    }
-
     public class ViewHolder extends RecyclerView.ViewHolder {
 
         private final AdapterVodBinding binding;
@@ -94,7 +94,6 @@ public class KeepAdapter extends BaseDiffAdapter<Keep, KeepAdapter.ViewHolder> {
                     v.animate().scaleX(1.1f).scaleY(1.1f).setDuration(150).start();
                     v.setTranslationZ(10f);
                     v.setSelected(true);
-                    v.bringToFront();
                 } else {
                     v.animate().scaleX(1f).scaleY(1f).setDuration(150).start();
                     v.setTranslationZ(0f);

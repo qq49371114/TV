@@ -113,13 +113,13 @@ public class ParseJob implements ParseCallback {
     }
 
     private void jsonParse(Parse item, String webUrl, boolean error) throws Exception {
-        Response res = OkHttp.newCall(item.getUrl() + webUrl, Headers.of(item.getHeaders())).execute();
-        JsonObject object = Json.parse(res.body().string()).getAsJsonObject();
-        String url = Json.safeString(object, "url");
-        JsonObject data = object.getAsJsonObject("data");
-        if (url.isEmpty()) url = Json.safeString(data, "url");
-        checkResult(getHeader(object), url, item.getName(), error);
-        res.close();
+        try (Response res = OkHttp.newCall(item.getUrl() + webUrl, Headers.of(item.getHeaders())).execute()) {
+            JsonObject object = Json.parse(res.body().string()).getAsJsonObject();
+            String url = Json.safeString(object, "url");
+            JsonObject data = object.getAsJsonObject("data");
+            if (url.isEmpty()) url = Json.safeString(data, "url");
+            checkResult(getHeader(object), url, item.getName(), error);
+        }
     }
 
     private void jsonExtend(String webUrl) throws Throwable {
@@ -186,6 +186,7 @@ public class ParseJob implements ParseCallback {
 
     private void startWeb(String key, String from, Map<String, String> headers, String url, String click) {
         App.post(() -> webViews.add(CustomWebView.create(App.get()).start(key, from, headers, url, click, this, !url.contains("player/?url="))));
+        App.get().setSniff(true);
     }
 
     private Map<String, String> getHeader(JsonObject object) {
@@ -215,6 +216,7 @@ public class ParseJob implements ParseCallback {
         for (CustomWebView webView : webViews) webView.stop(false);
         for (CustomWebView webView : webViews) webView.destroy();
         if (!webViews.isEmpty()) webViews.clear();
+        App.get().setSniff(false);
     }
 
     public void stop() {

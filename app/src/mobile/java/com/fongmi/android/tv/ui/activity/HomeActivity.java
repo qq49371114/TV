@@ -29,6 +29,7 @@ import com.fongmi.android.tv.event.ServerEvent;
 import com.fongmi.android.tv.event.StateEvent;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.player.Source;
+import com.fongmi.android.tv.player.exo.CacheManager;
 import com.fongmi.android.tv.receiver.ShortcutReceiver;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.ui.base.BaseActivity;
@@ -72,10 +73,8 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
     @Override
     protected void initView(Bundle savedInstanceState) {
         orientation = getResources().getConfiguration().orientation;
-        PermissionUtil.requestNotify(this);
         initFragment(savedInstanceState);
         Updater.create().start(this);
-        Server.get().start();
         initConfig();
     }
 
@@ -89,11 +88,15 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
         if (Intent.ACTION_SEND.equals(intent.getAction())) {
             VideoActivity.push(this, intent.getStringExtra(Intent.EXTRA_TEXT));
         } else if (Intent.ACTION_VIEW.equals(intent.getAction()) && intent.getData() != null) {
-            if ("text/plain".equals(intent.getType()) || UrlUtil.path(intent.getData()).endsWith(".m3u")) {
-                loadLive("file:/" + FileChooser.getPathFromUri(intent.getData()));
-            } else {
-                VideoActivity.push(this, intent.getData().toString());
-            }
+            PermissionUtil.requestFile(this, allGranted -> checkType(intent));
+        }
+    }
+
+    private void checkType(Intent intent) {
+        if ("text/plain".equals(intent.getType()) || UrlUtil.path(intent.getData()).endsWith(".m3u")) {
+            loadLive("file:/" + FileChooser.getPathFromUri(intent.getData()));
+        } else {
+            VideoActivity.push(this, intent.getData().toString());
         }
     }
 
@@ -132,6 +135,7 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
 
             @Override
             public void error(String msg) {
+                checkAction(getIntent());
                 RefreshEvent.config();
                 StateEvent.empty();
                 Notify.show(msg);
@@ -218,11 +222,12 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
 
     @Override
     protected void onDestroy() {
+        CacheManager.get().release();
         WallConfig.get().clear();
         LiveConfig.get().clear();
         VodConfig.get().clear();
-        OkHttp.get().clear();
         AppDatabase.backup();
+        OkHttp.get().clear();
         Source.get().exit();
         Server.get().stop();
         super.onDestroy();

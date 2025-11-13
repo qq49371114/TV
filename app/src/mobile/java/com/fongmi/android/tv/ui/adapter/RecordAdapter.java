@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Setting;
-import com.fongmi.android.tv.databinding.AdapterCollectRecordBinding;
+import com.fongmi.android.tv.databinding.AdapterSearchRecordBinding;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.ViewHolder
     private void checkToAdd(String item) {
         mItems.remove(item);
         mItems.add(0, item);
-        if (mItems.size() > 8) mItems.remove(8);
+        if (mItems.size() > 10) mItems.remove(10);
     }
 
     public void add(String item) {
@@ -59,7 +59,7 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.ViewHolder
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ViewHolder(AdapterCollectRecordBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+        return new ViewHolder(AdapterSearchRecordBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
     }
 
     @Override
@@ -71,9 +71,9 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.ViewHolder
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener {
 
-        private final AdapterCollectRecordBinding binding;
+        private final AdapterSearchRecordBinding binding;
 
-        ViewHolder(@NonNull AdapterCollectRecordBinding binding) {
+        ViewHolder(@NonNull AdapterSearchRecordBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
             itemView.setOnLongClickListener(this);

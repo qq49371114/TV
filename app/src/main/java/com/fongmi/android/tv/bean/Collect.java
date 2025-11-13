@@ -11,6 +11,7 @@ import com.fongmi.android.tv.utils.ResUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Collect implements Parcelable, Diffable<Collect> {
 
@@ -69,6 +70,11 @@ public class Collect implements Parcelable, Diffable<Collect> {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hashCode(getSite());
+    }
+
+    @Override
     public int describeContents() {
         return 0;
     }
@@ -90,7 +96,7 @@ public class Collect implements Parcelable, Diffable<Collect> {
 
     @Override
     public boolean isSameItem(Collect other) {
-        return getSite().equals(other.getSite());
+        return equals(other);
     }
 
     @Override

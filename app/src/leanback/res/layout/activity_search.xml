@@ -12,7 +12,7 @@
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/recordLayout"
-        android:layout_width="128dp"
+        android:layout_width="144dp"
         android:layout_height="match_parent"
         android:layout_marginEnd="24dp"
         android:orientation="vertical">
@@ -51,7 +51,6 @@
             android:layout_marginEnd="12dp"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:nextFocusLeft="@id/record"
             android:src="@drawable/ic_search_mic" />
 
         <com.fongmi.android.tv.ui.custom.CustomSearchView
@@ -69,7 +68,6 @@
             android:inputType="textCapWords|textAutoCorrect|textAutoComplete"
             android:letterSpacing="0.02"
             android:maxLength="255"
-            android:nextFocusRight="@id/word"
             android:singleLine="true"
             android:textColor="@color/white"
             android:textColorHint="@color/white"
@@ -92,11 +90,10 @@
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginEnd="24dp"
         android:orientation="vertical">
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/hint"
+            android:id="@+id/word"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"

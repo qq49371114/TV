@@ -13,6 +13,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.Product;
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
@@ -95,6 +96,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
 
     @Override
     protected void initView() {
+        mBinding.swipeLayout.setColorSchemeResources(R.color.accent);
         mScroller = new CustomScroller(this);
         mExtends = getExtend();
         setRecyclerView();
@@ -104,7 +106,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     @Override
     protected void initEvent() {
         mBinding.swipeLayout.setOnRefreshListener(this);
-        mBinding.recycler.addOnScrollListener(mScroller = new CustomScroller(this));
+        mBinding.recycler.addOnScrollListener(mScroller);
     }
 
     @Override
@@ -131,20 +133,20 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     }
 
     private void getHome() {
-        mViewModel.homeContent();
-        mAdapter.clear();
+        mAdapter.clear(() -> mViewModel.homeContent());
     }
 
     private void getVideo() {
         mScroller.reset();
-        getVideo(getTypeId(), "1");
+        mAdapter.clear(() -> {
+            if (!mBinding.swipeLayout.isRefreshing()) mBinding.progressLayout.showProgress();
+            if (isHome()) setAdapter(getParent().getResult());
+            else getVideo(getTypeId(), "1");
+        });
     }
 
     private void getVideo(String typeId, String page) {
-        if ("1".equals(page)) mAdapter.clear();
-        if ("1".equals(page) && !mBinding.swipeLayout.isRefreshing()) mBinding.progressLayout.showProgress();
-        if (isHome() && "1".equals(page)) setAdapter(getParent().getResult());
-        else mViewModel.categoryContent(getKey(), typeId, page, true, mExtends);
+        mViewModel.categoryContent(getKey(), typeId, page, true, mExtends);
     }
 
     private void setAdapter(Result result) {

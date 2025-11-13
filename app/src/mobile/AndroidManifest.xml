@@ -97,7 +97,6 @@
             android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode|orientation"
             android:exported="true"
             android:launchMode="singleTop"
-            android:resizeableActivity="true"
             android:screenOrientation="sensorLandscape"
             android:supportsPictureInPicture="true" />
 
@@ -110,7 +109,6 @@
             android:name=".ui.activity.VideoActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|uiMode|orientation"
             android:launchMode="singleTop"
-            android:resizeableActivity="true"
             android:screenOrientation="fullUser"
             android:supportsPictureInPicture="true" />
 

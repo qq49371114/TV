@@ -28,7 +28,6 @@ import com.fongmi.android.tv.utils.Sniffer;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.utils.Util;
 import com.google.common.net.HttpHeaders;
-import com.orhanobut.logger.Logger;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
@@ -41,7 +40,7 @@ public class CustomWebView extends WebView implements DialogInterface.OnDismissL
 
     private static final String TAG = CustomWebView.class.getSimpleName();
 
-    private static final Pattern PLAYER = Pattern.compile("player/.*[?&][^=&]+=https?://");
+    private static final Pattern PLAYER = Pattern.compile("player.*https?://");
     private static final String BLANK = "about:blank";
     private static final int MAX_URLS = 5;
 
@@ -193,7 +192,6 @@ public class CustomWebView extends WebView implements DialogInterface.OnDismissL
 
     private boolean isVideoFormat(String url) {
         try {
-            Logger.t(TAG).d(url);
             if (!detect && url.equals(this.url)) return false;
             Spider spider = VodConfig.get().getSite(key).spider();
             if (spider.manualVideoCheck()) return spider.isVideoFormat(url);

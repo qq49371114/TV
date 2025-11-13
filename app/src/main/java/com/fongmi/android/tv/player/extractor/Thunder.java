@@ -60,6 +60,7 @@ public class Thunder implements Source.Extractor {
     public void stop() {
         if (taskId == null) return;
         XLTaskHelper.get().deleteTask(taskId);
+        XLTaskHelper.get().release();
         taskId = null;
     }
 

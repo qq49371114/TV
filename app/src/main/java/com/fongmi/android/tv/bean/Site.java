@@ -15,6 +15,7 @@ import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.api.loader.BaseLoader;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.gson.ExtAdapter;
+import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
@@ -23,7 +24,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -104,9 +104,13 @@ public class Site implements Parcelable {
     @Ignore
     private boolean activated;
 
-    public static Site objectFrom(JsonElement element) {
+    public static Site objectFrom(JsonElement element, String spider) {
         try {
-            return App.gson().fromJson(element, Site.class);
+            Site site = App.gson().fromJson(element, Site.class);
+            if (site.getJar().isEmpty()) site.setJar(spider);
+            site.setApi(UrlUtil.convert(site.getApi()));
+            site.setExt(UrlUtil.convert(site.getExt()));
+            return site.trans();
         } catch (Exception e) {
             return new Site();
         }
@@ -291,15 +295,12 @@ public class Site implements Parcelable {
 
     public Site trans() {
         if (Trans.pass()) return this;
-        List<String> categories = new ArrayList<>();
-        for (String cate : getCategories()) categories.add(Trans.s2t(cate));
-        setCategories(categories);
+        setName(Trans.s2t(getName()));
+        setCategories(getCategories().stream().map(Trans::s2t).toList());
         return this;
     }
 
-    public Site sync() {
-        Site item = find(getKey());
-        if (item == null) return this;
+    public Site sync(Site item) {
         if (getChangeable() != 0) setChangeable(Math.max(1, item.getChangeable()));
         if (getSearchable() != 0) setSearchable(Math.max(1, item.getSearchable()));
         return this;
@@ -314,8 +315,8 @@ public class Site implements Parcelable {
         return BaseLoader.get().getSpider(getKey(), getApi(), getExt(), getJar());
     }
 
-    public static Site find(String key) {
-        return AppDatabase.get().getSiteDao().find(key);
+    public static List<Site> findAll() {
+        return AppDatabase.get().getSiteDao().findAll();
     }
 
     public void save() {
@@ -327,6 +328,11 @@ public class Site implements Parcelable {
         if (this == obj) return true;
         if (!(obj instanceof Site it)) return false;
         return getKey().equals(it.getKey());
+    }
+
+    @Override
+    public int hashCode() {
+        return getKey().hashCode();
     }
 
     @Override

@@ -2,7 +2,6 @@ package com.fongmi.android.tv.ui.base;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
-import android.app.Activity;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,6 +15,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
 import androidx.activity.SystemBarStyle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentActivity;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.ui.custom.CustomWallView;
@@ -49,7 +49,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         ((ViewGroup) findViewById(android.R.id.content)).addView(new CustomWallView(this, null), 0, new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
     }
 
-    protected Activity getActivity() {
+    protected FragmentActivity getActivity() {
         return this;
     }
 

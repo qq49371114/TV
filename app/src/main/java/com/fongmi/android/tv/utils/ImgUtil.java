@@ -16,6 +16,7 @@ import androidx.annotation.Nullable;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.LazyHeaders;
@@ -23,6 +24,7 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.impl.CustomTarget;
 import com.github.catvod.utils.Json;
 import com.google.common.net.HttpHeaders;
@@ -36,6 +38,14 @@ import jahirfiquitiva.libs.textdrawable.TextDrawable;
 public class ImgUtil {
 
     private static final Set<String> failed = new HashSet<>();
+
+    public static void logo(ImageView view) {
+        try {
+            Glide.with(view).load(UrlUtil.convert(VodConfig.get().getConfig().getLogo())).circleCrop().override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL).error(R.drawable.ic_logo).into(view);
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void load(String url, CustomTarget<Bitmap> target) {
         try {
@@ -62,7 +72,7 @@ public class ImgUtil {
         if (!vod) view.setVisibility(TextUtils.isEmpty(url) ? View.GONE : View.VISIBLE);
         if (TextUtils.isEmpty(url) || failed.contains(url)) view.setImageDrawable(getTextDrawable(text, vod));
         else try {
-            RequestBuilder<Drawable> builder = Glide.with(view).load(getUrl(url)).listener(getListener(text, url, view, vod));
+            RequestBuilder<Drawable> builder = Glide.with(view).load(getUrl(url)).diskCacheStrategy(DiskCacheStrategy.RESOURCE).listener(getListener(text, url, view, vod));
             if (vod) builder.centerCrop().into(view);
             else builder.fitCenter().into(view);
         } catch (Throwable e) {

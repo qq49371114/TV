@@ -17,6 +17,7 @@ import androidx.media3.common.MimeTypes;
 import androidx.media3.common.Tracks;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.Sub;
 import com.fongmi.android.tv.bean.Track;
@@ -92,7 +93,7 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
     }
 
     private void onSubtitle(View view) {
-        listener.onSubtitleClick();
+        App.post(() -> listener.onSubtitleClick(), 100);
         dismiss();
     }
 

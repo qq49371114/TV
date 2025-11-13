@@ -14,7 +14,6 @@ import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.db.AppDatabase;
-import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Diffable;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
@@ -330,29 +329,14 @@ public class History implements Diffable<History> {
         }
     }
 
-    private static void startSync(List<History> targets) {
-        for (History target : targets) {
-            List<History> items = findByName(target.getVodName());
-            if (items.isEmpty()) {
-                target.cid(VodConfig.getCid()).save();
-                continue;
-            }
-            long latestLocalTime = 0;
-            for (History item : items) {
-                if (item.getCreateTime() > latestLocalTime) {
-                    latestLocalTime = item.getCreateTime();
-                }
-            }
-            if (target.getCreateTime() > latestLocalTime) {
-                target.cid(VodConfig.getCid()).merge(items, true).save();
-            }
-        }
-    }
-
     public static void sync(List<History> targets) {
-        App.execute(() -> {
-            startSync(targets);
-            RefreshEvent.history();
+        targets.forEach(target -> {
+            List<History> items = findByName(target.getVodName());
+            if (items.isEmpty()) target.cid(VodConfig.getCid()).save();
+            else {
+                long latestTime = items.stream().mapToLong(History::getCreateTime).max().orElse(0L);
+                if (target.getCreateTime() > latestTime) target.cid(VodConfig.getCid()).merge(items, true).save();
+            }
         });
     }
 
@@ -360,7 +344,12 @@ public class History implements Diffable<History> {
     public boolean equals(@Nullable Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof History it)) return false;
-        return getKey().equals(it.getKey()) && getVodName().equals(it.getVodName()) && getVodPic().equals(it.getVodPic()) && getCreateTime() == it.getCreateTime();
+        return getKey().equals(it.getKey());
+    }
+
+    @Override
+    public int hashCode() {
+        return getKey().hashCode();
     }
 
     @NonNull
@@ -371,11 +360,11 @@ public class History implements Diffable<History> {
 
     @Override
     public boolean isSameItem(History other) {
-        return getKey().equals(other.getKey());
+        return equals(other);
     }
 
     @Override
     public boolean isSameContent(History other) {
-        return equals(other);
+        return getVodName().equals(other.getVodName()) && getVodPic().equals(other.getVodPic()) && getCreateTime() == other.getCreateTime();
     }
 }

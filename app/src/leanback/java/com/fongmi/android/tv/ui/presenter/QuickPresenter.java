@@ -20,15 +20,15 @@ public class QuickPresenter extends Presenter {
         setLayoutSize();
     }
 
+    public interface OnClickListener {
+
+        void onItemClick(Vod item);
+    }
+
     private void setLayoutSize() {
         int space = ResUtil.dp2px(24) + ResUtil.dp2px(32);
         int base = ResUtil.getScreenWidth() - space;
         width = base / 4;
-    }
-
-    public interface OnClickListener {
-
-        void onItemClick(Vod item);
     }
 
     @NonNull

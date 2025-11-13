@@ -16,11 +16,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 
 public class Channel {
 
@@ -285,10 +283,6 @@ public class Channel {
         ImgUtil.load(getName(), getLogo(), view, false);
     }
 
-    public void addUrls(String... urls) {
-        getUrls().addAll(new ArrayList<>(Arrays.asList(urls)));
-    }
-
     public void nextLine() {
         setLine(getLine() < getUrls().size() - 1 ? getLine() + 1 : 0);
     }
@@ -394,13 +388,18 @@ public class Channel {
     public boolean equals(@Nullable Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof Channel it)) return false;
-        if (!getName().isEmpty()) return getName().equals(it.getName());
-        if (!getNumber().isEmpty()) return getNumber().equals(it.getNumber());
-        return getName().equals(it.getName()) && getNumber().equals(it.getNumber());
+        String name1 = getName(), name2 = it.getName();
+        String number1 = getNumber(), number2 = it.getNumber();
+        if (!name1.isEmpty() && !name2.isEmpty()) return name1.equals(name2);
+        if (!number1.isEmpty() && !number2.isEmpty()) return number1.equals(number2);
+        return false;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getName(), getNumber());
+        String name = getName(), number = getNumber();
+        if (!name.isEmpty()) return name.hashCode();
+        if (!number.isEmpty()) return number.hashCode();
+        return 0;
     }
 }

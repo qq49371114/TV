@@ -4,7 +4,7 @@ import com.whl.quickjs.wrapper.JSCallFunction;
 import com.whl.quickjs.wrapper.JSFunction;
 import com.whl.quickjs.wrapper.JSObject;
 
-import java9.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletableFuture;
 
 public class Async {
 

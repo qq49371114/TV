@@ -22,6 +22,7 @@ import com.fongmi.android.tv.databinding.FragmentTypeBinding;
 import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.ui.activity.VideoActivity;
 import com.fongmi.android.tv.ui.activity.VodActivity;
+import com.fongmi.android.tv.ui.adapter.BaseDiffCallback;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.custom.CustomRowPresenter;
 import com.fongmi.android.tv.ui.custom.CustomScroller;
@@ -108,7 +109,7 @@ public class CollectFragment extends BaseFragment implements CustomScroller.Call
         List<ListRow> rows = new ArrayList<>();
         for (List<Vod> part : Lists.partition(items, Product.getColumn())) {
             mLast = new ArrayObjectAdapter(new VodPresenter(this));
-            mLast.setItems(part, null);
+            mLast.setItems(part, new BaseDiffCallback<Vod>());
             rows.add(new ListRow(mLast));
         }
         mAdapter.addAll(mAdapter.size(), rows);
@@ -129,7 +130,7 @@ public class CollectFragment extends BaseFragment implements CustomScroller.Call
     @Override
     public void onLoadMore(String page) {
         if (mCollect == null || "all".equals(mCollect.getSite().getKey())) return;
-        mViewModel.searchContent(mCollect.getSite(), getKeyword(), page);
+        mViewModel.searchContent(mCollect.getSite(), getKeyword(), false, page);
         mScroller.setLoading(true);
     }
 

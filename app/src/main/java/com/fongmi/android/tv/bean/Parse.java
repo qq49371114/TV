@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.impl.Diffable;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.utils.Json;
@@ -19,7 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Parse {
+public class Parse implements Diffable<Parse> {
 
     @SerializedName("name")
     private String name;
@@ -117,13 +118,6 @@ public class Parse {
         return getType() == 0 && getUrl().isEmpty();
     }
 
-    @Override
-    public boolean equals(@Nullable Object obj) {
-        if (this == obj) return true;
-        if (!(obj instanceof Parse it)) return false;
-        return getName().equals(it.getName());
-    }
-
     public String extUrl() {
         int index = getUrl().indexOf("?");
         if (getExt().isEmpty() || index == -1) return getUrl();
@@ -136,6 +130,28 @@ public class Parse {
         map.put("ext", getExt().toString());
         map.put("url", getUrl());
         return map;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Parse it)) return false;
+        return getName().equals(it.getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return getName().hashCode();
+    }
+
+    @Override
+    public boolean isSameItem(Parse other) {
+        return equals(other);
+    }
+
+    @Override
+    public boolean isSameContent(Parse other) {
+        return equals(other);
     }
 
     public static class Ext {

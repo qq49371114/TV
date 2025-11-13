@@ -1,41 +1,25 @@
 package com.fongmi.android.tv.ui.adapter;
 
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.fongmi.android.tv.bean.Word;
 import com.fongmi.android.tv.databinding.AdapterSearchWordBinding;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
+public class WordAdapter extends BaseDiffAdapter<Word.Data, WordAdapter.ViewHolder> {
 
     private final OnClickListener listener;
-    private final List<String> mItems;
 
     public WordAdapter(OnClickListener listener) {
-        this.mItems = new ArrayList<>();
         this.listener = listener;
     }
 
     public interface OnClickListener {
 
         void onItemClick(String text);
-    }
-
-    public void addAll(List<String> items) {
-        mItems.clear();
-        mItems.addAll(items);
-        notifyDataSetChanged();
-    }
-
-    @Override
-    public int getItemCount() {
-        return mItems.size();
     }
 
     @NonNull
@@ -46,22 +30,18 @@ public class WordAdapter extends RecyclerView.Adapter<WordAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.binding.word.setText(mItems.get(position));
+        Word.Data item = getItem(position);
+        holder.binding.text.setText(item.getTitle());
+        holder.binding.text.setOnClickListener(v -> listener.onItemClick(item.getTitle()));
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class ViewHolder extends RecyclerView.ViewHolder {
 
         private final AdapterSearchWordBinding binding;
 
         public ViewHolder(@NonNull AdapterSearchWordBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
-            itemView.setOnClickListener(this);
-        }
-
-        @Override
-        public void onClick(View view) {
-            listener.onItemClick(mItems.get(getLayoutPosition()));
         }
     }
 }

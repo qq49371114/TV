@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.ui.dialog;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Build;
@@ -7,6 +8,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 
@@ -57,8 +59,8 @@ public abstract class BaseDialog extends BottomSheetDialogFragment {
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         BottomSheetDialog dialog = (BottomSheetDialog) super.onCreateDialog(savedInstanceState);
-        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         dialog.setOnShowListener((DialogInterface f) -> setBehavior(dialog));
+        setWindow(dialog);
         return dialog;
     }
 
@@ -68,6 +70,18 @@ public abstract class BaseDialog extends BottomSheetDialogFragment {
         BottomSheetBehavior<FrameLayout> behavior = BottomSheetBehavior.from(bottomSheet);
         behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         behavior.setSkipCollapsed(true);
+    }
+
+    private void setWindow(Dialog dialog) {
+        Activity activity = getActivity();
+        if (activity == null || dialog == null) return;
+        Window dialogWindow = dialog.getWindow();
+        Window activityWindow = activity.getWindow();
+        if (activityWindow == null || dialogWindow == null) return;
+        int activityFlags = activityWindow.getAttributes().flags;
+        dialogWindow.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        boolean isFullscreen = (activityFlags & WindowManager.LayoutParams.FLAG_FULLSCREEN) == WindowManager.LayoutParams.FLAG_FULLSCREEN;
+        if (isFullscreen) dialogWindow.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
     }
 
     @Override

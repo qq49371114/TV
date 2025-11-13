@@ -2,7 +2,6 @@ package com.fongmi.android.tv.ui.base;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
-import android.app.Activity;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
@@ -15,6 +14,7 @@ import android.window.OnBackInvokedDispatcher;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentActivity;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
@@ -52,7 +52,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         ((ViewGroup) findViewById(android.R.id.content)).addView(new CustomWallView(this, null), 0, new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
     }
 
-    protected Activity getActivity() {
+    protected FragmentActivity getActivity() {
         return this;
     }
 

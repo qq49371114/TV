@@ -12,13 +12,14 @@ import android.view.WindowManager;
 import androidx.annotation.NonNull;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Util;
 
 public class CustomKeyDown extends GestureDetector.SimpleOnGestureListener implements ScaleGestureDetector.OnScaleGestureListener {
 
     private static final int DISTANCE = 250;
-    private static final int VELOCITY = 10;
+    private static final int VELOCITY = 150;
 
     private final ScaleGestureDetector scaleDetector;
     private final GestureDetector detector;
@@ -65,8 +66,8 @@ public class CustomKeyDown extends GestureDetector.SimpleOnGestureListener imple
     public void resetScale() {
         if (scale == 1.0f) return;
         videoView.animate().scaleX(1.0f).scaleY(1.0f).translationX(0f).translationY(0f).setDuration(250).withEndAction(() -> {
-            videoView.setPivotY(videoView.getHeight() / 2f);
-            videoView.setPivotX(videoView.getWidth() / 2f);
+            videoView.setPivotY(videoView.getHeight() / 2.0f);
+            videoView.setPivotX(videoView.getWidth() / 2.0f);
             scale = 1.0f;
         }).start();
     }
@@ -133,7 +134,7 @@ public class CustomKeyDown extends GestureDetector.SimpleOnGestureListener imple
     @Override
     public boolean onFling(MotionEvent e1, @NonNull MotionEvent e2, float velocityX, float velocityY) {
         if (isEdge(e1) || changeScale || !center || animating || e1.getPointerCount() > 1) return true;
-        checkFunc(e1, e2, velocityY);
+        checkFunc(e1, e2, velocityX, velocityY);
         return true;
     }
 
@@ -151,11 +152,12 @@ public class CustomKeyDown extends GestureDetector.SimpleOnGestureListener imple
         touch = false;
     }
 
-    private void checkFunc(MotionEvent e1, MotionEvent e2, float velocityY) {
-        if (e1.getY() - e2.getY() > DISTANCE && Math.abs(velocityY) > VELOCITY) {
-            videoView.animate().translationYBy(-ResUtil.dp2px(24)).setDuration(150).withStartAction(() -> animating = true).withEndAction(() -> videoView.animate().translationY(0).setDuration(100).withStartAction(listener::onFlingUp).withEndAction(() -> animating = false).start()).start();
-        } else if (e2.getY() - e1.getY() > DISTANCE && Math.abs(velocityY) > VELOCITY) {
-            videoView.animate().translationYBy(ResUtil.dp2px(24)).setDuration(150).withStartAction(() -> animating = true).withEndAction(() -> videoView.animate().translationY(0).setDuration(100).withStartAction(listener::onFlingDown).withEndAction(() -> animating = false).start()).start();
+    private void checkFunc(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+        boolean isVertical = Math.abs(velocityX) < (Math.abs(velocityY) * 0.5);
+        if (isVertical && e1.getY() - e2.getY() > DISTANCE && Math.abs(velocityY) > VELOCITY) {
+            videoView.animate().translationYBy(ResUtil.dp2px(Setting.isInvert() ? 24 : -24)).setDuration(150).withStartAction(() -> animating = true).withEndAction(() -> videoView.animate().translationY(0).setDuration(100).withStartAction(listener::onFlingUp).withEndAction(() -> animating = false).start()).start();
+        } else if (isVertical && e2.getY() - e1.getY() > DISTANCE && Math.abs(velocityY) > VELOCITY) {
+            videoView.animate().translationYBy(ResUtil.dp2px(Setting.isInvert() ? -24 : 24)).setDuration(150).withStartAction(() -> animating = true).withEndAction(() -> videoView.animate().translationY(0).setDuration(100).withStartAction(listener::onFlingDown).withEndAction(() -> animating = false).start()).start();
         }
     }
 
@@ -166,9 +168,8 @@ public class CustomKeyDown extends GestureDetector.SimpleOnGestureListener imple
     }
 
     private void setBright(float deltaY) {
-        if (bright == -1.0f) bright = 0.5f;
         int height = videoView.getMeasuredHeight();
-        float brightness = deltaY * 2 / height + bright;
+        float brightness = deltaY * 2.0f / height + bright;
         if (brightness < 0) brightness = 0f;
         if (brightness > 1.0f) brightness = 1.0f;
         WindowManager.LayoutParams attributes = activity.getWindow().getAttributes();
@@ -180,12 +181,12 @@ public class CustomKeyDown extends GestureDetector.SimpleOnGestureListener imple
     private void setVolume(float deltaY) {
         int height = videoView.getMeasuredHeight();
         int maxVolume = manager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        float deltaV = deltaY * 2 / height * maxVolume;
+        float deltaV = deltaY * 2.0f / height * maxVolume;
         float index = volume + deltaV;
         if (index > maxVolume) index = maxVolume;
         if (index < 0) index = 0;
         manager.setStreamVolume(AudioManager.STREAM_MUSIC, (int) index, 0);
-        listener.onVolume((int) (index / maxVolume * 100));
+        listener.onVolume((int) (index / maxVolume * 100.0f));
     }
 
     @Override

@@ -50,8 +50,7 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     }
 
     private void getKeep() {
-        mAdapter.setItems(Keep.getVod());
-        mBinding.progressLayout.showContent(true, mAdapter.getItemCount());
+        mAdapter.setItems(Keep.getVod(), () -> mBinding.progressLayout.showContent(true, mAdapter.getItemCount()));
     }
 
     private void loadConfig(Config config, Keep item) {
@@ -86,8 +85,9 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
 
     @Override
     public void onItemDelete(Keep item) {
-        mAdapter.remove(item.delete());
-        if (mAdapter.getItemCount() == 0) mAdapter.setDelete(false);
+        mAdapter.remove(item.delete(), () -> {
+            if (mAdapter.getItemCount() == 0) mAdapter.setDelete(false);
+        });
     }
 
     @Override
