@@ -141,6 +141,7 @@ public class LiveConfig {
             e.printStackTrace();
         }
     }
+    
 
     private void parseText(String text, Callback callback) {
         Live live = new Live(parseName(config.getUrl()), config.getUrl()).sync();
