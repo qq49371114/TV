@@ -24,6 +24,11 @@ jobs:
 
       - name: Inject signing & keystore
         run: |
+          # 把 apply 放在 plugins{} 之后，避免语法冲突
+          echo '' >> app/build.gradle
+          echo 'apply from: "signing.gradle"' >> app/build.gradle
+
+          # 生成签名配置
           cat > app/signing.gradle << 'EOF'
           if (project.hasProperty('FONGMIBOX_STORE_FILE')) {
               signingConfigs {
@@ -41,12 +46,14 @@ jobs:
           }
           EOF
 
-          sed -i '1i apply from: "signing.gradle"' app/build.gradle
+          # 在 debug / fongmibox 构建类型里引用签名
           sed -i '/debug {/a\            signingConfig signingConfigs.myConfig' app/build.gradle
           sed -i '/fongmibox {/a\            signingConfig signingConfigs.myConfig' app/build.gradle
 
+          # 放置 keystore
           cp $GITHUB_WORKSPACE/.github/workflows/TVBoxOSC.jks app/TVBoxOSC.jks
 
+          # 追加签名属性
           {
             echo "FONGMIBOX_STORE_FILE=./TVBoxOSC.jks"
             echo "FONGMIBOX_KEY_ALIAS=TVBoxOSC"
