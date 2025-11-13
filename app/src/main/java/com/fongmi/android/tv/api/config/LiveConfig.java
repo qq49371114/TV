@@ -134,7 +134,8 @@ public class LiveConfig {
         String json = Decoder.getJson(UrlUtil.convert(configUrl));
 
         // 2. 剥壳成 JsonObject（项目里怎么方便怎么来）
-        JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
+        JsonObject obj = com.google.gson.JsonParser.parseString(json).getAsJsonObject();
+
 
         // 3. 再往下传
         parseConfig(obj, callback);
