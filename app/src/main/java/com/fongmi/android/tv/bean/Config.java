@@ -9,7 +9,6 @@ import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
 import com.fongmi.android.tv.App;
-import com.fongmi.android.tv.api.config.Constants;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.github.catvod.utils.Prefers;
 import com.google.gson.annotations.SerializedName;

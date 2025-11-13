@@ -1,6 +1,5 @@
 package com.fongmi.android.tv.api.config;
 
-
 import android.net.Uri;
 import android.text.TextUtils;
 
