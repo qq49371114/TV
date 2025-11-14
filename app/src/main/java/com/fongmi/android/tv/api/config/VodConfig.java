@@ -30,6 +30,9 @@ import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import com.orhanobut.logger.Logger;
+
+
 
 public class VodConfig {
 
@@ -128,15 +131,13 @@ public class VodConfig {
         // 1. 防御性检查Config对象
         if (config == null) {
             config = Config.vod(); // 重新初始化
-            // 改动在这里：使用 Log.e 替换 Logger.e
-            Log.e("VodConfig", "Config is null, fallback to default!");
+            Logger.e("Config is null, fallback to default!");
         }
 
         // 2. 安全获取URL
         String loadUrl = config.getUrl();
         if (TextUtils.isEmpty(loadUrl)) {
-            // 改动在这里：使用 Log.e 替换 Logger.e
-            Log.e("VodConfig", "Config URL is empty, use built-in source!");
+            Logger.e("Config URL is empty, use built-in source!");
             config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 0);
             loadConfig(callback);
             return;
@@ -152,12 +153,13 @@ public class VodConfig {
         JsonObject json = Json.parse(Decoder.getJson(UrlUtil.convert(loadUrl))).getAsJsonObject();
         checkJson(json, callback);
 
-    } catch (Throwable e) {
-        // 异常处理逻辑...
-        // 最好在这里也加上日志，方便排查问题
-        Log.e("VodConfig", "loadConfig failed with exception", e);
-    }
-}
+        } catch (Throwable e) {
+        // 打印详细的错误日志，方便我们调试
+        Logger.e(e);
+        // 通过回调通知上层加载失败
+        callback.error(e.getMessage());
+          }
+        }
 
 
 
