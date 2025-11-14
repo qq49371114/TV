@@ -192,26 +192,26 @@ public class VodConfig {
     }
 
     private void initSite(JsonObject object) {
-        if (object.has("video")) {
-            initSite(object.getAsJsonObject("video"));
-            return;
-        }
-        String spider = Json.safeString(object, "spider");
-        BaseLoader.get().parseJar(spider, true);
-        for (JsonElement element : Json.safeListElement(object, "sites")) {
-            Site site = Site.objectFrom(element);
-            if (sites.contains(site)) continue;
-            site.setApi(UrlUtil.convert(site.getApi()));
-            site.setExt(UrlUtil.convert(site.getExt()));
-            site.setJar(parseJar(site, spider));
-            sites.add(site.trans().sync());
-        }
-        for (Site site : sites) {
-            if (site.getKey().equals(config.getHome())) {
-                setHome(site);
-            }
+    if (object.has("video")) {
+        initSite(object.getAsJsonObject("video"));
+        return;
+    }
+    String spider = Json.safeString(object, "spider");
+    BaseLoader.get().parseJar(spider, true);
+    for (JsonElement element : Json.safeListElement(object, "sites")) {
+        Site site = Site.objectFrom(element, spider);
+        if (sites.contains(site)) continue;
+        site.setApi(UrlUtil.convert(site.getApi()));
+        site.setExt(UrlUtil.convert(site.getExt()));
+        site.setJar(parseJar(site, spider));
+        sites.add(site.trans().sync(site));
+    }
+    for (Site site : sites) {
+        if (site.getKey().equals(config.getHome())) {
+            setHome(site);
         }
     }
+}
 
     private void initLive(JsonObject object) {
         Config temp = Config.find(config, 1).save();
@@ -355,7 +355,7 @@ public class VodConfig {
         for (Site item : getSites()) item.setActivated(home);
     }
 
-    private void setWall(String wall) {
+     private void setWall(String wall) {
         this.wall = wall;
         boolean sync = !TextUtils.isEmpty(wall) && WallConfig.get().needSync(wall);
         Config temp = Config.find(wall, config.getName(), 2).save();
