@@ -119,28 +119,22 @@ public class VodConfig {
         return this;
     }
 
-    public void load(Callback callback) {
-        if (future != null && !future.isDone()) future.cancel(true);
-        future = App.submit(() -> loadConfig(callback));
-        callback.start();
-    }
-
-    private void loadConfig(Callback callback) {
-    try {
+     private void loadConfig(Callback callback) {
+        try {
         // 1. 防御性检查Config对象
-        if (config == null) {
+           if (config == null) {
             config = Config.vod(); // 重新初始化
             Logger.e("Config is null, fallback to default!");
-        }
+            }
 
         // 2. 安全获取URL
-        String loadUrl = config.getUrl();
-        if (TextUtils.isEmpty(loadUrl)) {
-            Logger.e("Config URL is empty, use built-in source!");
+           String loadUrl = config.getUrl();
+           if (TextUtils.isEmpty(loadUrl)) {
+             Logger.e("Config URL is empty, use built-in source!");
             config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 0);
             loadConfig(callback);
             return;
-        }
+          }
 
         // 3. 安全判断占位符
         if (Constants.BUILTIN_PLACEHOLDER.equals(loadUrl)) {
@@ -152,13 +146,12 @@ public class VodConfig {
         JsonObject json = Json.parse(Decoder.getJson(UrlUtil.convert(loadUrl))).getAsJsonObject();
         checkJson(json, callback);
 
-        } catch (Throwable e) {
-        // 打印详细的错误日志，方便我们调试
-        Logger.e(e);
-        // 通过回调通知上层加载失败
+    } catch (Throwable e) {
+        // 加上说明文字，Logger就知道怎么处理啦！
+        Logger.e(e, "加载配置时发生错误"); 
         callback.error(e.getMessage());
-          }
-        }
+    }
+}
 
 
 
