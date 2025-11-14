@@ -12,7 +12,7 @@ android {
         minSdk 24
         //noinspection ExpiredTargetSdkVersion
         targetSdk 28
-        versionCode 487
+        versionCode 48701
         versionName "4.8.7"
         javaCompileOptions {
             annotationProcessorOptions {
