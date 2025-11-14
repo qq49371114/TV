@@ -6,12 +6,11 @@ android {
     namespace 'com.fongmi.android.tv'
 
     compileSdk = 36
-
     defaultConfig {
         applicationId "com.fongmi.android.tv"
         minSdk 24
         //noinspection ExpiredTargetSdkVersion
-        targetSdk 28
+        targetSdk 36
         versionCode 47601
         versionName "4.7.6.01"
         javaCompileOptions {
@@ -122,6 +121,7 @@ dependencies {
     implementation 'com.github.jahirfiquitiva:TextDrawable:1.0.3'
     implementation 'com.github.teamnewpipe:NewPipeExtractor:v0.24.8'
     implementation 'com.google.android.material:material:1.13.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'com.guolindev.permissionx:permissionx:1.8.1'
     implementation 'io.antmedia:rtmp-client:3.2.0'
     implementation 'io.github.anilbeesetti:nextlib-media3ext:1.8.0-0.9.0'
