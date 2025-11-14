@@ -22,7 +22,7 @@ import com.github.catvod.bean.Proxy;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
 import com.google.gson.JsonObject;
-
+import android.util.Log;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -124,36 +124,41 @@ public class VodConfig {
     }
 
     private void loadConfig(Callback callback) {
-        try {
-            // 1. 防御性检查Config对象
-            if (config == null) {
-                config = Config.vod(); // 重新初始化
-                Logger.e("Config is null, fallback to default!");
-            }
-
-            // 2. 安全获取URL
-            String loadUrl = config.getUrl();
-            if (TextUtils.isEmpty(loadUrl)) {
-                Logger.e("Config URL is empty, use built-in source!");
-                config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 0);
-                loadConfig(callback);
-                return;
-            }
-
-            // 3. 安全判断占位符
-            if (Constants.BUILTIN_PLACEHOLDER.equals(loadUrl)) {
-                loadUrl = Constants.BUILTIN_URL;
-            }
-
-            // 4. 取消旧请求并加载新配置
-            OkHttp.cancel("vod");
-            JsonObject json = Json.parse(Decoder.getJson(UrlUtil.convert(loadUrl))).getAsJsonObject();
-            checkJson(json, callback);
-
-        } catch (Throwable e) {
-            // 异常处理逻辑...
+    try {
+        // 1. 防御性检查Config对象
+        if (config == null) {
+            config = Config.vod(); // 重新初始化
+            // 改动在这里：使用 Log.e 替换 Logger.e
+            Log.e("VodConfig", "Config is null, fallback to default!");
         }
+
+        // 2. 安全获取URL
+        String loadUrl = config.getUrl();
+        if (TextUtils.isEmpty(loadUrl)) {
+            // 改动在这里：使用 Log.e 替换 Logger.e
+            Log.e("VodConfig", "Config URL is empty, use built-in source!");
+            config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 0);
+            loadConfig(callback);
+            return;
+        }
+
+        // 3. 安全判断占位符
+        if (Constants.BUILTIN_PLACEHOLDER.equals(loadUrl)) {
+            loadUrl = Constants.BUILTIN_URL;
+        }
+
+        // 4. 取消旧请求并加载新配置
+        OkHttp.cancel("vod");
+        JsonObject json = Json.parse(Decoder.getJson(UrlUtil.convert(loadUrl))).getAsJsonObject();
+        checkJson(json, callback);
+
+    } catch (Throwable e) {
+        // 异常处理逻辑...
+        // 最好在这里也加上日志，方便排查问题
+        Log.e("VodConfig", "loadConfig failed with exception", e);
     }
+}
+
 
 
     private void checkJson(JsonObject object, Callback callback) {
