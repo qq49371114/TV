@@ -1,5 +1,6 @@
 package com.fongmi.android.tv.player.extractor;
 
+import android.net.Uri;
 import android.util.Base64;
 
 import com.fongmi.android.tv.bean.Episode;
@@ -7,6 +8,7 @@ import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.NewPipeImpl;
 import com.fongmi.android.tv.player.Source;
+import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.utils.Trans;
 
 import org.schabi.newpipe.extractor.ListExtractor;
@@ -40,7 +42,8 @@ public class Youtube implements Source.Extractor {
     }
 
     @Override
-    public boolean match(String scheme, String host) {
+    public boolean match(Uri uri) {
+        String host = UrlUtil.host(uri);
         return host.contains("youtube.com") || host.contains("youtu.be");
     }
 

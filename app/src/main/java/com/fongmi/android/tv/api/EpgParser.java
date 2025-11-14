@@ -9,6 +9,7 @@ import com.fongmi.android.tv.bean.Live;
 import com.fongmi.android.tv.bean.Tv;
 import com.fongmi.android.tv.utils.Download;
 import com.fongmi.android.tv.utils.FileUtil;
+import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.utils.Path;
 import com.github.catvod.utils.Trans;
 
@@ -43,7 +44,7 @@ public class EpgParser {
 
     public static Epg getEpg(String xml, String key) throws Exception {
         Tv tv = new Persister().read(Tv.class, xml, false);
-        Epg epg = Epg.create(key, formatDate.format(parse(formatFull, tv.getDate())));
+        Epg epg = Epg.create(key, formatDate.format(Util.parse(formatFull, tv.getDate())));
         tv.getProgramme().forEach(programme -> epg.getList().add(getEpgData(programme)));
         return epg;
     }
@@ -91,10 +92,10 @@ public class EpgParser {
             String xmlChannelId = programme.getChannel();
             Channel targetChannel = findTargetChannel(xmlChannelId, liveChannelMap, data.map);
             if (targetChannel == null) continue;
-            Date startDate = parse(formatFull, programme.getStart());
+            Date startDate = Util.parse(formatFull, programme.getStart());
             if (!isToday(startDate.getTime())) continue;
             String liveTvgId = targetChannel.getTvgId();
-            Date endDate = parse(formatFull, programme.getStop());
+            Date endDate = Util.parse(formatFull, programme.getStop());
             epgMap.computeIfAbsent(liveTvgId, key -> Epg.create(key, today)).getList().add(getEpgData(startDate, endDate, programme));
             Optional.ofNullable(data.map.get(xmlChannelId)).filter(Tv.Channel::hasSrc).ifPresent(ch -> srcMap.putIfAbsent(liveTvgId, ch.getSrc()));
         }
@@ -120,8 +121,8 @@ public class EpgParser {
     }
 
     private static EpgData getEpgData(Tv.Programme programme) {
-        Date startDate = parse(formatFull, programme.getStart());
-        Date endDate = parse(formatFull, programme.getStop());
+        Date startDate = Util.parse(formatFull, programme.getStart());
+        Date endDate = Util.parse(formatFull, programme.getStop());
         return getEpgData(startDate, endDate, programme);
     }
 
@@ -136,14 +137,6 @@ public class EpgParser {
             return epgData;
         } catch (Exception e) {
             return new EpgData();
-        }
-    }
-
-    private static Date parse(SimpleDateFormat format, String source) {
-        try {
-            return format.parse(source);
-        } catch (Exception e) {
-            return new Date(0);
         }
     }
 

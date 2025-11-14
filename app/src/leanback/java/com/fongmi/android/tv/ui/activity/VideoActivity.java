@@ -76,10 +76,10 @@ import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.KeyUtil;
 import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.android.tv.utils.PartUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Sniffer;
 import com.fongmi.android.tv.utils.Traffic;
-import com.fongmi.android.tv.utils.Util;
 import com.github.bassaer.library.MDColor;
 import com.github.catvod.utils.Trans;
 
@@ -922,7 +922,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void setPartAdapter() {
-        mPartAdapter.setItems(Util.getPart(mHistory.getVodName()), null);
+        mPartAdapter.setItems(PartUtil.split(mHistory.getVodName()), null);
         mBinding.part.setVisibility(View.VISIBLE);
         setR2Callback();
     }

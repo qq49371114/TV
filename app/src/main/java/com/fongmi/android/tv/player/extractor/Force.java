@@ -9,14 +9,14 @@ import android.os.SystemClock;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.player.Source;
+import com.fongmi.android.tv.utils.UrlUtil;
 import com.forcetech.Util;
 import com.github.catvod.net.OkHttp;
 import com.google.common.net.HttpHeaders;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.regex.Pattern;
-
-import okhttp3.Headers;
 
 public class Force implements Source.Extractor, ServiceConnection {
 
@@ -24,8 +24,8 @@ public class Force implements Source.Extractor, ServiceConnection {
     private final HashSet<String> set = new HashSet<>();
 
     @Override
-    public boolean match(String scheme, String host) {
-        return PATTERN.matcher(scheme).find();
+    public boolean match(Uri uri) {
+        return PATTERN.matcher(UrlUtil.scheme(uri)).find();
     }
 
     private void init(String scheme) {
@@ -41,9 +41,8 @@ public class Force implements Source.Extractor, ServiceConnection {
         int port = Util.port(scheme);
         String id = uri.getLastPathSegment();
         String cmd = "http://127.0.0.1:" + port + "/cmd.xml?cmd=switch_chan&server=" + uri.getHost() + ":" + uri.getPort() + "&id=" + id;
-        String result = "http://127.0.0.1:" + port + "/" + id;
-        OkHttp.newCall(cmd, Headers.of(HttpHeaders.USER_AGENT, "MTV")).execute().body().string();
-        return result;
+        OkHttp.string(cmd, Map.of(HttpHeaders.USER_AGENT, "MTV"));
+        return "http://127.0.0.1:" + port + "/" + id;
     }
 
     @Override

@@ -66,9 +66,13 @@ public abstract class BaseDiffAdapter<T extends Diffable<T>, VH extends Recycler
     }
 
     public void addAll(List<T> items) {
+        addAll(items, null);
+    }
+
+    public void addAll(List<T> items, Runnable runnable) {
         List<T> current = new ArrayList<>(getItems());
         current.addAll(items);
-        setItems(current);
+        setItems(current, runnable);
     }
 
     public void sort(T item, Comparator<T> comparator) {

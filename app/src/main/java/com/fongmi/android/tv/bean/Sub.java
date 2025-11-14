@@ -28,10 +28,9 @@ public class Sub {
     private int flag;
 
     public static Sub from(String path) {
-        Uri uri = Uri.parse(path);
         Sub sub = new Sub();
         sub.url = path;
-        sub.name = uri.getLastPathSegment();
+        sub.name = UrlUtil.path(path);
         sub.flag = C.SELECTION_FLAG_FORCED;
         sub.format = ExoUtil.getMimeType(sub.name);
         return sub;

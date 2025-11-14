@@ -1,9 +1,9 @@
 package com.github.catvod.utils;
 
 import android.os.Environment;
-import android.util.Log;
 
 import com.github.catvod.Init;
+import com.orhanobut.logger.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -214,14 +214,18 @@ public class Path {
     public static void clear(File dir) {
         if (dir == null) return;
         if (dir.isDirectory()) for (File file : list(dir)) clear(file);
-        if (dir.delete()) Log.d(TAG, "Deleted:" + dir.getAbsolutePath());
+        if (dir.delete()) Logger.t(TAG).d("Deleted:" + dir);
     }
 
     public static File create(File file) {
         try {
-            if (file.getParentFile() != null) mkdir(file.getParentFile());
-            if (!file.canWrite()) file.setWritable(true);
-            if (!file.exists()) file.createNewFile();
+            File parent = file.getParentFile();
+            if (parent != null) mkdir(parent);
+            if (file.exists()) clear(file);
+            if (file.createNewFile()) Logger.t(TAG).d("Create:" + file);
+            file.setReadable(true);
+            file.setWritable(true);
+            file.setExecutable(true);
             Shell.exec("chmod 777 " + file);
             return file;
         } catch (IOException e) {

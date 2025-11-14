@@ -30,7 +30,7 @@ import com.github.catvod.utils.Shell;
 import java.net.NetworkInterface;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Date;
 import java.util.Formatter;
 import java.util.List;
 
@@ -110,27 +110,6 @@ public class Util {
         }
     }
 
-    public static List<String> getPart(String text) {
-        List<String> items = new ArrayList<>();
-        String[] splits = new String[0];
-        items.add(text);
-        if (text.contains("：")) {
-            splits = text.split("：");
-        } else if (text.contains("第") && text.contains("季")) {
-            splits = Arrays.stream(text.split("第")).filter(s -> !s.isEmpty() && !s.contains("季")).toArray(String[]::new);
-        } else if (text.contains("(")) {
-            splits = new String[]{text.split("\\(")[0]};
-        } else if (text.contains(" ")) {
-            splits = text.split(" ");
-        }
-        for (String s : splits) {
-            s = s.trim();
-            if (s.contains(" ")) s = s.split(" ")[0].trim();
-            if (!s.isEmpty()) items.add(s);
-        }
-        return items;
-    }
-
     public static String clean(String text) {
         StringBuilder sb = new StringBuilder();
         text = Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY).toString().replace("\u00A0", "").replace("\u3000", "");
@@ -179,9 +158,16 @@ public class Util {
         return text;
     }
 
-    public static long format(String src, List<SimpleDateFormat> formats) {
-        for (SimpleDateFormat format : formats) try { return format.parse(src).getTime(); } catch (Exception ignored) {}
-        return 0;
+    public static Date parse(SimpleDateFormat format, String source) {
+        try {
+            return format.parse(source);
+        } catch (Exception e) {
+            return new Date(0);
+        }
+    }
+
+    public static long parse(List<SimpleDateFormat> formats, String source) {
+        return formats.stream().map(format -> parse(format, source)).map(Date::getTime).filter(time -> time > 0).findFirst().orElse(0L);
     }
 
     public static boolean isLeanback() {
