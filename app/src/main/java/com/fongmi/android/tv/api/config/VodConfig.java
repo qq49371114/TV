@@ -23,7 +23,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.orhanobut.logger.Logger;
 
-import java.io.InterruptedIOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,9 +30,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class VodConfig {
-
-    private static final String TAG = VodConfig.class.getSimpleName();
-    private final AtomicInteger taskId = new AtomicInteger(0);
 
     private Site home;
     private String wall;
@@ -116,17 +112,13 @@ public class VodConfig {
         return this;
     }
 
-    private boolean isCanceled(Throwable e) {
-        return "Canceled".equals(e.getMessage()) || e instanceof InterruptedException || e instanceof InterruptedIOException;
-    }
-
     public void load(Callback callback) {
         if (executor != null) executor.shutdownNow();
         executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> loadConfig(callback));
     }
 
-    private void loadConfig(int id, Config config, Callback callback) {
+    private void loadConfig(Callback callback) {
         try {
             // 1. 防御性检查Config对象
             if (config == null) {
@@ -167,21 +159,22 @@ public class VodConfig {
         if (object.has("msg")) {
             App.post(() -> callback.error(object.get("msg").getAsString()));
         } else if (object.has("urls")) {
-            parseDepot(id, config, callback, object);
+            parseDepot(object, callback);
         } else {
-            parseConfig(id, config, callback, object);
+            parseConfig(object, callback);
         }
     }
 
-    private void parseDepot(int id, Config config, Callback callback, JsonObject object) {
+    private void parseDepot(JsonObject object, Callback callback) {
         List<Depot> items = Depot.arrayFrom(object.getAsJsonArray("urls").toString());
         List<Config> configs = new ArrayList<>();
         for (Depot item : items) configs.add(Config.find(item, 0));
-        loadConfig(id, this.config = configs.get(0), callback);
         Config.delete(config.getUrl());
+        config = configs.get(0);
+        loadConfig(callback);
     }
 
-    private void parseConfig(int id, Config config, Callback callback, JsonObject object) {
+    private void parseConfig(JsonObject object, Callback callback) {
         try {
             initSite(object);
             initParse(object);
@@ -194,32 +187,31 @@ public class VodConfig {
             App.post(callback::success);
         } catch (Throwable e) {
             e.printStackTrace();
-            if (taskId.get() != id) return;
             App.post(() -> callback.error(Notify.getError(R.string.error_config_parse, e)));
         }
     }
 
     private void initSite(JsonObject object) {
-    if (object.has("video")) {
-        initSite(object.getAsJsonObject("video"));
-        return;
-    }
-    String spider = Json.safeString(object, "spider");
-    BaseLoader.get().parseJar(spider, true);
-    for (JsonElement element : Json.safeListElement(object, "sites")) {
-        Site site = Site.objectFrom(element, spider);
-        if (sites.contains(site)) continue;
-        site.setApi(UrlUtil.convert(site.getApi()));
-        site.setExt(UrlUtil.convert(site.getExt()));
-        site.setJar(parseJar(site, spider));
-        sites.add(site.trans().sync(site));
-    }
-    for (Site site : sites) {
-        if (site.getKey().equals(config.getHome())) {
-            setHome(site);
+        if (object.has("video")) {
+            initSite(object.getAsJsonObject("video"));
+            return;
+        }
+        String spider = Json.safeString(object, "spider");
+        BaseLoader.get().parseJar(spider, true);
+        for (JsonElement element : Json.safeListElement(object, "sites")) {
+            Site site = Site.objectFrom(element);
+            if (sites.contains(site)) continue;
+            site.setApi(UrlUtil.convert(site.getApi()));
+            site.setExt(UrlUtil.convert(site.getExt()));
+            site.setJar(parseJar(site, spider));
+            sites.add(site.trans().sync());
+        }
+        for (Site site : sites) {
+            if (site.getKey().equals(config.getHome())) {
+                setHome(site);
+            }
         }
     }
-}
 
     private void initLive(JsonObject object) {
         Config temp = Config.find(config, 1).save();
@@ -363,7 +355,7 @@ public class VodConfig {
         for (Site item : getSites()) item.setActivated(home);
     }
 
-     private void setWall(String wall) {
+    private void setWall(String wall) {
         this.wall = wall;
         boolean sync = !TextUtils.isEmpty(wall) && WallConfig.get().needSync(wall);
         Config temp = Config.find(wall, config.getName(), 2).save();
