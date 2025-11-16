@@ -25,6 +25,7 @@ import com.orhanobut.logger.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -120,39 +121,41 @@ public class VodConfig {
 
     private void loadConfig(Callback callback) {
         try {
-            // 1. 防御性检查Config对象
-            if (config == null) {
-                config = Config.vod(); // 重新初始化
-                Logger.e("Config is null, fallback to default!");
-            }
-
-            // 2. 安全获取URL
-            String loadUrl = config.getUrl();
-            if (TextUtils.isEmpty(loadUrl)) {
-                Logger.e("Config URL is empty, use built-in source!");
-                config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 0);
-                loadConfig(callback);
-                return;
-            }
-
-            // 3. 安全判断占位符
-            if (Constants.BUILTIN_PLACEHOLDER.equals(loadUrl)) {
-                loadUrl = Constants.BUILTIN_URL;
-            }
-
-            // 4. 取消旧请求并加载新配置
+            String loadUrl = getLoadUrl();
             OkHttp.cancel("vod");
-            JsonObject json = Json.parse(Decoder.getJson(UrlUtil.convert(loadUrl))).getAsJsonObject();
+            String jsonText = Decoder.getJson(UrlUtil.convert(loadUrl));
+            JsonObject json = Json.parse(jsonText).getAsJsonObject();
             checkJson(json, callback);
-
         } catch (Throwable e) {
-            // 异常处理逻辑...
+            e.printStackTrace();
+            loadCache(callback, e);
         }
     }
 
+    private String getLoadUrl() {
+        if (config == null) {
+            config = Config.vod();
+            Logger.e("Config is null, fallback to default!");
+        }
+        String url = config.getUrl();
+        if (TextUtils.isEmpty(url)) {
+            Logger.w("Config URL is empty, using built-in source.");
+            return Constants.BUILTIN_URL;
+        }
+        if (Constants.BUILTIN_PLACEHOLDER.equals(url)) {
+            return Constants.BUILTIN_URL;
+        }
+        return url;
+    }
+
     private void loadCache(Callback callback, Throwable e) {
-        if (!TextUtils.isEmpty(config.getJson())) checkJson(Json.parse(config.getJson()).getAsJsonObject(), callback);
-        else App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
+        String cachedJson = config != null ? config.getJson() : null;
+        if (!TextUtils.isEmpty(cachedJson)) {
+            Logger.i("Loading config from cache.");
+            checkJson(Json.parse(cachedJson).getAsJsonObject(), callback);
+        } else {
+            App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
+        }
     }
 
     private void checkJson(JsonObject object, Callback callback) {
@@ -182,9 +185,8 @@ public class VodConfig {
             if (loadLive && !Json.isEmpty(object, "lives")) initLive(object);
             String notice = Json.safeString(object, "notice");
             config.logo(Json.safeString(object, "logo"));
-            App.post(() -> callback.success(notice));
             config.json(object.toString()).update();
-            App.post(callback::success);
+            App.post(() -> callback.success(notice));
         } catch (Throwable e) {
             e.printStackTrace();
             App.post(() -> callback.error(Notify.getError(R.string.error_config_parse, e)));
@@ -247,10 +249,10 @@ public class VodConfig {
 
     public List<Doh> getDoh() {
         List<Doh> items = Doh.get(App.get());
-        if (doh == null) return items;
-        items.removeAll(doh);
-        items.addAll(doh);
-        return items;
+        if (doh == null || doh.isEmpty()) return items;
+        LinkedHashSet<Doh> dohSet = new LinkedHashSet<>(items);
+        dohSet.addAll(doh);
+        return new ArrayList<>(dohSet);
     }
 
     private void setDoh(List<Doh> doh) {
@@ -300,7 +302,9 @@ public class VodConfig {
     }
 
     private void setFlags(List<String> flags) {
-        this.flags.addAll(flags);
+        // 婉儿建议：使用 LinkedHashSet 可以防止重复添加 flag，同时保持顺序
+        if (this.flags == null) this.flags = new ArrayList<>();
+        this.flags.addAll(new LinkedHashSet<>(flags));
     }
 
     private void setHosts(List<String> hosts) {
@@ -333,7 +337,8 @@ public class VodConfig {
 
     public Parse getParse(String name) {
         int index = getParses().indexOf(Parse.get(name));
-        return index == -1 ? null : getParses().get(index);
+        // 婉儿建议：与 getSite 保持一致，未找到时返回一个空对象而非 null，避免调用方出现 NullPointerException
+        return index == -1 ? new Parse() : getParses().get(index);
     }
 
     public Site getSite(String key) {
