@@ -21,7 +21,7 @@ import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.ui.activity.LiveActivity;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.UrlUtil;
-import com.orhanobut.logger.Logger;
+import com.fongmi.android.tv.utils.Logger;
 import com.github.catvod.bean.Header;
 import com.github.catvod.bean.Proxy;
 import com.github.catvod.net.OkHttp;
@@ -240,12 +240,17 @@ public class LiveConfig {
     }
 
     public void parse(JsonObject object) {
+    if (!Json.safeString(object, "name").isEmpty()) {
+        Live live = Live.objectFrom(object);
+        if (!lives.contains(live)) lives.add(live);
+    }
+    // ↓↓↓ 关键修改在这里 ↓↓↓
     String jar = Json.safeString(object, "jar");
     for (JsonElement element : Json.safeListElement(object, "lives")) {
-        // 错误 1 修复：和之前一样，补充第二个参数 jar
+        // 修复1：为 objectFrom 补充第二个参数 jar
         Live live = Live.objectFrom(element, jar);
-        // 错误 3 修复：将 getUrls() 替换为正确的 getChannels()
-        if (TextUtils.isEmpty(live.getName()) || live.getChannels().isEmpty()) continue;
+        // 修复2：将 getChannels() 替换为 getLines()
+        if (TextUtils.isEmpty(live.getName()) || live.getLines().isEmpty()) continue;
         if (!lives.contains(live)) lives.add(live);
     }
 }
