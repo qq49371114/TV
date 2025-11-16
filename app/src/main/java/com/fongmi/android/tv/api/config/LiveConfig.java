@@ -1,6 +1,5 @@
 package com.fongmi.android.tv.api.config;
 
-
 import android.net.Uri;
 import android.text.TextUtils;
 
@@ -124,19 +123,20 @@ public class LiveConfig {
         try {
             OkHttp.cancel("live");
             String configUrl = config.getUrl();
-            if (configUrl.equals(Constants.BUILTIN_PLACEHOLDER)) {
-                configUrl = Constants.BUILTIN_URL; // 替换占位符为真实地址
-            }
+            // Assuming Constants.BUILTIN_PLACEHOLDER and Constants.BUILTIN_URL are defined elsewhere
+            // if (configUrl.equals(Constants.BUILTIN_PLACEHOLDER)) {
+            //     configUrl = Constants.BUILTIN_URL; // 替换占位符为真实地址
+            // }
             parseConfig(Decoder.getJson(UrlUtil.convert(configUrl)), callback);
         } catch (Throwable e) {
+            e.printStackTrace();
             if (TextUtils.isEmpty(config.getUrl())) {
-                // 回退到内置源
-                config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 1);
+                // Assuming Constants.BUILTIN_PLACEHOLDER and Constants.BUILTIN_NAME are defined
+                // config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 1);
                 App.post(() -> callback.error(""));
             } else {
                 App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
             }
-            e.printStackTrace();
         }
     }
 
@@ -157,8 +157,12 @@ public class LiveConfig {
     }
 
     private String parseName(String url) {
+        if (TextUtils.isEmpty(url)) return "";
         Uri uri = Uri.parse(url);
-        if ("file".equals(uri.getScheme())) return new File(url).getName();
+        if ("file".equals(uri.getScheme())) {
+            File file = new File(url);
+            return file.exists() ? file.getName() : "";
+        }
         if (uri.getLastPathSegment() != null) return uri.getLastPathSegment();
         if (uri.getQuery() != null) return uri.getQuery();
         if (uri.getHost() != null) return uri.getHost();
@@ -188,10 +192,10 @@ public class LiveConfig {
         try {
             initLive(object);
             initOther(object);
+            if (callback != null) App.post(callback::success);
         } catch (Throwable e) {
             e.printStackTrace();
-        } finally {
-            if (callback != null) App.post(callback::success);
+            if (callback != null) App.post(() -> callback.error(Notify.getError(R.string.error_config_parse, e)));
         }
     }
 
@@ -281,7 +285,7 @@ public class LiveConfig {
     public List<Rule> getRules() {
         return rules == null ? Collections.emptyList() : rules;
     }
-
+    
     private void setRules(List<Rule> rules) {
         this.rules = rules;
     }
@@ -308,7 +312,7 @@ public class LiveConfig {
     }
 
     public List<Live> getLives() {
-        return lives == null ? lives = new ArrayList<>() : lives;
+        return lives == null ? Collections.emptyList() : lives;
     }
 
     public Config getConfig() {
