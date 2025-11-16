@@ -32,6 +32,7 @@ import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.player.exo.CacheManager;
 import com.fongmi.android.tv.receiver.ShortcutReceiver;
 import com.fongmi.android.tv.server.Server;
+import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.custom.FragmentStateManager;
 import com.fongmi.android.tv.ui.fragment.SettingFragment;
@@ -114,9 +115,9 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
     }
 
     private void initConfig() {
-        WallConfig.get().init();
-        LiveConfig.get().init().load();
         VodConfig.get().init().load(getCallback());
+        LiveConfig.get().init().load();
+        WallConfig.get().init();
     }
 
     private Callback getCallback() {
@@ -216,14 +217,14 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
         } else if (mManager.isVisible(1)) {
             mBinding.navigation.setSelectedItemId(R.id.vod);
         } else if (mManager.canBack(0)) {
-            super.onBackInvoked();
+            if (PlaybackService.isRunning()) moveTaskToBack(true);
+            else super.onBackInvoked();
         }
     }
 
     @Override
     protected void onDestroy() {
         CacheManager.get().release();
-        WallConfig.get().clear();
         LiveConfig.get().clear();
         VodConfig.get().clear();
         AppDatabase.backup();

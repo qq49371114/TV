@@ -8,12 +8,13 @@ import com.github.catvod.utils.Prefers;
 
 import java.util.Map;
 
-import fi.iki.elonen.NanoHTTPD;
+import fi.iki.elonen.NanoHTTPD.IHTTPSession;
+import fi.iki.elonen.NanoHTTPD.Response;
 
 public class Cache implements Process {
 
     @Override
-    public boolean isRequest(NanoHTTPD.IHTTPSession session, String url) {
+    public boolean isRequest(IHTTPSession session, String url) {
         return url.startsWith("/cache");
     }
 
@@ -22,7 +23,7 @@ public class Cache implements Process {
     }
 
     @Override
-    public NanoHTTPD.Response doResponse(NanoHTTPD.IHTTPSession session, String url, Map<String, String> files) {
+    public Response doResponse(IHTTPSession session, String url, Map<String, String> files) {
         Map<String, String> params = session.getParms();
         String action = params.get("do");
         String rule = params.get("rule");

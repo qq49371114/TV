@@ -69,6 +69,8 @@ public class Nano extends NanoHTTPD {
 
     private void parse(IHTTPSession session, Map<String, String> files) {
         try {
+            String ct = session.getHeaders().get("content-type");
+            if (ct != null) session.getHeaders().put("content-type", ct.replace("multipart/form-data", "multipart/form-data; charset=utf-8"));
             session.parseBody(files);
         } catch (Exception ignored) {
         }
@@ -80,7 +82,8 @@ public class Nano extends NanoHTTPD {
             InputStream is = Asset.open(path);
             return newFixedLengthResponse(Response.Status.OK, getMimeTypeForFile(path), is, is.available());
         } catch (Exception e) {
-            return newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_HTML, null, 0);
+            // 核心补丁：非空实体，防止底层吞 status
+            return newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_HTML, "");
         }
     }
 }

@@ -183,10 +183,6 @@ public class Result implements Parcelable {
         return url == null ? Url.create() : url;
     }
 
-    public void setUrl(Url url) {
-        this.url = url;
-    }
-
     public void setUrl(String url) {
         this.url = getUrl().replace(url);
     }
@@ -243,6 +239,10 @@ public class Result implements Parcelable {
         return format;
     }
 
+    public void setFormat(String format) {
+        this.format = format;
+    }
+
     public String getClick() {
         return TextUtils.isEmpty(click) ? "" : click;
     }
@@ -281,6 +281,10 @@ public class Result implements Parcelable {
 
     public Drm getDrm() {
         return drm;
+    }
+
+    public void setDrm(Drm drm) {
+        this.drm = drm;
     }
 
     public boolean hasMsg() {

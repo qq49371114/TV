@@ -34,8 +34,8 @@ public class Download {
 
     public void start() {
         if (url.startsWith("file")) return;
-        if (callback == null) doInBackground();
-        else App.execute(this::doInBackground);
+        if (callback == null) performSync();
+        else App.execute(this::performAsync);
     }
 
     public void cancel() {
@@ -44,10 +44,18 @@ public class Download {
         callback = null;
     }
 
-    private void doInBackground() {
+    private void performSync() {
         try (Response res = OkHttp.newCall(url, url).execute()) {
-            Path.create(file);
-            download(res.body().byteStream(), Double.parseDouble(res.header(HttpHeaders.CONTENT_LENGTH, "1")));
+            download(res.body().byteStream(), getLength(res));
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    private void performAsync() {
+        try (Response res = OkHttp.newCall(url, url).execute()) {
+            download(res.body().byteStream(), getLength(res));
             App.post(() -> {if (callback != null) callback.success(file);});
         } catch (Exception e) {
             App.post(() -> {if (callback != null) callback.error(e.getMessage());});
@@ -55,16 +63,26 @@ public class Download {
     }
 
     private void download(InputStream is, double length) throws Exception {
-        try (BufferedInputStream input = new BufferedInputStream(is); FileOutputStream os = new FileOutputStream(file)) {
+        try (BufferedInputStream input = new BufferedInputStream(is); FileOutputStream os = new FileOutputStream(Path.create(file))) {
             byte[] buffer = new byte[16384];
             int readBytes;
             long totalBytes = 0;
             while ((readBytes = input.read(buffer)) != -1) {
                 totalBytes += readBytes;
                 os.write(buffer, 0, readBytes);
+                if (length <= 0) continue;
                 int progress = (int) (totalBytes / length * 100.0);
                 App.post(() -> {if (callback != null) callback.progress(progress);});
             }
+        }
+    }
+
+    private double getLength(Response res) {
+        try {
+            String header = res.header(HttpHeaders.CONTENT_LENGTH);
+            return header != null ? Double.parseDouble(header) : -1;
+        } catch (Exception e) {
+            return -1;
         }
     }
 

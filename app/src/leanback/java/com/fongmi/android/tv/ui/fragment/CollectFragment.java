@@ -77,8 +77,8 @@ public class CollectFragment extends BaseFragment implements CustomScroller.Call
         CustomSelector selector = new CustomSelector();
         selector.addPresenter(ListRow.class, new CustomRowPresenter(16), VodPresenter.class);
         mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(selector)));
-        mBinding.recycler.setHeader(requireActivity().findViewById(R.id.result), requireActivity().findViewById(R.id.recycler));
         mBinding.recycler.addOnScrollListener(mScroller = new CustomScroller(this));
+        mBinding.recycler.setHeader(getActivity(), R.id.result, R.id.recycler);
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
     }
 
@@ -105,7 +105,7 @@ public class CollectFragment extends BaseFragment implements CustomScroller.Call
     }
 
     public void addVideo(List<Vod> items) {
-        if (checkLastSize(items) || getActivity() == null || requireActivity().isFinishing()) return;
+        if (checkLastSize(items) || getActivity() == null || getActivity().isFinishing()) return;
         List<ListRow> rows = new ArrayList<>();
         for (List<Vod> part : Lists.partition(items, Product.getColumn())) {
             mLast = new ArrayObjectAdapter(new VodPresenter(this));

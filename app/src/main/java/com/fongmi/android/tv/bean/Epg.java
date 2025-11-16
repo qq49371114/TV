@@ -81,8 +81,8 @@ public class Epg {
     private void setTime(List<SimpleDateFormat> formats) {
         setList(new ArrayList<>(new LinkedHashSet<>(getList())));
         for (EpgData item : getList()) {
-            item.setStartTime(Util.format(getDate().concat(item.getStart()), formats));
-            item.setEndTime(Util.format(getDate().concat(item.getEnd()), formats));
+            item.setStartTime(Util.parse(formats, getDate().concat(item.getStart())));
+            item.setEndTime(Util.parse(formats, getDate().concat(item.getEnd())));
             if (item.getEndTime() < item.getStartTime()) item.checkDay();
             item.setTitle(Trans.s2t(item.getTitle()));
         }

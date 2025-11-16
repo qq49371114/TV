@@ -28,13 +28,13 @@ public class Thunder implements Source.Extractor {
     private GetTaskId taskId;
 
     @Override
-    public boolean match(String scheme, String host) {
-        return "magnet".equals(scheme) || "ed2k".equals(scheme);
+    public boolean match(Uri uri) {
+        return Arrays.asList("magnet", "ed2k").contains(UrlUtil.scheme(uri));
     }
 
     @Override
     public String fetch(String url) throws Exception {
-        return UrlUtil.scheme(url).equals("magnet") ? addTorrentTask(Uri.parse(url)) : addThunderTask(url);
+        return url.startsWith("magnet") ? addTorrentTask(Uri.parse(url)) : addThunderTask(url);
     }
 
     private String addTorrentTask(Uri uri) throws Exception {

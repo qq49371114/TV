@@ -103,6 +103,10 @@ public class OkHttp {
         return client().newBuilder().connectTimeout(timeout, TimeUnit.MILLISECONDS).readTimeout(timeout, TimeUnit.MILLISECONDS).writeTimeout(timeout, TimeUnit.MILLISECONDS).build();
     }
 
+    public static OkHttpClient noRedirect() {
+        return noRedirect(TIMEOUT);
+    }
+
     public static OkHttpClient noRedirect(long timeout) {
         return client().newBuilder().connectTimeout(timeout, TimeUnit.MILLISECONDS).readTimeout(timeout, TimeUnit.MILLISECONDS).writeTimeout(timeout, TimeUnit.MILLISECONDS).followRedirects(false).followSslRedirects(false).build();
     }

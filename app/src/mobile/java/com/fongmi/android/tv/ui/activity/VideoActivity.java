@@ -880,8 +880,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void enterFullscreen() {
         if (isFullscreen()) return;
-        if (isLand()) setTransition();
         setRotate(mPlayers.isPortrait(), true);
+        if (isLand() && !mPlayers.isPortrait()) setTransition();
         mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
         setRequestedOrientation(mPlayers.isPortrait() ? ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         mBinding.control.title.setVisibility(View.VISIBLE);
@@ -893,7 +893,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void exitFullscreen() {
         if (!isFullscreen()) return;
-        if (isLand()) setTransition();
+        if (isLand() && !mPlayers.isPortrait()) setTransition();
         setRequestedOrientation(isPort() ? ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_FULL_USER);
         mBinding.episode.postDelayed(() -> mBinding.episode.scrollToPosition(mEpisodeAdapter.getPosition()), 100);
         mBinding.control.title.setVisibility(View.INVISIBLE);
