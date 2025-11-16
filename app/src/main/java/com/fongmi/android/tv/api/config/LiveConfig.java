@@ -204,22 +204,24 @@ public class LiveConfig {
     }
 
     private void initLive(JsonObject object) {
-        String spider = Json.safeString(object, "spider");
-        BaseLoader.get().parseJar(spider, false);
-        for (JsonElement element : Json.safeListElement(object, "lives")) {
-            Live live = Live.objectFrom(element);
-            if (lives.contains(live)) continue;
-            live.setApi(UrlUtil.convert(live.getApi()));
-            live.setExt(UrlUtil.convert(live.getExt()));
-            live.setJar(parseJar(live, spider));
-            lives.add(live.sync());
-        }
-        for (Live live : lives) {
-            if (live.getName().equals(config.getHome())) {
-                setHome(live, true);
-            }
+    String spider = Json.safeString(object, "spider");
+    BaseLoader.get().parseJar(spider, false);
+    for (JsonElement element : Json.safeListElement(object, "lives")) {
+        // ↓↓↓ 加上通行证 spider！↓↓↓
+        Live live = Live.objectFrom(element, spider);
+        if (lives.contains(live)) continue;
+        live.setApi(UrlUtil.convert(live.getApi()));
+        live.setExt(UrlUtil.convert(live.getExt()));
+        live.setJar(parseJar(live, spider));
+        lives.add(live.sync());
+    }
+    for (Live live : lives) {
+        if (live.getName().equals(config.getHome())) {
+            setHome(live, true);
         }
     }
+}
+
 
     private void initOther(JsonObject object) {
         if (home == null) setHome(lives.isEmpty() ? new Live() : lives.get(0), true);
