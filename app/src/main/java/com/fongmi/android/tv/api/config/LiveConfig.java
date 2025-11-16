@@ -240,17 +240,18 @@ public class LiveConfig {
     }
 
     public void parse(JsonObject object) {
-    if (!Json.safeString(object, "name").isEmpty()) {
-        Live live = Live.objectFrom(object);
-        if (!lives.contains(live)) lives.add(live);
-    }
     // ↓↓↓ 关键修改在这里 ↓↓↓
     String jar = Json.safeString(object, "jar");
+    if (!Json.safeString(object, "name").isEmpty()) {
+        // 修复1：为这里的 objectFrom 也补充上 jar 参数
+        Live live = Live.objectFrom(object, jar);
+        if (!lives.contains(live)) lives.add(live);
+    }
     for (JsonElement element : Json.safeListElement(object, "lives")) {
-        // 修复1：为 objectFrom 补充第二个参数 jar
+        // 修复2：为这里的 objectFrom 补充上 jar 参数
         Live live = Live.objectFrom(element, jar);
-        // 修复2：将 getChannels() 替换为 getLines()
-        if (TextUtils.isEmpty(live.getName()) || live.getLines().isEmpty()) continue;
+        // 修复3：将 getLines().isEmpty() 替换为更通用的 isEmpty()
+        if (TextUtils.isEmpty(live.getName()) || live.isEmpty()) continue;
         if (!lives.contains(live)) lives.add(live);
     }
 }
