@@ -108,6 +108,7 @@ public class LiveConfig {
         this.lives.clear();
         return this;
     }
+       
 
     public void load() {
         if (isEmpty()) load(new Callback());
@@ -118,16 +119,26 @@ public class LiveConfig {
         executor = Executors.newSingleThreadExecutor();
         executor.execute(() -> loadConfig(callback));
     }
+    
+    private void loadCache(Callback callback, Throwable e) {
+    String cachedJson = config != null ? config.getJson() : null;
+    if (!TextUtils.isEmpty(cachedJson)) {
+        Logger.i("Loading live config from cache.");
+        parseConfig(cachedJson, callback);
+    } else {
+        App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
+    }
+}
 
     private void loadConfig(Callback callback) {
     try {
         String configUrl = getUrl();
         OkHttp.cancel("live");
-        // 错误 4: Decoder.getJson 方法现在需要两个参数
+        // 之前的修改：为 getJson 补充第二个参数
         parseConfig(Decoder.getJson(UrlUtil.convert(configUrl), ""), callback);
     } catch (Throwable e) {
         e.printStackTrace();
-        // 婉儿建议：加载失败时尝试从缓存加载
+        // 错误 2 修复：调用我们下面新增的 loadCache 方法
         loadCache(callback, e);
     }
 }
@@ -230,9 +241,10 @@ public class LiveConfig {
     public void parse(JsonObject object) {
     String jar = Json.safeString(object, "jar");
     for (JsonElement element : Json.safeListElement(object, "lives")) {
-        // 错误 5: Live.objectFrom 方法现在需要 jar 作为第二个参数
+        // 错误 1 修复：为 objectFrom 补充第二个参数 jar
         Live live = Live.objectFrom(element, jar);
-        if (live.isInvalid()) continue;
+        // 错误 3 修复：将 isInvalid() 替换为对 name 和 urls 的非空判断
+        if (TextUtils.isEmpty(live.getName()) || live.getUrls().isEmpty()) continue;
         if (!lives.contains(live)) lives.add(live);
     }
 }
