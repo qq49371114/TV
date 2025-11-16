@@ -128,12 +128,6 @@ public class Live {
         }
     }
 
-    public static Live get(String name) {
-        Live live = new Live();
-        live.setName(name);
-        return live;
-    }
-
     public Live() {
     }
 
@@ -330,12 +324,12 @@ public class Live {
     }
 
     public Live sync() {
-        Live item = find(getName());
-        if (item != null) sync(item);
+        sync(find(getName()));
         return this;
     }
 
     public Live sync(Live item) {
+        if (item == null) return this;
         setBoot(item.isBoot());
         setPass(item.isPass());
         setKeep(item.getKeep());

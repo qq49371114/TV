@@ -15,15 +15,19 @@ import okhttp3.OkHttpClient;
 
 public class Loader implements ILoader {
 
-    private OkHttpClient client;
+    private final OkHttpClient client;
     private AndroidFileSource dataSource;
 
-    public Loader(Danmaku item) {
+    public Loader() {
+        client = OkHttp.client(Constant.TIMEOUT_DANMAKU);
+    }
+
+    public Loader load(Danmaku item) {
         try {
-            client = OkHttp.client(Constant.TIMEOUT_DANMAKU);
             load(item.getUrl());
-        } catch (Exception e) {
-            e.printStackTrace();
+            return this;
+        } catch (IllegalDataException e) {
+            return this;
         }
     }
 

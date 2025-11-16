@@ -343,8 +343,7 @@ public class LiveConfig {
     }
 
     public Live getLive(String key) {
-        int index = getLives().indexOf(Live.get(key));
-        return index == -1 ? new Live() : getLives().get(index);
+        return getLives().stream().filter(item -> item.getName().equals(key)).findFirst().orElse(new Live());
     }
 
     public void setHome(Live home) {

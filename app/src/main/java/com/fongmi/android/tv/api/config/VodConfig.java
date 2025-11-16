@@ -279,16 +279,13 @@ public class VodConfig {
     }
 
     public List<Parse> getParses(int type) {
-        List<Parse> items = new ArrayList<>();
-        for (Parse item : getParses()) if (item.getType() == type) items.add(item);
-        return items;
+        return getParses().stream().filter(item -> item.getType() == type).collect(Collectors.toList());
     }
 
     public List<Parse> getParses(int type, String flag) {
-        List<Parse> items = new ArrayList<>();
-        for (Parse item : getParses(type)) if (item.getExt().getFlag().contains(flag)) items.add(item);
-        if (items.isEmpty()) items.addAll(getParses(type));
-        return items;
+        List<Parse> items = getParses(type);
+        List<Parse> filter = items.stream().filter(item -> item.getExt().getFlag().contains(flag)).collect(Collectors.toList());
+        return filter.isEmpty() ? items : filter;
     }
 
     private void setHeaders(List<Header> headers) {
@@ -345,8 +342,7 @@ public class VodConfig {
     }
 
     public Site getSite(String key) {
-        int index = getSites().indexOf(Site.get(key));
-        return index == -1 ? new Site() : getSites().get(index);
+        return getSites().stream().filter(item -> item.getKey().equals(key)).findFirst().orElse(new Site());
     }
 
     public void setParse(Parse parse) {

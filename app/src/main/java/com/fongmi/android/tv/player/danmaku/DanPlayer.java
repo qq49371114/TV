@@ -8,6 +8,7 @@ import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.utils.ResUtil;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import master.flame.danmaku.controller.DrawHandler;
 import master.flame.danmaku.danmaku.model.BaseDanmaku;
@@ -18,20 +19,31 @@ import master.flame.danmaku.ui.widget.DanmakuView;
 
 public class DanPlayer implements DrawHandler.Callback {
 
-    private static final String TAG = DanPlayer.class.getSimpleName();
     private final DanmakuContext context;
+    private final Parser parser;
+    private final Loader loader;
     private DanmakuView view;
     private Players player;
 
     public DanPlayer() {
+        parser = new Parser();
+        loader = new Loader();
         context = DanmakuContext.create();
-        HashMap<Integer, Integer> maxLines = new HashMap<>();
-        maxLines.put(BaseDanmaku.TYPE_FIX_TOP, 2);
-        maxLines.put(BaseDanmaku.TYPE_SCROLL_RL, 2);
-        maxLines.put(BaseDanmaku.TYPE_SCROLL_LR, 2);
-        maxLines.put(BaseDanmaku.TYPE_FIX_BOTTOM, 2);
-        context.setMaximumLines(maxLines).setScrollSpeedFactor(1.2f).setDanmakuTransparency(0.8f);
-        context.setDanmakuStyle(IDisplayer.DANMAKU_STYLE_STROKEN, 3).setDanmakuMargin(ResUtil.dp2px(8)).setScaleTextSize(0.8f);
+        initContext();
+    }
+
+    private void initContext() {
+        Map<Integer, Integer> lines = new HashMap<>();
+        lines.put(BaseDanmaku.TYPE_FIX_TOP, 2);
+        lines.put(BaseDanmaku.TYPE_SCROLL_RL, 2);
+        lines.put(BaseDanmaku.TYPE_SCROLL_LR, 2);
+        lines.put(BaseDanmaku.TYPE_FIX_BOTTOM, 2);
+        context.setScaleTextSize(0.8f);
+        context.setMaximumLines(lines);
+        context.setScrollSpeedFactor(1.2f);
+        context.setDanmakuTransparency(0.8f);
+        context.setDanmakuMargin(ResUtil.dp2px(8));
+        context.setDanmakuStyle(IDisplayer.DANMAKU_STYLE_STROKEN, 3);
     }
 
     public void setView(DanmakuView view) {
@@ -43,46 +55,51 @@ public class DanPlayer implements DrawHandler.Callback {
         context.setDanmakuSync(new Sync(this.player = player));
     }
 
-    private boolean isDanmakuPrepared() {
+    private boolean isPrepared() {
         return view != null && view.isPrepared();
     }
 
     public void seekTo(long time) {
         App.execute(() -> {
-            if (isDanmakuPrepared()) view.seekTo(time);
-            if (isDanmakuPrepared()) view.hide();
+            if (!isPrepared()) return;
+            view.seekTo(time);
+            view.hide();
         });
     }
 
     public void play() {
         App.execute(() -> {
-            if (isDanmakuPrepared()) view.resume();
+            if (!isPrepared()) return;
+            view.resume();
         });
     }
 
     public void pause() {
         App.execute(() -> {
-            if (isDanmakuPrepared()) view.pause();
+            if (!isPrepared()) return;
+            view.pause();
         });
     }
 
     public void stop() {
         App.execute(() -> {
-            if (isDanmakuPrepared()) view.stop();
+            if (!isPrepared()) return;
+            view.stop();
         });
     }
 
     public void release() {
         App.execute(() -> {
-            if (isDanmakuPrepared()) view.release();
+            if (!isPrepared()) return;
+            view.release();
         });
     }
 
     public void setDanmaku(Danmaku item) {
         App.execute(() -> {
-            view.release();
-            if (item.isEmpty()) return;
-            view.prepare(new Parser().load(new Loader(item).getDataSource()), context);
+            if (view != null) view.release();
+            if (item.isEmpty() || view == null) return;
+            view.prepare(parser.load(loader.load(item).getDataSource()), context);
         });
     }
 
@@ -101,7 +118,7 @@ public class DanPlayer implements DrawHandler.Callback {
             boolean playing = player.isPlaying();
             long position = player.getPosition();
             App.execute(() -> {
-                if (!isDanmakuPrepared()) return;
+                if (!isPrepared()) return;
                 if (playing) view.start(position);
                 else view.pause();
                 view.show();
