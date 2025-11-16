@@ -120,17 +120,18 @@ public class VodConfig {
     }
 
     private void loadConfig(Callback callback) {
-        try {
-            String loadUrl = getLoadUrl();
-            OkHttp.cancel("vod");
-            String jsonText = Decoder.getJson(UrlUtil.convert(loadUrl));
-            JsonObject json = Json.parse(jsonText).getAsJsonObject();
-            checkJson(json, callback);
-        } catch (Throwable e) {
-            e.printStackTrace();
-            loadCache(callback, e);
-        }
+    try {
+        String loadUrl = getLoadUrl();
+        OkHttp.cancel("vod");
+        // 错误 1: Decoder.getJson 方法现在需要两个参数，我们给它第二个参数传一个空字符串
+        String jsonText = Decoder.getJson(UrlUtil.convert(loadUrl), "");
+        JsonObject json = Json.parse(jsonText).getAsJsonObject();
+        checkJson(json, callback);
+    } catch (Throwable e) {
+        e.printStackTrace();
+        loadCache(callback, e);
     }
+}
 
     private String getLoadUrl() {
         if (config == null) {
@@ -194,26 +195,28 @@ public class VodConfig {
     }
 
     private void initSite(JsonObject object) {
-        if (object.has("video")) {
-            initSite(object.getAsJsonObject("video"));
-            return;
-        }
-        String spider = Json.safeString(object, "spider");
-        BaseLoader.get().parseJar(spider, true);
-        for (JsonElement element : Json.safeListElement(object, "sites")) {
-            Site site = Site.objectFrom(element);
-            if (sites.contains(site)) continue;
-            site.setApi(UrlUtil.convert(site.getApi()));
-            site.setExt(UrlUtil.convert(site.getExt()));
-            site.setJar(parseJar(site, spider));
-            sites.add(site.trans().sync());
-        }
-        for (Site site : sites) {
-            if (site.getKey().equals(config.getHome())) {
-                setHome(site);
-            }
+    if (object.has("video")) {
+        initSite(object.getAsJsonObject("video"));
+        return;
+    }
+    String spider = Json.safeString(object, "spider");
+    BaseLoader.get().parseJar(spider, true);
+    for (JsonElement element : Json.safeListElement(object, "sites")) {
+        // 错误 2: Site.objectFrom 方法现在需要 spider 作为第二个参数
+        Site site = Site.objectFrom(element, spider);
+        if (sites.contains(site)) continue;
+        site.setApi(UrlUtil.convert(site.getApi()));
+        site.setExt(UrlUtil.convert(site.getExt()));
+        site.setJar(parseJar(site, spider));
+        // 错误 3: site.sync() 方法现在需要传入一个 Site 对象，我们把 site 自己传进去
+        sites.add(site.trans().sync(site));
+    }
+    for (Site site : sites) {
+        if (site.getKey().equals(config.getHome())) {
+            setHome(site);
         }
     }
+}
 
     private void initLive(JsonObject object) {
         Config temp = Config.find(config, 1).save();
