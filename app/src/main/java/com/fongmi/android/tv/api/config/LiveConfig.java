@@ -120,25 +120,17 @@ public class LiveConfig {
     }
 
     private void loadConfig(Callback callback) {
-        try {
-            OkHttp.cancel("live");
-            String configUrl = config.getUrl();
-            // Assuming Constants.BUILTIN_PLACEHOLDER and Constants.BUILTIN_URL are defined elsewhere
-            // if (configUrl.equals(Constants.BUILTIN_PLACEHOLDER)) {
-            //     configUrl = Constants.BUILTIN_URL; // 替换占位符为真实地址
-            // }
-            parseConfig(Decoder.getJson(UrlUtil.convert(configUrl)), callback);
-        } catch (Throwable e) {
-            e.printStackTrace();
-            if (TextUtils.isEmpty(config.getUrl())) {
-                // Assuming Constants.BUILTIN_PLACEHOLDER and Constants.BUILTIN_NAME are defined
-                // config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 1);
-                App.post(() -> callback.error(""));
-            } else {
-                App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
-            }
-        }
+    try {
+        String configUrl = getUrl();
+        OkHttp.cancel("live");
+        // 错误 4: Decoder.getJson 方法现在需要两个参数
+        parseConfig(Decoder.getJson(UrlUtil.convert(configUrl), ""), callback);
+    } catch (Throwable e) {
+        e.printStackTrace();
+        // 婉儿建议：加载失败时尝试从缓存加载
+        loadCache(callback, e);
     }
+}
 
     private void parseConfig(String text, Callback callback) {
         if (!Json.isObj(text)) {
@@ -236,8 +228,14 @@ public class LiveConfig {
     }
 
     public void parse(JsonObject object) {
-        parseConfig(object, null);
+    String jar = Json.safeString(object, "jar");
+    for (JsonElement element : Json.safeListElement(object, "lives")) {
+        // 错误 5: Live.objectFrom 方法现在需要 jar 作为第二个参数
+        Live live = Live.objectFrom(element, jar);
+        if (live.isInvalid()) continue;
+        if (!lives.contains(live)) lives.add(live);
     }
+}
 
     public void setKeep(Channel channel) {
         if (home != null && !channel.getGroup().isHidden()) home.keep(channel).save();
