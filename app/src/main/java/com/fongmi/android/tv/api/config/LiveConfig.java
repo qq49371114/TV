@@ -121,16 +121,28 @@ public class LiveConfig {
         callback.start();
     }
 
+    public void load(Callback callback) {
+        if (executor != null) executor.shutdownNow();
+        executor = Executors.newSingleThreadExecutor();
+        executor.execute(() -> loadConfig(callback));
+    }
+
     private void loadConfig(Callback callback) {
         try {
-            Server.get().start();
-            String text = Decoder.getJson(UrlUtil.convert(config.getUrl()));
-            if (!Json.isObj(text)) clear().parseText(text, callback);
-            else checkJson(Json.parse(text).getAsJsonObject(), callback);
-            config.update();
+            OkHttp.cancel("live");
+            String configUrl = config.getUrl();
+            if (configUrl.equals(Constants.BUILTIN_PLACEHOLDER)) {
+                configUrl = Constants.BUILTIN_URL; // 替换占位符为真实地址
+            }
+            parseConfig(Decoder.getJson(UrlUtil.convert(configUrl)), callback);
         } catch (Throwable e) {
-            if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
-            else App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
+            if (TextUtils.isEmpty(config.getUrl())) {
+                // 回退到内置源
+                config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 1);
+                App.post(() -> callback.error(""));
+            } else {
+                App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
+            }
             e.printStackTrace();
         }
     }
