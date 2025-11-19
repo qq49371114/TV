@@ -49,6 +49,9 @@ public class LiveConfig {
     private Future<?> future;
     private boolean sync;
 
+    private java.util.concurrent.ExecutorService executor; // <--- 加在这里哦！
+
+
     private static class Loader {
         static volatile LiveConfig INSTANCE = new LiveConfig();
     }
