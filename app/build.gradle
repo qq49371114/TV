@@ -110,6 +110,7 @@ dependencies {
     implementation 'androidx.media3:media3-extractor:' + media3Version
     implementation 'androidx.media3:media3-ui:' + media3Version
     implementation 'androidx.palette:palette:1.0.0'
+    implementation 'androidx.security:security-crypto:1.1.0-alpha06'
     implementation 'androidx.room:room-runtime:2.8.3'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     implementation 'cat.ereza:customactivityoncrash:2.4.0'
