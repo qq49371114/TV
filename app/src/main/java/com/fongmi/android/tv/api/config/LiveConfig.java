@@ -128,24 +128,34 @@ public class LiveConfig {
     }
 
     private void loadConfig(Callback callback) {
-        try {
-            OkHttp.cancel("live");
-            String configUrl = config.getUrl();
-            if (configUrl.equals(Constants.BUILTIN_PLACEHOLDER)) {
-                configUrl = Constants.BUILTIN_URL; // 替换占位符为真实地址
-            }
-            parseConfig(Decoder.getJson(UrlUtil.convert(configUrl)), callback);
-        } catch (Throwable e) {
-            if (TextUtils.isEmpty(config.getUrl())) {
-                // 回退到内置源
-                config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 1);
-                App.post(() -> callback.error(""));
-            } else {
-                App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
-            }
-            e.printStackTrace();
+    try {
+        OkHttp.cancel("live");
+        String configUrl = config.getUrl();
+        if (configUrl.equals(Constants.BUILTIN_PLACEHOLDER)) {
+            configUrl = Constants.BUILTIN_URL; // 替换占位符为真实地址
         }
+
+        // --- 这里是修改的部分哦 ---
+        // 1. 先获取JSON字符串
+        String jsonStr = Decoder.getJson(UrlUtil.convert(configUrl));
+        // 2. 然后把它解析成JsonObject
+        com.google.gson.JsonObject configObj = com.google.gson.JsonParser.parseString(jsonStr).getAsJsonObject();
+        // 3. 最后再传给parseConfig方法
+        parseConfig(configObj, callback);
+        // --- 修改结束 ---
+
+    } catch (Throwable e) {
+        if (TextUtils.isEmpty(config.getUrl())) {
+            // 回退到内置源
+            config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 1);
+            App.post(() -> callback.error(""));
+        } else {
+            App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
+        }
+        e.printStackTrace();
     }
+}
+
 
     private void parseText(String text, Callback callback) {
         Live live = new Live(parseName(config.getUrl()), config.getUrl()).sync();
