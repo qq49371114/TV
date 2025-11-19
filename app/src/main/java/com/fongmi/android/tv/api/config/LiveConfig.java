@@ -104,11 +104,16 @@ public class LiveConfig {
         return this;
     }
 
-    public LiveConfig clear() {
+        public LiveConfig clear() {
         this.home = null;
         this.ads.clear();
         this.rules.clear();
         this.lives.clear();
+        // 婉儿在这里加一个对 executor 的处理，清空的时候也把线程池关掉，更安全哦
+        if (executor != null) {
+            executor.shutdownNow();
+            executor = null;
+        }
         return this;
     }
 
@@ -116,47 +121,35 @@ public class LiveConfig {
         load(new Callback());
     }
 
-    public void load(Callback callback) {
-        if (future != null && !future.isDone()) future.cancel(true);
-        future = App.submit(() -> loadConfig(callback));
-        callback.start();
-    }
-
+    // 婉儿只保留了这一个 load(Callback callback) 方法
     public void load(Callback callback) {
         if (executor != null) executor.shutdownNow();
-        executor = Executors.newSingleThreadExecutor();
+        executor = java.util.concurrent.Executors.newSingleThreadExecutor();
         executor.execute(() -> loadConfig(callback));
     }
 
     private void loadConfig(Callback callback) {
-    try {
-        OkHttp.cancel("live");
-        String configUrl = config.getUrl();
-        if (configUrl.equals(Constants.BUILTIN_PLACEHOLDER)) {
-            configUrl = Constants.BUILTIN_URL; // 替换占位符为真实地址
-        }
+        try {
+            OkHttp.cancel("live");
+            String configUrl = config.getUrl();
+            if (configUrl.equals(Constants.BUILTIN_PLACEHOLDER)) {
+                configUrl = Constants.BUILTIN_URL; // 替换占位符为真实地址
+            }
 
-        // --- 这里是修改的部分哦 ---
-        // 1. 先获取JSON字符串
-        String jsonStr = Decoder.getJson(UrlUtil.convert(configUrl));
-        // 2. 然后把它解析成JsonObject
-        com.google.gson.JsonObject configObj = com.google.gson.JsonParser.parseString(jsonStr).getAsJsonObject();
-        // 3. 最后再传给parseConfig方法
-        parseConfig(configObj, callback);
-        // --- 修改结束 ---
+            String jsonStr = Decoder.getJson(UrlUtil.convert(configUrl));
+            com.google.gson.JsonObject configObj = com.google.gson.JsonParser.parseString(jsonStr).getAsJsonObject();
+            parseConfig(configObj, callback);
 
-    } catch (Throwable e) {
-        if (TextUtils.isEmpty(config.getUrl())) {
-            // 回退到内置源
-            config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 1);
-            App.post(() -> callback.error(""));
-        } else {
-            App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
+        } catch (Throwable e) {
+            if (TextUtils.isEmpty(config.getUrl())) {
+                config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 1);
+                App.post(() -> callback.error(""));
+            } else {
+                App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
+            }
+            e.printStackTrace();
         }
-        e.printStackTrace();
     }
-}
-
 
     private void parseText(String text, Callback callback) {
         Live live = new Live(parseName(config.getUrl()), config.getUrl()).sync();
@@ -165,6 +158,7 @@ public class LiveConfig {
         setHome(live, false);
         App.post(callback::success);
     }
+
 
     private String parseName(String url) {
         Uri uri = Uri.parse(url);
