@@ -21,6 +21,7 @@ import com.github.catvod.bean.Proxy;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
 import com.google.gson.JsonObject;
+import com.fongmi.android.tv.utils.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
