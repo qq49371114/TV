@@ -116,12 +116,6 @@ public class Site implements Parcelable {
         }
     }
 
-    public static Site get(String key) {
-        Site site = new Site();
-        site.setKey(key);
-        return site;
-    }
-
     public static Site get(String key, String name) {
         Site site = new Site();
         site.setKey(key);
@@ -295,12 +289,13 @@ public class Site implements Parcelable {
 
     public Site trans() {
         if (Trans.pass()) return this;
-        setName(Trans.s2t(getName()));
+        this.name = Trans.s2t(name);
         setCategories(getCategories().stream().map(Trans::s2t).toList());
         return this;
     }
 
     public Site sync(Site item) {
+        if (item == null) return this;
         if (getChangeable() != 0) setChangeable(Math.max(1, item.getChangeable()));
         if (getSearchable() != 0) setSearchable(Math.max(1, item.getSearchable()));
         return this;

@@ -14,8 +14,6 @@ public abstract class BaseFragment extends Fragment {
 
     protected abstract ViewBinding getBinding(@NonNull LayoutInflater inflater, @Nullable ViewGroup container);
 
-    private boolean init;
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -38,28 +36,7 @@ public abstract class BaseFragment extends Fragment {
     protected void initEvent() {
     }
 
-    protected void initData() {
-    }
-
-    private void onVisible() {
-        if (init) return;
-        initData();
-        init = true;
-    }
-
     public boolean canBack() {
         return true;
-    }
-
-    @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
-        if (isVisibleToUser) if (isResumed()) onVisible();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (getUserVisibleHint()) onVisible();
     }
 }

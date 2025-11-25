@@ -37,7 +37,6 @@ import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
-import com.fongmi.android.tv.bean.Channel;
 import com.fongmi.android.tv.bean.Danmaku;
 import com.fongmi.android.tv.bean.Drm;
 import com.fongmi.android.tv.bean.Result;
@@ -416,20 +415,6 @@ public class Players implements Player.Listener, ParseCallback {
         App.removeCallbacks(runnable);
     }
 
-    public void start(Channel channel, long timeout) {
-        if (channel.getDrm() != null && !FrameworkMediaDrm.isCryptoSchemeSupported(channel.getDrm().getUUID())) {
-            ErrorEvent.drm(tag);
-        } else if (channel.hasMsg()) {
-            ErrorEvent.extract(tag, channel.getMsg());
-        } else if (channel.getParse() == 1) {
-            startParse(channel.result(), false);
-        } else if (isIllegal(channel.getUrl())) {
-            ErrorEvent.url(tag);
-        } else {
-            setMediaItem(channel, timeout);
-        }
-    }
-
     public void start(Result result, boolean useParse, long timeout) {
         if (result.getDrm() != null && !FrameworkMediaDrm.isCryptoSchemeSupported(result.getDrm().getUUID())) {
             ErrorEvent.drm(tag);
@@ -483,10 +468,6 @@ public class Players implements Player.Listener, ParseCallback {
         setMediaItem(headers, url, format, drm, subs, danmakus, Constant.TIMEOUT_PLAY);
     }
 
-    private void setMediaItem(Channel channel, long timeout) {
-        setMediaItem(channel.getHeaders(), channel.getUrl(), channel.getFormat(), channel.getDrm(), new ArrayList<>(), new ArrayList<>(), timeout);
-    }
-
     private void setMediaItem(Result result, long timeout) {
         setMediaItem(result.getHeaders(), result.getRealUrl(), result.getFormat(), result.getDrm(), result.getSubs(), result.getDanmaku(), timeout);
     }
@@ -509,7 +490,7 @@ public class Players implements Player.Listener, ParseCallback {
         danPlayer.setDanmaku(item);
         if (danmakus == null) danmakus = new ArrayList<>();
         if (!item.isEmpty() && !danmakus.contains(item)) danmakus.add(0, item);
-        for (int i = 0; i < danmakus.size(); i++) danmakus.get(i).setSelected(danmakus.get(i).getUrl().equals(item.getUrl()) && !danmakus.get(i).isSelected());
+        danmakus.forEach(d -> d.setSelected(d.getUrl().equals(item.getUrl())));
     }
 
     public void setDanmakuSize(float size) {

@@ -52,7 +52,7 @@ public class Notify {
     }
 
     public static void show(String text) {
-        get().makeText(text);
+        if (!TextUtils.isEmpty(text)) get().makeText(text);
     }
 
     public static void progress(Context context) {
@@ -74,10 +74,9 @@ public class Notify {
         mDialog.show();
     }
 
-    private void makeText(String message) {
+    private void makeText(String text) {
         if (mToast != null) mToast.cancel();
-        if (TextUtils.isEmpty(message)) return;
-        mToast = Toast.makeText(App.get(), message, Toast.LENGTH_LONG);
+        mToast = Toast.makeText(App.get(), text, Toast.LENGTH_LONG);
         mToast.show();
     }
 }

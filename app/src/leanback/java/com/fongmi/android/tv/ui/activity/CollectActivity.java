@@ -132,7 +132,6 @@ public class CollectActivity extends BaseActivity {
     }
 
     private void search() {
-        mViewModel.stopSearch();
         if (mSites.isEmpty()) return;
         mAdapter.add(Collect.all());
         mBinding.pager.getAdapter().notifyDataSetChanged();

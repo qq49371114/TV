@@ -18,14 +18,20 @@ import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
+import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.InterruptedIOException;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class WallConfig {
+
+    private static final String TAG = WallConfig.class.getSimpleName();
+    private final AtomicInteger taskId = new AtomicInteger(0);
 
     private Config config;
     private Future<?> future;
@@ -48,7 +54,7 @@ public class WallConfig {
     }
 
     public static void load(Config config, Callback callback) {
-        get().clear().config(config).load(callback);
+        get().config(config).load(callback);
     }
 
     public WallConfig init() {
@@ -62,13 +68,8 @@ public class WallConfig {
         return this;
     }
 
-    public WallConfig clear() {
-        this.config = null;
-        return this;
-    }
-
-    public Config getConfig() {
-        return config == null ? Config.wall() : config;
+    private boolean isCanceled(Throwable e) {
+        return "Canceled".equals(e.getMessage()) || e instanceof InterruptedException || e.getCause() instanceof InterruptedIOException;
     }
 
     public void load() {
@@ -76,40 +77,47 @@ public class WallConfig {
     }
 
     public void load(Callback callback) {
+        int id = taskId.incrementAndGet();
         if (future != null && !future.isDone()) future.cancel(true);
-        future = App.submit(() -> loadConfig(callback));
+        future = App.submit(() -> loadConfig(id, config, callback));
         callback.start();
     }
 
-    private void loadConfig(Callback callback) {
+    private void loadConfig(int id, Config config, Callback callback) {
         try {
-            download();
-            config.update();
-            RefreshEvent.wall();
-            App.post(callback::success);
+            OkHttp.cancel(TAG);
+            download(id, config.getUrl(), callback);
+            if (taskId.get() == id) config.update();
         } catch (Throwable e) {
+            e.printStackTrace();
+            if (isCanceled(e)) return;
+            if (taskId.get() != id) return;
             if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
             else App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
             Setting.putWall(1);
             RefreshEvent.wall();
-            e.printStackTrace();
         }
     }
 
-    private void download() throws Throwable {
-        Path.clear(FileUtil.getWall(0));
+    private void download(int id, String url, Callback callback) throws Throwable {
         File file = FileUtil.getWall(0);
-        Path.clear(FileUtil.getWallCache());
-        if (getUrl().startsWith("file")) Path.copy(Path.local(getUrl()), file);
-        else Download.create(UrlUtil.convert(getUrl()), file).start();
+        if (url.startsWith("file")) Path.copy(Path.local(url), file);
+        else Download.create(UrlUtil.convert(url), file).tag(TAG).get();
         if (!Path.exists(file)) throw new FileNotFoundException();
-        createSnapshot(file);
+        if (taskId.get() != id) return;
+        setWallType(file);
+        setSnapshot(file);
+        RefreshEvent.wall();
+        App.post(callback::success);
+    }
+
+    private void setWallType(File file) {
         Setting.putWallType(0);
         if (isGif(file)) Setting.putWallType(1);
         else if (isVideo(file)) Setting.putWallType(2);
     }
 
-    private void createSnapshot(File file) throws Throwable {
+    private void setSnapshot(File file) throws Throwable {
         Bitmap bitmap = Glide.with(App.get()).asBitmap().frame(0).load(file).override(ResUtil.getScreenWidth(), ResUtil.getScreenHeight()).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE).submit().get();
         try (FileOutputStream fos = new FileOutputStream(FileUtil.getWallCache())) {
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
@@ -138,5 +146,9 @@ public class WallConfig {
 
     public boolean needSync(String url) {
         return sync || TextUtils.isEmpty(config.getUrl()) || url.equals(config.getUrl());
+    }
+
+    public Config getConfig() {
+        return config == null ? Config.wall() : config;
     }
 }

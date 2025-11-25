@@ -277,8 +277,8 @@ public class Vod implements Parcelable, Diffable<Vod> {
         return getVodName();
     }
 
-    public void trans() {
-        if (Trans.pass()) return;
+    public Vod trans() {
+        if (Trans.pass()) return this;
         this.vodName = Trans.s2t(vodName);
         this.vodArea = Trans.s2t(vodArea);
         this.typeName = Trans.s2t(typeName);
@@ -286,6 +286,7 @@ public class Vod implements Parcelable, Diffable<Vod> {
         if (vodActor != null) this.vodActor = Sniffer.CLICKER.matcher(vodActor).find() ? vodActor : Trans.s2t(vodActor);
         if (vodContent != null) this.vodContent = Sniffer.CLICKER.matcher(vodContent).find() ? vodContent : Trans.s2t(vodContent);
         if (vodDirector != null) this.vodDirector = Sniffer.CLICKER.matcher(vodDirector).find() ? vodDirector : Trans.s2t(vodDirector);
+        return this;
     }
 
     public void setVodFlags() {

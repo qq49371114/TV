@@ -20,7 +20,7 @@ public class UrlAdapter implements JsonDeserializer<Url> {
 
     private Url convert(JsonArray array) {
         Url url = Url.create();
-        for (int i = 0; i < array.size(); i += 2) url.add(array.get(i).getAsString(), array.get(i + 1).getAsString());
+        for (int i = 0; i + 1 < array.size(); i += 2) url.add(array.get(i).getAsString(), array.get(i + 1).getAsString());
         return url;
     }
 }

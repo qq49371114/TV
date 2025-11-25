@@ -31,7 +31,7 @@ public class PyLoader {
     public Spider getSpider(String key, String api, String ext) {
         try {
             if (spiders.containsKey(key)) return spiders.get(key);
-            Spider spider = loader.spider(App.get(), api);
+            Spider spider = loader.spider(api);
             spider.init(App.get(), ext);
             spiders.put(key, spider);
             return spider;

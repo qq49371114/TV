@@ -2,10 +2,10 @@ package com.fongmi.android.tv.bean;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
 
-import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.impl.Diffable;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.utils.Trans;
@@ -26,21 +26,17 @@ public class Episode implements Parcelable, Diffable<Episode> {
     private boolean selected;
 
     public static Episode create(String name, String url) {
-        return new Episode(name, "", url);
+        return new Episode(name, "", url).trans();
     }
 
     public static Episode create(String name, String desc, String url) {
-        return new Episode(name, desc, url);
+        return new Episode(name, desc, url).trans();
     }
 
-    public static Episode objectFrom(String str) {
-        return App.gson().fromJson(str, Episode.class);
-    }
-
-    public Episode(String name, String desc, String url) {
+    private Episode(String name, String desc, String url) {
         this.number = Util.getDigit(name);
-        this.name = Trans.s2t(name);
-        this.desc = Trans.s2t(desc);
+        this.name = name;
+        this.desc = desc;
         this.url = url;
     }
 
@@ -48,7 +44,7 @@ public class Episode implements Parcelable, Diffable<Episode> {
     }
 
     public String getName() {
-        return name;
+        return TextUtils.isEmpty(name) ? "" : name;
     }
 
     public void setName(String name) {
@@ -56,11 +52,11 @@ public class Episode implements Parcelable, Diffable<Episode> {
     }
 
     public String getDesc() {
-        return desc;
+        return TextUtils.isEmpty(desc) ? "" : desc;
     }
 
     public String getUrl() {
-        return url;
+        return TextUtils.isEmpty(url) ? "" : url;
     }
 
     public int getIndex() {
@@ -110,6 +106,13 @@ public class Episode implements Parcelable, Diffable<Episode> {
 
     public boolean rule4(String name) {
         return name.toLowerCase().contains(getName().toLowerCase());
+    }
+
+    public Episode trans() {
+        if (Trans.pass()) return this;
+        this.name = Trans.s2t(name);
+        this.desc = Trans.s2t(desc);
+        return this;
     }
 
     @Override

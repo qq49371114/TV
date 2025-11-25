@@ -30,8 +30,12 @@ public class UrlUtil {
         return host == null ? "" : host.toLowerCase().trim();
     }
 
+    public static String path(String url) {
+        return url == null ? "" : path(Uri.parse(url));
+    }
+
     public static String path(Uri uri) {
-        String path = uri.getPath();
+        String path = uri.getLastPathSegment();
         return path == null ? "" : path.trim();
     }
 

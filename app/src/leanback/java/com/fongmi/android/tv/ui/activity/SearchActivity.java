@@ -26,8 +26,8 @@ import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
 import com.fongmi.android.tv.utils.KeyUtil;
 import com.fongmi.android.tv.utils.Util;
+import com.fongmi.android.tv.utils.ZhuToPin;
 import com.github.catvod.net.OkHttp;
-import com.github.catvod.utils.ZhuToPin;
 import com.google.common.net.HttpHeaders;
 
 import java.io.IOException;

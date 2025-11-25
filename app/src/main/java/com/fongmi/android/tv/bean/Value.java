@@ -19,15 +19,20 @@ public class Value implements Parcelable, Diffable<Value> {
 
     private transient boolean activated;
 
-    public Value() {
+    public static Value create(String v) {
+        return new Value(v);
     }
 
-    public Value(String v) {
+    public static Value create(String n, String v) {
+        return new Value(n, v).trans();
+    }
+
+    private Value(String v) {
         this.v = v;
     }
 
-    public Value(String n, String v) {
-        this.n = Trans.s2t(n);
+    private Value(String n, String v) {
+        this.n = n;
         this.v = v;
     }
 
@@ -57,8 +62,9 @@ public class Value implements Parcelable, Diffable<Value> {
         else activated = equal;
     }
 
-    public void trans() {
+    public Value trans() {
         this.n = Trans.s2t(n);
+        return this;
     }
 
     @Override

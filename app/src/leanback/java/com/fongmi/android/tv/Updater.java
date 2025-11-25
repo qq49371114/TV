@@ -44,7 +44,7 @@ public class Updater implements Download.Callback {
     }
 
     public Updater() {
-        this.download = Download.create(getApk(), getFile(), this);
+        this.download = Download.create(getApk(), getFile());
     }
 
     public Updater force() {
@@ -96,7 +96,7 @@ public class Updater implements Download.Callback {
 
     private void confirm(View view) {
         view.setEnabled(false);
-        download.start();
+        download.start(this);
     }
 
     private void dismiss() {

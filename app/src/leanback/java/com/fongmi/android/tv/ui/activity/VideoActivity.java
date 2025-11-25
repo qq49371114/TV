@@ -76,10 +76,10 @@ import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.KeyUtil;
 import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.android.tv.utils.PartUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Sniffer;
 import com.fongmi.android.tv.utils.Traffic;
-import com.fongmi.android.tv.utils.Util;
 import com.github.bassaer.library.MDColor;
 import com.github.catvod.utils.Trans;
 
@@ -258,6 +258,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         String id = Objects.toString(intent.getStringExtra("id"), "");
         if (TextUtils.isEmpty(id) || id.equals(getId())) return;
         getIntent().putExtras(intent);
+        saveHistory();
         checkId();
     }
 
@@ -922,7 +923,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void setPartAdapter() {
-        mPartAdapter.setItems(Util.getPart(mHistory.getVodName()), null);
+        mPartAdapter.setItems(PartUtil.split(mHistory.getVodName()), null);
         mBinding.part.setVisibility(View.VISIBLE);
         setR2Callback();
     }
@@ -1176,7 +1177,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     private void startSearch(String keyword) {
         mQuickAdapter.clear();
-        mViewModel.stopSearch();
         List<Site> sites = new ArrayList<>();
         for (Site site : VodConfig.get().getSites()) if (isPass(site)) sites.add(site);
         mViewModel.searchContent(sites, keyword, true);
@@ -1375,7 +1375,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     @Override
     protected void onStart() {
         super.onStart();
-        mBinding.exo.setPlayer(mPlayers.get());
         mClock.stop().start();
     }
 
@@ -1396,7 +1395,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         super.onStop();
         if (Setting.isBackgroundOff()) onPaused();
         if (Setting.isBackgroundOff()) mClock.stop();
-        mBinding.exo.setPlayer(null);
     }
 
     @Override

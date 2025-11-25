@@ -75,7 +75,7 @@ public class VodFragment extends BaseFragment implements ConfigCallback, SiteCal
         return (FolderFragment) mBinding.pager.getAdapter().instantiateItem(mBinding.pager, mBinding.pager.getCurrentItem());
     }
 
-    private Site getSite() {
+    private Site getHome() {
         return VodConfig.get().getHome();
     }
 
@@ -139,7 +139,7 @@ public class VodFragment extends BaseFragment implements ConfigCallback, SiteCal
     private Result handle(Result result) {
         List<Class> types = new ArrayList<>();
         for (Class type : result.getTypes()) if (result.getFilters().containsKey(type.getTypeId())) type.setFilters(result.getFilters().get(type.getTypeId()));
-        for (String cate : getSite().getCategories()) for (Class type : result.getTypes()) if (cate.equals(type.getTypeName())) types.add(type);
+        for (String cate : getHome().getCategories()) for (Class type : result.getTypes()) if (cate.equals(type.getTypeName())) types.add(type);
         result.setTypes(types);
         return result;
     }
@@ -168,7 +168,7 @@ public class VodFragment extends BaseFragment implements ConfigCallback, SiteCal
     }
 
     private void setTitle() {
-        List<String> items = Arrays.asList(getSite().getName(), getConfig().getName(), getString(R.string.app_name));
+        List<String> items = Arrays.asList(getHome().getName(), getConfig().getName(), getString(R.string.app_name));
         Optional<String> optional = items.stream().filter(s -> !TextUtils.isEmpty(s)).findFirst();
         optional.ifPresent(s -> mBinding.title.setText(s));
     }
@@ -341,7 +341,7 @@ public class VodFragment extends BaseFragment implements ConfigCallback, SiteCal
         @Override
         public Fragment getItem(int position) {
             Class type = mAdapter.get(position);
-            return FolderFragment.newInstance(getSite().getKey(), type.getTypeId(), type.getStyle(), type.getExtend(true), "1".equals(type.getTypeFlag()), 4);
+            return FolderFragment.newInstance(getHome().getKey(), type.getTypeId(), type.getStyle(), type.getExtend(true), "1".equals(type.getTypeFlag()), 4);
         }
 
         @Override

@@ -266,6 +266,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         if (TextUtils.isEmpty(id) || id.equals(getId())) return;
         mBinding.swipeLayout.setRefreshing(true);
         getIntent().putExtras(intent);
+        saveHistory();
         setOrient();
         checkId();
     }
@@ -880,8 +881,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void enterFullscreen() {
         if (isFullscreen()) return;
-        if (isLand()) setTransition();
         setRotate(mPlayers.isPortrait(), true);
+        if (isLand() && !mPlayers.isPortrait()) setTransition();
         mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
         setRequestedOrientation(mPlayers.isPortrait() ? ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         mBinding.control.title.setVisibility(View.VISIBLE);
@@ -893,7 +894,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void exitFullscreen() {
         if (!isFullscreen()) return;
-        if (isLand()) setTransition();
+        if (isLand() && !mPlayers.isPortrait()) setTransition();
         setRequestedOrientation(isPort() ? ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT : ActivityInfo.SCREEN_ORIENTATION_FULL_USER);
         mBinding.episode.postDelayed(() -> mBinding.episode.scrollToPosition(mEpisodeAdapter.getPosition()), 100);
         mBinding.control.title.setVisibility(View.INVISIBLE);
@@ -1316,7 +1317,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void startSearch(String keyword) {
         mQuickAdapter.clear();
-        mViewModel.stopSearch();
         List<Site> sites = new ArrayList<>();
         for (Site item : VodConfig.get().getSites()) if (isPass(item)) sites.add(item);
         mViewModel.searchContent(sites, keyword, true);
@@ -1619,7 +1619,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @Override
     protected void onStart() {
         super.onStart();
-        mBinding.exo.setPlayer(mPlayers.get());
         mClock.stop().start();
         setAudioOnly(false);
         setStop(false);
@@ -1643,7 +1642,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         if (Setting.isBackgroundOff()) mClock.stop();
         if (Setting.isBackgroundOff()) onPaused();
         if (!isAudioOnly()) setStop(true);
-        mBinding.exo.setPlayer(null);
     }
 
     @Override

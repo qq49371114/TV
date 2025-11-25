@@ -9,15 +9,10 @@ public class Cate implements Parcelable {
 
     @SerializedName("land")
     private int land;
-
     @SerializedName("circle")
     private int circle;
-
     @SerializedName("ratio")
     private float ratio;
-
-    public Cate() {
-    }
 
     public int getLand() {
         return land;
