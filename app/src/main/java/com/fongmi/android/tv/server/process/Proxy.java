@@ -8,23 +8,26 @@ import java.io.InputStream;
 import java.util.Map;
 
 import fi.iki.elonen.NanoHTTPD;
+import fi.iki.elonen.NanoHTTPD.IHTTPSession;
+import fi.iki.elonen.NanoHTTPD.Response;
+import fi.iki.elonen.NanoHTTPD.Response.Status;
 
 public class Proxy implements Process {
 
     @Override
-    public boolean isRequest(NanoHTTPD.IHTTPSession session, String url) {
+    public boolean isRequest(IHTTPSession session, String url) {
         return url.startsWith("/proxy");
     }
 
     @Override
-    public NanoHTTPD.Response doResponse(NanoHTTPD.IHTTPSession session, String url, Map<String, String> files) {
+    public Response doResponse(IHTTPSession session, String url, Map<String, String> files) {
         try {
             Map<String, String> params = session.getParms();
             params.putAll(session.getHeaders());
             params.putAll(files);
             Object[] rs = BaseLoader.get().proxyLocal(params);
-            if (rs[0] instanceof NanoHTTPD.Response) return (NanoHTTPD.Response) rs[0];
-            NanoHTTPD.Response response = NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.lookup((Integer) rs[0]), (String) rs[1], (InputStream) rs[2]);
+            if (rs[0] instanceof Response) return (Response) rs[0];
+            Response response = NanoHTTPD.newChunkedResponse(Status.lookup((Integer) rs[0]), (String) rs[1], (InputStream) rs[2]);
             if (rs.length > 3 && rs[3] != null) for (Map.Entry<String, String> entry : ((Map<String, String>) rs[3]).entrySet()) response.addHeader(entry.getKey(), entry.getValue());
             return response;
         } catch (Throwable e) {

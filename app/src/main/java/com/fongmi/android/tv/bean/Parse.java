@@ -38,12 +38,6 @@ public class Parse implements Diffable<Parse> {
         return App.gson().fromJson(element, Parse.class);
     }
 
-    public static Parse get(String name) {
-        Parse parse = new Parse();
-        parse.setName(name);
-        return parse;
-    }
-
     public static Parse get(Integer type, String url) {
         Parse parse = new Parse();
         parse.setType(type);

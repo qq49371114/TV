@@ -17,7 +17,13 @@ public class Word {
 
     public static Word objectFrom(String str) {
         Word word = App.gson().fromJson(str, Word.class);
-        return word == null ? new Word() : word;
+        return word == null ? new Word() : word.trans();
+    }
+
+    public Word trans() {
+        if (Trans.pass()) return this;
+        getData().forEach(Data::trans);
+        return this;
     }
 
     public List<Data> getData() {
@@ -30,7 +36,7 @@ public class Word {
         private String title;
 
         public String getTitle() {
-            return TextUtils.isEmpty(title) ? "" : Trans.s2t(title);
+            return TextUtils.isEmpty(title) ? "" : title;
         }
 
         @Override
@@ -41,6 +47,11 @@ public class Word {
         @Override
         public boolean isSameContent(Data other) {
             return getTitle().equals(other.getTitle());
+        }
+
+        public Data trans() {
+            this.title = Trans.s2t(title);
+            return this;
         }
     }
 }

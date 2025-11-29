@@ -14,7 +14,6 @@ import com.fongmi.android.tv.bean.Episode;
 import com.fongmi.android.tv.bean.Flag;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
-import com.fongmi.android.tv.bean.Url;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.exception.ExtractException;
 import com.fongmi.android.tv.player.Source;
@@ -32,10 +31,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import okhttp3.Call;
 import okhttp3.Response;
@@ -44,6 +45,7 @@ public class SiteViewModel extends ViewModel {
 
     private final List<Future<?>> searchFuture;
     private final ExecutorService executor;
+    private final AtomicInteger taskId;
     private Future<Result> future;
 
     public final MutableLiveData<Episode> episode;
@@ -53,6 +55,7 @@ public class SiteViewModel extends ViewModel {
     public final MutableLiveData<Result> action;
 
     public SiteViewModel() {
+        taskId = new AtomicInteger(0);
         episode = new MutableLiveData<>();
         result = new MutableLiveData<>();
         player = new MutableLiveData<>();
@@ -191,20 +194,19 @@ public class SiteViewModel extends ViewModel {
                 return result;
             } else if (site.isEmpty() && "push_agent".equals(key)) {
                 Result result = new Result();
+                result.setUrl(id);
                 result.setParse(0);
                 result.setFlag(flag);
-                result.setUrl(Url.create().add(id));
                 result.setUrl(Source.get().fetch(result));
                 SpiderDebug.log("player", result.toString());
                 return result;
             } else {
-                Url url = Url.create().add(id);
                 Result result = new Result();
-                result.setUrl(url);
+                result.setUrl(id);
                 result.setFlag(flag);
                 result.setHeader(site.getHeader());
                 result.setPlayUrl(site.getPlayUrl());
-                result.setParse(Sniffer.isVideoFormat(url.v()) && result.getPlayUrl().isEmpty() ? 0 : 1);
+                result.setParse(Sniffer.isVideoFormat(id) && result.getPlayUrl().isEmpty() ? 0 : 1);
                 result.setUrl(Source.get().fetch(result));
                 SpiderDebug.log("player", result.toString());
                 return result;
@@ -213,6 +215,7 @@ public class SiteViewModel extends ViewModel {
     }
 
     public void searchContent(List<Site> sites, String keyword, boolean quick) {
+        stopSearch();
         sites.forEach(site -> searchFuture.add(App.submitSearch(SearchTask.create(this, site, keyword, quick).run())));
     }
 
@@ -255,18 +258,18 @@ public class SiteViewModel extends ViewModel {
     }
 
     private void execute(MutableLiveData<Result> result, Callable<Result> callable) {
+        int currentId = taskId.incrementAndGet();
         if (future != null && !future.isDone()) future.cancel(true);
         if (executor.isShutdown()) return;
         future = App.submit(callable);
         executor.execute(() -> {
             try {
                 Result taskResult = future.get(Constant.TIMEOUT_VOD, TimeUnit.MILLISECONDS);
-                if (future.isCancelled()) return;
+                if (taskId.get() != currentId) return;
                 result.postValue(taskResult);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+            } catch (CancellationException ignored) {
             } catch (Throwable e) {
-                if (future.isCancelled()) return;
+                if (taskId.get() != currentId) return;
                 if (e.getCause() instanceof ExtractException) result.postValue(Result.error(e.getCause().getMessage()));
                 else result.postValue(Result.empty());
                 e.printStackTrace();

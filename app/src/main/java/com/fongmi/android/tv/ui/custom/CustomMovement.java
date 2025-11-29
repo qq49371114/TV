@@ -106,6 +106,7 @@ public class CustomMovement extends ScrollingMovementMethod {
         }
         if (selStart > last) selStart = selEnd = Integer.MAX_VALUE;
         if (selEnd < first) selStart = selEnd = -1;
+        int bestStart, bestEnd;
         switch (what) {
             case CLICK:
                 if (selStart == selEnd) return false;
@@ -115,7 +116,6 @@ public class CustomMovement extends ScrollingMovementMethod {
                 link.onClick(widget);
                 break;
             case UP:
-                int bestStart, bestEnd;
                 bestStart = -1;
                 bestEnd = -1;
                 for (ClickableSpan candidate : candidates) {

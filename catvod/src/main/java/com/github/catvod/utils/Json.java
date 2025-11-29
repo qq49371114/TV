@@ -45,7 +45,12 @@ public class Json {
     }
 
     public static boolean isEmpty(JsonObject obj, String key) {
-        return !obj.has(key) || !obj.get(key).isJsonArray() || obj.get(key).getAsJsonArray().isEmpty();
+        if (!obj.has(key)) return true;
+        JsonElement element = obj.get(key);
+        if (element.isJsonNull()) return true;
+        if (element.isJsonArray()) return element.getAsJsonArray().isEmpty();
+        if (element.isJsonPrimitive() && element.getAsJsonPrimitive().isString()) return element.getAsString().trim().isEmpty();
+        return true;
     }
 
     public static String safeString(JsonObject obj, String key) {

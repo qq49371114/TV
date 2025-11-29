@@ -11,8 +11,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class JsLoader {
 
     private final ConcurrentHashMap<String, Spider> spiders;
+    private final Loader loader;
     private String recent;
-    private Loader loader;
 
     public JsLoader() {
         spiders = new ConcurrentHashMap<>();

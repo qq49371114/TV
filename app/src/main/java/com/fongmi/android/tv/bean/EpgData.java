@@ -6,6 +6,7 @@ import androidx.annotation.Nullable;
 
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.github.catvod.utils.Trans;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Calendar;
@@ -99,6 +100,11 @@ public class EpgData {
         cal.setTimeInMillis(getEndTime());
         cal.add(Calendar.DAY_OF_MONTH, 1);
         setEndTime(cal.getTimeInMillis());
+    }
+
+    public void trans() {
+        if (Trans.pass()) return;
+        this.title = Trans.s2t(title);
     }
 
     @Override

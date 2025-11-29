@@ -2,6 +2,7 @@ package com.fongmi.android.tv;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,8 +13,8 @@ import androidx.annotation.Nullable;
 import androidx.core.os.HandlerCompat;
 
 import com.fongmi.android.tv.utils.Notify;
-import com.fongmi.hook.Chromium;
 import com.fongmi.hook.Hook;
+import com.github.catvod.Init;
 import com.google.gson.Gson;
 
 import java.util.concurrent.Callable;
@@ -30,7 +31,6 @@ public class App extends Application implements Application.ActivityLifecycleCal
     private Activity activity;
     private final Gson gson;
     private final long time;
-    private boolean sniff;
     private Hook hook;
 
     public App() {
@@ -42,12 +42,14 @@ public class App extends Application implements Application.ActivityLifecycleCal
         handler = HandlerCompat.createAsync(Looper.getMainLooper());
     }
 
-    public void setSniff(boolean sniff) {
-        this.sniff = sniff;
-    }
-
     public void setHook(Hook hook) {
         this.hook = hook;
+    }
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        Init.set(base);
     }
 
     @Override
@@ -64,7 +66,7 @@ public class App extends Application implements Application.ActivityLifecycleCal
 
     @Override
     public String getPackageName() {
-        return hook != null ? hook.getPackageName() : sniff && Chromium.find() ? Chromium.PKG : getBaseContext().getPackageName();
+        return hook != null ? hook.getPackageName() : getBaseContext().getPackageName();
     }
 
     @Override

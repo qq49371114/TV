@@ -75,7 +75,7 @@ public class ChannelAdapter extends RecyclerView.Adapter<ChannelAdapter.ViewHold
     public void onBindViewHolder(@NonNull ChannelAdapter.ViewHolder holder, int position) {
         Channel item = mItems.get(position);
         item.loadLogo(holder.binding.logo);
-        holder.binding.name.setText(item.getName());
+        holder.binding.name.setText(item.getShow());
         holder.binding.number.setText(item.getNumber());
         holder.binding.getRoot().setSelected(item.isSelected());
         holder.binding.getRoot().setOnClickListener(view -> listener.onItemClick(item));

@@ -1,5 +1,9 @@
 package com.fongmi.android.tv.server.process;
 
+import static fi.iki.elonen.NanoHTTPD.MIME_PLAINTEXT;
+import static fi.iki.elonen.NanoHTTPD.getMimeTypeForFile;
+import static fi.iki.elonen.NanoHTTPD.newFixedLengthResponse;
+
 import com.fongmi.android.tv.server.Nano;
 import com.fongmi.android.tv.server.impl.Process;
 import com.fongmi.android.tv.utils.FileUtil;
@@ -18,7 +22,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import fi.iki.elonen.NanoHTTPD;
+import fi.iki.elonen.NanoHTTPD.IHTTPSession;
+import fi.iki.elonen.NanoHTTPD.Response;
+import fi.iki.elonen.NanoHTTPD.Response.Status;
 
 public class Local implements Process {
 
@@ -29,12 +35,12 @@ public class Local implements Process {
     }
 
     @Override
-    public boolean isRequest(NanoHTTPD.IHTTPSession session, String url) {
+    public boolean isRequest(IHTTPSession session, String url) {
         return url.startsWith("/file") || url.startsWith("/upload") || url.startsWith("/newFolder") || url.startsWith("/delFolder") || url.startsWith("/delFile");
     }
 
     @Override
-    public NanoHTTPD.Response doResponse(NanoHTTPD.IHTTPSession session, String url, Map<String, String> files) {
+    public Response doResponse(IHTTPSession session, String url, Map<String, String> files) {
         if (url.startsWith("/file")) return getFile(session.getHeaders(), url);
         if (url.startsWith("/upload")) return upload(session.getParms(), files);
         if (url.startsWith("/newFolder")) return newFolder(session.getParms());
@@ -42,18 +48,18 @@ public class Local implements Process {
         return null;
     }
 
-    private NanoHTTPD.Response getFile(Map<String, String> headers, String path) {
+    private Response getFile(Map<String, String> headers, String path) {
         try {
             File file = Path.local(path.substring(5));
             if (file.isDirectory()) return getFolder(file);
-            if (file.isFile()) return getFile(headers, file, NanoHTTPD.getMimeTypeForFile(path));
+            if (file.isFile()) return getFile(headers, file, getMimeTypeForFile(path));
             throw new FileNotFoundException();
         } catch (Exception e) {
             return Nano.error(e.getMessage());
         }
     }
 
-    private NanoHTTPD.Response upload(Map<String, String> params, Map<String, String> files) {
+    private Response upload(Map<String, String> params, Map<String, String> files) {
         String path = params.get("path");
         for (String k : files.keySet()) {
             String fn = params.get(k);
@@ -64,20 +70,20 @@ public class Local implements Process {
         return Nano.ok();
     }
 
-    private NanoHTTPD.Response newFolder(Map<String, String> params) {
+    private Response newFolder(Map<String, String> params) {
         String path = params.get("path");
         String name = params.get("name");
         Path.root(path, name).mkdirs();
         return Nano.ok();
     }
 
-    private NanoHTTPD.Response delFolder(Map<String, String> params) {
+    private Response delFolder(Map<String, String> params) {
         String path = params.get("path");
         Path.clear(Path.root(path));
         return Nano.ok();
     }
 
-    private NanoHTTPD.Response getFolder(File root) {
+    private Response getFolder(File root) {
         List<File> list = Path.list(root);
         JsonObject info = new JsonObject();
         info.addProperty("parent", root.equals(Path.root()) ? "." : root.getParent().replace(Path.rootPath(), ""));
@@ -98,12 +104,12 @@ public class Local implements Process {
         return Nano.ok(info.toString());
     }
 
-    private NanoHTTPD.Response getFile(Map<String, String> headers, File file, String mime) throws IOException {
+    private Response getFile(Map<String, String> headers, File file, String mime) throws IOException {
         long fileLen = file.length();
         String ifNoneMatch = headers.get("if-none-match");
         String etag = Integer.toHexString((file.getAbsolutePath() + file.lastModified() + fileLen).hashCode());
         if (ifNoneMatch != null && (ifNoneMatch.equals("*") || ifNoneMatch.equals(etag))) {
-            return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_MODIFIED, mime, "");
+            return newFixedLengthResponse(Status.NOT_MODIFIED, mime, "");
         }
         HttpRange range = HttpRange.from(fileLen, headers, etag);
         if (!range.valid()) {
@@ -111,12 +117,12 @@ public class Local implements Process {
         }
         FileInputStream fis = new FileInputStream(file);
         robustSkip(fis, range.start);
-        NanoHTTPD.Response res;
+        Response res;
         if (range.isPartial(fileLen)) {
-            res = NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.PARTIAL_CONTENT, mime, fis, range.length);
+            res = newFixedLengthResponse(Status.PARTIAL_CONTENT, mime, fis, range.length);
             res.addHeader("Content-Range", "bytes " + range.start + "-" + range.end + "/" + fileLen);
         } else {
-            res = NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.OK, mime, fis, range.length);
+            res = newFixedLengthResponse(Status.OK, mime, fis, range.length);
         }
         res.addHeader("Content-Length", String.valueOf(range.length));
         res.addHeader("Accept-Ranges", "bytes");
@@ -124,8 +130,8 @@ public class Local implements Process {
         return res;
     }
 
-    private NanoHTTPD.Response createRangeNotSatisfiableResponse(long fileLen) {
-        NanoHTTPD.Response res = NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.RANGE_NOT_SATISFIABLE, NanoHTTPD.MIME_PLAINTEXT, "");
+    private Response createRangeNotSatisfiableResponse(long fileLen) {
+        Response res = newFixedLengthResponse(Status.RANGE_NOT_SATISFIABLE, MIME_PLAINTEXT, "");
         res.addHeader("Content-Range", "bytes */" + fileLen);
         return res;
     }

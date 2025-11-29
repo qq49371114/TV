@@ -7,6 +7,7 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentActivity;
 import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.leanback.widget.VerticalGridView;
 import androidx.recyclerview.widget.RecyclerView;
@@ -15,6 +16,8 @@ import com.fongmi.android.tv.R;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class CustomVerticalGridView extends VerticalGridView {
 
@@ -48,8 +51,8 @@ public class CustomVerticalGridView extends VerticalGridView {
         });
     }
 
-    public void setHeader(View... views) {
-        this.views = Arrays.asList(views);
+    public void setHeader(FragmentActivity activity, int... layoutIds) {
+        if (activity != null) views = Arrays.stream(layoutIds).mapToObj(id -> (View) activity.findViewById(id)).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     public void setMoveTop(boolean moveTop) {

@@ -11,6 +11,7 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.github.catvod.utils.Json;
+import com.github.catvod.utils.Trans;
 import com.google.common.net.HttpHeaders;
 import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
@@ -57,8 +58,7 @@ public class Channel {
 
     private boolean selected;
     private Group group;
-    private String url;
-    private String msg;
+    private String show;
     private Epg data;
     private int line;
 
@@ -76,12 +76,6 @@ public class Channel {
 
     public static Channel create(Channel channel) {
         return new Channel().copy(channel);
-    }
-
-    public static Channel error(String msg) {
-        Channel result = new Channel();
-        result.setMsg(msg);
-        return result;
     }
 
     public Channel() {
@@ -129,6 +123,14 @@ public class Channel {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getShow() {
+        return TextUtils.isEmpty(show) ? getName() : show;
+    }
+
+    public void setShow(String show) {
+        this.show = show;
     }
 
     public String getUa() {
@@ -227,26 +229,6 @@ public class Channel {
         this.group = group;
     }
 
-    public String getUrl() {
-        return TextUtils.isEmpty(url) ? "" : url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public String getMsg() {
-        return TextUtils.isEmpty(msg) ? "" : msg;
-    }
-
-    public void setMsg(String msg) {
-        this.msg = msg;
-    }
-
-    public boolean hasMsg() {
-        return !getMsg().isEmpty();
-    }
-
     public Epg getData() {
         return data == null ? new Epg() : data;
     }
@@ -283,12 +265,12 @@ public class Channel {
         ImgUtil.load(getName(), getLogo(), view, false);
     }
 
-    public void nextLine() {
-        setLine(getLine() < getUrls().size() - 1 ? getLine() + 1 : 0);
-    }
-
-    public void prevLine() {
-        setLine(getLine() > 0 ? getLine() - 1 : getUrls().size() - 1);
+    public void switchLine(boolean next) {
+        List<?> urls = getUrls();
+        if (urls.isEmpty()) return;
+        int size = urls.size();
+        int step = next ? 1 : -1;
+        setLine((getLine() + step + size) % size);
     }
 
     public String getCurrent() {
@@ -368,6 +350,7 @@ public class Channel {
         setTvgId(item.getTvgId());
         setLogo(item.getLogo());
         setName(item.getName());
+        setShow(item.getShow());
         setUrls(item.getUrls());
         setData(item.getData());
         setDrm(item.getDrm());
@@ -378,10 +361,19 @@ public class Channel {
 
     public Result result() {
         Result result = new Result();
+        result.setDrm(getDrm());
+        result.setUrl(getCurrent());
         result.setClick(getClick());
-        result.setUrl(Url.create().add(getUrl()));
+        result.setParse(getParse());
+        result.setFormat(getFormat());
         result.setHeader(Json.toObject(getHeaders()));
         return result;
+    }
+
+    public Channel trans() {
+        if (Trans.pass()) return this;
+        this.show = Trans.s2t(name);
+        return this;
     }
 
     @Override

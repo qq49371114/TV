@@ -3,10 +3,12 @@ package com.fongmi.android.tv.player.extractor;
 import android.net.Uri;
 import android.os.SystemClock;
 
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.Episode;
 import com.fongmi.android.tv.exception.ExtractException;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.utils.Download;
+import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.utils.Path;
 import com.github.catvod.utils.Util;
@@ -16,38 +18,39 @@ import com.xunlei.downloadlib.parameter.TorrentFileInfo;
 import com.xunlei.downloadlib.parameter.XLTaskInfo;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class Thunder implements Source.Extractor {
 
     private GetTaskId taskId;
 
     @Override
-    public boolean match(String scheme, String host) {
-        return "magnet".equals(scheme) || "ed2k".equals(scheme);
+    public boolean match(Uri uri) {
+        return List.of("magnet", "ed2k").contains(UrlUtil.scheme(uri));
     }
 
     @Override
     public String fetch(String url) throws Exception {
-        return UrlUtil.scheme(url).equals("magnet") ? addTorrentTask(Uri.parse(url)) : addThunderTask(url);
+        return url.startsWith("magnet") ? addTorrentTask(Uri.parse(url)) : addThunderTask(url);
     }
 
     private String addTorrentTask(Uri uri) throws Exception {
         File torrent = new File(uri.getPath());
+        File parent = torrent.getParentFile();
         String name = uri.getQueryParameter("name");
         int index = Integer.parseInt(uri.getQueryParameter("index"));
-        taskId = XLTaskHelper.get().addTorrentTask(torrent, Objects.requireNonNull(torrent.getParentFile()), index);
-        while (true) {
-            XLTaskInfo taskInfo = XLTaskHelper.get().getBtSubTaskInfo(taskId, index).mTaskInfo;
-            if (taskInfo.mTaskStatus == 3) throw new ExtractException(taskInfo.getErrorMsg());
-            if (taskInfo.mTaskStatus != 0) return XLTaskHelper.get().getLocalUrl(new File(torrent.getParent(), name));
-            else SystemClock.sleep(300);
+        taskId = XLTaskHelper.get().addTorrentTask(torrent, parent, index);
+        for (int i = 0; i < 100; i++) {
+            XLTaskInfo info = XLTaskHelper.get().getBtSubTaskInfo(taskId, index).mTaskInfo;
+            if (info.mTaskStatus == 3) throw new ExtractException(info.getErrorMsg());
+            if (info.mTaskStatus != 0) return XLTaskHelper.get().getLocalUrl(new File(parent, name));
+            SystemClock.sleep(100);
         }
+        throw new ExtractException(ResUtil.getString(R.string.error_play_timeout));
     }
 
     private String addThunderTask(String url) {
@@ -69,45 +72,49 @@ public class Thunder implements Source.Extractor {
         XLTaskHelper.get().release();
     }
 
-    public static class Parser implements Callable<List<Episode>> {
+    public record Parser(String url) implements Callable<List<Episode>> {
 
-        private static final Pattern THUNDER = Pattern.compile("(magnet|thunder|ed2k):.*");
-        private final String url;
-        private int time;
+        private static final Pattern PATTERN = Pattern.compile("(magnet|thunder|ed2k):.*");
 
         public static boolean match(String url) {
-            return THUNDER.matcher(url).find() || isTorrent(url);
+            return PATTERN.matcher(url).find() || isTorrent(url);
         }
 
         public static Parser get(String url) {
             return new Parser(url);
         }
 
-        public Parser(String url) {
-            this.url = url;
+        private Episode create(GetTaskId taskId) {
+            return Episode.create(taskId.getFileName(), taskId.getRealUrl());
         }
 
-        private void sleep() {
-            SystemClock.sleep(10);
-            time += 10;
+        private Episode create(TorrentFileInfo info) {
+            return Episode.create(info.getFileName(), info.getSize(), info.getPlayUrl());
         }
 
         private static boolean isTorrent(String url) {
-            return !url.startsWith("magnet") && url.split(";")[0].endsWith(".torrent");
+            return !url.startsWith("magnet") && url.split(";")[0].toLowerCase().endsWith(".torrent");
         }
 
         @Override
         public List<Episode> call() {
             boolean torrent = isTorrent(url);
-            List<Episode> episodes = new ArrayList<>();
             GetTaskId taskId = XLTaskHelper.get().parse(url, Path.thunder(Util.md5(url)));
-            if (!torrent && !taskId.getRealUrl().startsWith("magnet")) return Arrays.asList(Episode.create(taskId.getFileName(), taskId.getRealUrl()));
-            if (torrent) Download.create(url, taskId.getSaveFile()).start();
-            else while (XLTaskHelper.get().getTaskInfo(taskId).getTaskStatus() != 2 && time < 5000) sleep();
-            List<TorrentFileInfo> medias = XLTaskHelper.get().getTorrentInfo(taskId.getSaveFile()).getMedias();
-            for (TorrentFileInfo media : medias) episodes.add(Episode.create(media.getFileName(), media.getSize(), media.getPlayUrl()));
-            XLTaskHelper.get().stopTask(taskId);
-            return episodes;
+            if (!torrent && !taskId.getRealUrl().startsWith("magnet")) return Arrays.asList(create(taskId));
+            if (torrent && url.startsWith("http")) Download.create(url, taskId.getSaveFile()).get();
+            if (!torrent) waitDone(taskId);
+            try {
+                return XLTaskHelper.get().getTorrentInfo(taskId.getSaveFile()).getMedias().stream().map(this::create).collect(Collectors.toList());
+            } finally {
+                XLTaskHelper.get().stopTask(taskId);
+            }
+        }
+
+        private void waitDone(GetTaskId taskId) {
+            for (int i = 0; i < 100; i++) {
+                if (XLTaskHelper.get().getTaskInfo(taskId).getTaskStatus() == 2) return;
+                SystemClock.sleep(100);
+            }
         }
     }
 }
