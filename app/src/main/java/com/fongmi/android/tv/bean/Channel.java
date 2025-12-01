@@ -8,15 +8,17 @@ import androidx.annotation.Nullable;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.gson.HeaderAdapter;
 import com.fongmi.android.tv.utils.ImgUtil;
 import com.fongmi.android.tv.utils.ResUtil;
-import com.github.catvod.utils.Json;
 import com.github.catvod.utils.Trans;
 import com.google.common.net.HttpHeaders;
 import com.google.gson.JsonElement;
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -50,7 +52,8 @@ public class Channel {
     @SerializedName("catchup")
     private Catchup catchup;
     @SerializedName("header")
-    private JsonElement header;
+    @JsonAdapter(HeaderAdapter.class)
+    private Map<String, String> header;
     @SerializedName("parse")
     private Integer parse;
     @SerializedName("drm")
@@ -197,11 +200,11 @@ public class Channel {
         this.catchup = catchup;
     }
 
-    public JsonElement getHeader() {
-        return header;
+    public Map<String, String> getHeader() {
+        return header == null ? new HashMap<>() : header;
     }
 
-    public void setHeader(JsonElement header) {
+    public void setHeader(Map<String, String> header) {
         this.header = header;
     }
 
@@ -310,8 +313,8 @@ public class Channel {
 
     public void live(Live live) {
         if (!live.getUa().isEmpty() && getUa().isEmpty()) setUa(live.getUa());
-        if (live.getHeader() != null && getHeader() == null) setHeader(live.getHeader());
         if (!live.getClick().isEmpty() && getClick().isEmpty()) setClick(live.getClick());
+        if (!live.getHeader().isEmpty() && getHeader().isEmpty()) setHeader(live.getHeader());
         if (!live.getOrigin().isEmpty() && getOrigin().isEmpty()) setOrigin(live.getOrigin());
         if (!live.getCatchup().isEmpty() && getCatchup().isEmpty()) setCatchup(live.getCatchup());
         if (!live.getReferer().isEmpty() && getReferer().isEmpty()) setReferer(live.getReferer());
@@ -330,7 +333,7 @@ public class Channel {
     }
 
     public Map<String, String> getHeaders() {
-        Map<String, String> headers = Json.toMap(getHeader());
+        Map<String, String> headers = new HashMap<>(getHeader());
         if (!getUa().isEmpty()) headers.put(HttpHeaders.USER_AGENT, getUa());
         if (!getOrigin().isEmpty()) headers.put(HttpHeaders.ORIGIN, getOrigin());
         if (!getReferer().isEmpty()) headers.put(HttpHeaders.REFERER, getReferer());
@@ -366,7 +369,7 @@ public class Channel {
         result.setClick(getClick());
         result.setParse(getParse());
         result.setFormat(getFormat());
-        result.setHeader(Json.toObject(getHeaders()));
+        result.setHeader(getHeaders());
         return result;
     }
 

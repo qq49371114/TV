@@ -96,10 +96,4 @@ public class Json {
         for (Map.Entry<String, JsonElement> entry : object.entrySet()) map.put(entry.getKey(), safeString(object, entry.getKey()));
         return map;
     }
-
-    public static JsonObject toObject(Map<String, String> map) {
-        JsonObject object = new JsonObject();
-        for (String key : map.keySet()) object.addProperty(key, map.get(key));
-        return object;
-    }
 }

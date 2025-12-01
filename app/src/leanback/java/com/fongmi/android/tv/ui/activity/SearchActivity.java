@@ -32,9 +32,9 @@ import com.google.common.net.HttpHeaders;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.Map;
 
 import okhttp3.Call;
-import okhttp3.Headers;
 import okhttp3.Response;
 
 public class SearchActivity extends BaseActivity implements WordAdapter.OnClickListener, RecordAdapter.OnClickListener, CustomKeyboard.Callback {
@@ -101,7 +101,7 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
     private void getHot() {
         mBinding.word.setText(R.string.search_hot);
         mWordAdapter.setItems(Word.objectFrom(Setting.getHot()).getData());
-        OkHttp.newCall("https://api.web.360kan.com/v1/rank?cat=1", Headers.of(HttpHeaders.REFERER, "https://www.360kan.com/rank/general")).enqueue(getCallback(true));
+        OkHttp.newCall("https://api.web.360kan.com/v1/rank?cat=1", Map.of(HttpHeaders.REFERER, "https://www.360kan.com/rank/general")).enqueue(getCallback(true));
     }
 
     private void getSuggest(String text) {

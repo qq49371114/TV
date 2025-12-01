@@ -7,12 +7,13 @@ import androidx.annotation.Nullable;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.gson.HeaderAdapter;
 import com.fongmi.android.tv.impl.Diffable;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
-import com.github.catvod.utils.Json;
 import com.github.catvod.utils.Util;
 import com.google.gson.JsonElement;
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Collections;
@@ -100,12 +101,12 @@ public class Parse implements Diffable<Parse> {
         this.click = click;
     }
 
-    public Map<String, String> getHeaders() {
-        return Json.toMap(getExt().getHeader());
+    public Map<String, String> getHeader() {
+        return getExt().getHeader();
     }
 
-    public void setHeader(JsonElement header) {
-        if (getExt().getHeader() == null) getExt().setHeader(header);
+    public void setHeader(Map<String, String> header) {
+        if (getHeader().isEmpty()) getExt().setHeader(header);
     }
 
     public boolean isEmpty() {
@@ -153,7 +154,8 @@ public class Parse implements Diffable<Parse> {
         @SerializedName("flag")
         private List<String> flag;
         @SerializedName("header")
-        private JsonElement header;
+        @JsonAdapter(HeaderAdapter.class)
+        private Map<String, String> header;
 
         public void setFlag(List<String> flag) {
             this.flag = flag;
@@ -163,16 +165,16 @@ public class Parse implements Diffable<Parse> {
             return flag == null ? Collections.emptyList() : flag;
         }
 
-        public JsonElement getHeader() {
-            return header;
+        public Map<String, String> getHeader() {
+            return header == null ? new HashMap<>() : header;
         }
 
-        public void setHeader(JsonElement header) {
+        public void setHeader(Map<String, String> header) {
             this.header = header;
         }
 
         public boolean isEmpty() {
-            return flag == null && header == null;
+            return getFlag().isEmpty() && getHeader().isEmpty();
         }
 
         @NonNull

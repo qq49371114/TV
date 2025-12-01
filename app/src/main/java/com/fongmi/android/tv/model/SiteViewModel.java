@@ -100,7 +100,7 @@ public class SiteViewModel extends ViewModel {
                 SpiderDebug.log("home", homeContent);
                 return Result.fromJson(homeContent);
             } else {
-                try (Response response = OkHttp.newCall(site.getApi(), site.getHeaders()).execute()) {
+                try (Response response = OkHttp.newCall(site.getApi(), site.getHeader()).execute()) {
                     String homeContent = response.body().string();
                     SpiderDebug.log("home", homeContent);
                     return fetchPic(site, Result.fromType(site.getType(), homeContent));
@@ -235,8 +235,8 @@ public class SiteViewModel extends ViewModel {
 
     public String call(Site site, ArrayMap<String, String> params) throws IOException {
         if (!site.getExt().isEmpty()) params.put("extend", site.getExt());
-        Call get = OkHttp.newCall(site.getApi(), site.getHeaders(), params);
-        Call post = OkHttp.newCall(site.getApi(), site.getHeaders(), OkHttp.toBody(params));
+        Call get = OkHttp.newCall(site.getApi(), site.getHeader(), params);
+        Call post = OkHttp.newCall(site.getApi(), site.getHeader(), OkHttp.toBody(params));
         try (Response response = (site.getExt().length() <= 1000 ? get : post).execute()) {
             return response.body().string();
         }
@@ -251,7 +251,7 @@ public class SiteViewModel extends ViewModel {
         ArrayMap<String, String> params = new ArrayMap<>();
         params.put("ac", site.getType() == 0 ? "videolist" : "detail");
         params.put("ids", TextUtils.join(",", ids));
-        try (Response response = OkHttp.newCall(site.getApi(), site.getHeaders(), params).execute()) {
+        try (Response response = OkHttp.newCall(site.getApi(), site.getHeader(), params).execute()) {
             result.setList(Result.fromType(site.getType(), response.body().string()).getList());
             return result;
         }

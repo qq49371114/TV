@@ -127,7 +127,7 @@ public class OkHttp {
 
     public static String string(String url, Map<String, String> headers) {
         if (!url.startsWith("http")) return "";
-        try (Response res = newCall(url, Headers.of(headers)).execute()) {
+        try (Response res = newCall(url, headers).execute()) {
             return res.body().string();
         } catch (Exception e) {
             e.printStackTrace();
@@ -151,16 +151,16 @@ public class OkHttp {
         return client.newCall(new Request.Builder().url(url).tag(tag).build());
     }
 
-    public static Call newCall(String url, Headers headers) {
-        return client().newCall(new Request.Builder().url(url).headers(headers).build());
+    public static Call newCall(String url, Map<String, String> headers) {
+        return client().newCall(new Request.Builder().url(url).headers(Headers.of(headers)).build());
     }
 
-    public static Call newCall(String url, Headers headers, ArrayMap<String, String> params) {
-        return client().newCall(new Request.Builder().url(buildUrl(url, params)).headers(headers).build());
+    public static Call newCall(String url, Map<String, String> headers, ArrayMap<String, String> params) {
+        return client().newCall(new Request.Builder().url(buildUrl(url, params)).headers(Headers.of(headers)).build());
     }
 
-    public static Call newCall(String url, Headers headers, RequestBody body) {
-        return client().newCall(new Request.Builder().url(url).headers(headers).post(body).build());
+    public static Call newCall(String url, Map<String, String> headers, RequestBody body) {
+        return client().newCall(new Request.Builder().url(url).headers(Headers.of(headers)).post(body).build());
     }
 
     public static Call newCall(OkHttpClient client, String url, RequestBody body) {

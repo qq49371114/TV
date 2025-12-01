@@ -1059,7 +1059,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mHistory.setEpisodeUrl(item.getUrl());
         mHistory.setVodRemarks(item.getName());
         mHistory.setVodFlag(getFlag().getFlag());
-        mHistory.setCreateTime(System.currentTimeMillis());
         mHistory.setPosition(replay ? C.TIME_UNSET : mHistory.getPosition());
     }
 
@@ -1124,8 +1123,9 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     @Override
-    public void onTimeChanged() {
+    public void onTimeChanged(long time) {
         long position, duration;
+        mHistory.setCreateTime(time);
         mHistory.setPosition(position = mPlayers.getPosition());
         mHistory.setDuration(duration = mPlayers.getDuration());
         if (mHistory.getEnding() > 0 && duration > 0 && mHistory.getEnding() + position >= duration) {

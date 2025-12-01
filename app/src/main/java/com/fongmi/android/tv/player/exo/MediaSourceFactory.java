@@ -3,6 +3,7 @@ package com.fongmi.android.tv.player.exo;
 import static androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory.FLAG_ENABLE_HDMV_DTS_AUDIO_STREAMS;
 
 import android.net.Uri;
+import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.media3.common.C;
@@ -41,13 +42,13 @@ public class MediaSourceFactory implements MediaSource.Factory {
     @NonNull
     @Override
     public MediaSource.Factory setDrmSessionManagerProvider(@NonNull DrmSessionManagerProvider drmSessionManagerProvider) {
-        return defaultMediaSourceFactory.setDrmSessionManagerProvider(drmSessionManagerProvider);
+        return this;
     }
 
     @NonNull
     @Override
     public MediaSource.Factory setLoadErrorHandlingPolicy(@NonNull LoadErrorHandlingPolicy loadErrorHandlingPolicy) {
-        return defaultMediaSourceFactory.setLoadErrorHandlingPolicy(loadErrorHandlingPolicy);
+        return this;
     }
 
     @NonNull
@@ -68,8 +69,8 @@ public class MediaSourceFactory implements MediaSource.Factory {
 
     private MediaItem setHeader(MediaItem mediaItem) {
         Map<String, String> headers = new HashMap<>();
-        if (mediaItem.requestMetadata.extras == null) return mediaItem;
-        for (String key : mediaItem.requestMetadata.extras.keySet()) headers.put(key, mediaItem.requestMetadata.extras.get(key).toString());
+        Bundle extras = mediaItem.requestMetadata.extras;
+        if (extras != null) for (String key : extras.keySet()) headers.put(key, extras.get(key).toString());
         getHttpDataSourceFactory().setDefaultRequestProperties(headers);
         return mediaItem;
     }

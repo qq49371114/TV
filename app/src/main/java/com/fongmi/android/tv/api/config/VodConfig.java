@@ -116,7 +116,7 @@ public class VodConfig {
             Server.get().start();
             String json = Decoder.getJson(UrlUtil.convert(config.getUrl()), TAG);
             checkJson(id, config, callback, Json.parse(json).getAsJsonObject());
-            if (taskId.get() == id) config.update();
+            if (taskId.get() == id && config.equals(this.config)) config.update();
         } catch (Throwable e) {
             e.printStackTrace();
             if (isCanceled(e)) return;

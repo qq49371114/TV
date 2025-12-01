@@ -150,17 +150,24 @@ public class LiveParser {
         private String origin;
         private String referer;
         private Integer parse;
+        private boolean forceKey;
         private Map<String, String> header;
+        private Map<String, String> drmHeader;
 
-        public static Setting create() {
+        private static Setting create() {
             return new Setting();
         }
 
-        public boolean find(String line) {
-            return line.startsWith("ua") || line.startsWith("parse") || line.startsWith("click") || line.startsWith("header") || line.startsWith("format") || line.startsWith("origin") || line.startsWith("referer") || line.startsWith("#EXTHTTP:") || line.startsWith("#EXTVLCOPT:") || line.startsWith("#KODIPROP:");
+        public Setting() {
+            header = new HashMap<>();
+            drmHeader = new HashMap<>();
         }
 
-        public void check(String line) {
+        private boolean find(String line) {
+            return line.startsWith("ua") || line.startsWith("parse") || line.startsWith("click") || line.startsWith("header") || line.startsWith("format") || line.startsWith("origin") || line.startsWith("referer") || line.startsWith("forceKey") || line.startsWith("#EXTHTTP:") || line.startsWith("#EXTVLCOPT:") || line.startsWith("#KODIPROP:");
+        }
+
+        private void check(String line) {
             if (line.startsWith("ua")) ua(line);
             else if (line.startsWith("parse")) parse(line);
             else if (line.startsWith("click")) click(line);
@@ -169,6 +176,7 @@ public class LiveParser {
             else if (line.startsWith("origin")) origin(line);
             else if (line.startsWith("referer")) referer(line);
             else if (line.startsWith("#EXTHTTP:")) header(line);
+            else if (line.startsWith("forceKey")) forceKey(line);
             else if (line.startsWith("#EXTVLCOPT:http-origin")) origin(line);
             else if (line.startsWith("#EXTVLCOPT:http-user-agent")) ua(line);
             else if (line.startsWith("#EXTVLCOPT:http-referrer")) referrer(line);
@@ -180,15 +188,15 @@ public class LiveParser {
             else if (line.startsWith("#KODIPROP:inputstream.adaptive.common_headers")) headers(line);
         }
 
-        public Setting copy(Channel channel) {
+        private Setting copy(Channel channel) {
             if (ua != null) channel.setUa(ua);
             if (parse != null) channel.setParse(parse);
             if (click != null) channel.setClick(click);
             if (format != null) channel.setFormat(format);
             if (origin != null) channel.setOrigin(origin);
             if (referer != null) channel.setReferer(referer);
-            if (header != null) channel.setHeader(Json.toObject(header));
-            if (key != null && type != null) channel.setDrm(Drm.create(key, type));
+            if (!header.isEmpty()) channel.setHeader(header);
+            if (key != null && type != null) channel.setDrm(Drm.create(key, type, drmHeader, forceKey));
             return this;
         }
 
@@ -197,6 +205,7 @@ public class LiveParser {
                 if (line.contains("user-agent=")) ua = line.split("(?i)user-agent=")[1].trim().replace("\"", "");
                 if (line.contains("ua=")) ua = line.split("ua=")[1].trim().replace("\"", "");
             } catch (Exception e) {
+                e.printStackTrace();
                 ua = null;
             }
         }
@@ -205,6 +214,7 @@ public class LiveParser {
             try {
                 referer = line.split("(?i)referer=")[1].trim().replace("\"", "");
             } catch (Exception e) {
+                e.printStackTrace();
                 referer = null;
             }
         }
@@ -213,6 +223,7 @@ public class LiveParser {
             try {
                 referer = line.split("(?i)referrer=")[1].trim().replace("\"", "");
             } catch (Exception e) {
+                e.printStackTrace();
                 referer = null;
             }
         }
@@ -221,6 +232,7 @@ public class LiveParser {
             try {
                 parse = Integer.parseInt(line.split("parse=")[1].trim());
             } catch (Exception e) {
+                e.printStackTrace();
                 parse = null;
             }
         }
@@ -229,6 +241,7 @@ public class LiveParser {
             try {
                 click = line.split("click=")[1].trim();
             } catch (Exception e) {
+                e.printStackTrace();
                 click = null;
             }
         }
@@ -240,6 +253,7 @@ public class LiveParser {
                 if ("mpd".equals(format) || "dash".equals(format)) format = MimeTypes.APPLICATION_MPD;
                 if ("hls".equals(format)) format = MimeTypes.APPLICATION_M3U8;
             } catch (Exception e) {
+                e.printStackTrace();
                 format = null;
             }
         }
@@ -248,6 +262,7 @@ public class LiveParser {
             try {
                 origin = line.split("(?i)origin=")[1].trim();
             } catch (Exception e) {
+                e.printStackTrace();
                 origin = null;
             }
         }
@@ -255,8 +270,10 @@ public class LiveParser {
         private void key(String line) {
             try {
                 key = line.contains("license_key=") ? line.split("license_key=")[1].trim() : line;
-                if (!key.startsWith("http")) convert();
+                if (key.startsWith("http")) httpKey();
+                else localKey();
             } catch (Exception e) {
+                e.printStackTrace();
                 key = null;
             }
         }
@@ -265,16 +282,19 @@ public class LiveParser {
             try {
                 type = line.contains("license_type=") ? line.split("license_type=")[1].trim() : line;
             } catch (Exception e) {
+                e.printStackTrace();
                 type = null;
             }
         }
 
-        public void drmLegacy(String line) {
+        private void drmLegacy(String line) {
             try {
                 line = line.split("drm_legacy=")[1].trim();
-                type(line.split("\\|")[0].trim());
-                key(line.split("\\|")[1].trim());
+                String[] split = line.split("\\|", 2);
+                type(split[0].trim());
+                key(split[1].trim());
             } catch (Exception e) {
+                e.printStackTrace();
                 type = null;
                 key = null;
             }
@@ -282,24 +302,33 @@ public class LiveParser {
 
         private void header(String line) {
             try {
-                if (line.contains("#EXTHTTP:")) header = Json.toMap(Json.parse(line.split("#EXTHTTP:")[1].trim()));
-                if (line.contains("header=")) header = Json.toMap(Json.parse(line.split("header=")[1].trim()));
+                if (line.contains("#EXTHTTP:")) header.putAll(Json.toMap(Json.parse(line.split("#EXTHTTP:")[1].trim())));
+                if (line.contains("header=")) header.putAll(Json.toMap(Json.parse(line.split("header=")[1].trim())));
             } catch (Exception e) {
-                header = null;
+                e.printStackTrace();
             }
         }
 
         private void headers(String line) {
             try {
-                if (line.contains("headers=")) headers(line.split("headers=")[1].trim().split("&"));
+                if (line.contains("headers=")) headers(header, line.split("headers=")[1].trim().split("&"));
                 else if (line.contains("|")) for (String text : line.split("\\|")) headers(text);
-                else headers(line.trim().split("&"));
-            } catch (Exception ignored) {
+                else headers(header, line.trim().split("&"));
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
-        private void headers(String[] params) {
-            if (header == null) header = new HashMap<>();
+        private void drmHeaders(String line) {
+            try {
+                if (line.contains("|")) for (String text : line.split("\\|")) drmHeaders(text);
+                else headers(drmHeader, line.trim().split("&"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void headers(Map<String, String> map, String[] params) {
             for (String param : params) {
                 if (!param.contains("=")) continue;
                 String[] a = param.split("=", 2);
@@ -307,11 +336,25 @@ public class LiveParser {
                 String v = a[1].trim().replace("\"", "");
                 if ("drmScheme".equals(k)) type(v);
                 else if ("drmLicense".equals(k)) key(v);
-                else header.put(k, v);
+                else map.put(k, v);
             }
         }
 
-        private void convert() {
+        private void forceKey(String line) {
+            try {
+                forceKey = Boolean.parseBoolean(line.split("forceKey=")[1].trim());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void httpKey() {
+            String[] parts = key.split("\\|", 2);
+            if (parts.length > 1) drmHeaders(parts[1]);
+            key = parts[0].trim();
+        }
+
+        private void localKey() {
             try {
                 ClearKey.objectFrom(key);
             } catch (Exception e) {
@@ -325,10 +368,12 @@ public class LiveParser {
             type = null;
             parse = null;
             click = null;
-            header = null;
             format = null;
             origin = null;
             referer = null;
+            forceKey = false;
+            header = new HashMap<>();
+            drmHeader = new HashMap<>();
         }
     }
 }

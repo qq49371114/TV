@@ -394,7 +394,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownVod.Liste
     }
 
     @Override
-    public void onTimeChanged() {
+    public void onTimeChanged(long time) {
         position = mPlayers.getPosition();
         duration = mPlayers.getDuration();
     }

@@ -31,7 +31,8 @@ public class JsLoader {
     public Spider getSpider(String key, String api, String ext, String jar) {
         try {
             if (spiders.containsKey(key)) return spiders.get(key);
-            Spider spider = loader.spider(key, api, BaseLoader.get().dex(jar));
+            Spider spider = loader.spider(api, BaseLoader.get().dex(jar));
+            spider.siteKey = key;
             spider.init(App.get(), ext);
             spiders.put(key, spider);
             return spider;
@@ -41,13 +42,7 @@ public class JsLoader {
         }
     }
 
-    public Object[] proxyInvoke(Map<String, String> params) {
-        try {
-            if (!params.containsKey("siteKey")) return spiders.get(recent).proxyLocal(params);
-            return BaseLoader.get().getSpider(params).proxyLocal(params);
-        } catch (Throwable e) {
-            e.printStackTrace();
-            return null;
-        }
+    public Object[] proxy(Map<String, String> params) throws Exception {
+        return spiders.get(recent).proxy(params);
     }
 }

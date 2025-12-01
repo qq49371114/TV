@@ -10,12 +10,11 @@ import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.gson.DanmakuAdapter;
 import com.fongmi.android.tv.gson.FilterAdapter;
+import com.fongmi.android.tv.gson.HeaderAdapter;
 import com.fongmi.android.tv.gson.MsgAdapter;
 import com.fongmi.android.tv.gson.UrlAdapter;
 import com.fongmi.android.tv.utils.Util;
-import com.github.catvod.utils.Json;
 import com.github.catvod.utils.Trans;
-import com.google.gson.JsonElement;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 
@@ -28,6 +27,7 @@ import org.simpleframework.xml.core.Persister;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +53,10 @@ public class Result implements Parcelable {
     @JsonAdapter(UrlAdapter.class)
     private Url url;
 
+    @SerializedName("header")
+    @JsonAdapter(HeaderAdapter.class)
+    private Map<String, String> header;
+
     @SerializedName("msg")
     @JsonAdapter(MsgAdapter.class)
     private String msg;
@@ -63,8 +67,6 @@ public class Result implements Parcelable {
 
     @SerializedName("subs")
     private List<Sub> subs;
-    @SerializedName("header")
-    private JsonElement header;
     @SerializedName("playUrl")
     private String playUrl;
     @SerializedName("jxFrom")
@@ -199,12 +201,12 @@ public class Result implements Parcelable {
         return subs == null ? new ArrayList<>() : new ArrayList<>(subs);
     }
 
-    public JsonElement getHeader() {
-        return header;
+    public Map<String, String> getHeader() {
+        return header == null ? new HashMap<>() : header;
     }
 
-    public void setHeader(JsonElement header) {
-        if (getHeader() == null) this.header = header;
+    public void setHeader(Map<String, String> header) {
+        if (getHeader().isEmpty()) this.header = header;
     }
 
     public String getPlayUrl() {
@@ -293,10 +295,6 @@ public class Result implements Parcelable {
 
     public String getRealUrl() {
         return getPlayUrl() + getUrl().v();
-    }
-
-    public Map<String, String> getHeaders() {
-        return Json.toMap(getHeader());
     }
 
     public Style getStyle(Style style) {

@@ -56,8 +56,9 @@ public class Clock {
 
     private void doJob() {
         try {
-            date.setTime(System.currentTimeMillis());
-            if (callback != null) callback.onTimeChanged();
+            long time;
+            date.setTime(time = System.currentTimeMillis());
+            if (callback != null) callback.onTimeChanged(time);
             if (view != null) view.setText(format.format(date));
         } catch (Exception ignored) {
         }
@@ -75,6 +76,6 @@ public class Clock {
 
     public interface Callback {
 
-        void onTimeChanged();
+        void onTimeChanged(long time);
     }
 }

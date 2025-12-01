@@ -6,15 +6,14 @@ import com.github.catvod.utils.Path;
 
 public class Loader {
 
-    private PyObject app;
+    private final PyObject app;
 
-    private void init() {
+    public Loader() {
         if (!Python.isStarted()) Python.start(Platform.create());
         app = Python.getInstance().getModule("app");
     }
 
     public Spider spider(String api) {
-        if (app == null) init();
         PyObject obj = app.callAttr("spider", Path.py().getAbsolutePath(), api);
         return new Spider(app, obj, api);
     }

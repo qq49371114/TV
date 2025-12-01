@@ -129,10 +129,10 @@ public class LiveConfig {
         try {
             OkHttp.cancel(TAG);
             Server.get().start();
-            String text = Decoder.getJson(UrlUtil.convert(config.getUrl()), TAG);
-            if (Json.isObj(text)) checkJson(id, config, callback, Json.parse(text).getAsJsonObject());
-            else parseText(id, config, callback, text);
-            if (taskId.get() == id) config.update();
+            String json = Decoder.getJson(UrlUtil.convert(config.getUrl()), TAG);
+            if (Json.isObj(json)) checkJson(id, config, callback, Json.parse(json).getAsJsonObject());
+            else parseText(id, config, callback, json);
+            if (taskId.get() == id && config.equals(this.config)) config.update();
         } catch (Throwable e) {
             e.printStackTrace();
             if (isCanceled(e)) return;

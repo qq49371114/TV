@@ -87,7 +87,7 @@ public class WallConfig {
         try {
             OkHttp.cancel(TAG);
             download(id, config.getUrl(), callback);
-            if (taskId.get() == id) config.update();
+            if (taskId.get() == id && config.equals(this.config)) config.update();
         } catch (Throwable e) {
             e.printStackTrace();
             if (isCanceled(e)) return;

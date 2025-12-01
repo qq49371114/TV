@@ -32,6 +32,7 @@ public class PyLoader {
         try {
             if (spiders.containsKey(key)) return spiders.get(key);
             Spider spider = loader.spider(api);
+            spider.siteKey = key;
             spider.init(App.get(), ext);
             spiders.put(key, spider);
             return spider;
@@ -41,13 +42,7 @@ public class PyLoader {
         }
     }
 
-    public Object[] proxyInvoke(Map<String, String> params) {
-        try {
-            if (!params.containsKey("siteKey")) return spiders.get(recent).proxyLocal(params);
-            return BaseLoader.get().getSpider(params).proxyLocal(params);
-        } catch (Throwable e) {
-            e.printStackTrace();
-            return null;
-        }
+    public Object[] proxy(Map<String, String> params) throws Exception {
+        return spiders.get(recent).proxy(params);
     }
 }
