@@ -32,6 +32,7 @@ public class Util {
     public static final String OKHTTP = "okhttp/" + OkHttp.VERSION;
     public static final String CHROME = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36";
     public static final int URL_SAFE = Base64.DEFAULT | Base64.URL_SAFE | Base64.NO_WRAP;
+    public static final Pattern DIGEST = Pattern.compile("(\\w+)=\\s*([^,]+)\\s*");
 
     public static String base64(String s) {
         return base64(s.getBytes());
@@ -183,8 +184,8 @@ public class Util {
 
     private static Map<String, String> parse(String header) {
         Map<String, String> params = new HashMap<>();
-        Matcher matcher = Pattern.compile("(\\w+)=\"([^\"]*)\"").matcher(header);
-        while (matcher.find()) params.put(matcher.group(1), matcher.group(2));
+        Matcher matcher = DIGEST.matcher(header.trim());
+        while (matcher.find()) params.put(matcher.group(1), matcher.group(2).replaceAll("\"", "").trim());
         return params;
     }
 }

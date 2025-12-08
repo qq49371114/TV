@@ -8,7 +8,9 @@
         android:id="@+id/top"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:visibility="gone"
+        tools:visibility="visible">
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/title"
@@ -43,41 +45,20 @@
             android:layout_alignParentEnd="true"
             android:fontFeatureSettings="tnum"
             android:textColor="@color/white"
-            android:textSize="24sp"
+            android:textSize="20sp"
             tools:text="09:20:00" />
 
     </RelativeLayout>
-
-    <androidx.appcompat.widget.LinearLayoutCompat
-        android:id="@+id/progress"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:orientation="vertical">
-
-        <include layout="@layout/view_progress" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/traffic"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textColor="@color/white"
-            android:textSize="16sp"
-            android:visibility="gone"
-            tools:text="120KB/s" />
-
-    </androidx.appcompat.widget.LinearLayoutCompat>
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/error"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:layout_marginTop="8dp"
         android:background="@drawable/shape_widget"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="16dp"
         android:visibility="gone"
         tools:visibility="visible">
 
@@ -90,7 +71,6 @@
             android:id="@+id/text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
             android:gravity="center"
             android:textColor="@color/white"
             android:textSize="16sp"
@@ -106,7 +86,6 @@
         android:background="@drawable/shape_widget"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="16dp"
         android:visibility="gone"
         tools:visibility="visible">
 

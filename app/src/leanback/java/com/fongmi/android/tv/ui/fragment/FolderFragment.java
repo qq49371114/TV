@@ -10,11 +10,10 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.bean.Style;
+import com.fongmi.android.tv.bean.Class;
 import com.fongmi.android.tv.databinding.FragmentFolderBinding;
 import com.fongmi.android.tv.ui.activity.VodActivity;
 import com.fongmi.android.tv.ui.base.BaseFragment;
-import com.github.catvod.utils.Prefers;
 
 import java.util.HashMap;
 import java.util.Optional;
@@ -22,14 +21,12 @@ import java.util.Optional;
 public class FolderFragment extends BaseFragment {
 
     private FragmentFolderBinding mBinding;
+    private Class mType;
 
-    public static FolderFragment newInstance(String key, String typeId, Style style, HashMap<String, String> extend, boolean folder) {
+    public static FolderFragment newInstance(String key, Class type) {
         Bundle args = new Bundle();
         args.putString("key", key);
-        args.putString("typeId", typeId);
-        args.putBoolean("folder", folder);
-        args.putParcelable("style", style);
-        args.putSerializable("extend", extend);
+        args.putParcelable("type", type);
         FolderFragment fragment = new FolderFragment();
         fragment.setArguments(args);
         return fragment;
@@ -39,20 +36,8 @@ public class FolderFragment extends BaseFragment {
         return getArguments().getString("key");
     }
 
-    private String getTypeId() {
-        return getArguments().getString("typeId");
-    }
-
-    private boolean getFolder() {
-        return getArguments().getBoolean("folder");
-    }
-
-    private Style getStyle() {
-        return getArguments().getParcelable("style");
-    }
-
-    private HashMap<String, String> getExtend() {
-        return (HashMap<String, String>) getArguments().getSerializable("extend");
+    public Class getType() {
+        return getArguments().getParcelable("type");
     }
 
     private TypeFragment getChild() {
@@ -70,12 +55,12 @@ public class FolderFragment extends BaseFragment {
 
     @Override
     protected void initView() {
-        getChildFragmentManager().beginTransaction().replace(R.id.container, TypeFragment.newInstance(getKey(), getTypeId(), getStyle(), getExtend(), getFolder())).commit();
+        mType = getType();
+        getChildFragmentManager().beginTransaction().replace(R.id.container, TypeFragment.newInstance(getKey(), mType.getTypeId(), mType.getStyle(), mType.getFilters(), mType.getExtend(false), mType.isFolder())).commit();
     }
 
     public void openFolder(String typeId, HashMap<String, String> extend) {
-        Prefers.put("filter_" + getKey() + "_" + typeId, Prefers.getString("filter_" + getKey() + "_" + getTypeId()));
-        TypeFragment next = TypeFragment.newInstance(getKey(), typeId, getStyle(), extend, getFolder());
+        TypeFragment next = TypeFragment.newInstance(getKey(), typeId, mType.getStyle(), mType.getFilters(), extend, mType.isFolder());
         FragmentTransaction ft = getChildFragmentManager().beginTransaction();
         Optional.ofNullable(getParent()).ifPresent(VodActivity::closeFilter);
         Optional.ofNullable(getChild()).ifPresent(ft::hide);

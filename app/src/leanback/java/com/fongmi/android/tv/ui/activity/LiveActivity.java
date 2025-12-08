@@ -452,13 +452,13 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
     }
 
     private void showProgress() {
-        mBinding.widget.progress.setVisibility(View.VISIBLE);
+        mBinding.progress.getRoot().setVisibility(View.VISIBLE);
         App.post(mR2, 0);
         hideError();
     }
 
     private void hideProgress() {
-        mBinding.widget.progress.setVisibility(View.GONE);
+        mBinding.progress.getRoot().setVisibility(View.GONE);
         App.removeCallbacks(mR2);
         Traffic.reset();
     }
@@ -505,7 +505,7 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
     }
 
     private void setTraffic() {
-        Traffic.setSpeed(mBinding.widget.traffic);
+        Traffic.setSpeed(mBinding.progress.traffic);
         App.post(mR2, 1000);
     }
 
@@ -787,7 +787,7 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
                 mPlayers.reset();
                 break;
             case Player.STATE_ENDED:
-                checkNext();
+                checkEnded();
                 break;
             case PlayerEvent.TRACK:
                 setMetadata();
@@ -796,6 +796,14 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
             case PlayerEvent.SIZE:
                 mBinding.widget.size.setText(mPlayers.getSizeText());
                 break;
+        }
+    }
+
+    private void checkEnded() {
+        if (mPlayers.isLive()) {
+            checkNext();
+        } else {
+            nextChannel();
         }
     }
 

@@ -439,8 +439,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void getDetail(Vod item) {
         getIntent().putExtra("key", item.getSiteKey());
-        getIntent().putExtra("pic", item.getVodPic());
-        getIntent().putExtra("id", item.getVodId());
+        getIntent().putExtra("pic", item.getPic());
+        getIntent().putExtra("id", item.getId());
         mBinding.swipeLayout.setRefreshing(true);
         mBinding.swipeLayout.setEnabled(false);
         mBinding.scroll.scrollTo(0, 0);
@@ -454,7 +454,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     private void setDetail(Result result) {
         mBinding.swipeLayout.setRefreshing(false);
         if (result.getList().isEmpty()) setEmpty(result.hasMsg());
-        else setDetail(result.getList().get(0));
+        else setDetail(result.getVod());
         Notify.show(result.getMsg());
     }
 
@@ -478,15 +478,15 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void setDetail(Vod item) {
         mBinding.progressLayout.showContent();
-        mBinding.video.setTag(item.getVodPic(getPic()));
-        mBinding.name.setText(item.getVodName(getName()));
-        setText(mBinding.remark, 0, item.getVodRemarks());
-        setText(mBinding.content, 0, item.getVodContent());
+        mBinding.video.setTag(item.getPic(getPic()));
+        mBinding.name.setText(item.getName(getName()));
+        setText(mBinding.remark, 0, item.getRemarks());
+        setText(mBinding.content, 0, item.getContent());
         setText(mBinding.site, R.string.detail_site, getSite().getName());
-        setText(mBinding.actor, R.string.detail_actor, item.getVodActor());
-        setText(mBinding.director, R.string.detail_director, item.getVodDirector());
+        setText(mBinding.actor, R.string.detail_actor, item.getActor());
+        setText(mBinding.director, R.string.detail_director, item.getDirector());
         mBinding.contentLayout.setVisibility(mBinding.content.getVisibility());
-        mFlagAdapter.addAll(item.getVodFlags());
+        mFlagAdapter.addAll(item.getFlags());
         setOther(mBinding.other, item);
         App.removeCallbacks(mR4);
         checkHistory(item);
@@ -533,8 +533,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void setOther(TextView view, Vod item) {
         StringBuilder sb = new StringBuilder();
-        if (!item.getVodYear().isEmpty()) sb.append(getString(R.string.detail_year, item.getVodYear())).append("  ");
-        if (!item.getVodArea().isEmpty()) sb.append(getString(R.string.detail_area, item.getVodArea())).append("  ");
+        if (!item.getYear().isEmpty()) sb.append(getString(R.string.detail_year, item.getYear())).append("  ");
+        if (!item.getArea().isEmpty()) sb.append(getString(R.string.detail_area, item.getArea())).append("  ");
         if (!item.getTypeName().isEmpty()) sb.append(getString(R.string.detail_type, item.getTypeName())).append("  ");
         view.setVisibility(sb.length() == 0 ? View.GONE : View.VISIBLE);
         view.setText(Util.substring(sb.toString(), 2));
@@ -926,26 +926,26 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void showProgress() {
-        mBinding.widget.progress.setVisibility(View.VISIBLE);
+        mBinding.progress.getRoot().setVisibility(View.VISIBLE);
         App.post(mR2, 0);
         hideError();
     }
 
     private void hideProgress() {
-        mBinding.widget.progress.setVisibility(View.GONE);
+        mBinding.progress.getRoot().setVisibility(View.GONE);
         App.removeCallbacks(mR2);
         Traffic.reset();
     }
 
     private void showError(String text) {
         mBinding.widget.error.setVisibility(View.VISIBLE);
-        mBinding.widget.text.setText(text);
+        mBinding.widget.error.setText(text);
         hideProgress();
     }
 
     private void hideError() {
         mBinding.widget.error.setVisibility(View.GONE);
-        mBinding.widget.text.setText("");
+        mBinding.widget.error.setText("");
     }
 
     private void showDanmaku() {
@@ -985,7 +985,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void setTraffic() {
-        Traffic.setSpeed(mBinding.widget.traffic);
+        Traffic.setSpeed(mBinding.progress.traffic);
         App.post(mR2, 1000);
     }
 
@@ -1013,7 +1013,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void checkFlag(Vod item) {
-        boolean empty = item.getVodFlags().isEmpty();
+        boolean empty = item.getFlags().isEmpty();
         mBinding.flag.setVisibility(empty ? View.GONE : View.VISIBLE);
         if (empty) {
             ErrorEvent.flag(tag);
@@ -1031,8 +1031,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mBinding.control.action.opening.setText(mHistory.getOpening() <= 0 ? getString(R.string.play_op) : mPlayers.stringToTime(mHistory.getOpening()));
         mBinding.control.action.ending.setText(mHistory.getEnding() <= 0 ? getString(R.string.play_ed) : mPlayers.stringToTime(mHistory.getEnding()));
         mBinding.control.action.speed.setText(mPlayers.setSpeed(mHistory.getSpeed()));
-        mHistory.setVodName(item.getVodName());
-        mHistory.setVodPic(item.getVodPic());
+        mHistory.setVodName(item.getName());
+        mHistory.setVodPic(item.getPic());
         setScale(getScale());
         setMetadata();
         setArtwork();
@@ -1042,8 +1042,8 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         History history = new History();
         history.setKey(getHistoryKey());
         history.setCid(VodConfig.getCid());
-        history.setVodName(item.getVodName());
-        history.findEpisode(item.getVodFlags());
+        history.setVodName(item.getName());
+        history.findEpisode(item.getFlags());
         return history;
     }
 
@@ -1104,12 +1104,12 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void updateVod(Vod item) {
-        mHistory.setVodPic(item.getVodPic());
-        mHistory.setVodName(item.getVodName());
-        mBinding.name.setText(item.getVodName());
-        mBinding.control.title.setText(item.getVodName());
-        setText(mBinding.content, 0, item.getVodContent());
-        setText(mBinding.director, R.string.detail_director, item.getVodDirector());
+        mHistory.setVodPic(item.getPic());
+        mHistory.setVodName(item.getName());
+        mBinding.name.setText(item.getName());
+        mBinding.control.title.setText(item.getName());
+        setText(mBinding.content, 0, item.getContent());
+        setText(mBinding.director, R.string.detail_director, item.getDirector());
         mBinding.contentLayout.setVisibility(mBinding.content.getVisibility());
         updateKeep();
         setArtwork();
@@ -1333,11 +1333,11 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private boolean mismatch(Vod item) {
-        if (getId().equals(item.getVodId())) return true;
-        if (mBroken.contains(item.getVodId())) return true;
+        if (getId().equals(item.getId())) return true;
+        if (mBroken.contains(item.getId())) return true;
         String keyword = mBinding.name.getText().toString();
-        if (isAutoMode()) return !item.getVodName().equals(keyword);
-        else return !item.getVodName().contains(keyword);
+        if (isAutoMode()) return !item.getName().equals(keyword);
+        else return !item.getName().contains(keyword);
     }
 
     private void nextParse(int position) {

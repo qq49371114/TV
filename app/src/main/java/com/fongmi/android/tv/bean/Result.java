@@ -136,8 +136,8 @@ public class Result implements Parcelable {
         Result result = new Result();
         Class type = new Class();
         type.setTypeFlag("1");
-        type.setTypeId(item.getVodId());
-        type.setTypeName(item.getVodName());
+        type.setTypeId(item.getId());
+        type.setTypeName(item.getName());
         result.setTypes(Arrays.asList(type));
         return result;
     }
@@ -166,7 +166,7 @@ public class Result implements Parcelable {
     }
 
     public void setTypes(List<Class> types) {
-        if (!types.isEmpty()) this.types = types;
+        this.types = types;
     }
 
     public List<Vod> getList() {
@@ -301,6 +301,10 @@ public class Result implements Parcelable {
         return getList().isEmpty() ? Style.rect() : getList().get(0).getStyle(style);
     }
 
+    public Vod getVod() {
+        return getList().isEmpty() ? new Vod() : getList().get(0);
+    }
+
     public Result clear() {
         getList().clear();
         return this;
@@ -328,13 +332,11 @@ public class Result implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeList(this.types);
-        dest.writeTypedList(this.list);
     }
 
     protected Result(Parcel in) {
         this.types = new ArrayList<>();
         in.readList(this.types, Class.class.getClassLoader());
-        this.list = in.createTypedArrayList(Vod.CREATOR);
     }
 
     public static final Creator<Result> CREATOR = new Creator<>() {

@@ -52,7 +52,7 @@ public class CustomVerticalGridView extends VerticalGridView {
     }
 
     public void setHeader(FragmentActivity activity, int... layoutIds) {
-        if (activity != null) views = Arrays.stream(layoutIds).mapToObj(id -> (View) activity.findViewById(id)).filter(Objects::nonNull).collect(Collectors.toList());
+        if (activity != null) views = Arrays.stream(layoutIds).mapToObj(id -> (View) activity.findViewById(id)).filter(Objects::nonNull).toList();
     }
 
     public void setMoveTop(boolean moveTop) {

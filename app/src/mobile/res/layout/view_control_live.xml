@@ -83,10 +83,10 @@
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/play"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_marginStart="48dp"
-            android:layout_marginEnd="48dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginEnd="40dp"
             android:background="@drawable/shape_control"
             android:src="@drawable/exo_icon_play" />
 

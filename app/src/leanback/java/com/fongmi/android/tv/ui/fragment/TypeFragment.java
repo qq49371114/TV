@@ -38,7 +38,6 @@ import com.fongmi.android.tv.ui.presenter.FilterPresenter;
 import com.fongmi.android.tv.ui.presenter.VodPresenter;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
-import com.github.catvod.utils.Prefers;
 import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
@@ -57,13 +56,14 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     private boolean headerVisible;
     private boolean filterVisible;
 
-    public static TypeFragment newInstance(String key, String typeId, Style style, HashMap<String, String> extend, boolean folder) {
+    public static TypeFragment newInstance(String key, String typeId, Style style, List<Filter> filter, HashMap<String, String> extend, boolean folder) {
         Bundle args = new Bundle();
         args.putString("key", key);
         args.putString("typeId", typeId);
         args.putBoolean("folder", folder);
         args.putParcelable("style", style);
         args.putSerializable("extend", extend);
+        args.putParcelableArrayList("filter", new ArrayList<>(filter));
         TypeFragment fragment = new TypeFragment();
         fragment.setArguments(args);
         return fragment;
@@ -85,16 +85,16 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         return isFolder() ? Style.list() : getSite().getStyle(getArguments().getParcelable("style"));
     }
 
+    private List<Filter> getFilter() {
+        return getArguments().getParcelableArrayList("filter");
+    }
+
     private HashMap<String, String> getExtend() {
         return (HashMap<String, String>) getArguments().getSerializable("extend");
     }
 
     private Site getSite() {
         return VodConfig.get().getSite(getKey());
-    }
-
-    private List<Filter> getFilter() {
-        return Filter.arrayFrom(Prefers.getString("filter_" + getKey() + "_" + getTypeId()));
     }
 
     private FolderFragment getParent() {
@@ -110,8 +110,8 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     protected void initView() {
         mBinding.swipeLayout.setColorSchemeResources(R.color.accent);
         mScroller = new CustomScroller(this);
-        mExtends = getExtend();
         mFilters = getFilter();
+        mExtends = getExtend();
         setRecyclerView();
         setViewModel();
         setFilters();
@@ -253,18 +253,18 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         if (item.isAction()) {
             mViewModel.action(getKey(), item.getAction());
         } else if (item.isFolder()) {
-            getParent().openFolder(item.getVodId(), mExtends);
+            getParent().openFolder(item.getId(), mExtends);
             headerVisible = mBinding.recycler.isHeaderVisible();
         } else {
-            if (getSite().isIndex()) CollectActivity.start(requireActivity(), item.getVodName());
-            else VideoActivity.start(requireActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic(), isFolder() ? item.getVodName() : null);
+            if (getSite().isIndex()) CollectActivity.start(requireActivity(), item.getName());
+            else VideoActivity.start(requireActivity(), getKey(), item.getId(), item.getName(), item.getPic(), isFolder() ? item.getName() : null);
         }
     }
 
     @Override
     public boolean onLongClick(Vod item) {
         if (item.isAction() || item.isFolder()) return false;
-        CollectActivity.start(requireActivity(), item.getVodName());
+        CollectActivity.start(requireActivity(), item.getName());
         return true;
     }
 

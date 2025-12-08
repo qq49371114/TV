@@ -107,7 +107,7 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
     }
 
     private void setSites() {
-        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).collect(Collectors.toList());
+        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).toList();
     }
 
     private void setWidth() {
@@ -144,7 +144,7 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
     private void setSearch(Result result) {
         if (result == null) return;
         mScroller.endLoading(result);
-        boolean same = !result.getList().isEmpty() && mCollectAdapter.getActivated().getSite().equals(result.getList().get(0).getSite());
+        boolean same = !result.getList().isEmpty() && mCollectAdapter.getActivated().getSite().equals(result.getVod().getSite());
         if (same) mCollectAdapter.getActivated().getList().addAll(result.getList());
         if (same) mSearchAdapter.addAll(result.getList());
     }
@@ -159,7 +159,7 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
     @Override
     public void onItemClick(Vod item) {
         if (item.isFolder()) FolderActivity.start(requireActivity(), item.getSiteKey(), Result.folder(item));
-        else VideoActivity.collect(requireActivity(), item.getSiteKey(), item.getVodId(), item.getVodName(), item.getVodPic());
+        else VideoActivity.collect(requireActivity(), item.getSiteKey(), item.getId(), item.getName(), item.getPic());
     }
 
     @Override

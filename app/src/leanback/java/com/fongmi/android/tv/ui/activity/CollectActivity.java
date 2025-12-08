@@ -124,7 +124,7 @@ public class CollectActivity extends BaseActivity {
     }
 
     private void setSites() {
-        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).collect(Collectors.toList());
+        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).toList();
     }
 
     private void setPager() {

@@ -48,7 +48,7 @@ public class ScanTask {
     private List<String> getUrl() {
         String local = Server.get().getAddress();
         String base = local.substring(0, local.lastIndexOf(".") + 1);
-        return IntStream.range(1, 256).mapToObj(i -> base + i + ":9978").collect(Collectors.toList());
+        return IntStream.range(1, 256).mapToObj(i -> base + i + ":9978").toList();
     }
 
     private void findDevice(String url) {

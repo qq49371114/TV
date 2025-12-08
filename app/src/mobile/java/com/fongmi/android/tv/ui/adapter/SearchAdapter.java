@@ -33,13 +33,13 @@ public class SearchAdapter extends BaseDiffAdapter<Vod, SearchAdapter.ViewHolder
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Vod item = getItem(position);
-        holder.binding.name.setText(item.getVodName());
+        holder.binding.name.setText(item.getName());
         holder.binding.site.setText(item.getSiteName());
-        holder.binding.remark.setText(item.getVodRemarks());
+        holder.binding.remark.setText(item.getRemarks());
         holder.binding.site.setVisibility(item.getSiteVisible());
         holder.binding.remark.setVisibility(item.getRemarkVisible());
         holder.binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));
-        ImgUtil.load(item.getVodName(), item.getVodPic(), holder.binding.image);
+        ImgUtil.load(item.getName(), item.getPic(), holder.binding.image);
     }
 
     @Override

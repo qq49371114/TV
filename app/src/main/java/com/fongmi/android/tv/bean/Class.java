@@ -127,6 +127,10 @@ public class Class implements Parcelable, Diffable<Class> {
         return "home".equals(getTypeId());
     }
 
+    public boolean isFolder() {
+        return "1".equals(getTypeFlag());
+    }
+
     public void trans() {
         if (Trans.pass()) return;
         this.typeName = Trans.s2t(typeName);

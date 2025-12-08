@@ -86,7 +86,7 @@ public class CustomTitleView extends AppCompatTextView {
     }
 
     private List<Site> getSites() {
-        return VodConfig.get().getSites().stream().filter(site -> !site.isHide()).collect(Collectors.toList());
+        return VodConfig.get().getSites().stream().filter(site -> !site.isHide()).toList();
     }
 
     public interface Listener extends SiteCallback {

@@ -5,15 +5,19 @@ plugins {
 android {
     namespace 'com.fongmi.android.tv'
 
-    compileSdk = 36
+    compileSdk {
+        version = release(36) {
+            it.minorApiLevel = 1
+        }
+    }
 
     defaultConfig {
         applicationId "com.fongmi.android.tv"
         minSdk 24
         //noinspection ExpiredTargetSdkVersion
         targetSdk 28
-        versionCode 496
-        versionName "4.9.6"
+        versionCode 499
+        versionName "4.9.9"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString(), "eventBusIndex": "com.fongmi.android.tv.event.EventIndex"]
@@ -109,7 +113,8 @@ dependencies {
     implementation 'androidx.palette:palette:1.0.0'
     implementation 'androidx.recyclerview:recyclerview:1.4.0'
     implementation 'androidx.room:room-runtime:2.8.4'
-    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.2.0'
+    implementation 'androidx.viewpager2:viewpager2:1.1.0'
     implementation 'cat.ereza:customactivityoncrash:2.4.0'
     implementation 'com.airbnb.android:lottie:6.7.1'
     implementation 'com.github.bassaer:materialdesigncolors:1.0.0'

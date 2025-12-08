@@ -155,7 +155,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     }
 
     private void addVideo(Result result) {
-        Style style = result.getList().get(0).getStyle(getStyle());
+        Style style = result.getVod().getStyle(getStyle());
         if (!style.equals(mAdapter.getStyle())) setStyle(style);
         mAdapter.addAll(result.getList(), this::checkMore);
     }
@@ -193,17 +193,17 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         if (item.isAction()) {
             mViewModel.action(getKey(), item.getAction());
         } else if (item.isFolder()) {
-            getParent().openFolder(item.getVodId(), mExtends);
+            getParent().openFolder(item.getId(), mExtends);
         } else {
-            if (getSite().isIndex()) SearchActivity.start(requireActivity(), item.getVodName());
-            else VideoActivity.start(requireActivity(), getKey(), item.getVodId(), item.getVodName(), item.getVodPic(), isFolder() ? item.getVodName() : null);
+            if (getSite().isIndex()) SearchActivity.start(requireActivity(), item.getName());
+            else VideoActivity.start(requireActivity(), getKey(), item.getId(), item.getName(), item.getPic(), isFolder() ? item.getName() : null);
         }
     }
 
     @Override
     public boolean onLongClick(Vod item) {
         if (item.isAction() || item.isFolder()) return false;
-        SearchActivity.start(requireActivity(), item.getVodName());
+        SearchActivity.start(requireActivity(), item.getName());
         return true;
     }
 }

@@ -55,15 +55,15 @@ public class Youtube implements Source.Extractor {
     private Vod convert(StreamInfo info) {
         try {
             Vod vod = new Vod();
-            vod.setVodName(info.getName());
-            vod.setVodDirector(info.getUploaderName());
-            vod.setVodContent(info.getDescription().getContent());
-            vod.setVodPic(info.getThumbnails().get(info.getThumbnails().size() - 1).getUrl());
+            vod.setName(info.getName());
+            vod.setDirector(info.getUploaderName());
+            vod.setContent(info.getDescription().getContent());
+            vod.setPic(info.getThumbnails().get(info.getThumbnails().size() - 1).getUrl());
             return vod;
         } catch (Exception e) {
             Vod vod = new Vod();
-            vod.setVodName(info.getName());
-            vod.setVodContent(info.getDescription().getContent());
+            vod.setName(info.getName());
+            vod.setContent(info.getDescription().getContent());
             return vod;
         }
     }

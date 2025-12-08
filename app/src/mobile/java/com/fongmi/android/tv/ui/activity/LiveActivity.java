@@ -475,26 +475,26 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
     }
 
     private void showProgress() {
-        mBinding.widget.progress.setVisibility(View.VISIBLE);
+        mBinding.progress.getRoot().setVisibility(View.VISIBLE);
         App.post(mR2, 0);
         hideError();
     }
 
     private void hideProgress() {
-        mBinding.widget.progress.setVisibility(View.GONE);
+        mBinding.progress.getRoot().setVisibility(View.GONE);
         App.removeCallbacks(mR2);
         Traffic.reset();
     }
 
     private void showError(String text) {
         mBinding.widget.error.setVisibility(View.VISIBLE);
-        mBinding.widget.text.setText(text);
+        mBinding.widget.error.setText(text);
         hideProgress();
     }
 
     private void hideError() {
         mBinding.widget.error.setVisibility(View.GONE);
-        mBinding.widget.text.setText("");
+        mBinding.widget.error.setText("");
     }
 
     private void showControl() {
@@ -531,7 +531,7 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
     }
 
     private void setTraffic() {
-        Traffic.setSpeed(mBinding.widget.traffic);
+        Traffic.setSpeed(mBinding.progress.traffic);
         App.post(mR2, 1000);
     }
 
@@ -828,12 +828,20 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
                 mPlayers.reset();
                 break;
             case Player.STATE_ENDED:
-                checkNext();
+                checkEnded();
                 break;
             case PlayerEvent.TRACK:
                 setMetadata();
                 setTrackVisible();
                 break;
+        }
+    }
+
+    private void checkEnded() {
+        if (mPlayers.isLive()) {
+            checkNext();
+        } else {
+            nextChannel();
         }
     }
 

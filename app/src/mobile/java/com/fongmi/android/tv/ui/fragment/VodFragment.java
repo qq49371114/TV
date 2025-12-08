@@ -55,7 +55,6 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -133,19 +132,11 @@ public class VodFragment extends BaseFragment implements ConfigCallback, SiteCal
 
     private void setViewModel() {
         mViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
-        mViewModel.result.observe(getViewLifecycleOwner(), result -> setAdapter(mResult = result));
-    }
-
-    private Result handle(Result result) {
-        List<Class> types = new ArrayList<>();
-        for (Class type : result.getTypes()) if (result.getFilters().containsKey(type.getTypeId())) type.setFilters(result.getFilters().get(type.getTypeId()));
-        for (String cate : getHome().getCategories()) for (Class type : result.getTypes()) if (cate.equals(type.getTypeName())) types.add(type);
-        result.setTypes(types);
-        return result;
+        mViewModel.result.observe(getViewLifecycleOwner(), this::setAdapter);
     }
 
     private void setAdapter(Result result) {
-        mAdapter.addAll(handle(result));
+        mAdapter.addAll(mResult = result);
         mBinding.pager.getAdapter().notifyDataSetChanged();
         setFabVisible(0);
         hideProgress();
@@ -341,7 +332,7 @@ public class VodFragment extends BaseFragment implements ConfigCallback, SiteCal
         @Override
         public Fragment getItem(int position) {
             Class type = mAdapter.get(position);
-            return FolderFragment.newInstance(getHome().getKey(), type.getTypeId(), type.getStyle(), type.getExtend(true), "1".equals(type.getTypeFlag()), 4);
+            return FolderFragment.newInstance(getHome().getKey(), type, 4);
         }
 
         @Override

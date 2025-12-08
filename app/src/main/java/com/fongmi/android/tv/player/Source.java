@@ -6,6 +6,7 @@ import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.bean.Episode;
 import com.fongmi.android.tv.bean.Flag;
 import com.fongmi.android.tv.bean.Result;
+import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.player.extractor.Force;
 import com.fongmi.android.tv.player.extractor.JianPian;
 import com.fongmi.android.tv.player.extractor.Push;
@@ -63,9 +64,9 @@ public class Source {
         }
     }
 
-    public void parse(List<Flag> flags) throws Exception {
+    public void parse(Vod vod) throws Exception {
         try (ExecutorService executor = Executors.newCachedThreadPool()) {
-            for (Flag flag : flags) {
+            for (Flag flag : vod.getFlags()) {
                 List<Callable<List<Episode>>> items = new ArrayList<>();
                 Iterator<Episode> iterator = flag.getEpisodes().iterator();
                 while (iterator.hasNext()) addCallable(iterator, items);

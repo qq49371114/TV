@@ -2,7 +2,6 @@ lxml
 ujson
 pyquery
 requests
-jsonpath
 cachetools
 pycryptodome
 beautifulsoup4

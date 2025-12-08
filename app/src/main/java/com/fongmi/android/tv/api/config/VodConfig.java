@@ -240,12 +240,12 @@ public class VodConfig {
     }
 
     public List<Parse> getParses(int type) {
-        return getParses().stream().filter(item -> item.getType() == type).collect(Collectors.toList());
+        return getParses().stream().filter(item -> item.getType() == type).toList();
     }
 
     public List<Parse> getParses(int type, String flag) {
         List<Parse> items = getParses(type);
-        List<Parse> filter = items.stream().filter(item -> item.getExt().getFlag().contains(flag)).collect(Collectors.toList());
+        List<Parse> filter = items.stream().filter(item -> item.getExt().getFlag().contains(flag)).toList();
         return filter.isEmpty() ? items : filter;
     }
 
