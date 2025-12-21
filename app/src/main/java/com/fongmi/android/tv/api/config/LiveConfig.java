@@ -136,15 +136,19 @@ public class LiveConfig {
             public void error(String msg) {}
         });
     }
+
+    // “接待员”2号：兼容只带一个 callback 的 load(callback) 调用
     public void load(Callback callback) {
         Config config = get().getConfig();
         load(config.getId(), config, callback);
     }
     
+    // “接待员”3号：兼容带 Config 和 Callback 的调用
     public void load(Config config, Callback callback) {
         load(config.getId(), config, callback);
     }
 
+    // 最终的执行者
     public void load(int id, Config config, Callback callback) {
         executor.execute(() -> loadConfig(id, config, callback));
     }
