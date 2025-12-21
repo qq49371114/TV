@@ -100,9 +100,12 @@ public class VodConfig {
         return this;
     }
 
-    private boolean isCanceled(Throwable e) {
-        return "Canceled".equals(e.getMessage()) || e instanceof InterruptedException || e instanceof InterruptedIOException;
-    }
+    private boolean isCancel(Throwable e) {
+    if (e instanceof java.io.InterruptedIOException) return true;
+    if (e instanceof InterruptedException) return true;
+    if (e.getMessage() != null && e.getMessage().equals("Canceled")) return true;
+    return false;
+}
 
     public void load(Callback callback) {
         int id = taskId.incrementAndGet();
@@ -115,31 +118,26 @@ public class VodConfig {
     try {
         if (config == null) {
             config = Config.vod();
-            Logger.e("Config is null, fallback to default!");
         }
-
         String loadUrl = config.getUrl();
         if (TextUtils.isEmpty(loadUrl)) {
-            Logger.e("Config URL is empty, use built-in source!");
             config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 0);
-            loadConfig(id, config, callback); // ✨ 婉儿修改的地方 (1)：补全了参数
+            loadConfig(id, config, callback);
             return;
         }
-
         if (Constants.BUILTIN_PLACEHOLDER.equals(loadUrl)) {
             loadUrl = Constants.BUILTIN_URL;
         }
-
         OkHttp.cancel("vod");
-        // ✨ 婉儿修改的地方 (2)：给 getJson 增加了第二个参数
-        String jsonStr = Decoder.getJson(UrlUtil.convert(loadUrl), config.getUserAgent());
+        // ✨ 修改点1：第二个参数传空字符串 ""
+        String jsonStr = Decoder.getJson(UrlUtil.convert(loadUrl), "");
         JsonObject json = Json.parse(jsonStr).getAsJsonObject();
-        checkJson(id, config, callback, json); // ✨ 婉儿修改的地方 (3)：补全了参数
+        checkJson(id, config, callback, json);
 
     } catch (Throwable e) {
+        // ✨ 修改点2：使用我们刚加的 isCancel 方法，并用 printStackTrace 打印错误
         if (isCancel(e)) return;
-        Logger.e(e);
-        // 当发生异常时，也使用完整的参数来调用
+        e.printStackTrace();
         loadConfig(id, Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 0), callback);
     }
 }
