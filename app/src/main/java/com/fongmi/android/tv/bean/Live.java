@@ -14,9 +14,9 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.loader.BaseLoader;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.gson.ExtAdapter;
+import com.fongmi.android.tv.gson.HeaderAdapter;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.crawler.Spider;
-import com.github.catvod.utils.Json;
 import com.github.catvod.utils.Trans;
 import com.google.common.net.HttpHeaders;
 import com.google.gson.JsonElement;
@@ -24,6 +24,7 @@ import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -45,8 +46,8 @@ public class Live {
     private String api;
 
     @Ignore
-    @JsonAdapter(ExtAdapter.class)
     @SerializedName("ext")
+    @JsonAdapter(ExtAdapter.class)
     private String ext;
 
     @Ignore
@@ -90,7 +91,8 @@ public class Live {
 
     @Ignore
     @SerializedName("header")
-    private JsonElement header;
+    @JsonAdapter(HeaderAdapter.class)
+    private Map<String, String> header;
 
     @Ignore
     @SerializedName("catchup")
@@ -126,12 +128,6 @@ public class Live {
         } catch (Exception e) {
             return new Live();
         }
-    }
-
-    public static Live get(String name) {
-        Live live = new Live();
-        live.setName(name);
-        return live;
     }
 
     public Live() {
@@ -226,8 +222,8 @@ public class Live {
         return timeout == null ? Constant.TIMEOUT_PLAY : TimeUnit.SECONDS.toMillis(Math.max(timeout, 1));
     }
 
-    public JsonElement getHeader() {
-        return header;
+    public Map<String, String> getHeader() {
+        return header == null ? new HashMap<>() : header;
     }
 
     public Catchup getCatchup() {
@@ -325,17 +321,17 @@ public class Live {
 
     public Live trans() {
         if (Trans.pass()) return this;
-        setName(Trans.s2t(getName()));
+        this.name = Trans.s2t(name);
         return this;
     }
 
     public Live sync() {
-        Live item = find(getName());
-        if (item != null) sync(item);
+        sync(find(getName()));
         return this;
     }
 
     public Live sync(Live item) {
+        if (item == null) return this;
         setBoot(item.isBoot());
         setPass(item.isPass());
         setKeep(item.getKeep());
@@ -352,7 +348,7 @@ public class Live {
     }
 
     public Map<String, String> getHeaders() {
-        Map<String, String> headers = Json.toMap(getHeader());
+        Map<String, String> headers = new HashMap<>(getHeader());
         if (!getUa().isEmpty()) headers.put(HttpHeaders.USER_AGENT, getUa());
         if (!getOrigin().isEmpty()) headers.put(HttpHeaders.ORIGIN, getOrigin());
         if (!getReferer().isEmpty()) headers.put(HttpHeaders.REFERER, getReferer());

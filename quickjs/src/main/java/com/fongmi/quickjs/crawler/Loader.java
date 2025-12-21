@@ -10,7 +10,7 @@ public class Loader {
         QuickJSLoader.init();
     }
 
-    public Spider spider(String key, String api, DexClassLoader dex) {
-        return new Spider(key, api, dex);
+    public Spider spider(String api, DexClassLoader dex) {
+        return new Spider(api, dex);
     }
 }

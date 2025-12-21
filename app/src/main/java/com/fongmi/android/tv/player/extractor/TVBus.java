@@ -1,7 +1,6 @@
 package com.fongmi.android.tv.player.extractor;
 
 import android.net.Uri;
-import android.text.TextUtils;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.R;
@@ -10,8 +9,9 @@ import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.bean.Core;
 import com.fongmi.android.tv.exception.ExtractException;
 import com.fongmi.android.tv.player.Source;
+import com.fongmi.android.tv.utils.Download;
 import com.fongmi.android.tv.utils.ResUtil;
-import com.github.catvod.net.OkHttp;
+import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.utils.Path;
 import com.google.gson.JsonObject;
 import com.orhanobut.logger.Logger;
@@ -30,8 +30,8 @@ public class TVBus implements Source.Extractor, Listener {
     private Core core;
 
     @Override
-    public boolean match(String scheme, String host) {
-        return "tvbus".equals(scheme);
+    public boolean match(Uri uri) {
+        return "tvbus".equals(UrlUtil.scheme(uri));
     }
 
     private void init(Core core) {
@@ -47,11 +47,9 @@ public class TVBus implements Source.Extractor, Listener {
     }
 
     private String getPath(String url) {
-        String name = Uri.parse(url).getLastPathSegment();
-        if (TextUtils.isEmpty(name)) name = "tvcore.so";
-        File file = new File(Path.so(), name);
-        if (file.length() < 10240) Path.write(file, OkHttp.bytes(url));
-        return file.getAbsolutePath();
+        File so = new File(Path.so(), UrlUtil.path(url));
+        if (!Path.exists(so)) Download.create(url, so).get();
+        return so.getAbsolutePath();
     }
 
     @Override

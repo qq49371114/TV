@@ -124,7 +124,7 @@ public class CollectActivity extends BaseActivity {
     }
 
     private void setSites() {
-        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).collect(Collectors.toList());
+        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).toList();
     }
 
     private void setPager() {
@@ -132,7 +132,6 @@ public class CollectActivity extends BaseActivity {
     }
 
     private void search() {
-        mViewModel.stopSearch();
         if (mSites.isEmpty()) return;
         mAdapter.add(Collect.all());
         mBinding.pager.getAdapter().notifyDataSetChanged();

@@ -1,4 +1,4 @@
-package com.github.catvod.utils;
+package com.fongmi.android.tv.utils;
 
 import android.text.TextUtils;
 
@@ -11,6 +11,43 @@ public class ZhuToPin {
     private static final Map<String, String> map = new HashMap<>();
 
     static {
+        map.put("ㄅ", "b");
+        map.put("ㄆ", "p");
+        map.put("ㄇ", "m");
+        map.put("ㄈ", "f");
+        map.put("ㄉ", "d");
+        map.put("ㄊ", "t");
+        map.put("ㄋ", "n");
+        map.put("ㄌ", "l");
+        map.put("ㄍ", "g");
+        map.put("ㄎ", "k");
+        map.put("ㄏ", "h");
+        map.put("ㄐ", "j");
+        map.put("ㄑ", "q");
+        map.put("ㄒ", "x");
+        map.put("ㄓ", "z");
+        map.put("ㄔ", "c");
+        map.put("ㄕ", "s");
+        map.put("ㄖ", "r");
+        map.put("ㄗ", "z");
+        map.put("ㄘ", "c");
+        map.put("ㄙ", "s");
+        map.put("ㄧ", "y");
+        map.put("ㄨ", "w");
+        map.put("ㄩ", "y");
+        map.put("ㄚ", "a");
+        map.put("ㄛ", "o");
+        map.put("ㄜ", "e");
+        map.put("ㄝ", "e");
+        map.put("ㄞ", "a");
+        map.put("ㄟ", "e");
+        map.put("ㄠ", "a");
+        map.put("ㄡ", "o");
+        map.put("ㄢ", "a");
+        map.put("ㄣ", "e");
+        map.put("ㄤ", "a");
+        map.put("ㄥ", "e");
+        map.put("ㄦ", "e");
         map.put("ㄅㄚ", "ba");
         map.put("ㄅㄛ", "bo");
         map.put("ㄅㄞ", "bai");
@@ -260,7 +297,6 @@ public class ZhuToPin {
         map.put("ㄒㄩㄢ", "xuan");
         map.put("ㄒㄩㄣ", "xun");
         map.put("ㄒㄩㄥ", "xiong");
-        map.put("ㄓ", "zhi");
         map.put("ㄓㄚ", "zha");
         map.put("ㄓㄜ", "zhe");
         map.put("ㄓㄞ", "zhai");
@@ -280,7 +316,6 @@ public class ZhuToPin {
         map.put("ㄓㄨㄣ", "zhun");
         map.put("ㄓㄨㄤ", "zhuang");
         map.put("ㄓㄨㄥ", "zhong");
-        map.put("ㄔ", "chi");
         map.put("ㄔㄚ", "cha");
         map.put("ㄔㄜ", "che");
         map.put("ㄔㄞ", "chai");
@@ -299,7 +334,6 @@ public class ZhuToPin {
         map.put("ㄔㄨㄣ", "chun");
         map.put("ㄔㄨㄤ", "chuang");
         map.put("ㄔㄨㄥ", "chong");
-        map.put("ㄕ", "shi");
         map.put("ㄕㄚ", "sha");
         map.put("ㄕㄜ", "she");
         map.put("ㄕㄞ", "shai");
@@ -318,7 +352,6 @@ public class ZhuToPin {
         map.put("ㄕㄨㄢ", "shuan");
         map.put("ㄕㄨㄣ", "shun");
         map.put("ㄕㄨㄤ", "shuang");
-        map.put("ㄖ", "ri");
         map.put("ㄖㄜ", "re");
         map.put("ㄖㄠ", "rao");
         map.put("ㄖㄡ", "rou");
@@ -332,7 +365,6 @@ public class ZhuToPin {
         map.put("ㄖㄨㄢ", "ruan");
         map.put("ㄖㄨㄣ", "run");
         map.put("ㄖㄨㄥ", "rong");
-        map.put("ㄗ", "zi");
         map.put("ㄗㄚ", "za");
         map.put("ㄗㄜ", "ze");
         map.put("ㄗㄞ", "zai");
@@ -349,10 +381,10 @@ public class ZhuToPin {
         map.put("ㄗㄨㄢ", "zuan");
         map.put("ㄗㄨㄣ", "zun");
         map.put("ㄗㄨㄥ", "zong");
-        map.put("ㄘ", "ci");
         map.put("ㄘㄚ", "ca");
         map.put("ㄘㄜ", "ce");
         map.put("ㄘㄞ", "cai");
+        map.put("ㄘㄟ", "cei");
         map.put("ㄘㄠ", "cao");
         map.put("ㄘㄡ", "cou");
         map.put("ㄘㄢ", "can");
@@ -365,7 +397,6 @@ public class ZhuToPin {
         map.put("ㄘㄨㄢ", "cuan");
         map.put("ㄘㄨㄣ", "cun");
         map.put("ㄘㄨㄥ", "cong");
-        map.put("ㄙ", "si");
         map.put("ㄙㄚ", "sa");
         map.put("ㄙㄜ", "se");
         map.put("ㄙㄞ", "sai");
@@ -381,7 +412,6 @@ public class ZhuToPin {
         map.put("ㄙㄨㄢ", "suan");
         map.put("ㄙㄨㄣ", "sun");
         map.put("ㄙㄨㄥ", "song");
-        map.put("ㄧ", "yi");
         map.put("ㄧㄚ", "ya");
         map.put("ㄧㄛ", "yo");
         map.put("ㄧㄝ", "ye");
@@ -391,7 +421,6 @@ public class ZhuToPin {
         map.put("ㄧㄣ", "yin");
         map.put("ㄧㄤ", "yang");
         map.put("ㄧㄥ", "ying");
-        map.put("ㄨ", "wu");
         map.put("ㄨㄚ", "wa");
         map.put("ㄨㄛ", "wo");
         map.put("ㄨㄞ", "wai");
@@ -400,12 +429,10 @@ public class ZhuToPin {
         map.put("ㄨㄣ", "wen");
         map.put("ㄨㄤ", "wang");
         map.put("ㄨㄥ", "weng");
-        map.put("ㄩ", "yu");
         map.put("ㄩㄝ", "yue");
         map.put("ㄩㄢ", "yuan");
         map.put("ㄩㄣ", "yun");
         map.put("ㄩㄥ", "yong");
-        map.put("ㄦ", "er");
     }
 
     public static String get(String text) {

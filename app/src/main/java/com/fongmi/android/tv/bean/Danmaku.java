@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.utils.UrlUtil;
 import com.google.gson.annotations.SerializedName;
 
 public class Danmaku {
@@ -54,6 +55,10 @@ public class Danmaku {
 
     public boolean isEmpty() {
         return getUrl().isEmpty();
+    }
+
+    public String getRealUrl() {
+        return UrlUtil.convert(getUrl().startsWith("/") ? "file:/" + getUrl() : getUrl());
     }
 
     @Override

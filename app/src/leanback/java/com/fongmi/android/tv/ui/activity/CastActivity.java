@@ -216,13 +216,13 @@ public class CastActivity extends BaseActivity implements CustomKeyDownVod.Liste
     }
 
     private void showProgress() {
-        mBinding.widget.progress.setVisibility(View.VISIBLE);
+        mBinding.progress.getRoot().setVisibility(View.VISIBLE);
         App.post(mR2, 0);
         hideError();
     }
 
     private void hideProgress() {
-        mBinding.widget.progress.setVisibility(View.GONE);
+        mBinding.progress.getRoot().setVisibility(View.GONE);
         App.removeCallbacks(mR2);
         Traffic.reset();
     }
@@ -268,7 +268,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownVod.Liste
     }
 
     private void setTraffic() {
-        Traffic.setSpeed(mBinding.widget.traffic);
+        Traffic.setSpeed(mBinding.progress.traffic);
         App.post(mR2, 1000);
     }
 
@@ -394,7 +394,7 @@ public class CastActivity extends BaseActivity implements CustomKeyDownVod.Liste
     }
 
     @Override
-    public void onTimeChanged() {
+    public void onTimeChanged(long time) {
         position = mPlayers.getPosition();
         duration = mPlayers.getDuration();
     }
@@ -510,7 +510,6 @@ public class CastActivity extends BaseActivity implements CustomKeyDownVod.Liste
     @Override
     protected void onStart() {
         super.onStart();
-        mBinding.exo.setPlayer(mPlayers.get());
         mClock.stop().start();
     }
 
@@ -531,7 +530,6 @@ public class CastActivity extends BaseActivity implements CustomKeyDownVod.Liste
         super.onStop();
         if (Setting.isBackgroundOff()) onPaused();
         if (Setting.isBackgroundOff()) mClock.stop();
-        mBinding.exo.setPlayer(null);
     }
 
     @Override

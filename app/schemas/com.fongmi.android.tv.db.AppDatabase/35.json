@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 34,
-    "identityHash": "f6dff07c7842200b0224662b90261e07",
+    "version": 35,
+    "identityHash": "8191bb223b1cde184fbb43d20d39d851",
     "entities": [
       {
         "tableName": "Keep",
@@ -120,7 +120,7 @@
       },
       {
         "tableName": "Track",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `type` INTEGER NOT NULL, `group` INTEGER NOT NULL, `track` INTEGER NOT NULL, `key` TEXT, `name` TEXT, `selected` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `type` INTEGER NOT NULL, `key` TEXT, `name` TEXT, `format` TEXT, `selected` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -135,18 +135,6 @@
             "notNull": true
           },
           {
-            "fieldPath": "group",
-            "columnName": "group",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "track",
-            "columnName": "track",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
             "fieldPath": "key",
             "columnName": "key",
             "affinity": "TEXT"
@@ -154,6 +142,11 @@
           {
             "fieldPath": "name",
             "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "format",
+            "columnName": "format",
             "affinity": "TEXT"
           },
           {
@@ -410,7 +403,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f6dff07c7842200b0224662b90261e07')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8191bb223b1cde184fbb43d20d39d851')"
     ]
   }
 }

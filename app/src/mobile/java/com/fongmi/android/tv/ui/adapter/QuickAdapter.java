@@ -65,9 +65,9 @@ public class QuickAdapter extends RecyclerView.Adapter<QuickAdapter.ViewHolder> 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Vod item = mItems.get(position);
-        holder.binding.name.setText(item.getVodName());
+        holder.binding.name.setText(item.getName());
         holder.binding.site.setText(item.getSiteName());
-        holder.binding.remark.setText(item.getVodRemarks());
+        holder.binding.remark.setText(item.getRemarks());
         holder.binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));
     }
 

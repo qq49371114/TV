@@ -43,9 +43,9 @@ public class QuickPresenter extends Presenter {
     public void onBindViewHolder(@NonNull Presenter.ViewHolder viewHolder, Object object) {
         Vod item = (Vod) object;
         ViewHolder holder = (ViewHolder) viewHolder;
-        holder.binding.name.setText(item.getVodName());
+        holder.binding.name.setText(item.getName());
         holder.binding.site.setText(item.getSiteName());
-        holder.binding.remark.setText(item.getVodRemarks());
+        holder.binding.remark.setText(item.getRemarks());
         setOnClickListener(holder, view -> listener.onItemClick(item));
     }
 

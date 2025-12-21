@@ -10,12 +10,11 @@ import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.gson.DanmakuAdapter;
 import com.fongmi.android.tv.gson.FilterAdapter;
+import com.fongmi.android.tv.gson.HeaderAdapter;
 import com.fongmi.android.tv.gson.MsgAdapter;
 import com.fongmi.android.tv.gson.UrlAdapter;
 import com.fongmi.android.tv.utils.Util;
-import com.github.catvod.utils.Json;
 import com.github.catvod.utils.Trans;
-import com.google.gson.JsonElement;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 
@@ -28,6 +27,7 @@ import org.simpleframework.xml.core.Persister;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +53,10 @@ public class Result implements Parcelable {
     @JsonAdapter(UrlAdapter.class)
     private Url url;
 
+    @SerializedName("header")
+    @JsonAdapter(HeaderAdapter.class)
+    private Map<String, String> header;
+
     @SerializedName("msg")
     @JsonAdapter(MsgAdapter.class)
     private String msg;
@@ -63,8 +67,6 @@ public class Result implements Parcelable {
 
     @SerializedName("subs")
     private List<Sub> subs;
-    @SerializedName("header")
-    private JsonElement header;
     @SerializedName("playUrl")
     private String playUrl;
     @SerializedName("jxFrom")
@@ -134,8 +136,8 @@ public class Result implements Parcelable {
         Result result = new Result();
         Class type = new Class();
         type.setTypeFlag("1");
-        type.setTypeId(item.getVodId());
-        type.setTypeName(item.getVodName());
+        type.setTypeId(item.getId());
+        type.setTypeName(item.getName());
         result.setTypes(Arrays.asList(type));
         return result;
     }
@@ -164,7 +166,7 @@ public class Result implements Parcelable {
     }
 
     public void setTypes(List<Class> types) {
-        if (!types.isEmpty()) this.types = types;
+        this.types = types;
     }
 
     public List<Vod> getList() {
@@ -183,10 +185,6 @@ public class Result implements Parcelable {
         return url == null ? Url.create() : url;
     }
 
-    public void setUrl(Url url) {
-        this.url = url;
-    }
-
     public void setUrl(String url) {
         this.url = getUrl().replace(url);
     }
@@ -203,12 +201,12 @@ public class Result implements Parcelable {
         return subs == null ? new ArrayList<>() : new ArrayList<>(subs);
     }
 
-    public JsonElement getHeader() {
-        return header;
+    public Map<String, String> getHeader() {
+        return header == null ? new HashMap<>() : header;
     }
 
-    public void setHeader(JsonElement header) {
-        if (getHeader() == null) this.header = header;
+    public void setHeader(Map<String, String> header) {
+        if (getHeader().isEmpty()) this.header = header;
     }
 
     public String getPlayUrl() {
@@ -236,11 +234,15 @@ public class Result implements Parcelable {
     }
 
     public List<Danmaku> getDanmaku() {
-        return !Setting.isDanmakuLoad() || danmaku == null ? new ArrayList<>() : new ArrayList<>(danmaku);
+        return !Setting.isDanmakuLoad() || danmaku == null ? new ArrayList<>() : danmaku;
     }
 
     public String getFormat() {
         return format;
+    }
+
+    public void setFormat(String format) {
+        this.format = format;
     }
 
     public String getClick() {
@@ -283,6 +285,10 @@ public class Result implements Parcelable {
         return drm;
     }
 
+    public void setDrm(Drm drm) {
+        this.drm = drm;
+    }
+
     public boolean hasMsg() {
         return !getMsg().isEmpty();
     }
@@ -291,12 +297,12 @@ public class Result implements Parcelable {
         return getPlayUrl() + getUrl().v();
     }
 
-    public Map<String, String> getHeaders() {
-        return Json.toMap(getHeader());
-    }
-
     public Style getStyle(Style style) {
         return getList().isEmpty() ? Style.rect() : getList().get(0).getStyle(style);
+    }
+
+    public Vod getVod() {
+        return getList().isEmpty() ? new Vod() : getList().get(0);
     }
 
     public Result clear() {
@@ -326,13 +332,11 @@ public class Result implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeList(this.types);
-        dest.writeTypedList(this.list);
     }
 
     protected Result(Parcel in) {
         this.types = new ArrayList<>();
         in.readList(this.types, Class.class.getClassLoader());
-        this.list = in.createTypedArrayList(Vod.CREATOR);
     }
 
     public static final Creator<Result> CREATOR = new Creator<>() {

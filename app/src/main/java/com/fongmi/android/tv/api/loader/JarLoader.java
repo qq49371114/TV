@@ -3,6 +3,7 @@ package com.fongmi.android.tv.api.loader;
 import android.content.Context;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.utils.Download;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.crawler.SpiderNull;
@@ -47,7 +48,8 @@ public class JarLoader {
     }
 
     private void load(String key, File file) {
-        if (!file.setReadOnly()) return;
+        if (!Path.exists(file) || !file.setReadOnly()) return;
+        if (Thread.interrupted()) return;
         loaders.put(key, dex(file));
         invokeInit(key);
         putProxy(key);
@@ -77,14 +79,6 @@ public class JarLoader {
         }
     }
 
-    private File download(String url) {
-        try {
-            return Path.write(Path.jar(url), OkHttp.bytes(url));
-        } catch (Exception e) {
-            return Path.jar(url);
-        }
-    }
-
     public synchronized void parseJar(String key, String jar) {
         if (loaders.containsKey(key)) return;
         String[] texts = jar.split(";md5;");
@@ -94,7 +88,7 @@ public class JarLoader {
         if (!md5.isEmpty() && Util.equals(jar, md5)) {
             load(key, Path.jar(jar));
         } else if (jar.startsWith("http")) {
-            load(key, download(jar));
+            load(key, Download.create(jar, Path.jar(jar)).get());
         } else if (jar.startsWith("file")) {
             load(key, Path.local(jar));
         } else if (jar.startsWith("assets")) {
@@ -120,6 +114,7 @@ public class JarLoader {
             if (spiders.containsKey(spKey)) return spiders.get(spKey);
             if (!loaders.containsKey(jaKey)) parseJar(jaKey, jar);
             Spider spider = (Spider) loaders.get(jaKey).loadClass("com.github.catvod.spider." + api.split("csp_")[1]).newInstance();
+            spider.siteKey = key;
             spider.init(App.get(), ext);
             spiders.put(spKey, spider);
             return spider;
@@ -141,7 +136,7 @@ public class JarLoader {
         return (JSONObject) method.invoke(null, jxs, name, flag, url);
     }
 
-    public Object[] proxyInvoke(Map<String, String> params) {
+    public Object[] proxy(Map<String, String> params) throws Exception {
         if (recent == null) return tryOthers(params);
         Object[] result = proxyInvoke(methods.get(recent), params);
         return result != null ? result : tryOthers(params);

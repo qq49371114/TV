@@ -14,6 +14,7 @@ import com.fongmi.android.tv.bean.Epg;
 import com.fongmi.android.tv.bean.EpgData;
 import com.fongmi.android.tv.bean.Group;
 import com.fongmi.android.tv.bean.Live;
+import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.exception.ExtractException;
 import com.fongmi.android.tv.player.Source;
 import com.github.catvod.net.OkHttp;
@@ -27,10 +28,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class LiveViewModel extends ViewModel {
 
@@ -48,13 +51,14 @@ public class LiveViewModel extends ViewModel {
         }
     }
 
+    private final Map<TaskType, AtomicInteger> taskIds;
     private final List<SimpleDateFormat> formatTime;
     private final Map<TaskType, Future<?>> futures;
     private final SimpleDateFormat formatDate;
     private final ExecutorService executor;
 
-    public final MutableLiveData<Channel> url;
     public final MutableLiveData<Boolean> xml;
+    public final MutableLiveData<Result> url;
     public final MutableLiveData<Live> live;
     public final MutableLiveData<Epg> epg;
 
@@ -65,10 +69,12 @@ public class LiveViewModel extends ViewModel {
         this.url = new MutableLiveData<>();
         this.formatTime = new ArrayList<>();
         this.futures = new EnumMap<>(TaskType.class);
+        this.taskIds = new EnumMap<>(TaskType.class);
         this.executor = Executors.newFixedThreadPool(2);
         this.formatDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         this.formatTime.add(new SimpleDateFormat("yyyy-MM-ddHH:mm", Locale.getDefault()));
         this.formatTime.add(new SimpleDateFormat("yyyy-MM-ddHH:mm:ss", Locale.getDefault()));
+        for (TaskType type : TaskType.values()) taskIds.put(type, new AtomicInteger(0));
     }
 
     public void getLive(Live item) {
@@ -87,7 +93,8 @@ public class LiveViewModel extends ViewModel {
     private boolean parseXml(Live item, String url) {
         try {
             return EpgParser.start(item, url);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }
@@ -103,19 +110,19 @@ public class LiveViewModel extends ViewModel {
 
     public void getUrl(Channel item) {
         execute(TaskType.URL, () -> {
-            item.setMsg(null);
             Source.get().stop();
-            item.setUrl(Source.get().fetch(item));
-            return item;
+            Result result = item.result();
+            result.setUrl(Source.get().fetch(result));
+            return result;
         });
     }
 
     public void getUrl(Channel item, EpgData data) {
         execute(TaskType.URL, () -> {
-            item.setMsg(null);
             Source.get().stop();
-            item.setUrl(item.getCatchup().format(Source.get().fetch(item), data));
-            return item;
+            Result result = item.result();
+            result.setUrl(item.getCatchup().format(Source.get().fetch(result), data));
+            return result;
         });
     }
 
@@ -137,6 +144,8 @@ public class LiveViewModel extends ViewModel {
 
     private <T> void execute(TaskType type, Callable<T> callable) {
         Future<?> oldFuture = futures.get(type);
+        AtomicInteger taskId = taskIds.get(type);
+        int currentId = taskId.incrementAndGet();
         if (oldFuture != null && !oldFuture.isDone()) oldFuture.cancel(true);
         Future<T> newFuture = App.submit(callable);
         if (executor.isShutdown()) return;
@@ -144,18 +153,17 @@ public class LiveViewModel extends ViewModel {
         executor.execute(() -> {
             try {
                 T result = newFuture.get(type.timeout, TimeUnit.MILLISECONDS);
-                if (newFuture.isCancelled()) return;
+                if (taskId.get() != currentId) return;
                 if (type == TaskType.EPG) epg.postValue((Epg) result);
                 else if (type == TaskType.LIVE) live.postValue((Live) result);
+                else if (type == TaskType.URL) url.postValue((Result) result);
                 else if (type == TaskType.XML) xml.postValue((Boolean) result);
-                else if (type == TaskType.URL) url.postValue((Channel) result);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+            } catch (CancellationException ignored) {
             } catch (Throwable e) {
-                if (newFuture.isCancelled()) return;
-                if (e.getCause() instanceof ExtractException) url.postValue(Channel.error(e.getCause().getMessage()));
-                else if (type == TaskType.URL) url.postValue(new Channel());
+                if (taskId.get() != currentId) return;
+                if (e.getCause() instanceof ExtractException) url.postValue(Result.error(e.getCause().getMessage()));
                 else if (type == TaskType.LIVE) live.postValue(new Live());
+                else if (type == TaskType.URL) url.postValue(new Result());
                 else if (type == TaskType.EPG) epg.postValue(new Epg());
                 else if (type == TaskType.XML) xml.postValue(false);
                 e.printStackTrace();

@@ -41,10 +41,10 @@ import com.google.common.net.HttpHeaders;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.Map;
 import java.util.Optional;
 
 import okhttp3.Call;
-import okhttp3.Headers;
 import okhttp3.Response;
 
 public class SearchFragment extends BaseFragment implements MenuProvider, WordAdapter.OnClickListener, RecordAdapter.OnClickListener {
@@ -88,7 +88,6 @@ public class SearchFragment extends BaseFragment implements MenuProvider, WordAd
     protected void initView() {
         setRecyclerView();
         checkKeyword();
-        getHot();
         search();
     }
 
@@ -111,9 +110,11 @@ public class SearchFragment extends BaseFragment implements MenuProvider, WordAd
             @Override
             public void afterTextChanged(Editable s) {
                 requireActivity().invalidateOptionsMenu();
-                if (s.toString().isEmpty()) getHot();
-                else getSuggest(s.toString());
+                getWord(s.toString());
             }
+        });
+        getParentFragmentManager().setFragmentResultListener("result", getViewLifecycleOwner(), (requestKey, bundle) -> {
+            if (bundle.getBoolean("edit", false)) Util.showKeyboard(mBinding.keyword);
         });
     }
 
@@ -121,6 +122,7 @@ public class SearchFragment extends BaseFragment implements MenuProvider, WordAd
         boolean visible = requireActivity().getSupportFragmentManager().findFragmentByTag(CollectFragment.class.getSimpleName()) != null;
         if (TextUtils.isEmpty(getKeyword()) && !visible) Util.showKeyboard(mBinding.keyword);
         setKeyword(getKeyword());
+        getWord(getKeyword());
     }
 
     private void setKeyword(String text) {
@@ -147,10 +149,15 @@ public class SearchFragment extends BaseFragment implements MenuProvider, WordAd
         ft.setReorderingAllowed(true).addToBackStack(null).commit();
     }
 
+    private void getWord(String text) {
+        if (text.isEmpty()) getHot();
+        else getSuggest(text);
+    }
+
     private void getHot() {
         mBinding.word.setText(R.string.search_hot);
         mWordAdapter.setItems(Word.objectFrom(Setting.getHot()).getData());
-        OkHttp.newCall("https://api.web.360kan.com/v1/rank?cat=1", Headers.of(HttpHeaders.REFERER, "https://www.360kan.com/rank/general")).enqueue(getCallback(true));
+        OkHttp.newCall("https://api.web.360kan.com/v1/rank?cat=1", Map.of(HttpHeaders.REFERER, "https://www.360kan.com/rank/general")).enqueue(getCallback(true));
     }
 
     private void getSuggest(String text) {

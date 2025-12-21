@@ -1,8 +1,10 @@
 package com.fongmi.android.tv.service;
 
 import android.annotation.SuppressLint;
+import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.graphics.Bitmap;
@@ -32,6 +34,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.List;
 import java.util.Objects;
 
 public class PlaybackService extends Service {
@@ -150,5 +153,13 @@ public class PlaybackService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    public static boolean isRunning() {
+        ActivityManager manager = (ActivityManager) App.get().getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningServiceInfo> services = manager.getRunningServices(Integer.MAX_VALUE);
+        if (services == null || services.isEmpty()) return false;
+        String clz = PlaybackService.class.getName();
+        return services.stream().anyMatch(serviceInfo -> clz.equals(serviceInfo.service.getClassName()));
     }
 }

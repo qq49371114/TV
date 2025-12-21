@@ -30,9 +30,6 @@ public class Collect implements Parcelable, Diffable<Collect> {
         return new Collect(list.get(0).getSite(), list);
     }
 
-    public Collect() {
-    }
-
     public Collect(Site site, List<Vod> list) {
         this.site = site;
         this.list = list;

@@ -17,8 +17,6 @@ import com.fongmi.android.tv.databinding.ActivityFolderBinding;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.fragment.FolderFragment;
 
-import java.util.HashMap;
-
 public class FolderActivity extends BaseActivity {
 
     private ActivityFolderBinding mBinding;
@@ -55,7 +53,7 @@ public class FolderActivity extends BaseActivity {
         setSupportActionBar(mBinding.toolbar);
         Class type = getResult().getTypes().get(0);
         setTitle(type.getTypeName());
-        getSupportFragmentManager().beginTransaction().replace(R.id.container, FolderFragment.newInstance(getKey(), type.getTypeId(), type.getStyle(), new HashMap<>(), "1".equals(type.getTypeFlag()), 8), "0").commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.container, FolderFragment.newInstance(getKey(), type, 8), "0").commit();
     }
 
     private FolderFragment getFragment() {

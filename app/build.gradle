@@ -5,7 +5,11 @@ plugins {
 android {
     namespace 'com.fongmi.android.tv'
 
-    compileSdk = 36
+    compileSdk {
+        version = release(36) {
+            it.minorApiLevel = 1
+        }
+    }
 
     defaultConfig {
         applicationId "com.fongmi.android.tv"
@@ -54,9 +58,6 @@ android {
     }
 
     packagingOptions {
-        jniLibs {
-            useLegacyPackaging true
-        }
         resources {
             exclude 'META-INF/beans.xml'
             exclude 'META-INF/versions/9/OSGI-INF/MANIFEST.MF'
@@ -141,8 +142,8 @@ dependencies {
     leanbackImplementation 'com.github.JessYanCoding:AndroidAutoSize:1.2.1'
     mobileImplementation 'androidx.biometric:biometric:1.1.0'
     mobileImplementation 'com.google.android.flexbox:flexbox:3.0.0'
-    mobileImplementation('com.journeyapps:zxing-android-embedded:4.3.0') { transitive = false }
-    annotationProcessor 'androidx.room:room-compiler:2.8.3'
+    mobileImplementation 'com.journeyapps:zxing-android-embedded:4.3.0'
+    annotationProcessor 'androidx.room:room-compiler:2.8.4'
     annotationProcessor 'com.github.bumptech.glide:compiler:' + glideVersion
     annotationProcessor 'org.greenrobot:eventbus-annotation-processor:3.3.1'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.1.5'

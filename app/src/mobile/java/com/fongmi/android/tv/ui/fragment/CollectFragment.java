@@ -80,6 +80,16 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
         search();
     }
 
+    @Override
+    protected void initEvent() {
+        mBinding.toolbar.setOnClickListener(v -> {
+            Bundle result = new Bundle();
+            result.putBoolean("edit", true);
+            getParentFragmentManager().setFragmentResult("result", result);
+            getParentFragmentManager().popBackStack();
+        });
+    }
+
     private void setRecyclerView() {
         mBinding.collect.setItemAnimator(null);
         mBinding.collect.setHasFixedSize(true);
@@ -97,7 +107,7 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
     }
 
     private void setSites() {
-        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).collect(Collectors.toList());
+        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).toList();
     }
 
     private void setWidth() {
@@ -114,7 +124,6 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
     }
 
     private void search() {
-        mViewModel.stopSearch();
         if (mSites.isEmpty()) return;
         mCollectAdapter.setItems(List.of(Collect.all()), () -> mViewModel.searchContent(mSites, getKeyword(), false));
     }
@@ -134,10 +143,10 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
 
     private void setSearch(Result result) {
         if (result == null) return;
-        boolean same = !result.getList().isEmpty() && mCollectAdapter.getActivated().getSite().equals(result.getList().get(0).getSite());
+        mScroller.endLoading(result);
+        boolean same = !result.getList().isEmpty() && mCollectAdapter.getActivated().getSite().equals(result.getVod().getSite());
         if (same) mCollectAdapter.getActivated().getList().addAll(result.getList());
         if (same) mSearchAdapter.addAll(result.getList());
-        mScroller.endLoading(result);
     }
 
     @Override
@@ -150,7 +159,7 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
     @Override
     public void onItemClick(Vod item) {
         if (item.isFolder()) FolderActivity.start(requireActivity(), item.getSiteKey(), Result.folder(item));
-        else VideoActivity.collect(requireActivity(), item.getSiteKey(), item.getVodId(), item.getVodName(), item.getVodPic());
+        else VideoActivity.collect(requireActivity(), item.getSiteKey(), item.getId(), item.getName(), item.getPic());
     }
 
     @Override

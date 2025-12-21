@@ -22,13 +22,13 @@ public class VodListHolder extends BaseVodHolder {
 
     @Override
     public void initView(Vod item) {
-        binding.name.setText(item.getVodName());
-        binding.remark.setText(item.getVodRemarks());
+        binding.name.setText(item.getName());
+        binding.remark.setText(item.getRemarks());
         binding.name.setVisibility(item.getNameVisible());
         binding.remark.setVisibility(item.getRemarkVisible());
         binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));
         binding.getRoot().setOnLongClickListener(v -> listener.onLongClick(item));
-        ImgUtil.load(item.getVodName(), item.getVodPic(), binding.image);
+        ImgUtil.load(item.getName(), item.getPic(), binding.image);
     }
 
     @Override

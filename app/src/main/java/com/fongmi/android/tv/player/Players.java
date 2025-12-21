@@ -30,14 +30,15 @@ import androidx.media3.common.Tracks;
 import androidx.media3.common.VideoSize;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.drm.FrameworkMediaDrm;
+import androidx.media3.exoplayer.util.EventLogger;
 import androidx.media3.ui.PlayerView;
 
 import com.bumptech.glide.request.transition.Transition;
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.BuildConfig;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
-import com.fongmi.android.tv.bean.Channel;
 import com.fongmi.android.tv.bean.Danmaku;
 import com.fongmi.android.tv.bean.Drm;
 import com.fongmi.android.tv.bean.Result;
@@ -52,6 +53,7 @@ import com.fongmi.android.tv.impl.SessionCallback;
 import com.fongmi.android.tv.player.danmaku.DanPlayer;
 import com.fongmi.android.tv.player.exo.ErrorMsgProvider;
 import com.fongmi.android.tv.player.exo.ExoUtil;
+import com.fongmi.android.tv.player.exo.TrackUtil;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.ImgUtil;
@@ -103,6 +105,7 @@ public class Players implements Player.Listener, ParseCallback {
     private Drm drm;
     private Sub sub;
 
+    private boolean initTrack;
     private int decode;
     private int retry;
 
@@ -138,6 +141,7 @@ public class Players implements Player.Listener, ParseCallback {
 
     private void setPlayer(PlayerView view) {
         exoPlayer = new ExoPlayer.Builder(App.get()).setLoadControl(ExoUtil.buildLoadControl()).setTrackSelector(ExoUtil.buildTrackSelector()).setRenderersFactory(ExoUtil.buildRenderersFactory(isHard() ? EXTENSION_RENDERER_MODE_ON : EXTENSION_RENDERER_MODE_PREFER)).setMediaSourceFactory(ExoUtil.buildMediaSourceFactory()).build();
+        if (BuildConfig.DEBUG) exoPlayer.addAnalyticsListener(new EventLogger());
         exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, true);
         exoPlayer.setHandleAudioBecomingNoisy(true);
         exoPlayer.setPlayWhenReady(true);
@@ -249,7 +253,7 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     public boolean haveTrack(int type) {
-        return exoPlayer != null && ExoUtil.haveTrack(exoPlayer.getCurrentTracks(), type);
+        return exoPlayer != null && TrackUtil.count(exoPlayer.getCurrentTracks(), type) > 0;
     }
 
     public boolean haveDanmaku() {
@@ -416,20 +420,6 @@ public class Players implements Player.Listener, ParseCallback {
         App.removeCallbacks(runnable);
     }
 
-    public void start(Channel channel, long timeout) {
-        if (channel.getDrm() != null && !FrameworkMediaDrm.isCryptoSchemeSupported(channel.getDrm().getUUID())) {
-            ErrorEvent.drm(tag);
-        } else if (channel.hasMsg()) {
-            ErrorEvent.extract(tag, channel.getMsg());
-        } else if (channel.getParse() == 1) {
-            startParse(channel.result(), false);
-        } else if (isIllegal(channel.getUrl())) {
-            ErrorEvent.url(tag);
-        } else {
-            setMediaItem(channel, timeout);
-        }
-    }
-
     public void start(Result result, boolean useParse, long timeout) {
         if (result.getDrm() != null && !FrameworkMediaDrm.isCryptoSchemeSupported(result.getDrm().getUUID())) {
             ErrorEvent.drm(tag);
@@ -483,12 +473,8 @@ public class Players implements Player.Listener, ParseCallback {
         setMediaItem(headers, url, format, drm, subs, danmakus, Constant.TIMEOUT_PLAY);
     }
 
-    private void setMediaItem(Channel channel, long timeout) {
-        setMediaItem(channel.getHeaders(), channel.getUrl(), channel.getFormat(), channel.getDrm(), new ArrayList<>(), new ArrayList<>(), timeout);
-    }
-
     private void setMediaItem(Result result, long timeout) {
-        setMediaItem(result.getHeaders(), result.getRealUrl(), result.getFormat(), result.getDrm(), result.getSubs(), result.getDanmaku(), timeout);
+        setMediaItem(result.getHeader(), result.getRealUrl(), result.getFormat(), result.getDrm(), result.getSubs(), result.getDanmaku(), timeout);
     }
 
     private void setMediaItem(Map<String, String> headers, String url, String format, Drm drm, List<Sub> subs, List<Danmaku> danmakus, long timeout) {
@@ -498,6 +484,7 @@ public class Players implements Player.Listener, ParseCallback {
         App.post(runnable, timeout);
         PlayerEvent.prepare(tag);
         session.setActive(true);
+        initTrack = false;
         prepare();
     }
 
@@ -509,7 +496,7 @@ public class Players implements Player.Listener, ParseCallback {
         danPlayer.setDanmaku(item);
         if (danmakus == null) danmakus = new ArrayList<>();
         if (!item.isEmpty() && !danmakus.contains(item)) danmakus.add(0, item);
-        for (int i = 0; i < danmakus.size(); i++) danmakus.get(i).setSelected(danmakus.get(i).getUrl().equals(item.getUrl()) && !danmakus.get(i).isSelected());
+        danmakus.forEach(d -> d.setSelected(d.getUrl().equals(item.getUrl())));
     }
 
     public void setDanmakuSize(float size) {
@@ -517,19 +504,11 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     public void resetTrack() {
-        if (exoPlayer != null) ExoUtil.resetTrack(exoPlayer);
+        if (exoPlayer != null) TrackUtil.reset(exoPlayer);
     }
 
     public void setTrack(List<Track> tracks) {
-        for (Track track : tracks) setTrack(track);
-    }
-
-    private void setTrack(Track item) {
-        if (item.isSelected()) {
-            ExoUtil.selectTrack(exoPlayer, item.getGroup(), item.getTrack());
-        } else {
-            ExoUtil.deselectTrack(exoPlayer, item.getGroup(), item.getTrack());
-        }
+        if (exoPlayer != null && !tracks.isEmpty()) TrackUtil.setTrackSelection(exoPlayer, tracks);
     }
 
     private void setPlaybackState(int state) {
@@ -676,9 +655,10 @@ public class Players implements Player.Listener, ParseCallback {
 
     @Override
     public void onTracksChanged(@NonNull Tracks tracks) {
-        if (tracks.isEmpty()) return;
+        if (tracks.isEmpty() || initTrack) return;
         setTrack(Track.find(getKey()));
         PlayerEvent.track(tag);
+        initTrack = true;
     }
 
     @Override
@@ -701,7 +681,7 @@ public class Players implements Player.Listener, ParseCallback {
                 setFormat(ExoUtil.getMimeType(error.errorCode));
                 break;
             default:
-                ErrorEvent.extract(tag, error.getErrorCodeName());
+                ErrorEvent.extract(tag, provider.get(error));
                 break;
         }
     }

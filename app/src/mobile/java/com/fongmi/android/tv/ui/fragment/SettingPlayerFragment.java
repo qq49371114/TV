@@ -128,10 +128,10 @@ public class SettingPlayerFragment extends BaseFragment implements UaCallback, B
     }
 
     private void setRender(View view) {
-        int index = Setting.getRender();
-        Setting.putRender(index = index == render.length - 1 ? 0 : ++index);
+        if (Setting.isTunnel() && Setting.getRender() == 0) setTunnel(view);
+        int index = (Setting.getRender() + 1) % render.length;
         mBinding.renderText.setText(render[index]);
-        if (Setting.isTunnel() && Setting.getRender() == 1) setTunnel(view);
+        Setting.putRender(index);
     }
 
     private void setTunnel(View view) {

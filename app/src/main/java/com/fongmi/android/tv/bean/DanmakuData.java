@@ -3,20 +3,23 @@ package com.fongmi.android.tv.bean;
 import android.graphics.Color;
 import android.text.TextUtils;
 
+import com.github.catvod.utils.Trans;
+
 import java.util.regex.Matcher;
 
 public class DanmakuData {
 
-    private final String text;
     private int type;
     private int color;
     private int shadow;
     private long time;
     private float size;
+    private String text;
 
     public DanmakuData(Matcher matcher, float density) throws Exception {
         this.param(matcher.group(1), density);
         this.text = matcher.group(2);
+        this.trans();
     }
 
     private void param(String param, float density) throws Exception {
@@ -51,5 +54,10 @@ public class DanmakuData {
 
     public String getText() {
         return TextUtils.isEmpty(text) ? "" : text.replace("&amp;", "&").replace("&quot;", "\"").replace("&gt;", ">").replace("&lt;", "<");
+    }
+
+    public void trans() {
+        if (Trans.pass()) return;
+        this.text = Trans.s2t(text);
     }
 }

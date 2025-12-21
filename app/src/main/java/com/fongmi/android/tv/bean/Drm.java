@@ -7,10 +7,12 @@ import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
 
 import com.fongmi.android.tv.App;
-import com.github.catvod.utils.Json;
-import com.google.gson.JsonElement;
+import com.fongmi.android.tv.gson.HeaderAdapter;
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class Drm {
@@ -22,15 +24,18 @@ public class Drm {
     @SerializedName("forceKey")
     private boolean forceKey;
     @SerializedName("header")
-    private JsonElement header;
+    @JsonAdapter(HeaderAdapter.class)
+    private Map<String, String> header;
 
-    public static Drm create(String key, String type) {
-        return new Drm(key, type);
+    public static Drm create(String key, String type, Map<String, String> header, boolean forceKey) {
+        return new Drm(key, type, header, forceKey);
     }
 
-    private Drm(String key, String type) {
+    private Drm(String key, String type, Map<String, String> header, boolean forceKey) {
         this.key = key;
         this.type = type;
+        this.header = header;
+        this.forceKey = forceKey;
     }
 
     private String getKey() {
@@ -45,8 +50,8 @@ public class Drm {
         return forceKey;
     }
 
-    private JsonElement getHeader() {
-        return header;
+    private Map<String, String> getHeader() {
+        return header == null ? new HashMap<>() : header;
     }
 
     public UUID getUUID() {
@@ -59,8 +64,8 @@ public class Drm {
     public MediaItem.DrmConfiguration get() {
         MediaItem.DrmConfiguration.Builder builder = new MediaItem.DrmConfiguration.Builder(getUUID());
         builder.setMultiSession(!C.CLEARKEY_UUID.equals(getUUID()));
-        builder.setLicenseRequestHeaders(Json.toMap(getHeader()));
         builder.setForceDefaultLicenseUri(isForceKey());
+        builder.setLicenseRequestHeaders(getHeader());
         builder.setLicenseUri(getKey());
         return builder.build();
     }

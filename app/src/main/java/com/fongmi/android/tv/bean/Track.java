@@ -2,7 +2,6 @@ package com.fongmi.android.tv.bean;
 
 import android.text.TextUtils;
 
-import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
@@ -18,15 +17,15 @@ public class Track {
     @PrimaryKey(autoGenerate = true)
     private int id;
     private int type;
-    private int group;
-    private int track;
     private String key;
     private String name;
+    private String format;
     private boolean selected;
 
-    public Track(int type, String name) {
+    public Track(int type, String name, String format) {
         this.type = type;
         this.name = name;
+        this.format = format;
     }
 
     public int getId() {
@@ -45,27 +44,11 @@ public class Track {
         this.type = type;
     }
 
-    public int getGroup() {
-        return group;
-    }
-
-    public void setGroup(int group) {
-        this.group = group;
-    }
-
-    public int getTrack() {
-        return track;
-    }
-
-    public void setTrack(int track) {
-        this.track = track;
-    }
-
     public String getKey() {
         return key;
     }
 
-    public void setKey(@NonNull String key) {
+    public void setKey(String key) {
         this.key = key;
     }
 
@@ -75,6 +58,14 @@ public class Track {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public void setFormat(String format) {
+        this.format = format;
     }
 
     public boolean isSelected() {

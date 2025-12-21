@@ -38,9 +38,6 @@ public class Filter implements Parcelable {
         return items == null ? Collections.emptyList() : items;
     }
 
-    public Filter() {
-    }
-
     public String getKey() {
         return key;
     }
@@ -58,8 +55,7 @@ public class Filter implements Parcelable {
     }
 
     public String setActivated(String v) {
-        int index = getValue().indexOf(new Value(v));
-        if (index != -1) getValue().get(index).setActivated(true);
+        getValue().stream().filter(item -> item.equals(Value.create(v))).findFirst().ifPresent(item -> item.setActivated(true));
         return v;
     }
 
