@@ -122,61 +122,54 @@ public class LiveConfig {
     }
 
     private boolean isCancel(Throwable e) {
-    if (e instanceof java.io.InterruptedIOException) return true;
-    if (e instanceof InterruptedException) return true;
-    if (e.getMessage() != null && e.getMessage().equals("Canceled")) return true;
-    return false;
-}
+        if (e instanceof java.io.InterruptedIOException) return true;
+        if (e instanceof InterruptedException) return true;
+        if (e.getMessage() != null && e.getMessage().equals("Canceled")) return true;
+        return false;
+    }
 
     public void load() {
         load(new Callback() {
             @Override
-            public void success() {
-            }
-
+            public void success() {}
             @Override
-            public void error(String msg) {
-            }
+            public void error(String msg) {}
         });
     }
     public void load(Callback callback) {
-        load(get().getId(), get().getConfig(), callback);
+        Config config = get().getConfig();
+        load(config.getId(), config, callback);
     }
     
-    // ✨ 新增的“接待员”3号：兼容带 Config 和 Callback 的调用
     public void load(Config config, Callback callback) {
         load(config.getId(), config, callback);
     }
 
-    // ✨ 这是我们之前讨论过的“上游”方法，现在它变成了最终的执行者！
     public void load(int id, Config config, Callback callback) {
         executor.execute(() -> loadConfig(id, config, callback));
     }
 
     private void loadConfig(int id, Config config, Callback callback) {
-    try {
-        OkHttp.cancel("live");
-        String configUrl = config.getUrl();
-        if (configUrl.equals(Constants.BUILTIN_PLACEHOLDER)) {
-            configUrl = Constants.BUILTIN_URL;
-        }
-        // ✨ 修改点1：第二个参数传空字符串 ""
-        String jsonStr = Decoder.getJson(UrlUtil.convert(configUrl), "");
-        com.google.gson.JsonObject configObj = com.google.gson.JsonParser.parseString(jsonStr).getAsJsonObject();
-        parseConfig(id, config, callback, configObj);
-
-    } catch (Throwable e) {
-        // ✨ 修改点2：使用我们刚加的 isCancel 方法，并用 printStackTrace 打印错误
-        if (isCancel(e)) return;
-        e.printStackTrace();
-        if (TextUtils.isEmpty(config.getUrl())) {
-            config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 1);
-            App.post(() -> callback.error(""));
-        } else {
-            App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
+        try {
+            OkHttp.cancel("live");
+            String configUrl = config.getUrl();
+            if (configUrl.equals(Constants.BUILTIN_PLACEHOLDER)) {
+                configUrl = Constants.BUILTIN_URL;
+            }
+            String jsonStr = Decoder.getJson(UrlUtil.convert(configUrl), "");
+            com.google.gson.JsonObject configObj = com.google.gson.JsonParser.parseString(jsonStr).getAsJsonObject();
+            parseConfig(id, config, callback, configObj);
+        } catch (Throwable e) {
+            if (isCancel(e)) return;
+            e.printStackTrace();
+            if (TextUtils.isEmpty(config.getUrl())) {
+                config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 1);
+                App.post(() -> callback.error(""));
+            } else {
+                App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
+            }
         }
     }
-}
 
     private void parseText(int id, Config config, Callback callback, String text) {
         Live live = new Live(parseName(config.getUrl()), config.getUrl()).sync();
