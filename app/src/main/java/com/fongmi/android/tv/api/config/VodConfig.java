@@ -22,6 +22,7 @@ import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
 import com.google.gson.JsonObject;
 
+import java.io.InterruptedIOException;
 import com.orhanobut.logger.Logger;
 import java.util.ArrayList;
 import java.util.Collections;
