@@ -128,9 +128,30 @@ public class LiveConfig {
     return false;
 }
 
+    public void load() {
+        load(new Callback() {
+            @Override
+            public void success() {
+            }
+
+            @Override
+            public void error(String msg) {
+            }
+        });
+    }
+    public void load(Callback callback) {
+        load(get().getId(), get().getConfig(), callback);
+    }
+    
+    // ✨ 新增的“接待员”3号：兼容带 Config 和 Callback 的调用
+    public void load(Config config, Callback callback) {
+        load(config.getId(), config, callback);
+    }
+
+    // ✨ 这是我们之前讨论过的“上游”方法，现在它变成了最终的执行者！
     public void load(int id, Config config, Callback callback) {
-    executor.execute(() -> loadConfig(id, config, callback)); // 把参数传下去
-}
+        executor.execute(() -> loadConfig(id, config, callback));
+    }
 
     private void loadConfig(int id, Config config, Callback callback) {
     try {
