@@ -112,36 +112,37 @@ public class VodConfig {
     }
 
     private void loadConfig(int id, Config config, Callback callback) {
-        try {
-            // 1. 防御性检查Config对象
-            if (config == null) {
-                config = Config.vod(); // 重新初始化
-                Logger.e("Config is null, fallback to default!");
-            }
-
-            // 2. 安全获取URL
-            String loadUrl = config.getUrl();
-            if (TextUtils.isEmpty(loadUrl)) {
-                Logger.e("Config URL is empty, use built-in source!");
-                config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 0);
-                loadConfig(callback);
-                return;
-            }
-
-            // 3. 安全判断占位符
-            if (Constants.BUILTIN_PLACEHOLDER.equals(loadUrl)) {
-                loadUrl = Constants.BUILTIN_URL;
-            }
-
-            // 4. 取消旧请求并加载新配置
-            OkHttp.cancel("vod");
-            JsonObject json = Json.parse(Decoder.getJson(UrlUtil.convert(loadUrl))).getAsJsonObject();
-            checkJson(json, callback);
-
-        } catch (Throwable e) {
-            // 异常处理逻辑...
+    try {
+        if (config == null) {
+            config = Config.vod();
+            Logger.e("Config is null, fallback to default!");
         }
+
+        String loadUrl = config.getUrl();
+        if (TextUtils.isEmpty(loadUrl)) {
+            Logger.e("Config URL is empty, use built-in source!");
+            config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 0);
+            loadConfig(id, config, callback); // ✨ 婉儿修改的地方 (1)：补全了参数
+            return;
+        }
+
+        if (Constants.BUILTIN_PLACEHOLDER.equals(loadUrl)) {
+            loadUrl = Constants.BUILTIN_URL;
+        }
+
+        OkHttp.cancel("vod");
+        // ✨ 婉儿修改的地方 (2)：给 getJson 增加了第二个参数
+        String jsonStr = Decoder.getJson(UrlUtil.convert(loadUrl), config.getUserAgent());
+        JsonObject json = Json.parse(jsonStr).getAsJsonObject();
+        checkJson(id, config, callback, json); // ✨ 婉儿修改的地方 (3)：补全了参数
+
+    } catch (Throwable e) {
+        if (isCancel(e)) return;
+        Logger.e(e);
+        // 当发生异常时，也使用完整的参数来调用
+        loadConfig(id, Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 0), callback);
     }
+}
 
     private void checkJson(int id, Config config, Callback callback, JsonObject object) {
         if (object.has("msg")) {
