@@ -28,7 +28,8 @@ import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
 import com.google.gson.JsonObject;
 
-import java.io.InterruptedIOException;
+import com.google.gson.JsonParser;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -51,6 +52,9 @@ public class LiveConfig {
     private List<String> ads;
     private Future<?> future;
     private boolean sync;
+
+    private java.util.concurrent.ExecutorService executor; // <--- 加在这里哦！
+
 
     private static class Loader {
         static volatile LiveConfig INSTANCE = new LiveConfig();
@@ -103,9 +107,16 @@ public class LiveConfig {
         return this;
     }
 
-    public LiveConfig clear() {
-        home = null;
-        lives = null;
+        public LiveConfig clear() {
+        this.home = null;
+        this.ads.clear();
+        this.rules.clear();
+        this.lives.clear();
+        // 婉儿在这里加一个对 executor 的处理，清空的时候也把线程池关掉，更安全哦
+        if (executor != null) {
+            executor.shutdownNow();
+            executor = null;
+        }
         return this;
     }
 
@@ -118,27 +129,33 @@ public class LiveConfig {
         load(new Callback());
     }
 
+    // 婉儿只保留了这一个 load(Callback callback) 方法
     public void load(Callback callback) {
-        int id = taskId.incrementAndGet();
-        if (future != null && !future.isDone()) future.cancel(true);
-        future = App.submit(() -> loadConfig(id, config, callback));
-        callback.start();
+        if (executor != null) executor.shutdownNow();
+        executor = java.util.concurrent.Executors.newSingleThreadExecutor();
+        executor.execute(() -> loadConfig(callback));
     }
 
     private void loadConfig(int id, Config config, Callback callback) {
         try {
-            OkHttp.cancel(TAG);
-            Server.get().start();
-            String json = Decoder.getJson(UrlUtil.convert(config.getUrl()), TAG);
-            if (Json.isObj(json)) checkJson(id, config, callback, Json.parse(json).getAsJsonObject());
-            else parseText(id, config, callback, json);
-            if (taskId.get() == id && config.equals(this.config)) config.update();
+            OkHttp.cancel("live");
+            String configUrl = config.getUrl();
+            if (configUrl.equals(Constants.BUILTIN_PLACEHOLDER)) {
+                configUrl = Constants.BUILTIN_URL; // 替换占位符为真实地址
+            }
+
+            String jsonStr = Decoder.getJson(UrlUtil.convert(configUrl));
+            com.google.gson.JsonObject configObj = com.google.gson.JsonParser.parseString(jsonStr).getAsJsonObject();
+            parseConfig(configObj, callback);
+
         } catch (Throwable e) {
+            if (TextUtils.isEmpty(config.getUrl())) {
+                config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 1);
+                App.post(() -> callback.error(""));
+            } else {
+                App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
+            }
             e.printStackTrace();
-            if (isCanceled(e)) return;
-            if (taskId.get() != id) return;
-            if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
-            else App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
         }
     }
 
@@ -149,6 +166,7 @@ public class LiveConfig {
         setHome(config, live, false);
         if (taskId.get() == id) App.post(callback::success);
     }
+
 
     private String parseName(String url) {
         Uri uri = Uri.parse(url);

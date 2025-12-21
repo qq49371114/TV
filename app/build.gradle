@@ -16,8 +16,8 @@ android {
         minSdk 24
         //noinspection ExpiredTargetSdkVersion
         targetSdk 28
-        versionCode 499
-        versionName "4.9.9"
+        versionCode 47601
+        versionName "4.7.6.01"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString(), "eventBusIndex": "com.fongmi.android.tv.event.EventIndex"]
@@ -111,10 +111,9 @@ dependencies {
     implementation 'androidx.media3:media3-extractor:' + media3Version
     implementation 'androidx.media3:media3-ui:' + media3Version
     implementation 'androidx.palette:palette:1.0.0'
-    implementation 'androidx.recyclerview:recyclerview:1.4.0'
-    implementation 'androidx.room:room-runtime:2.8.4'
-    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.2.0'
-    implementation 'androidx.viewpager2:viewpager2:1.1.0'
+    implementation 'androidx.security:security-crypto:1.1.0-alpha06'
+    implementation 'androidx.room:room-runtime:2.8.3'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     implementation 'cat.ereza:customactivityoncrash:2.4.0'
     implementation 'com.airbnb.android:lottie:6.7.1'
     implementation 'com.github.bassaer:materialdesigncolors:1.0.0'
@@ -126,6 +125,9 @@ dependencies {
     implementation 'com.github.teamnewpipe:NewPipeExtractor:v0.24.8'
     implementation 'com.google.android.material:material:1.13.0'
     implementation 'com.guolindev.permissionx:permissionx:1.8.1'
+    implementation 'com.orhanobut:logger:2.2.0'
+    implementation 'io.antmedia:rtmp-client:3.2.0'
+    implementation 'io.github.anilbeesetti:nextlib-media3ext:1.8.0-0.9.0'
     implementation 'javax.servlet:javax.servlet-api:3.1.0'
     implementation 'org.eclipse.jetty:jetty-client:8.1.21.v20160908'
     implementation('org.eclipse.jetty:jetty-server:8.1.21.v20160908') { exclude group: 'org.eclipse.jetty.orbit', module: 'javax.servlet' }
