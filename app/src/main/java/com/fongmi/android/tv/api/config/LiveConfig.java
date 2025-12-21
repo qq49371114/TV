@@ -128,17 +128,9 @@ public class LiveConfig {
     return false;
 }
 
-    public void load() {
-        if (sync) return;
-        load(new Callback());
-    }
-
-    // 婉儿只保留了这一个 load(Callback callback) 方法
-    public void load(Callback callback) {
-        if (executor != null) executor.shutdownNow();
-        executor = java.util.concurrent.Executors.newSingleThreadExecutor();
-        executor.execute(() -> loadConfig(callback));
-    }
+    public void load(int id, Config config, Callback callback) {
+    executor.execute(() -> loadConfig(id, config, callback)); // 把参数传下去
+}
 
     private void loadConfig(int id, Config config, Callback callback) {
     try {
