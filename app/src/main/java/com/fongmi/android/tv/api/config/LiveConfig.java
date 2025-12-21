@@ -121,9 +121,12 @@ public class LiveConfig {
         return this;
     }
 
-    private boolean isCanceled(Throwable e) {
-        return "Canceled".equals(e.getMessage()) || e instanceof InterruptedException || e instanceof InterruptedIOException;
-    }
+    private boolean isCancel(Throwable e) {
+    if (e instanceof java.io.InterruptedIOException) return true;
+    if (e instanceof InterruptedException) return true;
+    if (e.getMessage() != null && e.getMessage().equals("Canceled")) return true;
+    return false;
+}
 
     public void load() {
         if (sync) return;
