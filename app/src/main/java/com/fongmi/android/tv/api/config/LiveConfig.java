@@ -125,18 +125,22 @@ public class LiveConfig {
         return "Canceled".equals(e.getMessage()) || e instanceof InterruptedException || e instanceof InterruptedIOException;
     }
 
+    // 兼容不带参数的 load() 调用
     public void load() {
         if (sync) return;
         load(new Callback());
     }
 
-    // 婉儿只保留了这一个 load(Callback callback) 方法
+    // ✨ 婉儿修正的地方 (1)：这是最关键的修改！
     public void load(Callback callback) {
         if (executor != null) executor.shutdownNow();
         executor = java.util.concurrent.Executors.newSingleThreadExecutor();
-        executor.execute(() -> loadConfig(callback));
+        // 在调用 loadConfig 之前，先准备好 id 和 config！
+        Config config = get().getConfig();
+        executor.execute(() -> loadConfig(config.getId(), config, callback));
     }
 
+    // 这是核心的私有方法
     private void loadConfig(int id, Config config, Callback callback) {
         try {
             OkHttp.cancel("live");
@@ -148,7 +152,8 @@ public class LiveConfig {
             com.google.gson.JsonObject configObj = com.google.gson.JsonParser.parseString(jsonStr).getAsJsonObject();
             parseConfig(id, config, callback, configObj);
         } catch (Throwable e) {
-            if (isCancel(e)) return;
+            // ✨ 婉儿修正的地方 (2)：把 isCancel(e) 改成 isCanceled(e)
+            if (isCanceled(e)) return;
             e.printStackTrace();
             if (TextUtils.isEmpty(config.getUrl())) {
                 config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 1);
