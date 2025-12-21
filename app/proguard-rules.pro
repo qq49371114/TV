@@ -81,3 +81,7 @@
 
 # Zxing
 -keep class com.google.zxing.** { *; }
+
+# --- 👇 婉儿的魔法在这里！👇 ---
+# Chaquopy
+-keep class com.chaquo.python.** { *; }
