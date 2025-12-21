@@ -121,36 +121,20 @@ public class LiveConfig {
         return this;
     }
 
-    private boolean isCancel(Throwable e) {
-        if (e instanceof java.io.InterruptedIOException) return true;
-        if (e instanceof InterruptedException) return true;
-        if (e.getMessage() != null && e.getMessage().equals("Canceled")) return true;
-        return false;
+    private boolean isCanceled(Throwable e) {
+        return "Canceled".equals(e.getMessage()) || e instanceof InterruptedException || e instanceof InterruptedIOException;
     }
 
     public void load() {
-        load(new Callback() {
-            @Override
-            public void success() {}
-            @Override
-            public void error(String msg) {}
-        });
+        if (sync) return;
+        load(new Callback());
     }
 
-    // “接待员”2号：兼容只带一个 callback 的 load(callback) 调用
+    // 婉儿只保留了这一个 load(Callback callback) 方法
     public void load(Callback callback) {
-        Config config = get().getConfig();
-        load(config.getId(), config, callback);
-    }
-    
-    // “接待员”3号：兼容带 Config 和 Callback 的调用
-    public void load(Config config, Callback callback) {
-        load(config.getId(), config, callback);
-    }
-
-    // 最终的执行者
-    public void load(int id, Config config, Callback callback) {
-        executor.execute(() -> loadConfig(id, config, callback));
+        if (executor != null) executor.shutdownNow();
+        executor = java.util.concurrent.Executors.newSingleThreadExecutor();
+        executor.execute(() -> loadConfig(callback));
     }
 
     private void loadConfig(int id, Config config, Callback callback) {
