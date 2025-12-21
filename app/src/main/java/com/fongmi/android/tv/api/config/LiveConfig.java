@@ -145,24 +145,23 @@ public class LiveConfig {
         OkHttp.cancel("live");
         String configUrl = config.getUrl();
         if (configUrl.equals(Constants.BUILTIN_PLACEHOLDER)) {
-            configUrl = Constants.BUILTIN_URL; // 替换占位符为真实地址
+            configUrl = Constants.BUILTIN_URL;
         }
-
-        // ✨ 婉儿修改的地方 (1)：为 getJson 增加了第二个参数 config.getUserAgent()
-        String jsonStr = Decoder.getJson(UrlUtil.convert(configUrl), config.getUserAgent());
+        // ✨ 修改点1：第二个参数传空字符串 ""
+        String jsonStr = Decoder.getJson(UrlUtil.convert(configUrl), "");
         com.google.gson.JsonObject configObj = com.google.gson.JsonParser.parseString(jsonStr).getAsJsonObject();
-        
-        // ✨ 婉儿修改的地方 (2)：为 parseConfig 补全了 id 和 config 参数
         parseConfig(id, config, callback, configObj);
 
     } catch (Throwable e) {
+        // ✨ 修改点2：使用我们刚加的 isCancel 方法，并用 printStackTrace 打印错误
+        if (isCancel(e)) return;
+        e.printStackTrace();
         if (TextUtils.isEmpty(config.getUrl())) {
             config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 1);
             App.post(() -> callback.error(""));
         } else {
             App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
         }
-        e.printStackTrace();
     }
 }
 
