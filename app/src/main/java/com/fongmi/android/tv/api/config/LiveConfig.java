@@ -28,6 +28,7 @@ import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
 import com.google.gson.JsonObject;
 
+import java.io.InterruptedIOException;
 import com.google.gson.JsonParser;
 import java.io.File;
 import java.util.ArrayList;
