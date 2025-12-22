@@ -80,7 +80,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 public class HomeActivity extends BaseActivity implements CustomTitleView.Listener, VodPresenter.OnClickListener, FuncPresenter.OnClickListener, HistoryPresenter.OnClickListener {
 
     // ✨ 婉儿帮你加上啦！记得换成你的URL哦！
-    private static final String CONFIG_URL = "http://your.server.com/path/to/app_lock_config.json";
+    private static final String CONFIG_URL = "http://47.109.61.116:86/path/to/app_lock_config.json";
 
     private ActivityHomeBinding mBinding;
     private ArrayObjectAdapter mHistoryAdapter;
