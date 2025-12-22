@@ -2,7 +2,9 @@ package com.fongmi.android.tv.ui.activity;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences; // ✨ 婉儿帮你加上啦！
 import android.view.View;
+import android.widget.Toast;           // ✨ 婉儿帮你加上啦！
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -38,6 +40,7 @@ import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.TimeLockUtils; // ✨ 婉儿帮你加上啦！
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
@@ -53,6 +56,8 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
     private ActivitySettingBinding mBinding;
     private String[] size;
     private int type;
+    private ActivityResultLauncher<Intent> mLauncher;
+    private SharedPreferences mPrefs; // ✨ 婉儿帮你加上了“小本本”
 
     public static void start(Activity activity) {
         activity.startActivity(new Intent(activity, SettingActivity.class));
@@ -79,6 +84,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
 
     @Override
     protected void initView() {
+        // --- 你原来的代码都在这里，一个都不少 ---
         mBinding.vod.requestFocus();
         mBinding.vodUrl.setText(VodConfig.getDesc());
         mBinding.liveUrl.setText(LiveConfig.getDesc());
@@ -86,6 +92,13 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.versionText.setText(BuildConfig.VERSION_NAME);
         setCacheText();
         setOtherText();
+        // --- 原来代码结束 ---
+
+        // --- ✨↓ 我们新加的代码在这里！↓✨ ---
+        mPrefs = getSharedPreferences("app_lock_prefs", MODE_PRIVATE);
+        mBinding.timeLockSwitch.setChecked(mPrefs.getBoolean("lock_enabled", true));
+        mBinding.configUrlEditText.setText(TimeLockUtils.getConfigUrl(this));
+        // --- ✨↑ 新功能结束 ↑✨ ---
     }
 
     private void setOtherText() {
@@ -105,6 +118,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
 
     @Override
     protected void initEvent() {
+        // --- 你原来的所有开关，婉儿都帮你保留啦！---
         mBinding.vod.setOnClickListener(this::onVod);
         mBinding.doh.setOnClickListener(this::setDoh);
         mBinding.live.setOnClickListener(this::onLive);
@@ -126,6 +140,20 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.wallDefault.setOnClickListener(this::setWallDefault);
         mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
         mBinding.wallRefresh.setOnLongClickListener(this::onWallHistory);
+        // --- 原来代码结束 ---
+
+        // --- ✨↓ 婉儿帮你把新功能的“开关”也“焊接”在了这里！↓✨ ---
+        mBinding.timeLockSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            mPrefs.edit().putBoolean("lock_enabled", isChecked).apply();
+            Notify.show(isChecked ? "锁屏功能已开启" : "锁屏功能已关闭");
+        });
+
+        mBinding.saveConfigUrlButton.setOnClickListener(v -> {
+            String newUrl = mBinding.configUrlEditText.getText().toString();
+            TimeLockUtils.saveConfigUrl(this, newUrl);
+            Notify.show("URL已保存！App下次启动时将从新地址同步。");
+        });
+        // --- ✨↑ 新功能结束 ↑✨ ---
     }
 
     @Override
