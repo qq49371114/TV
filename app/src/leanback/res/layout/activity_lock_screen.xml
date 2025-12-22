@@ -8,7 +8,7 @@
     <LinearLayout
         android:layout_width="300dp"
         android:layout_height="wrap_content"
-        android:background="@drawable/shape_dialog_bg"
+        android:background="#333333" 
         android:orientation="vertical"
         android:padding="24dp">
 
@@ -38,6 +38,15 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:text="解 锁" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="24dp"
+            android:text="-- Designed by 婉儿 --"
+            android:textColor="#80FFFFFF"
+            android:textSize="12sp" />
 
     </LinearLayout>
 </RelativeLayout>
