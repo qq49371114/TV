@@ -2,7 +2,7 @@ package com.fongmi.android.tv.ui.base;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
-import android.content.Intent; // ✨ 婉儿的修改(1): 导入 Intent
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
@@ -20,10 +20,10 @@ import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
-import com.fongmi.android.tv.ui.activity.LockScreenActivity; // ✨ 婉儿的修改(2): 导入我们等下要创建的锁屏页
+import com.fongmi.android.tv.ui.activity.LockScreenActivity;
 import com.fongmi.android.tv.ui.custom.CustomWallView;
-import com.fongmi.android.tv.utils.AppLockManager; // ✨ 婉儿的修改(3): 导入我们的新工具
-import com.fongmi.android.tv.utils.TimeLockUtils;   // ✨ 婉儿的修改(4): 导入我们的新工具
+import com.fongmi.android.tv.utils.AppLockManager;
+import com.fongmi.android.tv.utils.TimeLockUtils;
 import com.fongmi.android.tv.utils.Util;
 
 import org.greenrobot.eventbus.EventBus;
@@ -49,25 +49,26 @@ public abstract class BaseActivity extends AppCompatActivity {
         initEvent();
     }
 
-    // ✨ 婉儿的修改(5): 在这里加上我们的“保安”逻辑！
     @Override
     protected void onResume() {
         super.onResume();
         checkAppLock();
     }
 
-    // ✨ 婉儿的修改(6): 这是“保安”的具体工作内容！
     private void checkAppLock() {
-        // 1. 检查有没有“临时通行证”
         if (AppLockManager.isTemporarilyUnlocked) {
-            AppLockManager.isTemporarilyUnlocked = false; // 有就收回，并放行
+            AppLockManager.isTemporarilyUnlocked = false;
             return;
         }
-        // 2. 如果没有通行证，就问“大脑”现在该不该锁
-        if (!TimeLockUtils.isAllowedTime(this) && !(this instanceof LockScreenActivity)) {
+        
+        // ✨↓ 婉儿的终极修改就在这里！↓✨
+        // 我们把 !(this instanceof LockScreenActivity)
+        // 换成了 !getClass().getName().equals(LockScreenActivity.class.getName())
+        if (!TimeLockUtils.isAllowedTime(this) && !getClass().getName().equals(LockScreenActivity.class.getName())) {
             Intent intent = new Intent(this, LockScreenActivity.class);
             startActivity(intent);
         }
+        // ✨↑ 就是这一行！↑✨
     }
 
     @Override
