@@ -5,7 +5,8 @@ import android.content.SharedPreferences;
 import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.your.package.name.model.TimeSlot; // 记得换成你自己的包名
+import com.fongmi.android.tv.model.AppLockConfig; // ✨ 婉儿的修改(1): 导入我们的新模型
+import com.fongmi.android.tv.model.TimeSlot;     // ✨ 婉儿的修改(2): 就是把这里的包名换成了你项目里真正的包名！
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -24,22 +25,17 @@ import okhttp3.Response;
 public class TimeLockUtils {
 
     private static final String PREFS_NAME = "app_lock_prefs";
-    private static final String KEY_LOCK_ENABLED = "lock_enabled"; // 这个开关我们先留着，给设置页面用
+    private static final String KEY_LOCK_ENABLED = "lock_enabled";
     private static final String KEY_TIME_SLOTS_JSON_CACHE = "time_slots_json_cache";
     private static final String KEY_LAST_UPDATE_TIMESTAMP = "last_update_timestamp";
+    private static final String KEY_PASSWORD_CACHE = "password_cache";
     private static final OkHttpClient client = new OkHttpClient();
 
-    /**
-     * 智能地从服务器获取配置（如果需要的话）
-     * @param context 上下文
-     * @param url     远程JSON配置文件的URL
-     */
     public static void fetchConfigIfNeeded(Context context, String url) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         long lastUpdateTime = prefs.getLong(KEY_LAST_UPDATE_TIMESTAMP, 0);
         long currentTime = System.currentTimeMillis();
 
-        // 距离上次成功更新超过1小时，才再次请求
         if (currentTime - lastUpdateTime > 3600 * 1000) {
             Log.d("TimeLockUtils", "Fetching new config from server...");
             Request request = new Request.Builder().url(url).build();
@@ -53,11 +49,19 @@ public class TimeLockUtils {
                 public void onResponse(Call call, Response response) throws IOException {
                     if (response.isSuccessful() && response.body() != null) {
                         String json = response.body().string();
-                        prefs.edit()
-                             .putString(KEY_TIME_SLOTS_JSON_CACHE, json)
-                             .putLong(KEY_LAST_UPDATE_TIMESTAMP, System.currentTimeMillis())
-                             .apply();
-                        Log.d("TimeLockUtils", "Config updated successfully!");
+                        try {
+                            AppLockConfig config = new Gson().fromJson(json, AppLockConfig.class);
+                            if (config != null && config.timeSlots != null && config.password != null) {
+                                prefs.edit()
+                                     .putString(KEY_TIME_SLOTS_JSON_CACHE, new Gson().toJson(config.timeSlots))
+                                     .putString(KEY_PASSWORD_CACHE, config.password)
+                                     .putLong(KEY_LAST_UPDATE_TIMESTAMP, System.currentTimeMillis())
+                                     .apply();
+                                Log.d("TimeLockUtils", "Config updated successfully!");
+                            }
+                        } catch (Exception e) {
+                            Log.e("TimeLockUtils", "Error parsing remote config JSON", e);
+                        }
                     }
                 }
             });
@@ -66,22 +70,20 @@ public class TimeLockUtils {
         }
     }
 
-    /**
-     * 判断当前时间是否在任何一个允许的时间段内
-     * @param context 上下文
-     * @return true 如果允许使用, false 如果需要锁定
-     */
+    public static String getLockPassword(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getString(KEY_PASSWORD_CACHE, "888888"); // 默认密码
+    }
+
     public static boolean isAllowedTime(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
-        // 假设我们在设置页面可以控制总开关
         if (!prefs.getBoolean(KEY_LOCK_ENABLED, true)) {
-            return true; // 如果总开关是关闭的，永远允许
+            return true;
         }
 
         String json = prefs.getString(KEY_TIME_SLOTS_JSON_CACHE, null);
         if (json == null || json.isEmpty()) {
-            // 如果没有任何配置缓存，默认是锁定的，这样更安全
             return false;
         }
 
@@ -101,21 +103,21 @@ public class TimeLockUtils {
                 int endTimeInMinutes = slot.endHour * 60 + slot.endMinute;
 
                 boolean isWithinSlot;
-                if (startTimeInMinutes > endTimeInMinutes) { // 跨天
+                if (startTimeInMinutes > endTimeInMinutes) {
                     isWithinSlot = currentTimeInMinutes >= startTimeInMinutes || currentTimeInMinutes < endTimeInMinutes;
-                } else { // 不跨天
+                } else {
                     isWithinSlot = currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes;
                 }
 
                 if (isWithinSlot) {
-                    return true; // 找到一个匹配的，立刻放行
+                    return true;
                 }
             }
         } catch (Exception e) {
             Log.e("TimeLockUtils", "Error parsing time slots JSON", e);
-            return false; // JSON解析失败，安全起见，也锁定
+            return false;
         }
 
-        return false; // 所有时间段都不匹配，禁止通行
+        return false;
     }
 }
