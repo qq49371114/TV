@@ -31,9 +31,7 @@ android {
         leanback {
             dimension "mode"
         }
-        mobile {
-            dimension "mode"
-        }
+        
         arm64_v8a {
             dimension "abi"
             ndk { abiFilters "arm64-v8a" }
