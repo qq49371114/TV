@@ -64,6 +64,7 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
+import com.fongmi.android.tv.utils.TimeLockUtils; 
 import com.github.catvod.net.OkHttp;
 import com.google.common.collect.Lists;
 
@@ -76,6 +77,10 @@ import java.util.List;
 import java.util.Optional;
 
 public class HomeActivity extends BaseActivity implements CustomTitleView.Listener, VodPresenter.OnClickListener, FuncPresenter.OnClickListener, HistoryPresenter.OnClickListener {
+public class HomeActivity extends BaseActivity implements CustomTitleView.Listener, VodPresenter.OnClickListener, FuncPresenter.OnClickListener, HistoryPresenter.OnClickListener {
+
+    // ✨ 婉儿帮你加上啦！记得换成你的URL哦！
+    private static final String CONFIG_URL = "http://your.server.com/path/to/app_lock_config.json";
 
     private ActivityHomeBinding mBinding;
     private ArrayObjectAdapter mHistoryAdapter;
@@ -109,6 +114,9 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     protected void onCreate(Bundle savedInstanceState) {
         SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
+
+        // ✨ 婉儿帮你加上啦！我们的“侦察兵”从这里出发！
+        TimeLockUtils.fetchConfigIfNeeded(this, CONFIG_URL);
     }
 
     @Override
