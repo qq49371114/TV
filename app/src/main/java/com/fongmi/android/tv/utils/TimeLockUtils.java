@@ -1,4 +1,4 @@
-package com.your.package.name.utils;
+package com.fongmi.android.tv.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
