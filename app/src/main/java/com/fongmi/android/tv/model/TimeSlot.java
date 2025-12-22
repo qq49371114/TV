@@ -1,4 +1,4 @@
-package com.your.package.name.model;
+package com.fongmi.android.tv.model;
 
 /**
  * 描述一个允许使用的时间段
