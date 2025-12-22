@@ -79,8 +79,7 @@ import java.util.Optional;
  
 public class HomeActivity extends BaseActivity implements CustomTitleView.Listener, VodPresenter.OnClickListener, FuncPresenter.OnClickListener, HistoryPresenter.OnClickListener {
 
-    // ✨ 婉儿帮你加上啦！记得换成你的URL哦！
-    private static final String CONFIG_URL = "http://47.109.61.116:86/path/to/app_lock_config.json";
+    // ✨ 婉儿的修改(1): 把写死的URL地址删掉啦！我们不再需要它了！
 
     private ActivityHomeBinding mBinding;
     private ArrayObjectAdapter mHistoryAdapter;
@@ -115,8 +114,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
 
-        // ✨ 婉儿帮你加上啦！我们的“侦察兵”从这里出发！
-        TimeLockUtils.fetchConfigIfNeeded(this, CONFIG_URL);
+        // ✨ 婉儿的修改(2): 我们的“侦察兵”现在变得更聪明啦！它会自己去找地址！
+        TimeLockUtils.fetchConfigIfNeeded(this);
     }
 
     @Override
