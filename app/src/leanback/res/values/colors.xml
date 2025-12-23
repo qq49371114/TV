@@ -4,4 +4,8 @@
     <color name="primaryDark">@color/black</color>
     <color name="accent">@color/blue_500</color>
 
+    <!-- ✨↓ 婉儿帮你把新颜料加在这里啦！↓✨ -->
+    <color name="white_12">#1FFFFFFF</color>
+    <!-- ✨↑ 就是这一行！↑✨ -->
+
 </resources>
