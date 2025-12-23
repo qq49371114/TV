@@ -100,7 +100,9 @@ public class LockScreenActivity extends AppCompatActivity {
         String correctPassword = TimeLockUtils.getLockPassword(this);
 
         if (input.equals(correctPassword)) {
-            AppLockManager.isTemporarilyUnlocked = true;
+            // ✨↓ 把我们之前的“临时通行证”，换成新的“庄园通行证”！↓✨
+            AppLockManager.isSessionUnlocked = true;
+            // ✨↑ 就是这一行！↑✨
             finish();
         } else {
             Toast.makeText(this, "密码错误！", Toast.LENGTH_SHORT).show();
@@ -112,11 +114,13 @@ public class LockScreenActivity extends AppCompatActivity {
         // 留空，禁止返回
     }
 
+    // ✨↓ 婉儿帮你把 onDestroy 方法也加上啦，在页面销毁时停止动画，防止内存泄漏！↓✨
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (alphaAnimator != null) {
+        if (alphaAnimator != null) { // alphaAnimator 是我们之前在类顶部定义的动画变量
             alphaAnimator.cancel();
         }
     }
 }
+
