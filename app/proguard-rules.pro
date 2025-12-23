@@ -90,5 +90,5 @@
 # 保护我们的锁屏配置模型，防止Gson在任何情况下解析失败
 -dontwarn com.fongmi.android.tv.model.**
 -keep class com.fongmi.android.tv.model.** { *; }
--keep class members class com.fongmi.android.tv.model.** { *; }
+-keepclassmembers class com.fongmi.android.tv.model.** { *; }
 # --- 👆 魔法结束 👆 ---
