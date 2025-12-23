@@ -2,7 +2,10 @@ package com.fongmi.android.tv.ui.base;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
-import android.content.Intent;
+import android.content.BroadcastReceiver; // ✨ 婉儿帮你加上啦！
+import android.content.Context;           // ✨ 婉儿帮你加上啦！
+import android.content.Intent;            // ✨ 婉儿帮你加上啦！
+import android.content.IntentFilter;      // ✨ 婉儿帮你加上啦！
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
@@ -20,6 +23,7 @@ import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.service.TimeLockService; // ✨ 婉儿帮你加上啦！
 import com.fongmi.android.tv.ui.activity.LockScreenActivity;
 import com.fongmi.android.tv.ui.custom.CustomWallView;
 import com.fongmi.android.tv.utils.AppLockManager;
@@ -36,6 +40,15 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     private OnBackInvokedCallback callback;
 
+    // ✨↓ 婉儿帮你加上了“信号接收器”！↓✨
+    private final BroadcastReceiver lockScreenReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // 收到“信号弹”后，立刻检查锁屏！
+            checkAppLock();
+        }
+    };
+
     protected abstract ViewBinding getBinding();
 
     @Override
@@ -49,10 +62,22 @@ public abstract class BaseActivity extends AppCompatActivity {
         initEvent();
     }
 
+    // ✨↓ 婉儿升级了 onResume 方法！↓✨
     @Override
     protected void onResume() {
         super.onResume();
+        // 当页面可见时，注册接收器，开始监听“信号弹”
+        registerReceiver(lockScreenReceiver, new IntentFilter(TimeLockService.ACTION_SHOW_LOCK_SCREEN));
+        // 同时，也像以前一样，主动检查一次
         checkAppLock();
+    }
+
+    // ✨↓ 婉儿新增了 onPause 方法，用来注销接收器！↓✨
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // 当页面不可见时，注销接收器，节省资源
+        unregisterReceiver(lockScreenReceiver);
     }
 
     private void checkAppLock() {
@@ -61,14 +86,10 @@ public abstract class BaseActivity extends AppCompatActivity {
             return;
         }
         
-        // ✨↓ 婉儿的终极修改就在这里！↓✨
-        // 我们把 !(this instanceof LockScreenActivity)
-        // 换成了 !getClass().getName().equals(LockScreenActivity.class.getName())
         if (!TimeLockUtils.isAllowedTime(this) && !getClass().getName().equals(LockScreenActivity.class.getName())) {
             Intent intent = new Intent(this, LockScreenActivity.class);
             startActivity(intent);
         }
-        // ✨↑ 就是这一行！↑✨
     }
 
     @Override
