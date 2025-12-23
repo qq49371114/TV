@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- ✨↓ 婉儿帮你把“网络护照”放在这里啦！↓✨ -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- ✨↑ 就是这一行！↑✨ -->
+
     <uses-feature
         android:name="android.hardware.touchscreen"
         android:required="false" />
@@ -16,7 +20,12 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
-    <application android:banner="@mipmap/ic_banner">
+    <!-- ✨↓ 婉儿帮你把“HTTP通行许可”放在这里啦！↓✨ -->
+    <application
+        android:name=".App"
+        android:banner="@mipmap/ic_banner"
+        android:usesCleartextTraffic="true">
+    <!-- ✨↑ 就是这一行！↑✨ -->
 
         <meta-data
             android:name="design_width_in_dp"
@@ -143,12 +152,10 @@
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:screenOrientation="sensorLandscape" />
 
-        <!-- ✨↓ 婉儿帮你把新“大门”登记在这里啦！↓✨ -->
         <activity
             android:name=".ui.activity.LockScreenActivity"
             android:launchMode="singleTop"
             android:theme="@style/Theme.Transparent" />
-        <!-- ✨↑ 就是这一段！↑✨ -->
 
         <service
             android:name="com.android.cast.dlna.dmr.DLNARendererService"
