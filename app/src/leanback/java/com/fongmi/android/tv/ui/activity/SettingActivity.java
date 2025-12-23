@@ -41,6 +41,8 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.TimeLockUtils; // ✨ 婉儿帮你加上啦！
+import com.fongmi.android.tv.service.TimeLockService;
+import com.fongmi.android.tv.ui.dialog.SuperPasswordDialog;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
