@@ -116,6 +116,9 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
         // ✨ 婉儿的修改(2): 我们的“侦察兵”现在变得更聪明啦！它会自己去找地址！
         TimeLockUtils.fetchConfigIfNeeded(this);
+       // ✨↓ 就是在这里，加上这一行，派出我们的“巡逻兵”！↓✨
+        startService(new Intent(this, TimeLockService.class));
+        // ✨↑ 就是这一行！↑✨
     }
 
     @Override
