@@ -48,7 +48,7 @@ jobs:
         run: |
           chmod +x gradlew
           # ✨↓ 婉儿帮你把指令修改在这里啦！↓✨
-          ./gradlew clean assembleLeanbackArm64_v8aRelease --parallel --daemon --warning-mode all --stacktrace
+          ./gradlew assembleLeanbackRelease --parallel --daemon --warning-mode all --stacktrace
           # ✨↑ 就是这一行！↑✨
 
       - name: Prepare App
