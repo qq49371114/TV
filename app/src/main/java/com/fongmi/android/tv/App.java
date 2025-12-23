@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.os.HandlerCompat;
 
+import com.fongmi.android.tv.utils.AppLockManager; // ✨ 婉儿帮你加上啦！
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.hook.Hook;
 import com.github.catvod.Init;
@@ -32,6 +33,10 @@ public class App extends Application implements Application.ActivityLifecycleCal
     private final Gson gson;
     private final long time;
     private Hook hook;
+
+    // ✨↓ 婉儿帮你加上了“状态探测器”的变量！↓✨
+    public static boolean isAppInForeground = false;
+    private int activityCount = 0;
 
     public App() {
         instance = this;
@@ -91,12 +96,24 @@ public class App extends Application implements Application.ActivityLifecycleCal
     public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
     }
 
+    // ✨↓ 婉儿升级了 onActivityStarted 方法！↓✨
     @Override
     public void onActivityStarted(@NonNull Activity activity) {
+        if (activityCount == 0) {
+            isAppInForeground = true;
+        }
+        activityCount++;
     }
 
+    // ✨↓ 婉儿升级了 onActivityStopped 方法！↓✨
     @Override
     public void onActivityStopped(@NonNull Activity activity) {
+        activityCount--;
+        if (activityCount == 0) {
+            isAppInForeground = false;
+            // 当我们离开庄园时，立刻作废通行证！
+            AppLockManager.isSessionUnlocked = false;
+        }
     }
 
     public static App get() {
