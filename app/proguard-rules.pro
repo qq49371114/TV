@@ -85,3 +85,10 @@
 # --- 👇 婉儿的魔法在这里！👇 ---
 # Chaquopy
 -keep class com.chaquo.python.** { *; }
+
+
+# --- 👇 婉儿的魔法在这里！👇 ---
+# 保护我们的锁屏配置模型不被混淆
+-keep class com.fongmi.android.tv.model.AppLockConfig { *; }
+-keep class com.fongmi.android.tv.model.TimeSlot { *; }
+# --- 👆 魔法结束 👆 ---
