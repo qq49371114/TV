@@ -2,7 +2,9 @@ package com.fongmi.android.tv.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.util.Log;
+import android.os.Handler;
+import android.os.Looper;
+import android.widget.Toast;
 
 import com.fongmi.android.tv.model.AppLockConfig;
 import com.fongmi.android.tv.model.TimeSlot;
@@ -22,7 +24,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 /**
- * 分时段锁屏的核心工具类 (云端同步版)
+ * 分时段锁屏的核心工具类 (云端同步版 + 大喇叭功能)
  * @author 婉儿
  */
 public class TimeLockUtils {
@@ -32,17 +34,24 @@ public class TimeLockUtils {
     private static final String KEY_TIME_SLOTS_JSON_CACHE = "time_slots_json_cache";
     private static final String KEY_LAST_UPDATE_TIMESTAMP = "last_update_timestamp";
     private static final String KEY_PASSWORD_CACHE = "password_cache";
-    private static final String KEY_CONFIG_URL = "config_url"; // ✨ 我们上次说好要加的URL存储key
+    private static final String KEY_CONFIG_URL = "config_url";
     private static final OkHttpClient client = new OkHttpClient();
+
+    // ✨↓ 婉儿新增的“大喇叭”！它能让我们的App在任何时候都能安全地弹出提示！↓✨
+    private static void showToast(Context context, String message) {
+        new Handler(Looper.getMainLooper()).post(() -> {
+            Toast.makeText(context.getApplicationContext(), message, Toast.LENGTH_LONG).show();
+        });
+    }
 
     /**
      * 智能地从服务器获取配置（如果需要的话）
      */
     public static void fetchConfigIfNeeded(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        String url = getConfigUrl(context); // ✨ 从小本本里读取URL
+        String url = getConfigUrl(context);
         if (url.isEmpty()) {
-            Log.d("TimeLockUtils", "Config URL is empty, skipping fetch.");
+            showToast(context, "错误：未在设置中输入远程URL！");
             return;
         }
 
@@ -51,12 +60,12 @@ public class TimeLockUtils {
 
         // 距离上次成功更新超过1小时，才再次请求
         if (currentTime - lastUpdateTime > 3600 * 1000) {
-            Log.d("TimeLockUtils", "Fetching new config from: " + url);
+            showToast(context, "开始同步远程配置...");
             Request request = new Request.Builder().url(url).build();
             client.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
-                    Log.e("TimeLockUtils", "Failed to fetch config: " + e.getMessage());
+                    showToast(context, "同步失败：" + e.getMessage());
                 }
 
                 @Override
@@ -64,25 +73,27 @@ public class TimeLockUtils {
                     if (response.isSuccessful() && response.body() != null) {
                         String json = response.body().string();
                         try {
-                            // ✨ 用新的模型来解析JSON
                             AppLockConfig config = new Gson().fromJson(json, AppLockConfig.class);
                             if (config != null && config.timeSlots != null && config.password != null) {
-                                // ✨ 把密码和时间段列表分别缓存起来
                                 prefs.edit()
                                      .putString(KEY_TIME_SLOTS_JSON_CACHE, new Gson().toJson(config.timeSlots))
                                      .putString(KEY_PASSWORD_CACHE, config.password)
                                      .putLong(KEY_LAST_UPDATE_TIMESTAMP, System.currentTimeMillis())
                                      .apply();
-                                Log.d("TimeLockUtils", "Config updated successfully!");
+                                showToast(context, "同步成功！");
+                            } else {
+                                showToast(context, "错误：JSON内容不完整！");
                             }
                         } catch (Exception e) {
-                            Log.e("TimeLockUtils", "Error parsing remote config JSON", e);
+                            showToast(context, "错误：JSON解析失败！");
                         }
+                    } else {
+                        showToast(context, "同步失败：服务器响应码 " + response.code());
                     }
                 }
             });
         } else {
-            Log.d("TimeLockUtils", "Config is fresh, using cache.");
+            showToast(context, "配置很新，使用缓存。");
         }
     }
 
@@ -152,7 +163,7 @@ public class TimeLockUtils {
                 }
             }
         } catch (Exception e) {
-            Log.e("TimeLockUtils", "Error parsing time slots JSON", e);
+            showToast(context, "错误：解析时间段JSON失败！");
             return false; // JSON解析失败，安全起见，也锁定
         }
 
