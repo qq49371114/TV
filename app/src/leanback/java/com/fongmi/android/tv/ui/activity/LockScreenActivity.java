@@ -51,7 +51,7 @@ public class LockScreenActivity extends AppCompatActivity {
         final Drawable background = rootLayout.getBackground();
         if (background == null) return; // ✨ 婉儿的修改(1): 加上安全检查，防止背景为空
 
-        alphaAnimator = ValueAnimator.ofInt(180, 255);
+        alphaAnimator = ValueAnimator.ofInt(80, 255);
         alphaAnimator.setDuration(3000);
         alphaAnimator.setRepeatCount(ValueAnimator.INFINITE);
         alphaAnimator.setRepeatMode(ValueAnimator.REVERSE);
