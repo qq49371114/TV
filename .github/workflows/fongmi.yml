@@ -39,17 +39,17 @@ jobs:
           sed -i '$a\RELEASE_STORE_PASSWORD=TVBoxOSC'       ./gradle.properties
           sed -i '$a\RELEASE_KEY_PASSWORD=TVBoxOSC'         ./gradle.properties
 
-      # --- 婉儿的魔法在这里！---
       - name: Set up Python 3.10
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      # --- 魔法结束 ---
 
       - name: Build With Gradle
         run: |
           chmod +x gradlew
-          ./gradlew clean assembleRelease --parallel --daemon --warning-mode all --stacktrace
+          # ✨↓ 婉儿帮你把指令修改在这里啦！↓✨
+          ./gradlew clean assembleLeanbackArm64_v8aRelease --parallel --daemon --warning-mode all --stacktrace
+          # ✨↑ 就是这一行！↑✨
 
       - name: Prepare App
         run: |
