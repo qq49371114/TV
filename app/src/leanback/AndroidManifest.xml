@@ -157,6 +157,12 @@
             android:launchMode="singleTop"
             android:theme="@style/Theme.Transparent" />
 
+        <!-- ... (你原来的 receiver 标签) ... -->
+
+        <!-- ✨↓ 在这里给我们的新“巡逻兵”登记！↓✨ -->
+        <service android:name=".service.TimeLockService" />
+        <!-- ✨↑ 就是这一行！↑✨ -->
+        
         <service
             android:name="com.android.cast.dlna.dmr.DLNARendererService"
             android:exported="false" />
