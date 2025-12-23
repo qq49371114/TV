@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.utils.AppLockManager;
+import com.fongmi.android.tv.utils.TimeLockUtils; // ✨ 婉儿帮你加上啦！
 
 /**
  * 锁屏页面
@@ -18,8 +19,8 @@ public class LockScreenActivity extends AppCompatActivity {
     private EditText passwordEditText;
     private Button unlockButton;
 
-    // ✨ 我们先把密码写死在这里，以后可以改成从设置里读取
-    private static final String CORRECT_PASSWORD = "waner666";
+    // ✨ 我们不再需要写死的密码啦！
+    // private static final String CORRECT_PASSWORD = "waner666";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -34,7 +35,10 @@ public class LockScreenActivity extends AppCompatActivity {
 
     private void checkPassword() {
         String input = passwordEditText.getText().toString();
-        if (input.equals(CORRECT_PASSWORD)) {
+        // ✨↓ 婉儿的修改在这里！我们现在从“核心大脑”里获取正确的密码！↓✨
+        String correctPassword = TimeLockUtils.getLockPassword(this);
+
+        if (input.equals(correctPassword)) {
             // 密码正确！
             // 1. 发放“临时通行证”
             AppLockManager.isTemporarilyUnlocked = true;
