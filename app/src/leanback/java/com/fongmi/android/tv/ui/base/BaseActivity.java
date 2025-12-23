@@ -2,10 +2,10 @@ package com.fongmi.android.tv.ui.base;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
-import android.content.BroadcastReceiver; // ✨ 婉儿帮你加上啦！
-import android.content.Context;           // ✨ 婉儿帮你加上啦！
-import android.content.Intent;            // ✨ 婉儿帮你加上啦！
-import android.content.IntentFilter;      // ✨ 婉儿帮你加上啦！
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
@@ -23,7 +23,7 @@ import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
-import com.fongmi.android.tv.service.TimeLockService; // ✨ 婉儿帮你加上啦！
+import com.fongmi.android.tv.service.TimeLockService;
 import com.fongmi.android.tv.ui.activity.LockScreenActivity;
 import com.fongmi.android.tv.ui.custom.CustomWallView;
 import com.fongmi.android.tv.utils.AppLockManager;
@@ -40,11 +40,9 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     private OnBackInvokedCallback callback;
 
-    // ✨↓ 婉儿帮你加上了“信号接收器”！↓✨
     private final BroadcastReceiver lockScreenReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            // 收到“信号弹”后，立刻检查锁屏！
             checkAppLock();
         }
     };
@@ -62,31 +60,26 @@ public abstract class BaseActivity extends AppCompatActivity {
         initEvent();
     }
 
-    // ✨↓ 婉儿升级了 onResume 方法！↓✨
     @Override
     protected void onResume() {
         super.onResume();
-        // 当页面可见时，注册接收器，开始监听“信号弹”
         registerReceiver(lockScreenReceiver, new IntentFilter(TimeLockService.ACTION_SHOW_LOCK_SCREEN));
-        // 同时，也像以前一样，主动检查一次
         checkAppLock();
     }
 
-    // ✨↓ 婉儿新增了 onPause 方法，用来注销接收器！↓✨
     @Override
     protected void onPause() {
         super.onPause();
-        // 当页面不可见时，注销接收器，节省资源
         unregisterReceiver(lockScreenReceiver);
     }
 
+    // ✨↓ 婉儿帮你把“保安”的检查逻辑，升级到了最终版！↓✨
     private void checkAppLock() {
-        if (AppLockManager.isTemporarilyUnlocked) {
-            AppLockManager.isTemporarilyUnlocked = false;
-            return;
-        }
-        
-        if (!TimeLockUtils.isAllowedTime(this) && !getClass().getName().equals(LockScreenActivity.class.getName())) {
+        // 保安现在只检查两件事：
+        // 1. 现在是不是到了锁定时间？
+        // 2. 用户手里有没有“庄园通行证”？
+        if (!TimeLockUtils.isAllowedTime(this) && !AppLockManager.isSessionUnlocked) {
+            // 如果两个条件都满足（该锁了，而且用户没票），就立刻弹出锁屏！
             Intent intent = new Intent(this, LockScreenActivity.class);
             startActivity(intent);
         }
