@@ -11,7 +11,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity; // ✨ 注意：它继承的是 AppCompatActivity 哦！
+import androidx.appcompat.app.AppCompatActivity;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.model.TimeSlot;
 import com.fongmi.android.tv.utils.AppLockManager;
@@ -29,7 +29,7 @@ public class LockScreenActivity extends AppCompatActivity {
     private Button unlockButton;
     private TextView timeSlotsTextView;
     private RelativeLayout rootLayout;
-    private ValueAnimator alphaAnimator; // ✨ 婉儿把动画变量提到了外面，方便管理
+    private ValueAnimator alphaAnimator;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -41,7 +41,6 @@ public class LockScreenActivity extends AppCompatActivity {
         unlockButton = findViewById(R.id.unlockButton);
         timeSlotsTextView = findViewById(R.id.timeSlotsTextView);
 
-        // ✨↓ 我们的“呼吸”魔法，保持不变！↓✨
         startBreathingAnimation();
 
         unlockButton.setOnClickListener(v -> checkPassword());
@@ -50,13 +49,18 @@ public class LockScreenActivity extends AppCompatActivity {
 
     private void startBreathingAnimation() {
         final Drawable background = rootLayout.getBackground();
+        if (background == null) return; // ✨ 婉儿的修改(1): 加上安全检查，防止背景为空
+
         alphaAnimator = ValueAnimator.ofInt(180, 255);
         alphaAnimator.setDuration(3000);
         alphaAnimator.setRepeatCount(ValueAnimator.INFINITE);
         alphaAnimator.setRepeatMode(ValueAnimator.REVERSE);
 
         alphaAnimator.addUpdateListener(animation -> {
-            background.setAlpha((Integer) animation.getAnimatedValue());
+            // ✨ 婉儿的修改(2): 每次更新都做一次安全检查
+            if (rootLayout != null && rootLayout.getBackground() != null) {
+                rootLayout.getBackground().setAlpha((Integer) animation.getAnimatedValue());
+            }
         });
         alphaAnimator.start();
     }
@@ -108,7 +112,6 @@ public class LockScreenActivity extends AppCompatActivity {
         // 留空，禁止返回
     }
 
-    // ✨↓ 婉儿帮你加上了 onDestroy，在页面销毁时停止动画，防止内存泄漏！↓✨
     @Override
     protected void onDestroy() {
         super.onDestroy();
