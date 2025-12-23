@@ -142,10 +142,28 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.wallRefresh.setOnLongClickListener(this::onWallHistory);
         // --- 原来代码结束 ---
 
-        // --- ✨↓ 婉儿帮你把新功能的“开关”也“焊接”在了这里！↓✨ ---
+        // --- ✨↓ 婉儿帮你把“总开关”升级成了“双重保险锁”！↓✨ ---
         mBinding.timeLockSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            mPrefs.edit().putBoolean("lock_enabled", isChecked).apply();
-            Notify.show(isChecked ? "锁屏功能已开启" : "锁屏功能已关闭");
+            if (isChecked) {
+                // 如果是想打开，那就直接打开
+                mPrefs.edit().putBoolean("lock_enabled", true).apply();
+                startService(new Intent(this, TimeLockService.class));
+                Notify.show("锁屏功能已开启，巡逻兵已上岗！");
+            } else {
+                // 如果是想关闭，那就要验证超级密码了！
+                // ✨ 最关键的一步：立刻把开关拨回“开”的状态，防止用户误以为已经关了！
+                buttonView.setChecked(true);
+                
+                // 弹出我们的“保险库”对话框
+                SuperPasswordDialog.newInstance(() -> {
+                    // 只有当超级密码正确，这里的代码才会被执行！
+                    mPrefs.edit().putBoolean("lock_enabled", false).apply();
+                    stopService(new Intent(this, TimeLockService.class));
+                    Notify.show("锁屏功能已关闭，巡逻兵已下班！");
+                    // 真正地把开关拨到“关”的状态
+                    buttonView.setChecked(false);
+                }).show(getSupportFragmentManager(), "SuperPassword");
+            }
         });
 
         mBinding.saveConfigUrlButton.setOnClickListener(v -> {
