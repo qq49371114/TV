@@ -116,6 +116,10 @@ public class ConfigDialog implements DialogInterface.OnDismissListener {
                 return LiveConfig.getUrl();
             case 2:
                 return WallConfig.getUrl();
+            // ✨↓ 就是在这里，加上我们新的“3号门牌”！↓✨
+            case 3:
+                return LockConfig.getUrl();
+            // ✨↑ 就是这一行！↑✨
             default:
                 return "";
         }
