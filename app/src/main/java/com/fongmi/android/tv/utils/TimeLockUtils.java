@@ -6,9 +6,10 @@ import android.os.Handler;
 import android.os.Looper;
 import android.widget.Toast;
 
-import com.fongmi.android.tv.model.AppLockConfig;
 import com.fongmi.android.tv.model.TimeSlot;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
@@ -24,7 +25,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 /**
- * 分时段锁屏的核心工具类 (云端同步版 + 大喇叭功能)
+ * 分时段锁屏的核心工具类 (最终安全版)
  * @author 婉儿
  */
 public class TimeLockUtils {
@@ -37,104 +38,109 @@ public class TimeLockUtils {
     private static final String KEY_CONFIG_URL = "config_url";
     private static final OkHttpClient client = new OkHttpClient();
 
-    // ✨↓ 婉儿新增的“大喇叭”！它能让我们的App在任何时候都能安全地弹出提示！↓✨
     private static void showToast(Context context, String message) {
         new Handler(Looper.getMainLooper()).post(() -> {
             Toast.makeText(context.getApplicationContext(), message, Toast.LENGTH_LONG).show();
         });
     }
 
-    /**
-     * 智能地从服务器获取配置（如果需要的话）
-     */
-    public static void fetchConfigIfNeeded(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+    private static void fetchFromServer(Context context, String url) {
+        Request request = new Request.Builder().url(url).build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                showToast(context, "同步失败：" + e.getMessage());
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response.isSuccessful() && response.body() != null) {
+                    String json = response.body().string();
+                    try {
+                        JsonObject jsonObject = new Gson().fromJson(json, JsonObject.class);
+                        if (jsonObject != null && jsonObject.has("password") && jsonObject.has("timeSlots")) {
+                            String password = jsonObject.get("password").getAsString();
+                            String timeSlotsJson = jsonObject.get("timeSlots").toString();
+                            SharedPreferences innerPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+                            innerPrefs.edit()
+                                 .putString(KEY_TIME_SLOTS_JSON_CACHE, timeSlotsJson)
+                                 .putString(KEY_PASSWORD_CACHE, password)
+                                 .putLong(KEY_LAST_UPDATE_TIMESTAMP, System.currentTimeMillis())
+                                 .apply();
+                            showToast(context, "同步成功！新配置已缓存！");
+                        } else {
+                            showToast(context, "错误：JSON内容不完整！");
+                        }
+                    } catch (JsonSyntaxException e) {
+                        showToast(context, "致命错误：JSON解析时崩溃！" + e.getMessage());
+                    }
+                } else {
+                    showToast(context, "同步失败：服务器响应码 " + response.code());
+                }
+            }
+        });
+    }
+
+    public static void forceFetchConfig(Context context) {
         String url = getConfigUrl(context);
         if (url.isEmpty()) {
             showToast(context, "错误：未在设置中输入远程URL！");
             return;
         }
+        showToast(context, "开始强制同步远程配置...");
+        fetchFromServer(context, url);
+    }
 
+    public static void fetchConfigIfNeeded(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         long lastUpdateTime = prefs.getLong(KEY_LAST_UPDATE_TIMESTAMP, 0);
         long currentTime = System.currentTimeMillis();
-
-        // 距离上次成功更新超过1小时，才再次请求
         if (currentTime - lastUpdateTime > 3600 * 1000) {
-            showToast(context, "开始同步远程配置...");
-            Request request = new Request.Builder().url(url).build();
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    showToast(context, "同步失败：" + e.getMessage());
-                }
-
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    if (response.isSuccessful() && response.body() != null) {
-                        String json = response.body().string();
-                        try {
-                            AppLockConfig config = new Gson().fromJson(json, AppLockConfig.class);
-                            if (config != null && config.timeSlots != null && config.password != null) {
-                                prefs.edit()
-                                     .putString(KEY_TIME_SLOTS_JSON_CACHE, new Gson().toJson(config.timeSlots))
-                                     .putString(KEY_PASSWORD_CACHE, config.password)
-                                     .putLong(KEY_LAST_UPDATE_TIMESTAMP, System.currentTimeMillis())
-                                     .apply();
-                                showToast(context, "同步成功！");
-                            } else {
-                                showToast(context, "错误：JSON内容不完整！");
-                            }
-                        } catch (Exception e) {
-                            showToast(context, "错误：JSON解析失败！");
-                        }
-                    } else {
-                        showToast(context, "同步失败：服务器响应码 " + response.code());
-                    }
-                }
-            });
-        } else {
-            showToast(context, "配置很新，使用缓存。");
+            String url = getConfigUrl(context);
+            if (!url.isEmpty()) {
+                fetchFromServer(context, url);
+            }
         }
     }
 
-    /**
-     * 保存远程配置的URL地址
-     */
     public static void saveConfigUrl(Context context, String url) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         prefs.edit().putString(KEY_CONFIG_URL, url).apply();
     }
 
-    /**
-     * 读取保存的URL地址
-     */
     public static String getConfigUrl(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         return prefs.getString(KEY_CONFIG_URL, "");
     }
 
-    /**
-     * 获取缓存的解锁密码
-     */
     public static String getLockPassword(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        return prefs.getString(KEY_PASSWORD_CACHE, "888888"); // 提供一个默认密码
+        return prefs.getString(KEY_PASSWORD_CACHE, "888888");
     }
 
     /**
-     * 判断当前时间是否在任何一个允许的时间段内
+     * 判断当前时间是否在任何一个允许的时间段内 (最终安全版)
      */
     public static boolean isAllowedTime(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
         if (!prefs.getBoolean(KEY_LOCK_ENABLED, true)) {
-            return true; // 如果总开关是关闭的，永远允许
+            return true;
         }
 
+        // ✨↓ 婉儿的最终修改就在这里！↓✨
+        // 1. 检查URL是否已配置
+        String url = getConfigUrl(context);
+        if (url.isEmpty()) {
+            return false; // 如果没有设置远程URL，就直接锁定！
+        }
+
+        // 2. 检查时间段缓存是否存在
         String json = prefs.getString(KEY_TIME_SLOTS_JSON_CACHE, null);
         if (json == null || json.isEmpty()) {
-            return false; // 如果没有任何配置缓存，默认是锁定的
+            return false; // 如果URL已设置，但还没有成功同步过数据，也直接锁定！
         }
+        // ✨↑ 修改结束！↑✨
 
         try {
             Type type = new TypeToken<ArrayList<TimeSlot>>() {}.getType();
@@ -152,21 +158,21 @@ public class TimeLockUtils {
                 int endTimeInMinutes = slot.endHour * 60 + slot.endMinute;
 
                 boolean isWithinSlot;
-                if (startTimeInMinutes > endTimeInMinutes) { // 跨天
+                if (startTimeInMinutes > endTimeInMinutes) {
                     isWithinSlot = currentTimeInMinutes >= startTimeInMinutes || currentTimeInMinutes < endTimeInMinutes;
-                } else { // 不跨天
+                } else {
                     isWithinSlot = currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes;
                 }
 
                 if (isWithinSlot) {
-                    return true; // 找到一个匹配的，立刻放行
+                    return true;
                 }
             }
         } catch (Exception e) {
             showToast(context, "错误：解析时间段JSON失败！");
-            return false; // JSON解析失败，安全起见，也锁定
+            return false;
         }
 
-        return false; // 所有时间段都不匹配，禁止通行
+        return false;
     }
 }
