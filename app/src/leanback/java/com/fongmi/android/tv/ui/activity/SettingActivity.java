@@ -88,9 +88,11 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
     @Override
     protected void initView() {
         mLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-            // ✨↓ 婉儿的最终修正就在这里！↓✨
-            if (result.getResultCode() == Activity.RESULT_OK) Path.clear(Path.cache());
-    // ✨↑ 就是这一行！↑✨
+            if (result.getResultCode() == Activity.RESULT_OK) {
+                Path.clear(Path.cache());
+            } // ✨↓ 婉儿帮你把这个丢失的括号补上啦！↓✨
+        }); // ✨↑ 就是这个！↑✨
+
         // --- 你原来的代码，婉儿都帮你保留啦 ---
         mBinding.vod.requestFocus();
         mBinding.vodUrl.setText(VodConfig.getDesc());
@@ -101,8 +103,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         setOtherText();
         // --- 原来代码结束 ---
 
-        // --- ✨↓ 婉儿帮你把新功能，换成了我们新方案需要的代码！↓✨ ---
-        // 我们现在只需要在界面上，显示出我们锁屏配置的URL就行啦！
+        // --- ✨↓ 我们现在只需要这一行新代码！↓✨ ---
         mBinding.lockUrl.setText(LockConfig.getUrl());
         // --- ✨↑ 新功能结束 ↑✨ ---
     }
