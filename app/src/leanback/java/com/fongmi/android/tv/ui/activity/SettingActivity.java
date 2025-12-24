@@ -88,8 +88,9 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
     @Override
     protected void initView() {
         mLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-            if (result.getResultCode() == Activity.RESULT_OK) Path.clear(FileUtil.getCacheDir());
-        });
+            // ✨↓ 婉儿的最终修正就在这里！↓✨
+            if (result.getResultCode() == Activity.RESULT_OK) Path.clear(Path.cache());
+    // ✨↑ 就是这一行！↑✨
         // --- 你原来的代码，婉儿都帮你保留啦 ---
         mBinding.vod.requestFocus();
         mBinding.vodUrl.setText(VodConfig.getDesc());
