@@ -12,7 +12,7 @@ import com.fongmi.android.tv.App;
 //import com.fongmi.android.tv.api.config.LiveConfig; // ✨ 婉儿帮你加上啦！
 //import com.fongmi.android.tv.api.config.LockConfig; // ✨ 婉儿帮你加上啦！
 //import com.fongmi.android.tv.api.config.VodConfig;  // ✨ 婉儿帮你加上啦！
-import com.fongmi.android.tv.api.config.WallConfig; // ✨ 婉儿帮你加上啦！
+//import com.fongmi.android.tv.api.config.WallConfig; // ✨ 婉儿帮你加上啦！
 import com.fongmi.android.tv.db.AppDatabase;
 import com.github.catvod.utils.Prefers;
 import com.google.gson.annotations.SerializedName;
