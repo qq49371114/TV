@@ -149,12 +149,25 @@ public class ConfigDialog implements DialogInterface.OnDismissListener {
     }
 
     private void onPositive(View view) {
-        String name = binding.name.getText().toString().trim();
         String text = binding.text.getText().toString().trim();
-        if (edit) Config.find(url, type).url(text).update();
-        if (text.isEmpty()) Config.delete(url, type);
-        if (name.isEmpty()) callback.setConfig(Config.find(text, type));
-        else callback.setConfig(Config.find(text, name, type));
+
+        // ✨↓ 婉儿的最终修改就在这里！↓✨
+        // 我们在这里加一个判断，如果是我们锁屏的“3号门牌”，就走特殊通道！
+        if (type == 3) {
+            // 直接命令我们的“锁屏配置管家”去保存新的URL！
+            LockConfig.setUrl(text);
+            // 然后手动通知设置页面刷新一下显示
+            RefreshEvent.config();
+        } else {
+            // 如果不是3号，那就还走原来的老路，一点都不会影响！
+            String name = binding.name.getText().toString().trim();
+            if (edit) Config.find(url, type).url(text).update();
+            if (text.isEmpty()) Config.delete(url, type);
+            if (name.isEmpty()) callback.setConfig(Config.find(text, type));
+            else callback.setConfig(Config.find(text, name, type));
+        }
+        // ✨↑ 修改结束！↑✨
+
         dialog.dismiss();
     }
 
