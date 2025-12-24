@@ -90,7 +90,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
     @Override
     protected void initView() {
         mLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-            if (result.getResultCode() == Activity.RESULT_OK) Path.clear();
+            if (result.getResultCode() == Activity.RESULT_OK) Path.clear(FileUtil.getCacheDir());
         });
         mBinding.vod.requestFocus();
         mBinding.vodUrl.setText(VodConfig.getDesc());
