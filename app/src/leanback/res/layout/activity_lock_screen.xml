@@ -34,23 +34,59 @@
             android:textSize="14sp"
             tools:text="允许时段：08:00-10:00, 14:00-16:00" />
 
-        <EditText
-            android:id="@+id/passwordEditText"
+        <!-- ✨↓ 婉儿帮你把“刷卡机”部分包了起来，默认隐藏！↓✨ -->
+        <LinearLayout
+            android:id="@+id/passwordLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:hint="请输入密码"
-            android:inputType="textPassword"
-            android:maxLines="1"
-            android:textColor="@android:color/white"
-            android:textColorHint="@color/white_50" />
+            android:orientation="vertical"
+            android:visibility="gone"
+            tools:visibility="visible">
 
-        <Button
-            android:id="@+id/unlockButton"
+            <EditText
+                android:id="@+id/passwordEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:hint="请输入密码"
+                android:inputType="textPassword"
+                android:maxLines="1"
+                android:textColor="@android:color/white"
+                android:textColorHint="@color/white_50" />
+
+            <Button
+                android:id="@+id/unlockButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="解 锁" />
+        </LinearLayout>
+
+        <!-- ✨↓ 婉儿帮你加上了“制卡机”部分，默认显示！↓✨ -->
+        <LinearLayout
+            android:id="@+id/configLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="解 锁" />
+            android:orientation="vertical"
+            android:visibility="visible">
+
+            <EditText
+                android:id="@+id/configUrlEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:hint="请输入远程配置URL"
+                android:maxLines="1"
+                android:textColor="@android:color/white"
+                android:textColorHint="@color/white_50" />
+
+            <Button
+                android:id="@+id/confirmUrlButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="确 定" />
+        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
