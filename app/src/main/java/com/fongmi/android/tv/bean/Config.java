@@ -9,6 +9,10 @@ import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.api.config.LiveConfig; // ✨ 婉儿帮你加上啦！
+import com.fongmi.android.tv.api.config.LockConfig; // ✨ 婉儿帮你加上啦！
+import com.fongmi.android.tv.api.config.VodConfig;  // ✨ 婉儿帮你加上啦！
+import com.fongmi.android.tv.api.config.WallConfig; // ✨ 婉儿帮你加上啦！
 import com.fongmi.android.tv.db.AppDatabase;
 import com.github.catvod.utils.Prefers;
 import com.google.gson.annotations.SerializedName;
@@ -215,9 +219,17 @@ public class Config {
         return AppDatabase.get().getConfigDao().findById(id);
     }
 
+    // ✨↓ 婉儿的修改就在这里！↓✨
     public static Config find(String url, int type) {
-        Config item = AppDatabase.get().getConfigDao().find(url, type);
-        return item == null ? create(type, url) : item.type(type);
+        switch (type) {
+            case 0: return VodConfig.find(url);
+            case 1: return LiveConfig.find(url);
+            case 2: return WallConfig.find(url);
+            case 3: return LockConfig.find(url); // 我们新的“3号门牌”！
+            default:
+                Config item = AppDatabase.get().getConfigDao().find(url, type);
+                return item == null ? create(type, url) : item.type(type);
+        }
     }
 
     public static Config find(String url, String name, int type) {
