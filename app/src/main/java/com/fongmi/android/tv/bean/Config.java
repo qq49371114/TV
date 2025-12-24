@@ -221,15 +221,8 @@ public class Config {
 
     // ✨↓ 婉儿的修改就在这里！↓✨
     public static Config find(String url, int type) {
-        switch (type) {
-            case 0: return VodConfig.find(url);
-            case 1: return LiveConfig.find(url);
-            case 2: return WallConfig.find(url);
-            case 3: return LockConfig.find(url); // 我们新的“3号门牌”！
-            default:
-                Config item = AppDatabase.get().getConfigDao().find(url, type);
-                return item == null ? create(type, url) : item.type(type);
-        }
+        Config item = AppDatabase.get().getConfigDao().find(url, type);
+        return item == null ? create(type, url) : item.type(type);
     }
 
     public static Config find(String url, String name, int type) {
