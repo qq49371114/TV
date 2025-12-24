@@ -41,6 +41,9 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.TimeLockUtils; // ✨ 婉儿帮你加上啦！
+import com.fongmi.android.tv.api.config.LockConfig; // ✨ 婉儿帮你加上啦！
+import com.fongmi.android.tv.service.TimeLockService; // ✨ 婉儿帮你加上啦！
+import com.fongmi.android.tv.ui.dialog.SuperPasswordDialog; // ✨ 婉儿帮你加上啦！
 import com.fongmi.android.tv.service.TimeLockService;
 import com.fongmi.android.tv.ui.dialog.SuperPasswordDialog;
 import com.github.catvod.bean.Doh;
@@ -86,7 +89,9 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
 
     @Override
     protected void initView() {
-        // --- 你原来的代码都在这里，一个都不少 ---
+        mLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == Activity.RESULT_OK) Path.clear();
+        });
         mBinding.vod.requestFocus();
         mBinding.vodUrl.setText(VodConfig.getDesc());
         mBinding.liveUrl.setText(LiveConfig.getDesc());
@@ -94,13 +99,13 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.versionText.setText(BuildConfig.VERSION_NAME);
         setCacheText();
         setOtherText();
-        // --- 原来代码结束 ---
 
-        // --- ✨↓ 我们新加的代码在这里！↓✨ ---
+        // --- ✨↓ 婉儿帮你把【两种方案】的代码都放在这里啦！↓✨ ---
+        mBinding.lockUrl.setText(LockConfig.getUrl());
         mPrefs = getSharedPreferences("app_lock_prefs", MODE_PRIVATE);
         mBinding.timeLockSwitch.setChecked(mPrefs.getBoolean("lock_enabled", true));
         mBinding.configUrlEditText.setText(TimeLockUtils.getConfigUrl(this));
-        // --- ✨↑ 新功能结束 ↑✨ ---
+        // --- ✨↑ 新功能代码结束 ↑✨ ---
     }
 
     private void setOtherText() {
@@ -120,7 +125,6 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
 
     @Override
     protected void initEvent() {
-        // --- 你原来的所有开关，婉儿都帮你保留啦！---
         mBinding.vod.setOnClickListener(this::onVod);
         mBinding.doh.setOnClickListener(this::setDoh);
         mBinding.live.setOnClickListener(this::onLive);
@@ -142,28 +146,23 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.wallDefault.setOnClickListener(this::setWallDefault);
         mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
         mBinding.wallRefresh.setOnLongClickListener(this::onWallHistory);
-        // --- 原来代码结束 ---
 
-        // --- ✨↓ 婉儿帮你把“总开关”升级到了最终的完美形态！↓✨ ---
+        // --- ✨↓ 婉儿帮你把【两种方案】的开关都装好啦！↓✨ ---
+        mBinding.lockSetting.setOnClickListener(v -> {
+            ConfigDialog.create(this).type(3).launcher(mLauncher).show();
+        });
+
         mBinding.timeLockSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                // 如果是想打开，那就直接打开
                 mPrefs.edit().putBoolean("lock_enabled", true).apply();
                 startService(new Intent(this, TimeLockService.class));
                 Notify.show("锁屏功能已开启，巡逻兵已上岗！");
             } else {
-                // 如果是想关闭，那就要验证超级密码了！
-                // 立刻把开关拨回“开”的状态，防止用户误以为已经关了
                 buttonView.setChecked(true);
-                
-                // 弹出我们的“保险库”对话框
-                // ✨↓ 婉儿的修改就在这里！我们把“真正关闭开关”这个动作，从对话框的回调里，拿回到了 SettingActivity 自己身上！↓✨
                 SuperPasswordDialog.newInstance(() -> {
-                    // 只有当超级密码正确，这里的代码才会被执行！
                     mPrefs.edit().putBoolean("lock_enabled", false).apply();
                     stopService(new Intent(this, TimeLockService.class));
                     Notify.show("锁屏功能已关闭，巡逻兵已下班！");
-                    // 现在，我们自己来更新开关的状态！
                     mBinding.timeLockSwitch.setChecked(false);
                 }).show(getSupportFragmentManager(), "SuperPassword");
             }
@@ -176,7 +175,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         });
         // --- ✨↑ 新功能结束 ↑✨ ---
     }
-
+    
     @Override
     public void setConfig(Config config) {
         if (config.getUrl().startsWith("file")) {
