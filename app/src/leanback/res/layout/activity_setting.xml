@@ -425,12 +425,17 @@
             </androidx.appcompat.widget.LinearLayoutCompat>
         </androidx.appcompat.widget.LinearLayoutCompat>
         
-        <!-- ✨↓ 我们现在只需要这一个新按钮！↓✨ -->
+        <!-- ✨↓ 婉儿帮你把新功能，完美地放在了这里！↓✨ -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="24dp"
+            android:background="@color/white_12" />
+
         <androidx.appcompat.widget.LinearLayoutCompat
-            android:id="@+id/lockSetting"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="8dp"
             android:background="@drawable/selector_item"
             android:focusable="true"
             android:focusableInTouchMode="true"
@@ -441,24 +446,17 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="分时段锁屏配置 (By 婉儿)"
+                android:text="开启分时段锁屏 (By 婉儿)"
                 android:textColor="@color/white"
                 android:textSize="18sp" />
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/lockUrl"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ellipsize="middle"
-                android:gravity="end"
-                android:singleLine="true"
-                android:textColor="@color/white_50"
-                android:textSize="18sp"
-                tools:text="http://..." />
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/timeLockSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
-        <!-- ✨↑ 就这一个！↑✨ -->
+        <!-- ✨↑ 新功能结束 ↑✨ -->
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 </androidx.core.widget.NestedScrollView>
