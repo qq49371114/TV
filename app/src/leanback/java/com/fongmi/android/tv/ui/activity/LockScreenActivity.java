@@ -8,7 +8,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout; // ✨ 婉儿帮你加上啦！
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,7 +31,6 @@ public class LockScreenActivity extends AppCompatActivity {
     private TextView timeSlotsTextView;
     private ValueAnimator alphaAnimator;
 
-    // ✨↓ 婉儿帮你把两种模式的“家具”都声明好啦！↓✨
     private LinearLayout passwordLayout, configLayout;
     private EditText passwordEditText, configUrlEditText;
     private Button unlockButton, confirmUrlButton;
@@ -41,7 +40,6 @@ public class LockScreenActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lock_screen);
 
-        // 初始化所有“家具”
         rootLayout = findViewById(R.id.rootLayout);
         timeSlotsTextView = findViewById(R.id.timeSlotsTextView);
         passwordLayout = findViewById(R.id.passwordLayout);
@@ -51,13 +49,10 @@ public class LockScreenActivity extends AppCompatActivity {
         unlockButton = findViewById(R.id.unlockButton);
         confirmUrlButton = findViewById(R.id.confirmUrlButton);
 
-        // ✨↓ 这就是我们的“双模切换”逻辑！↓✨
         String url = TimeLockUtils.getConfigUrl(this);
         if (TextUtils.isEmpty(url)) {
-            // 如果没有配置URL，就进入“制卡模式”
             showConfigMode();
         } else {
-            // 如果已经配置了URL，就进入“刷卡模式”
             showPasswordMode();
         }
 
@@ -75,10 +70,8 @@ public class LockScreenActivity extends AppCompatActivity {
                 Toast.makeText(this, "URL不能为空！", Toast.LENGTH_SHORT).show();
                 return;
             }
-            // 保存URL，并立刻强制同步一次！
             TimeLockUtils.saveConfigUrl(this, newUrl);
             TimeLockUtils.forceFetchConfig(this);
-            // 提示用户，并让他重新进入App来使配置生效
             Toast.makeText(this, "配置已保存！请重启App以使新配置生效！", Toast.LENGTH_LONG).show();
         });
     }
@@ -86,14 +79,13 @@ public class LockScreenActivity extends AppCompatActivity {
     private void showPasswordMode() {
         passwordLayout.setVisibility(View.VISIBLE);
         configLayout.setVisibility(View.GONE);
-        loadAndDisplayTimeSlots(); // 加载并显示时间规则
+        loadAndDisplayTimeSlots();
         unlockButton.setOnClickListener(v -> checkPassword());
     }
 
     private void startBreathingAnimation() {
         final Drawable background = rootLayout.getBackground();
         if (background == null) return;
-        // ✨ 婉儿帮你保留了你设置的动画参数！
         alphaAnimator = ValueAnimator.ofInt(100, 255);
         alphaAnimator.setDuration(5000);
         alphaAnimator.setRepeatCount(ValueAnimator.INFINITE);
@@ -110,7 +102,7 @@ public class LockScreenActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("app_lock_prefs", MODE_PRIVATE);
         String json = prefs.getString("time_slots_json_cache", null);
         if (json == null || json.isEmpty()) {
-            timeSlotsTextView.setText("未设置允许时段");
+            timeSlotsTextView.setText("未同步到允许时段，请检查网络或配置");
             return;
         }
         try {
@@ -134,14 +126,23 @@ public class LockScreenActivity extends AppCompatActivity {
         }
     }
 
+    // ✨↓ 婉儿的最终修改就在这里！我们现在需要两把钥匙才能开门！↓✨
     private void checkPassword() {
         String input = passwordEditText.getText().toString();
-        String correctPassword = TimeLockUtils.getLockPassword(this);
-        if (input.equals(correctPassword)) {
-            AppLockManager.isSessionUnlocked = true;
-            finish();
+        
+        // 我们先检查，系统里到底有没有配置好数据
+        if (TimeLockUtils.isConfigReady(this)) {
+            // 如果配置准备好了，就走正常的远程密码解锁流程
+            String correctPassword = TimeLockUtils.getLockPassword(this);
+            if (input.equals(correctPassword)) {
+                AppLockManager.isSessionUnlocked = true;
+                finish();
+            } else {
+                Toast.makeText(this, "密码错误！", Toast.LENGTH_SHORT).show();
+            }
         } else {
-            Toast.makeText(this, "密码错误！", Toast.LENGTH_SHORT).show();
+            // 如果配置没准备好，就提示用户，并且【不解锁】！
+            Toast.makeText(this, "错误：未成功同步远程数据，无法解锁！", Toast.LENGTH_LONG).show();
         }
     }
 
