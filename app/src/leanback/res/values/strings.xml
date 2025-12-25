@@ -10,6 +10,9 @@
     <string name="home_setting">Setting</string>
     <string name="home_history">History</string>
     <string name="home_recommend">Recommend</string>
+    <string name="setting_lock_on">...</string>
+    <string name="setting_lock_off">...</string>
+    <string name="setting_lock_url_empty">...</string>
 
     <!-- Cast -->
     <string name="cast_waiting">Waiting for connection…</string>
