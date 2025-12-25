@@ -91,6 +91,13 @@ public class TimeLockUtils {
         fetchFromServer(context, url);
     }
 
+    public static boolean isConfigReady(Context context) {
+    SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+    String url = prefs.getString(KEY_CONFIG_URL, "");
+    String jsonCache = prefs.getString(KEY_TIME_SLOTS_JSON_CACHE, "");
+    return !url.isEmpty() && !jsonCache.isEmpty();
+}
+
     public static void fetchConfigIfNeeded(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         long lastUpdateTime = prefs.getLong(KEY_LAST_UPDATE_TIMESTAMP, 0);
