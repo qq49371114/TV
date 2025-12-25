@@ -12,7 +12,10 @@ public class TimeLockService extends Service {
 
     private Handler handler = new Handler(Looper.getMainLooper());
     private Runnable checkTimeRunnable;
-    public static final String ACTION_SHOW_LOCK_SCREEN = "com.fongmi.android.tv.ACTION_SHOW_LOCK_SCREEN";
+    // ✨↓ 婉儿的最终修改就在这里！我们让“信号频率”变得智能！↓✨
+    public static String getAction() {
+        return App.get().getPackageName() + ".ACTION_SHOW_LOCK_SCREEN";
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -20,10 +23,10 @@ public class TimeLockService extends Service {
             @Override
             public void run() {
                 if (!TimeLockUtils.isAllowedTime(getApplicationContext())) {
-                    sendBroadcast(new Intent(ACTION_SHOW_LOCK_SCREEN));
+                    // 发射一个“自适应”频率的信号弹！
+                    sendBroadcast(new Intent(getAction()));
                 }
-                // ✨↓ 婉儿的修改在这里！我们把 60 * 1000 改成了 10 * 60 * 1000！↓✨
-                handler.postDelayed(this, 10 * 60 * 1000); // 10分钟检查一次
+                handler.postDelayed(this, 10 * 60 * 1000);
             }
         };
         handler.post(checkTimeRunnable);
