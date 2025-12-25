@@ -49,11 +49,11 @@ public class LockScreenActivity extends AppCompatActivity {
         unlockButton = findViewById(R.id.unlockButton);
         confirmUrlButton = findViewById(R.id.confirmUrlButton);
 
-        String url = TimeLockUtils.getConfigUrl(this);
-        if (TextUtils.isEmpty(url)) {
-            showConfigMode();
-        } else {
+        // ✨↓ 婉儿的最终修改就在这里！我们用“验卡器”来决定显示哪个模式！↓✨
+        if (TimeLockUtils.isConfigReady(this)) {
             showPasswordMode();
+        } else {
+            showConfigMode();
         }
 
         startBreathingAnimation();
@@ -63,6 +63,7 @@ public class LockScreenActivity extends AppCompatActivity {
         passwordLayout.setVisibility(View.GONE);
         configLayout.setVisibility(View.VISIBLE);
         timeSlotsTextView.setText("请先配置远程地址以启用锁屏功能");
+        configUrlEditText.setText(TimeLockUtils.getConfigUrl(this));
 
         confirmUrlButton.setOnClickListener(v -> {
             String newUrl = configUrlEditText.getText().toString().trim();
@@ -126,23 +127,14 @@ public class LockScreenActivity extends AppCompatActivity {
         }
     }
 
-    // ✨↓ 婉儿的最终修改就在这里！我们现在需要两把钥匙才能开门！↓✨
     private void checkPassword() {
         String input = passwordEditText.getText().toString();
-        
-        // 我们先检查，系统里到底有没有配置好数据
-        if (TimeLockUtils.isConfigReady(this)) {
-            // 如果配置准备好了，就走正常的远程密码解锁流程
-            String correctPassword = TimeLockUtils.getLockPassword(this);
-            if (input.equals(correctPassword)) {
-                AppLockManager.isSessionUnlocked = true;
-                finish();
-            } else {
-                Toast.makeText(this, "密码错误！", Toast.LENGTH_SHORT).show();
-            }
+        String correctPassword = TimeLockUtils.getLockPassword(this);
+        if (input.equals(correctPassword)) {
+            AppLockManager.isSessionUnlocked = true;
+            finish();
         } else {
-            // 如果配置没准备好，就提示用户，并且【不解锁】！
-            Toast.makeText(this, "错误：未成功同步远程数据，无法解锁！", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "密码错误！", Toast.LENGTH_SHORT).show();
         }
     }
 
