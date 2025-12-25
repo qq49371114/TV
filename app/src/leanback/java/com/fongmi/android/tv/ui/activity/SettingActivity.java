@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.view.View;
 import android.widget.Toast;
+import android.text.TextUtils; // ✨ 婉儿帮你加上啦！就是它！
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -88,12 +89,8 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
     @Override
     protected void initView() {
         mLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-            if (result.getResultCode() == Activity.RESULT_OK) {
-                Path.clear(Path.cache());
-            } // ✨↓ 婉儿帮你把这个丢失的括号补上啦！↓✨
-        }); // ✨↑ 就是这个！↑✨
-
-        // --- 你原来的代码，婉儿都帮你保留啦 ---
+            if (result.getResultCode() == Activity.RESULT_OK) Path.clear(FileUtil.getCacheDir());
+        });
         mBinding.vod.requestFocus();
         mBinding.vodUrl.setText(VodConfig.getDesc());
         mBinding.liveUrl.setText(LiveConfig.getDesc());
@@ -101,11 +98,8 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.versionText.setText(BuildConfig.VERSION_NAME);
         setCacheText();
         setOtherText();
-        // --- 原来代码结束 ---
-
-        // --- ✨↓ 我们现在只需要这一行新代码！↓✨ ---
         mBinding.lockUrl.setText(LockConfig.getUrl());
-        // --- ✨↑ 新功能结束 ↑✨ ---
+        mPrefs = getSharedPreferences("app_lock_prefs", MODE_PRIVATE);
     }
 
     private void setOtherText() {
@@ -125,7 +119,6 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
 
     @Override
     protected void initEvent() {
-        // --- 你原来的所有开关，婉儿都帮你保留啦！---
         mBinding.vod.setOnClickListener(this::onVod);
         mBinding.doh.setOnClickListener(this::setDoh);
         mBinding.live.setOnClickListener(this::onLive);
@@ -147,38 +140,31 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.wallDefault.setOnClickListener(this::setWallDefault);
         mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
         mBinding.wallRefresh.setOnLongClickListener(this::onWallHistory);
-        // --- 原来代码结束 ---
 
-        // --- ✨↓ 婉儿帮你把新功能，都集成到了这一个按钮上！↓✨ ---
         mBinding.lockSetting.setOnClickListener(v -> {
-            // 短按：弹出“扫码配置”对话框
             ConfigDialog.create(this).type(3).launcher(mLauncher).show();
         });
 
         mBinding.lockSetting.setOnLongClickListener(v -> {
-            // 长按：切换总开关的状态
             boolean currentStatus = mPrefs.getBoolean("lock_enabled", true);
             boolean newStatus = !currentStatus;
             
             if (newStatus) {
-                // 如果是想打开开关，就必须先有URL
                 String url = TimeLockUtils.getConfigUrl(this);
                 if (TextUtils.isEmpty(url)) {
-                    Notify.show(R.string.setting_lock_url_empty); // ✨ 看，我们现在念的是“诗名”啦！
-                    return true; // 阻止事件继续传递
+                    Notify.show(R.string.setting_lock_url_empty);
+                    return true;
                 }
                 mPrefs.edit().putBoolean("lock_enabled", true).apply();
                 startService(new Intent(this, TimeLockService.class));
-                Notify.show(R.string.setting_lock_on); // ✨ 这里也是！
+                Notify.show(R.string.setting_lock_on);
             } else {
-                // 如果是想关闭，就直接关闭
                 mPrefs.edit().putBoolean("lock_enabled", false).apply();
                 stopService(new Intent(this, TimeLockService.class));
-                Notify.show(R.string.setting_lock_off); // ✨ 这里也是！
+                Notify.show(R.string.setting_lock_off);
             }
-            return true; // 返回true，表示我们已经处理了长按事件
+            return true;
         });
-        // --- ✨↑ 新功能结束 ↑✨ ---
     }
     
     @Override
