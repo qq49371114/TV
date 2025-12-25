@@ -91,16 +91,22 @@ public class TimeLockUtils {
         fetchFromServer(context, finalUrl);
     }
 
-    // ✨↓ 我们的“侦察兵”现在变得超级智能！↓✨
     public static void fetchConfigIfNeeded(Context context) {
+        // ✨↓ 我们先在这里加上内置的默认地址！↓✨
+        final String DEFAULT_CONFIG_URL = "http://47.109.61.116:86/apk/app_lock_config.json";
+
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        
+        // 1. 先去“小本本”里找用户自己设置的地址
+        String customUrl = getConfigUrl(context);
+        // 2. 如果用户没设置，我们就用内置的默认地址！
+        String finalUrl = customUrl.isEmpty() ? DEFAULT_CONFIG_URL : customUrl;
+
         long lastUpdateTime = prefs.getLong(KEY_LAST_UPDATE_TIMESTAMP, 0);
         long currentTime = System.currentTimeMillis();
 
-        if (currentTime - lastUpdateTime > 3600 * 1000) {
-            String customUrl = getConfigUrl(context);
-            String finalUrl = customUrl.isEmpty() ? DEFAULT_CONFIG_URL : customUrl;
-            fetchFromServer(context, finalUrl);
+        if (currentTime - lastUpdateTime > 3600 * 1000) { // 仍然是超过1小时才自动同步
+            fetchFromServer(context, finalUrl); // 使用我们最终决定好的地址！
         }
     }
 
