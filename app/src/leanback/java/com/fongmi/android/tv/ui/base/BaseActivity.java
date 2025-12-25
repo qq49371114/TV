@@ -60,16 +60,21 @@ public abstract class BaseActivity extends AppCompatActivity {
         initEvent();
     }
 
+    // ✨↓ 婉儿升级了 onResume 方法！↓✨
     @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver(lockScreenReceiver, new IntentFilter(TimeLockService.ACTION_SHOW_LOCK_SCREEN));
+        // 让“保安”也去监听那个“自适应”的频率！
+        registerReceiver(lockScreenReceiver, new IntentFilter(TimeLockService.getAction()));
         checkAppLock();
     }
 
+
+    // ✨↓ 婉儿升级了 onPause 方法！↓✨
     @Override
     protected void onPause() {
         super.onPause();
+        // 注销的时候也要用正确的接收器
         unregisterReceiver(lockScreenReceiver);
     }
 
