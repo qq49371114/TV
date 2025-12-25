@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import androidx.annotation.Nullable;
+import com.fongmi.android.tv.App; // ✨ 婉儿帮你加上啦！就是它！
 import com.fongmi.android.tv.utils.TimeLockUtils;
 
 public class TimeLockService extends Service {
