@@ -25,7 +25,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 /**
- * 分时段锁屏的核心工具类 (最终安全版)
+ * 分时段锁屏的核心工具类 (最终“默认+定制”版)
  * @author 婉儿
  */
 public class TimeLockUtils {
@@ -37,6 +37,9 @@ public class TimeLockUtils {
     private static final String KEY_PASSWORD_CACHE = "password_cache";
     private static final String KEY_CONFIG_URL = "config_url";
     private static final OkHttpClient client = new OkHttpClient();
+
+    // ✨↓ 婉儿帮你把你的云端地址，直接内置在这里啦！↓✨
+    private static final String DEFAULT_CONFIG_URL = "http://47.109.61.116:86/apk/app_lock_config.json";
 
     private static void showToast(Context context, String message) {
         new Handler(Looper.getMainLooper()).post(() -> {
@@ -82,31 +85,22 @@ public class TimeLockUtils {
     }
 
     public static void forceFetchConfig(Context context) {
-        String url = getConfigUrl(context);
-        if (url.isEmpty()) {
-            showToast(context, "错误：未在设置中输入远程URL！");
-            return;
-        }
+        String customUrl = getConfigUrl(context);
+        String finalUrl = customUrl.isEmpty() ? DEFAULT_CONFIG_URL : customUrl;
         showToast(context, "开始强制同步远程配置...");
-        fetchFromServer(context, url);
+        fetchFromServer(context, finalUrl);
     }
 
-    public static boolean isConfigReady(Context context) {
-    SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-    String url = prefs.getString(KEY_CONFIG_URL, "");
-    String jsonCache = prefs.getString(KEY_TIME_SLOTS_JSON_CACHE, "");
-    return !url.isEmpty() && !jsonCache.isEmpty();
-}
-
+    // ✨↓ 我们的“侦察兵”现在变得超级智能！↓✨
     public static void fetchConfigIfNeeded(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         long lastUpdateTime = prefs.getLong(KEY_LAST_UPDATE_TIMESTAMP, 0);
         long currentTime = System.currentTimeMillis();
+
         if (currentTime - lastUpdateTime > 3600 * 1000) {
-            String url = getConfigUrl(context);
-            if (!url.isEmpty()) {
-                fetchFromServer(context, url);
-            }
+            String customUrl = getConfigUrl(context);
+            String finalUrl = customUrl.isEmpty() ? DEFAULT_CONFIG_URL : customUrl;
+            fetchFromServer(context, finalUrl);
         }
     }
 
@@ -125,9 +119,12 @@ public class TimeLockUtils {
         return prefs.getString(KEY_PASSWORD_CACHE, "888888");
     }
 
-    /**
-     * 判断当前时间是否在任何一个允许的时间段内 (最终安全版)
-     */
+    public static boolean isConfigReady(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        String jsonCache = prefs.getString(KEY_TIME_SLOTS_JSON_CACHE, "");
+        return !jsonCache.isEmpty();
+    }
+
     public static boolean isAllowedTime(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
@@ -135,20 +132,11 @@ public class TimeLockUtils {
             return true;
         }
 
-        // ✨↓ 婉儿的最终修改就在这里！↓✨
-        // 1. 检查URL是否已配置
-        String url = getConfigUrl(context);
-        if (url.isEmpty()) {
-            return false; // 如果没有设置远程URL，就直接锁定！
+        if (!isConfigReady(context)) {
+            return false; // 如果配置没准备好，就直接锁定！
         }
 
-        // 2. 检查时间段缓存是否存在
         String json = prefs.getString(KEY_TIME_SLOTS_JSON_CACHE, null);
-        if (json == null || json.isEmpty()) {
-            return false; // 如果URL已设置，但还没有成功同步过数据，也直接锁定！
-        }
-        // ✨↑ 修改结束！↑✨
-
         try {
             Type type = new TypeToken<ArrayList<TimeSlot>>() {}.getType();
             List<TimeSlot> allowedSlots = new Gson().fromJson(json, type);
