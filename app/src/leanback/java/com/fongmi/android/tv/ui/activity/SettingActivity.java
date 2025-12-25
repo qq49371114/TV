@@ -91,6 +91,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             if (result.getResultCode() == Activity.RESULT_OK) Path.clear(Path.cache());
         });
+        // --- 你原来的代码，婉儿都帮你保留啦 ---
         mBinding.vod.requestFocus();
         mBinding.vodUrl.setText(VodConfig.getDesc());
         mBinding.liveUrl.setText(LiveConfig.getDesc());
@@ -98,8 +99,14 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.versionText.setText(BuildConfig.VERSION_NAME);
         setCacheText();
         setOtherText();
-        mBinding.lockUrl.setText(LockConfig.getUrl());
+        // --- 原来代码结束 ---
+
+        // --- ✨↓ 我们现在只需要这两行新代码！↓✨ ---
+        // 1. 初始化我们的“小本本”，给后面的“总开关”用
         mPrefs = getSharedPreferences("app_lock_prefs", MODE_PRIVATE);
+        // 2. 让“总开关”能正确地显示当前的状态
+        mBinding.timeLockSwitch.setChecked(mPrefs.getBoolean("lock_enabled", true));
+        // --- ✨↑ 新功能结束 ↑✨ ---
     }
 
     private void setOtherText() {
@@ -119,6 +126,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
 
     @Override
     protected void initEvent() {
+        // --- 你原来的所有开关，婉儿都帮你保留啦！---
         mBinding.vod.setOnClickListener(this::onVod);
         mBinding.doh.setOnClickListener(this::setDoh);
         mBinding.live.setOnClickListener(this::onLive);
@@ -140,31 +148,27 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.wallDefault.setOnClickListener(this::setWallDefault);
         mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
         mBinding.wallRefresh.setOnLongClickListener(this::onWallHistory);
+        // --- 原来代码结束 ---
 
-        mBinding.lockSetting.setOnClickListener(v -> {
-            ConfigDialog.create(this).type(3).launcher(mLauncher).show();
-        });
-
-        mBinding.lockSetting.setOnLongClickListener(v -> {
-            boolean currentStatus = mPrefs.getBoolean("lock_enabled", true);
-            boolean newStatus = !currentStatus;
-            
-            if (newStatus) {
-                String url = TimeLockUtils.getConfigUrl(this);
-                if (TextUtils.isEmpty(url)) {
-                    Notify.show(R.string.setting_lock_url_empty);
-                    return true;
-                }
+        // --- ✨↓ 婉儿帮你把“总开关”升级成了“管理员保险锁”！↓✨ ---
+        mBinding.timeLockSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                // 如果是想打开，那就直接打开
                 mPrefs.edit().putBoolean("lock_enabled", true).apply();
                 startService(new Intent(this, TimeLockService.class));
-                Notify.show(R.string.setting_lock_on);
+                Notify.show("锁屏功能已开启");
             } else {
-                mPrefs.edit().putBoolean("lock_enabled", false).apply();
-                stopService(new Intent(this, TimeLockService.class));
-                Notify.show(R.string.setting_lock_off);
+                // 如果是想关闭，那就要验证超级密码了！
+                buttonView.setChecked(true); // 立刻把开关拨回去
+                SuperPasswordDialog.newInstance(() -> {
+                    mPrefs.edit().putBoolean("lock_enabled", false).apply();
+                    stopService(new Intent(this, TimeLockService.class));
+                    Notify.show("锁屏功能已关闭");
+                    mBinding.timeLockSwitch.setChecked(false);
+                }).show(getSupportFragmentManager(), "SuperPassword");
             }
-            return true;
         });
+        // --- ✨↑ 新功能结束 ↑✨ ---
     }
     
     @Override
