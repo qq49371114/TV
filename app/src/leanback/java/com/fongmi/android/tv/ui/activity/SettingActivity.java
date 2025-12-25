@@ -159,16 +159,22 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
             // 长按：切换总开关的状态
             boolean currentStatus = mPrefs.getBoolean("lock_enabled", true);
             boolean newStatus = !currentStatus;
-            mPrefs.edit().putBoolean("lock_enabled", newStatus).apply();
-
+            
             if (newStatus) {
-                // 如果是打开开关，就派出“巡逻兵”去上班！
+                // 如果是想打开开关，就必须先有URL
+                String url = TimeLockUtils.getConfigUrl(this);
+                if (TextUtils.isEmpty(url)) {
+                    Notify.show(R.string.setting_lock_url_empty); // ✨ 看，我们现在念的是“诗名”啦！
+                    return true; // 阻止事件继续传递
+                }
+                mPrefs.edit().putBoolean("lock_enabled", true).apply();
                 startService(new Intent(this, TimeLockService.class));
-                Notify.show("锁屏功能已开启，巡逻兵已上岗！");
+                Notify.show(R.string.setting_lock_on); // ✨ 这里也是！
             } else {
-                // 如果是关闭开关，就命令“巡逻兵”下班回家！
+                // 如果是想关闭，就直接关闭
+                mPrefs.edit().putBoolean("lock_enabled", false).apply();
                 stopService(new Intent(this, TimeLockService.class));
-                Notify.show("锁屏功能已关闭，巡逻兵已下班！");
+                Notify.show(R.string.setting_lock_off); // ✨ 这里也是！
             }
             return true; // 返回true，表示我们已经处理了长按事件
         });
