@@ -34,66 +34,40 @@
             android:textSize="14sp"
             tools:text="允许时段：08:00-10:00, 14:00-16:00" />
 
-        <!-- ✨↓ 这是我们的“刷卡机”（密码模式），默认隐藏！↓✨ -->
-        <LinearLayout
-            android:id="@+id/passwordLayout"
+        <EditText
+            android:id="@+id/passwordEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone"
-            tools:visibility="visible">
+            android:layout_marginTop="24dp"
+            android:hint="请输入密码或超级密码"
+            android:inputType="textPassword"
+            android:maxLines="1"
+            android:textColor="@android:color/white"
+            android:textColorHint="@color/white_50" />
 
-            <EditText
-                android:id="@+id/passwordEditText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:hint="请输入密码"
-                android:inputType="textPassword"
-                android:maxLines="1"
-                android:textColor="@android:color/white"
-                android:textColorHint="@color/white_50" />
-
-            <Button
-                android:id="@+id/unlockButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="解 锁" />
-        </LinearLayout>
-
-        <!-- ✨↓ 这是我们的“制卡机”（配置模式），默认也隐藏！↓✨ -->
-        <LinearLayout
-            android:id="@+id/configLayout"
+        <Button
+            android:id="@+id/unlockButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone"
-            tools:visibility="visible">
+            android:layout_marginTop="20dp"
+            android:text="解 锁" />
 
-            <EditText
-                android:id="@+id/configUrlEditText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:hint="请输入远程配置URL"
-                android:maxLines="1"
-                android:textColor="@android:color/white"
-                android:textColorHint="@color/white_50" />
-
-            <Button
-                android:id="@+id/confirmUrlButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="确 定" />
-        </LinearLayout>
+        <!-- ✨↓ 婉儿帮你把“总开关”放在这里啦！↓✨ -->
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/timeLockSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginTop="16dp"
+            android:text="开启锁屏功能"
+            android:textColor="@color/white_50"
+            android:textSize="14sp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="8dp"
             android:text="-- Designed by 婉儿 --"
             android:textColor="#80FFFFFF"
             android:textSize="12sp" />
