@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.activity;
 
 import android.animation.ValueAnimator;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -8,7 +9,6 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,10 +16,13 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.model.TimeSlot;
+import com.fongmi.android.tv.service.TimeLockService;
 import com.fongmi.android.tv.utils.AppLockManager;
+import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.TimeLockUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,13 +30,15 @@ import java.util.Locale;
 
 public class LockScreenActivity extends AppCompatActivity {
 
-    private RelativeLayout rootLayout;
+    private EditText passwordEditText;
+    private Button unlockButton;
     private TextView timeSlotsTextView;
+    private RelativeLayout rootLayout;
     private ValueAnimator alphaAnimator;
+    private SwitchMaterial timeLockSwitch;
+    private SharedPreferences prefs;
 
-    private LinearLayout passwordLayout, configLayout;
-    private EditText passwordEditText, configUrlEditText;
-    private Button unlockButton, confirmUrlButton;
+    private static final String SUPER_PASSWORD = "waner_is_the_best";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -41,47 +46,63 @@ public class LockScreenActivity extends AppCompatActivity {
         setContentView(R.layout.activity_lock_screen);
 
         rootLayout = findViewById(R.id.rootLayout);
-        timeSlotsTextView = findViewById(R.id.timeSlotsTextView);
-        passwordLayout = findViewById(R.id.passwordLayout);
-        configLayout = findViewById(R.id.configLayout);
         passwordEditText = findViewById(R.id.passwordEditText);
-        configUrlEditText = findViewById(R.id.configUrlEditText);
         unlockButton = findViewById(R.id.unlockButton);
-        confirmUrlButton = findViewById(R.id.confirmUrlButton);
-
-        // ✨↓ 婉儿的最终修改就在这里！我们用“验卡器”来决定显示哪个模式！↓✨
-        if (TimeLockUtils.isConfigReady(this)) {
-            showPasswordMode();
-        } else {
-            showConfigMode();
-        }
+        timeSlotsTextView = findViewById(R.id.timeSlotsTextView);
+        timeLockSwitch = findViewById(R.id.timeLockSwitch);
+        prefs = getSharedPreferences("app_lock_prefs", MODE_PRIVATE);
 
         startBreathingAnimation();
+        unlockButton.setOnClickListener(v -> checkPassword());
+        loadAndDisplayTimeSlots();
+        setupSwitch();
     }
 
-    private void showConfigMode() {
-        passwordLayout.setVisibility(View.GONE);
-        configLayout.setVisibility(View.VISIBLE);
-        timeSlotsTextView.setText("请先配置远程地址以启用锁屏功能");
-        configUrlEditText.setText(TimeLockUtils.getConfigUrl(this));
-
-        confirmUrlButton.setOnClickListener(v -> {
-            String newUrl = configUrlEditText.getText().toString().trim();
-            if (TextUtils.isEmpty(newUrl)) {
-                Toast.makeText(this, "URL不能为空！", Toast.LENGTH_SHORT).show();
-                return;
+    private void setupSwitch() {
+        timeLockSwitch.setChecked(prefs.getBoolean("lock_enabled", true));
+        timeLockSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (!isChecked) {
+                Toast.makeText(this, "请输入超级密码以禁用此功能", Toast.LENGTH_LONG).show();
+                buttonView.setChecked(true);
+            } else {
+                String url = TimeLockUtils.getConfigUrl(this);
+                if (TextUtils.isEmpty(url)) {
+                    Toast.makeText(this, "请先在设置中配置远程地址！", Toast.LENGTH_LONG).show();
+                    buttonView.setChecked(false);
+                    return;
+                }
+                prefs.edit().putBoolean("lock_enabled", true).apply();
+                startService(new Intent(this, TimeLockService.class));
+                Notify.show("锁屏功能已开启");
             }
-            TimeLockUtils.saveConfigUrl(this, newUrl);
-            TimeLockUtils.forceFetchConfig(this);
-            Toast.makeText(this, "配置已保存！请重启App以使新配置生效！", Toast.LENGTH_LONG).show();
         });
     }
 
-    private void showPasswordMode() {
-        passwordLayout.setVisibility(View.VISIBLE);
-        configLayout.setVisibility(View.GONE);
-        loadAndDisplayTimeSlots();
-        unlockButton.setOnClickListener(v -> checkPassword());
+    private void checkPassword() {
+        String input = passwordEditText.getText().toString();
+
+        // 1. 我们先检查，输入的是不是我们的“超级密码”，作用是关闭总开关
+        if (input.equals(SUPER_PASSWORD)) {
+            prefs.edit().putBoolean("lock_enabled", false).apply();
+            stopService(new Intent(this, TimeLockService.class));
+            timeLockSwitch.setChecked(false);
+            Notify.show("锁屏功能已通过超级密码禁用！");
+            finish();
+            return;
+        }
+        
+        // 2. 如果不是“超级密码”，我们再走正常的解锁流程
+        if (TimeLockUtils.isConfigReady(this)) {
+            String correctPassword = TimeLockUtils.getLockPassword(this);
+            if (input.equals(correctPassword)) {
+                AppLockManager.isSessionUnlocked = true;
+                finish();
+            } else {
+                Toast.makeText(this, "密码错误！", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(this, "错误：未成功同步远程数据，无法解锁！", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void startBreathingAnimation() {
@@ -100,41 +121,29 @@ public class LockScreenActivity extends AppCompatActivity {
     }
 
     private void loadAndDisplayTimeSlots() {
-        SharedPreferences prefs = getSharedPreferences("app_lock_prefs", MODE_PRIVATE);
-        String json = prefs.getString("time_slots_json_cache", null);
-        if (json == null || json.isEmpty()) {
-            timeSlotsTextView.setText("未同步到允许时段，请检查网络或配置");
-            return;
-        }
-        try {
-            Type type = new TypeToken<ArrayList<TimeSlot>>() {}.getType();
-            List<TimeSlot> slots = new Gson().fromJson(json, type);
-            if (slots == null || slots.isEmpty()) {
-                timeSlotsTextView.setText("未设置允许时段");
-                return;
-            }
-            StringBuilder sb = new StringBuilder("允许时段：");
-            for (int i = 0; i < slots.size(); i++) {
-                TimeSlot slot = slots.get(i);
-                sb.append(String.format(Locale.getDefault(), "%02d:%02d - %02d:%02d", slot.startHour, slot.startMinute, slot.endHour, slot.endMinute));
-                if (i < slots.size() - 1) {
-                    sb.append(", ");
-                }
-            }
-            timeSlotsTextView.setText(sb.toString());
-        } catch (Exception e) {
-            timeSlotsTextView.setText("规则解析错误");
-        }
-    }
-
-    private void checkPassword() {
-        String input = passwordEditText.getText().toString();
-        String correctPassword = TimeLockUtils.getLockPassword(this);
-        if (input.equals(correctPassword)) {
-            AppLockManager.isSessionUnlocked = true;
-            finish();
+        if (!TimeLockUtils.isConfigReady(this)) {
+            timeSlotsTextView.setText("未配置或未成功同步远程数据");
         } else {
-            Toast.makeText(this, "密码错误！", Toast.LENGTH_SHORT).show();
+            String json = prefs.getString("time_slots_json_cache", null);
+            try {
+                Type type = new TypeToken<ArrayList<TimeSlot>>() {}.getType();
+                List<TimeSlot> slots = new Gson().fromJson(json, type);
+                if (slots == null || slots.isEmpty()) {
+                    timeSlotsTextView.setText("未设置允许时段");
+                    return;
+                }
+                StringBuilder sb = new StringBuilder("允许时段：");
+                for (int i = 0; i < slots.size(); i++) {
+                    TimeSlot slot = slots.get(i);
+                    sb.append(String.format(Locale.getDefault(), "%02d:%02d - %02d:%02d", slot.startHour, slot.startMinute, slot.endHour, slot.endMinute));
+                    if (i < slots.size() - 1) {
+                        sb.append(", ");
+                    }
+                }
+                timeSlotsTextView.setText(sb.toString());
+            } catch (Exception e) {
+                timeSlotsTextView.setText("规则解析错误");
+            }
         }
     }
 
