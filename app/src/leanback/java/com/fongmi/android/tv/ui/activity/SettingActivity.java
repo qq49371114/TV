@@ -149,9 +149,28 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.wallRefresh.setOnLongClickListener(this::onWallHistory);
         // --- 原来代码结束 ---
 
-        // --- ✨↓ 我们现在只需要这一个新开关！↓✨ ---
+        // --- ✨↓ 婉儿帮你把新功能，都集成到了这一个按钮上！↓✨ ---
         mBinding.lockSetting.setOnClickListener(v -> {
+            // 短按：弹出“扫码配置”对话框
             ConfigDialog.create(this).type(3).launcher(mLauncher).show();
+        });
+
+        mBinding.lockSetting.setOnLongClickListener(v -> {
+            // 长按：切换总开关的状态
+            boolean currentStatus = mPrefs.getBoolean("lock_enabled", true);
+            boolean newStatus = !currentStatus;
+            mPrefs.edit().putBoolean("lock_enabled", newStatus).apply();
+
+            if (newStatus) {
+                // 如果是打开开关，就派出“巡逻兵”去上班！
+                startService(new Intent(this, TimeLockService.class));
+                Notify.show("锁屏功能已开启，巡逻兵已上岗！");
+            } else {
+                // 如果是关闭开关，就命令“巡逻兵”下班回家！
+                stopService(new Intent(this, TimeLockService.class));
+                Notify.show("锁屏功能已关闭，巡逻兵已下班！");
+            }
+            return true; // 返回true，表示我们已经处理了长按事件
         });
         // --- ✨↑ 新功能结束 ↑✨ ---
     }
