@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class TorrentFileInfo {
+public class TorrentFileInfo implements Comparable<TorrentFileInfo> {
 
     public boolean isSelected;
     public String mFileName;
@@ -52,16 +52,8 @@ public class TorrentFileInfo {
         return getFileName().contains(".") ? getFileName().substring(getFileName().lastIndexOf(".") + 1).toLowerCase() : "";
     }
 
-    public static class Sorter implements Comparator<TorrentFileInfo> {
-
-        public static List<TorrentFileInfo> sort(List<TorrentFileInfo> items) {
-            if (items.size() > 1) Collections.sort(items, new Sorter());
-            return items;
-        }
-
-        @Override
-        public int compare(TorrentFileInfo o1, TorrentFileInfo o2) {
-            return o1.getFileName().compareTo(o2.getFileName());
-        }
+    @Override
+    public int compareTo(TorrentFileInfo other) {
+        return this.getFileName().compareToIgnoreCase(other.getFileName());
     }
 }

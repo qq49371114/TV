@@ -19,6 +19,7 @@ import androidx.viewbinding.ViewBinding;
 import com.fongmi.android.tv.Product;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
+import com.fongmi.android.tv.bean.Cache;
 import com.fongmi.android.tv.bean.Filter;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
@@ -56,14 +57,13 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     private boolean headerVisible;
     private boolean filterVisible;
 
-    public static TypeFragment newInstance(String key, String typeId, Style style, List<Filter> filter, HashMap<String, String> extend, boolean folder) {
+    public static TypeFragment newInstance(String key, String typeId, Style style, HashMap<String, String> extend, boolean folder) {
         Bundle args = new Bundle();
         args.putString("key", key);
         args.putString("typeId", typeId);
         args.putBoolean("folder", folder);
         args.putParcelable("style", style);
         args.putSerializable("extend", extend);
-        args.putParcelableArrayList("filter", new ArrayList<>(filter));
         TypeFragment fragment = new TypeFragment();
         fragment.setArguments(args);
         return fragment;
@@ -85,12 +85,12 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
         return isFolder() ? Style.list() : getSite().getStyle(getArguments().getParcelable("style"));
     }
 
-    private List<Filter> getFilter() {
-        return getArguments().getParcelableArrayList("filter");
-    }
-
     private HashMap<String, String> getExtend() {
         return (HashMap<String, String>) getArguments().getSerializable("extend");
+    }
+
+    private List<Filter> getFilter() {
+        return Cache.get(getTypeId());
     }
 
     private Site getSite() {
@@ -110,8 +110,8 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     protected void initView() {
         mBinding.swipeLayout.setColorSchemeResources(R.color.accent);
         mScroller = new CustomScroller(this);
-        mFilters = getFilter();
         mExtends = getExtend();
+        mFilters = getFilter();
         setRecyclerView();
         setViewModel();
         setFilters();
@@ -231,6 +231,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     }
 
     public void toggleFilter(boolean visible) {
+        if (mFilters.isEmpty()) return;
         this.filterVisible = visible;
         if (visible) showFilter();
         else hideFilter();

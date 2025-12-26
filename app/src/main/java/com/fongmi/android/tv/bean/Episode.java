@@ -34,7 +34,7 @@ public class Episode implements Parcelable, Diffable<Episode> {
     }
 
     private Episode(String name, String desc, String url) {
-        this.number = Util.getDigit(name);
+        this.number = Util.getNumber(name);
         this.name = name;
         this.desc = desc;
         this.url = url;
@@ -92,20 +92,12 @@ public class Episode implements Parcelable, Diffable<Episode> {
         this.selected = selected;
     }
 
-    public boolean rule1(String name) {
-        return getName().equalsIgnoreCase(name);
-    }
-
-    public boolean rule2(int number) {
-        return getNumber() == number && number != -1;
-    }
-
-    public boolean rule3(String name) {
-        return getName().toLowerCase().contains(name.toLowerCase());
-    }
-
-    public boolean rule4(String name) {
-        return name.toLowerCase().contains(getName().toLowerCase());
+    public int getScore(String name, int number) {
+        if (getName().equalsIgnoreCase(name)) return 100;
+        if (number != -1 && getNumber() == number) return 80;
+        if (number == -1 && getName().toLowerCase().contains(name.toLowerCase())) return 70;
+        if (number == -1 && name.toLowerCase().contains(getName().toLowerCase())) return 60;
+        return 0;
     }
 
     public Episode trans() {
@@ -149,6 +141,13 @@ public class Episode implements Parcelable, Diffable<Episode> {
         this.number = in.readInt();
         this.activated = in.readByte() != 0;
         this.selected = in.readByte() != 0;
+    }
+
+    public record Rule(Episode episode, int score) {
+
+        public boolean find() {
+            return score > 0;
+        }
     }
 
     public static final Creator<Episode> CREATOR = new Creator<>() {

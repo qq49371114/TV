@@ -12,6 +12,7 @@ import com.google.common.net.HttpHeaders;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import okhttp3.Authenticator;
 import okhttp3.Request;
@@ -23,10 +24,10 @@ public class OkAuthenticator implements Authenticator {
     private final List<Proxy> proxy;
 
     public OkAuthenticator() {
-        proxy = new ArrayList<>();
+        proxy = new CopyOnWriteArrayList<>();
     }
 
-    public synchronized void addAll(List<Proxy> items) {
+    public void addAll(List<Proxy> items) {
         proxy.addAll(items);
     }
 

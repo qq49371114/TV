@@ -421,10 +421,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         mViewModel.result.observeForever(mObserveDetail);
         mViewModel.player.observeForever(mObservePlayer);
         mViewModel.search.observeForever(mObserveSearch);
-        mViewModel.episode.observe(this, episode -> {
-            onItemClick(episode);
-            hideSheet();
-        });
     }
 
     private void checkId() {
@@ -1482,16 +1478,15 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @Override
     public void onSpeedUp() {
         if (!mPlayers.isPlaying()) return;
-        mBinding.control.action.speed.setText(mPlayers.setSpeed(Setting.getSpeed()));
-        mBinding.widget.speed.startAnimation(ResUtil.getAnim(R.anim.forward));
         mBinding.widget.speed.setVisibility(View.VISIBLE);
+        mBinding.widget.speed.startAnimation(ResUtil.getAnim(R.anim.forward));
+        mBinding.control.action.speed.setText(mPlayers.setSpeed(Setting.getSpeed()));
     }
 
     @Override
     public void onSpeedEnd() {
-        mBinding.control.action.speed.setText(mPlayers.setSpeed(mHistory.getSpeed()));
-        mBinding.widget.speed.setVisibility(View.GONE);
         mBinding.widget.speed.clearAnimation();
+        mBinding.control.action.speed.setText(mPlayers.setSpeed(mHistory.getSpeed()));
     }
 
     @Override
@@ -1504,22 +1499,12 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     @Override
-    public void onBrightEnd() {
-        mBinding.widget.bright.setVisibility(View.GONE);
-    }
-
-    @Override
     public void onVolume(int progress) {
         mBinding.widget.volume.setVisibility(View.VISIBLE);
         mBinding.widget.volumeProgress.setProgress(progress);
         if (progress < 35) mBinding.widget.volumeIcon.setImageResource(R.drawable.ic_widget_volume_low);
         else if (progress < 70) mBinding.widget.volumeIcon.setImageResource(R.drawable.ic_widget_volume_medium);
         else mBinding.widget.volumeIcon.setImageResource(R.drawable.ic_widget_volume_high);
-    }
-
-    @Override
-    public void onVolumeEnd() {
-        mBinding.widget.volume.setVisibility(View.GONE);
     }
 
     @Override
@@ -1533,7 +1518,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     @Override
-    public void onSeek(long time) {
+    public void onSeeking(long time) {
         mBinding.widget.action.setImageResource(time > 0 ? R.drawable.ic_widget_forward : R.drawable.ic_widget_rewind);
         mBinding.widget.time.setText(mPlayers.getPositionTime(time));
         mBinding.widget.seek.setVisibility(View.VISIBLE);
@@ -1542,7 +1527,6 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Override
     public void onSeekEnd(long time) {
-        mBinding.widget.seek.setVisibility(View.GONE);
         mPlayers.seek(time);
         showProgress();
         onPlay();
@@ -1566,6 +1550,14 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
             hideControl();
             onPlay();
         }
+    }
+
+    @Override
+    public void onTouchEnd() {
+        mBinding.widget.seek.setVisibility(View.GONE);
+        mBinding.widget.speed.setVisibility(View.GONE);
+        mBinding.widget.bright.setVisibility(View.GONE);
+        mBinding.widget.volume.setVisibility(View.GONE);
     }
 
     @Override
@@ -1605,7 +1597,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        if (isAutoRotate() && isPort() && newConfig.orientation == Configuration.ORIENTATION_PORTRAIT && !isRotate()) exitFullscreen();
+        if (isAutoRotate() && isPort() && newConfig.orientation == Configuration.ORIENTATION_PORTRAIT && !isRotate() && !isLock()) exitFullscreen();
         if (isAutoRotate() && isPort() && newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) enterFullscreen();
         if (isFullscreen()) Util.hideSystemUI(this);
     }

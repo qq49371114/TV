@@ -12,10 +12,12 @@ import java.lang.reflect.Type;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
-public class Proxy {
+public class Proxy implements Comparable<Proxy> {
 
     @SerializedName("name")
     private String name;
@@ -25,6 +27,7 @@ public class Proxy {
     private List<String> urls;
 
     private List<java.net.Proxy> proxies;
+    private boolean wildcard;
 
     public static List<Proxy> arrayFrom(JsonElement element) {
         try {
@@ -37,9 +40,8 @@ public class Proxy {
     }
 
     public void init() {
-        proxies = new ArrayList<>();
-        for (String url : getUrls()) proxies.add(create(url));
-        proxies.removeIf(Objects::isNull);
+        wildcard = getHosts().stream().anyMatch(host -> host.contains("*"));
+        proxies = getUrls().stream().map(this::create).filter(Objects::nonNull).toList();
     }
 
     public String getName() {
@@ -66,12 +68,8 @@ public class Proxy {
         return null;
     }
 
-    public static void sort(List<Proxy> items) {
-        items.sort((o1, o2) -> {
-            boolean g1 = o1.getHosts().stream().anyMatch(h -> h.contains("*"));
-            boolean g2 = o2.getHosts().stream().anyMatch(h -> h.contains("*"));
-            if (g1 == g2) return 0;
-            return g1 ? 1 : -1;
-        });
+    @Override
+    public int compareTo(Proxy other) {
+        return Boolean.compare(this.wildcard, other.wildcard);
     }
 }

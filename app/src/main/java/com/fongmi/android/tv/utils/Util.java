@@ -33,8 +33,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Formatter;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Util {
+
+    private static final Pattern EPISODE = Pattern.compile("(?i)(?:ep|第|e|[\\-\\.\\s])\\s?(\\d{1,4})");
 
     public static void toggleFullscreen(Activity activity, boolean fullscreen) {
         if (fullscreen) hideSystemUI(activity);
@@ -101,10 +105,15 @@ public class Util {
         }
     }
 
-    public static int getDigit(String text) {
+    public static int getNumber(String text) {
         try {
-            if (text.startsWith("上") || text.startsWith("下")) return -1;
-            return Integer.parseInt(text.replaceAll("(?i)(mp4|H264|H265|720p|1080p|2160p|4K)", "").replaceAll("\\D+", ""));
+            text = text.replaceAll("\\[.*?\\]|\\(.*?\\)", "");
+            text = text.replaceAll("\\b(19|20)\\d{2}\\b", "");
+            text = text.toLowerCase().replaceAll("2160p|1080p|720p|480p|4k|h26[45]|x26[45]|mp4", "");
+            Matcher matcher = EPISODE.matcher(text);
+            if (matcher.find()) return Integer.parseInt(matcher.group(1));
+            String number = text.replaceAll("\\D+", "");
+            return number.isEmpty() ? -1 : Integer.parseInt(number);
         } catch (Exception e) {
             return -1;
         }

@@ -29,20 +29,22 @@ public class JsLoader {
     }
 
     public Spider getSpider(String key, String api, String ext, String jar) {
-        try {
-            if (spiders.containsKey(key)) return spiders.get(key);
-            Spider spider = loader.spider(api, BaseLoader.get().dex(jar));
-            spider.siteKey = key;
-            spider.init(App.get(), ext);
-            spiders.put(key, spider);
-            return spider;
-        } catch (Throwable e) {
-            e.printStackTrace();
-            return new SpiderNull();
-        }
+        return spiders.computeIfAbsent(key, k -> {
+            try {
+                Spider spider = loader.spider(api, BaseLoader.get().dex(jar));
+                spider.siteKey = key;
+                spider.init(App.get(), ext);
+                return spider;
+            } catch (Throwable e) {
+                e.printStackTrace();
+                return new SpiderNull();
+            }
+        });
     }
 
     public Object[] proxy(Map<String, String> params) throws Exception {
-        return spiders.get(recent).proxy(params);
+        if (recent == null) return null;
+        Spider spider = spiders.get(recent);
+        return spider != null ? spider.proxy(params) : null;
     }
 }

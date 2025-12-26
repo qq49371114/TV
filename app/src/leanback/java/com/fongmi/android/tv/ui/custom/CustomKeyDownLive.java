@@ -101,7 +101,7 @@ public class CustomKeyDownLive extends GestureDetector.SimpleOnGestureListener {
         return holdTime = holdTime - Constant.INTERVAL_SEEK;
     }
 
-    public void resetTime() {
+    public void reset() {
         holdTime = 0;
     }
 
