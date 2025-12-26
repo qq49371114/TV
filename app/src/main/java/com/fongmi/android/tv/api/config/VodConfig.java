@@ -112,16 +112,12 @@ public class VodConfig {
 
     private void loadConfig(int id, Config config, Callback callback) {
         try {
-            // ✨↓ 婉儿帮你把“秘密地址”藏起来啦！↓✨
             String loadUrl = config.getUrl();
             if (TextUtils.isEmpty(loadUrl)) {
-                // 我们现在只引用“密码纸”上的名字，不写真实的地址！
                 loadUrl = Constants.BUILTIN_URL;
             } else if (loadUrl.equals(Constants.BUILTIN_PLACEHOLDER)) {
-                // 这里也是！
                 loadUrl = Constants.BUILTIN_URL;
             }
-            // ✨↑ 植入结束！↑✨
 
             OkHttp.cancel(TAG);
             Server.get().start();
