@@ -14,10 +14,12 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.LiveConfig;
+import com.fongmi.android.tv.api.config.LockConfig; // ✨ 婉儿帮你加上啦！
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.api.config.WallConfig;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.databinding.DialogConfigBinding;
+import com.fongmi.android.tv.event.RefreshEvent; // ✨ 婉儿帮你加上啦！就是它！
 import com.fongmi.android.tv.event.ServerEvent;
 import com.fongmi.android.tv.impl.ConfigCallback;
 import com.fongmi.android.tv.server.Server;
@@ -116,6 +118,8 @@ public class ConfigDialog implements DialogInterface.OnDismissListener {
                 return LiveConfig.getUrl();
             case 2:
                 return WallConfig.getUrl();
+            case 3:
+                return LockConfig.getUrl();
             default:
                 return "";
         }
@@ -143,13 +147,21 @@ public class ConfigDialog implements DialogInterface.OnDismissListener {
         }
     }
 
+    // ✨↓ 婉儿的最终修改就在这里！↓✨
     private void onPositive(View view) {
-        String name = binding.name.getText().toString().trim();
         String text = binding.text.getText().toString().trim();
-        if (edit) Config.find(url, type).url(text).update();
-        if (text.isEmpty()) Config.delete(url, type);
-        if (name.isEmpty()) callback.setConfig(Config.find(text, type));
-        else callback.setConfig(Config.find(text, name, type));
+
+        if (type == 3) {
+            LockConfig.setUrl(text);
+            RefreshEvent.config();
+        } else {
+            String name = binding.name.getText().toString().trim();
+            if (edit) Config.find(url, type).url(text).update();
+            if (text.isEmpty()) Config.delete(url, type);
+            if (name.isEmpty()) callback.setConfig(Config.find(text, type));
+            else callback.setConfig(Config.find(text, name, type));
+        }
+
         dialog.dismiss();
     }
 

@@ -84,6 +84,11 @@
     <string name="setting_choose">选择</string>
     <string name="setting_off">关</string>
     <string name="setting_on">开</string>
+    
+    <!-- ✨↓ 加上我们需要的这三句新台词 ↓✨ -->
+    <string name="setting_lock_on">...</string>
+    <string name="setting_lock_off">...</string>
+    <string name="setting_lock_url_empty">...</string>
 
     <!-- Backup & Restore -->
     <string name="restore_select">选择备份</string>

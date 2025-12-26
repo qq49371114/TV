@@ -2,6 +2,10 @@ package com.fongmi.android.tv.ui.base;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
@@ -19,7 +23,11 @@ import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
+import com.fongmi.android.tv.service.TimeLockService;
+import com.fongmi.android.tv.ui.activity.LockScreenActivity;
 import com.fongmi.android.tv.ui.custom.CustomWallView;
+import com.fongmi.android.tv.utils.AppLockManager;
+import com.fongmi.android.tv.utils.TimeLockUtils;
 import com.fongmi.android.tv.utils.Util;
 
 import org.greenrobot.eventbus.EventBus;
@@ -32,6 +40,13 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     private OnBackInvokedCallback callback;
 
+    private final BroadcastReceiver lockScreenReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            checkAppLock();
+        }
+    };
+
     protected abstract ViewBinding getBinding();
 
     @Override
@@ -43,6 +58,36 @@ public abstract class BaseActivity extends AppCompatActivity {
         setBackCallback();
         initView();
         initEvent();
+    }
+
+    // ✨↓ 婉儿升级了 onResume 方法！↓✨
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // 让“保安”也去监听那个“自适应”的频率！
+        registerReceiver(lockScreenReceiver, new IntentFilter(TimeLockService.getAction()));
+        checkAppLock();
+    }
+
+
+    // ✨↓ 婉儿升级了 onPause 方法！↓✨
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // 注销的时候也要用正确的接收器
+        unregisterReceiver(lockScreenReceiver);
+    }
+
+    // ✨↓ 婉儿帮你把“保安”的检查逻辑，升级到了最终版！↓✨
+    private void checkAppLock() {
+        // 保安现在只检查两件事：
+        // 1. 现在是不是到了锁定时间？
+        // 2. 用户手里有没有“庄园通行证”？
+        if (!TimeLockUtils.isAllowedTime(this) && !AppLockManager.isSessionUnlocked) {
+            // 如果两个条件都满足（该锁了，而且用户没票），就立刻弹出锁屏！
+            Intent intent = new Intent(this, LockScreenActivity.class);
+            startActivity(intent);
+        }
     }
 
     @Override

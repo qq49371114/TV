@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/breathing_gradient_bg"
+    android:gravity="center">
+
+    <LinearLayout
+        android:layout_width="350dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/shape_dialog_bg"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextClock
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:format12Hour="hh:mm:ss a"
+            android:format24Hour="HH:mm:ss"
+            android:textColor="@color/white"
+            android:textSize="48sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/timeSlotsTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/white_50"
+            android:textSize="14sp"
+            tools:text="允许时段：08:00-10:00, 14:00-16:00" />
+
+        <EditText
+            android:id="@+id/passwordEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:hint="请输入密码或超级密码"
+            android:inputType="textPassword"
+            android:maxLines="1"
+            android:textColor="@android:color/white"
+            android:textColorHint="@color/white_50" />
+
+        <Button
+            android:id="@+id/unlockButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="解 锁" />
+
+        <!-- ✨↓ 婉儿帮你把“总开关”放在这里啦！↓✨ -->
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/timeLockSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginTop="16dp"
+            android:text="开启锁屏功能"
+            android:textColor="@color/white_50"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:text="-- Designed by 婉儿 --"
+            android:textColor="#80FFFFFF"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+</RelativeLayout>

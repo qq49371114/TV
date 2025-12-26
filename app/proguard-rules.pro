@@ -81,3 +81,14 @@
 
 # Zxing
 -keep class com.google.zxing.** { *; }
+
+# --- 👇 婉儿的魔法在这里！👇 ---
+# Chaquopy
+-keep class com.chaquo.python.** { *; }
+
+# --- 👇 婉儿的最终必杀技在这里！(加强版) 👇 ---
+# 保护我们的锁屏配置模型，防止Gson在任何情况下解析失败
+-dontwarn com.fongmi.android.tv.model.**
+-keep class com.fongmi.android.tv.model.** { *; }
+-keepclassmembers class com.fongmi.android.tv.model.** { *; }
+# --- 👆 魔法结束 👆 ---

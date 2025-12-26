@@ -61,4 +61,14 @@
         <item name="android:background">@drawable/shape_bottom_sheet</item>
     </style>
 
+    <!-- ✨↓ 婉儿帮你把“透明外套”挂在这里啦！↓✨ -->
+    <style name="Theme.Transparent" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
+    <!-- ✨↑ 就是这段！↑✨ -->
+
 </resources>

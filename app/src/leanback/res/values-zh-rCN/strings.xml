@@ -21,4 +21,8 @@
     <string name="push_clip">推送剪贴板内容</string>
     <string name="push_info">使用手机扫描二维码，或于浏览器访问地址\n<xliff:g name="name">%s</xliff:g></string>
 
+    <!-- ✨↓ 加上我们需要的这三句新台词 ↓✨ -->
+    <string name="setting_lock_on">锁屏功能已开启，巡逻兵已上岗！</string>
+    <string name="setting_lock_off">锁屏功能已关闭，巡逻兵已下班！</string>
+    <string name="setting_lock_url_empty">请先短按设置远程配置URL！</string>
 </resources>

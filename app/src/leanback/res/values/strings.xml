@@ -10,6 +10,10 @@
     <string name="home_setting">Setting</string>
     <string name="home_history">History</string>
     <string name="home_recommend">Recommend</string>
+    
+    <string name="setting_lock_on">锁屏功能已开启，巡逻兵已上岗！</string>
+    <string name="setting_lock_off">锁屏功能已关闭，巡逻兵已下班！</string>
+    <string name="setting_lock_url_empty">请先短按设置远程配置URL！</string>
 
     <!-- Cast -->
     <string name="cast_waiting">Waiting for connection…</string>

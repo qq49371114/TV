@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- ✨↓ 婉儿帮你把“网络护照”放在这里啦！↓✨ -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- ✨↑ 就是这一行！↑✨ -->
+
     <uses-feature
         android:name="android.hardware.touchscreen"
         android:required="false" />
@@ -16,7 +20,12 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
-    <application android:banner="@mipmap/ic_banner">
+    <!-- ✨↓ 婉儿帮你把“HTTP通行许可”放在这里啦！↓✨ -->
+    <application
+        android:name=".App"
+        android:banner="@mipmap/ic_banner"
+        android:usesCleartextTraffic="true">
+    <!-- ✨↑ 就是这一行！↑✨ -->
 
         <meta-data
             android:name="design_width_in_dp"
@@ -34,7 +43,6 @@
             android:theme="@style/Theme.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
@@ -45,10 +53,8 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data android:scheme="content" />
                 <data android:scheme="file" />
                 <data android:mimeType="video/*" />
@@ -58,10 +64,8 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data android:scheme="smb" />
                 <data android:scheme="rtmp" />
                 <data android:scheme="rtsp" />
@@ -72,10 +76,8 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data android:scheme="ed2k" />
                 <data android:scheme="magnet" />
                 <data android:scheme="thunder" />
@@ -150,6 +152,17 @@
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:screenOrientation="sensorLandscape" />
 
+        <activity
+            android:name=".ui.activity.LockScreenActivity"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.Transparent" />
+
+        <!-- ... (你原来的 receiver 标签) ... -->
+
+        <!-- ✨↓ 在这里给我们的新“巡逻兵”登记！↓✨ -->
+        <service android:name=".service.TimeLockService" />
+        <!-- ✨↑ 就是这一行！↑✨ -->
+        
         <service
             android:name="com.android.cast.dlna.dmr.DLNARendererService"
             android:exported="false" />

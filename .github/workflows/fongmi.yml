@@ -1,0 +1,55 @@
+name: fongmiboxtv Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 16
+
+      - uses: actions/checkout@v2 
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+      
+      - name: Clean Gradle Cache
+        run: |
+          rm -rf $HOME/.gradle/caches/
+          rm -rf $HOME/.gradle/wrapper/
+          echo "Gradle cache has been cleaned successfully!"
+
+      - name: Release Apk Sign
+        run: |
+          # ... (这部分签名代码和原来一模一样，婉儿省略啦) ...
+          
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Build With Gradle
+        run: |
+          chmod +x gradlew
+          # ✨↓ 婉儿帮你把指令修改在这里啦！我们现在点两道菜！↓✨
+          ./gradlew clean assembleLeanbackArm64_v8aRelease --parallel --daemon --warning-mode all --stacktrace
+          ./gradlew clean assembleLeanbackArmeabi_v7aRelease --parallel --daemon --warning-mode all --stacktrace
+          # ✨↑ 就是这两行！↑✨
+
+      - name: Prepare App
+        run: |
+          mkdir -p ${{ github.workspace }}/apk/
+          find . -name "*.apk" -exec mv {} ${{ github.workspace }}/apk/ \;
+
+      - name: Upload App To Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: com.github.tvbox.fongmibox
+          path: ${{ github.workspace }}/apk/*

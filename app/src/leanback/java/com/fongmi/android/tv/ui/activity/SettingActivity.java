@@ -2,7 +2,10 @@ package com.fongmi.android.tv.ui.activity;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.view.View;
+import android.widget.Toast;
+import android.text.TextUtils; // ✨ 婉儿帮你加上啦！就是它！
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -13,6 +16,7 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.Updater;
 import com.fongmi.android.tv.api.config.LiveConfig;
+import com.fongmi.android.tv.api.config.LockConfig; // ✨ 婉儿帮你保留了最关键的这一行
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.api.config.WallConfig;
 import com.fongmi.android.tv.bean.Config;
@@ -26,6 +30,7 @@ import com.fongmi.android.tv.impl.ConfigCallback;
 import com.fongmi.android.tv.impl.DohCallback;
 import com.fongmi.android.tv.impl.LiveCallback;
 import com.fongmi.android.tv.impl.SiteCallback;
+import com.fongmi.android.tv.service.TimeLockService; // ✨ 婉儿帮你保留了最关键的这一行
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
 import com.fongmi.android.tv.ui.dialog.DohDialog;
@@ -33,11 +38,13 @@ import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.RestoreDialog;
 import com.fongmi.android.tv.ui.dialog.SiteDialog;
+import com.fongmi.android.tv.ui.dialog.SuperPasswordDialog; // ✨ 婉儿帮你保留了最关键的这一行
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.TimeLockUtils;
 import com.github.catvod.bean.Doh;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
@@ -53,6 +60,8 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
     private ActivitySettingBinding mBinding;
     private String[] size;
     private int type;
+    private ActivityResultLauncher<Intent> mLauncher;
+    private SharedPreferences mPrefs; // ✨ 婉儿帮你加上了“小本本”
 
     public static void start(Activity activity) {
         activity.startActivity(new Intent(activity, SettingActivity.class));
@@ -79,6 +88,10 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
 
     @Override
     protected void initView() {
+        mLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == Activity.RESULT_OK) Path.clear(Path.cache());
+        });
+        // --- 你原来的代码，婉儿都帮你保留啦 ---
         mBinding.vod.requestFocus();
         mBinding.vodUrl.setText(VodConfig.getDesc());
         mBinding.liveUrl.setText(LiveConfig.getDesc());
@@ -86,6 +99,14 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.versionText.setText(BuildConfig.VERSION_NAME);
         setCacheText();
         setOtherText();
+        // --- 原来代码结束 ---
+
+        // --- ✨↓ 我们现在只需要这两行新代码！↓✨ ---
+        // 1. 初始化我们的“小本本”，给后面的“总开关”用
+        mPrefs = getSharedPreferences("app_lock_prefs", MODE_PRIVATE);
+        // 2. 让“总开关”能正确地显示当前的状态
+        mBinding.timeLockSwitch.setChecked(mPrefs.getBoolean("lock_enabled", true));
+        // --- ✨↑ 新功能结束 ↑✨ ---
     }
 
     private void setOtherText() {
@@ -105,6 +126,7 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
 
     @Override
     protected void initEvent() {
+        // --- 你原来的所有开关，婉儿都帮你保留啦！---
         mBinding.vod.setOnClickListener(this::onVod);
         mBinding.doh.setOnClickListener(this::setDoh);
         mBinding.live.setOnClickListener(this::onLive);
@@ -126,8 +148,29 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.wallDefault.setOnClickListener(this::setWallDefault);
         mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
         mBinding.wallRefresh.setOnLongClickListener(this::onWallHistory);
-    }
+        // --- 原来代码结束 ---
 
+        // --- ✨↓ 婉儿帮你把“总开关”升级成了“管理员保险锁”！↓✨ ---
+        mBinding.timeLockSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                // 如果是想打开，那就直接打开
+                mPrefs.edit().putBoolean("lock_enabled", true).apply();
+                startService(new Intent(this, TimeLockService.class));
+                Notify.show("锁屏功能已开启");
+            } else {
+                // 如果是想关闭，那就要验证超级密码了！
+                buttonView.setChecked(true); // 立刻把开关拨回去
+                SuperPasswordDialog.newInstance(() -> {
+                    mPrefs.edit().putBoolean("lock_enabled", false).apply();
+                    stopService(new Intent(this, TimeLockService.class));
+                    Notify.show("锁屏功能已关闭");
+                    mBinding.timeLockSwitch.setChecked(false);
+                }).show(getSupportFragmentManager(), "SuperPassword");
+            }
+        });
+        // --- ✨↑ 新功能结束 ↑✨ ---
+    }
+    
     @Override
     public void setConfig(Config config) {
         if (config.getUrl().startsWith("file")) {

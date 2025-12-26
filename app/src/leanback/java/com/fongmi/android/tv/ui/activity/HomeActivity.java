@@ -65,6 +65,8 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.UrlUtil;
+import com.fongmi.android.tv.service.TimeLockService;
+import com.fongmi.android.tv.utils.TimeLockUtils; 
 import com.github.catvod.net.OkHttp;
 import com.google.common.collect.Lists;
 
@@ -76,7 +78,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+ 
 public class HomeActivity extends BaseActivity implements CustomTitleView.Listener, VodPresenter.OnClickListener, FuncPresenter.OnClickListener, HistoryPresenter.OnClickListener {
+
+    // ✨ 婉儿的修改(1): 把写死的URL地址删掉啦！我们不再需要它了！
 
     private ActivityHomeBinding mBinding;
     private ArrayObjectAdapter mHistoryAdapter;
@@ -110,6 +115,12 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     protected void onCreate(Bundle savedInstanceState) {
         SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
+
+        // ✨ 婉儿的修改(2): 我们的“侦察兵”现在变得更聪明啦！它会自己去找地址！
+        TimeLockUtils.fetchConfigIfNeeded(this);
+       // ✨↓ 就是在这里，加上这一行，派出我们的“巡逻兵”！↓✨
+        startService(new Intent(this, TimeLockService.class));
+        // ✨↑ 就是这一行！↑✨
     }
 
     @Override
