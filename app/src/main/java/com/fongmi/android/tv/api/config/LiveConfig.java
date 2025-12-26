@@ -29,8 +29,6 @@ import com.github.catvod.utils.Json;
 import com.google.gson.JsonObject;
 
 import java.io.InterruptedIOException;
-import com.google.gson.JsonParser;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -53,9 +51,6 @@ public class LiveConfig {
     private List<String> ads;
     private Future<?> future;
     private boolean sync;
-
-    private java.util.concurrent.ExecutorService executor; // <--- 加在这里哦！
-
 
     private static class Loader {
         static volatile LiveConfig INSTANCE = new LiveConfig();
@@ -108,16 +103,9 @@ public class LiveConfig {
         return this;
     }
 
-        public LiveConfig clear() {
-        this.home = null;
-        this.ads.clear();
-        this.rules.clear();
-        this.lives.clear();
-        // 婉儿在这里加一个对 executor 的处理，清空的时候也把线程池关掉，更安全哦
-        if (executor != null) {
-            executor.shutdownNow();
-            executor = null;
-        }
+    public LiveConfig clear() {
+        home = null;
+        lives = null;
         return this;
     }
 
@@ -125,42 +113,32 @@ public class LiveConfig {
         return "Canceled".equals(e.getMessage()) || e instanceof InterruptedException || e instanceof InterruptedIOException;
     }
 
-    // 兼容不带参数的 load() 调用
     public void load() {
         if (sync) return;
         load(new Callback());
     }
 
-    // ✨ 婉儿修正的地方 (1)：这是最关键的修改！
     public void load(Callback callback) {
-        if (executor != null) executor.shutdownNow();
-        executor = java.util.concurrent.Executors.newSingleThreadExecutor();
-        // 在调用 loadConfig 之前，先准备好 id 和 config！
-        Config config = get().getConfig();
-        executor.execute(() -> loadConfig(config.getId(), config, callback));
+        int id = taskId.incrementAndGet();
+        if (future != null && !future.isDone()) future.cancel(true);
+        future = App.submit(() -> loadConfig(id, config, callback));
+        callback.start();
     }
 
-    // 这是核心的私有方法
     private void loadConfig(int id, Config config, Callback callback) {
         try {
-            OkHttp.cancel("live");
-            String configUrl = config.getUrl();
-            if (configUrl.equals(Constants.BUILTIN_PLACEHOLDER)) {
-                configUrl = Constants.BUILTIN_URL;
-            }
-            String jsonStr = Decoder.getJson(UrlUtil.convert(configUrl), "");
-            com.google.gson.JsonObject configObj = com.google.gson.JsonParser.parseString(jsonStr).getAsJsonObject();
-            parseConfig(id, config, callback, configObj);
+            OkHttp.cancel(TAG);
+            Server.get().start();
+            String json = Decoder.getJson(UrlUtil.convert(config.getUrl()), TAG);
+            if (Json.isObj(json)) checkJson(id, config, callback, Json.parse(json).getAsJsonObject());
+            else parseText(id, config, callback, json);
+            if (taskId.get() == id && config.equals(this.config)) config.update();
         } catch (Throwable e) {
-            // ✨ 婉儿修正的地方 (2)：把 isCancel(e) 改成 isCanceled(e)
-            if (isCanceled(e)) return;
             e.printStackTrace();
-            if (TextUtils.isEmpty(config.getUrl())) {
-                config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 1);
-                App.post(() -> callback.error(""));
-            } else {
-                App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
-            }
+            if (isCanceled(e)) return;
+            if (taskId.get() != id) return;
+            if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
+            else App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
         }
     }
 
@@ -171,7 +149,6 @@ public class LiveConfig {
         setHome(config, live, false);
         if (taskId.get() == id) App.post(callback::success);
     }
-
 
     private String parseName(String url) {
         Uri uri = Uri.parse(url);
