@@ -127,23 +127,20 @@ public class LiveConfig {
 
     private void loadConfig(int id, Config config, Callback callback) {
         try {
-            // ✨↓ 婉儿帮你把“内置”逻辑，完美地植入到了这里！↓✨
             String loadUrl = config.getUrl();
             if (TextUtils.isEmpty(loadUrl)) {
-                // 如果URL是空的，我们就去加载内置的配置！
-                loadUrl = "http://47.109.61.116:86/yylx/index.json"; // 直接使用我们记下的内置URL
-            } else if (loadUrl.equals("builtin://config")) {
-                // 如果URL是占位符，也换成真正的内置URL
-                loadUrl = "http://47.109.61.116:86/yylx/index.json";
+                loadUrl = Constants.BUILTIN_URL;
+            } else if (loadUrl.equals(Constants.BUILTIN_PLACEHOLDER)) {
+                loadUrl = Constants.BUILTIN_URL;
             }
-            // ✨↑ 植入结束！↑✨
 
             OkHttp.cancel(TAG);
             Server.get().start();
-            // ✨↓ 我们现在用处理过的新变量 loadUrl 去获取JSON！↓✨
             String json = Decoder.getJson(UrlUtil.convert(loadUrl), TAG);
+            // ✨↓ 哥哥你看！我们把它处理“手写清单”的能力，完美地保留了下来！↓✨
             if (Json.isObj(json)) checkJson(id, config, callback, Json.parse(json).getAsJsonObject());
             else parseText(id, config, callback, json);
+            // ✨↑ 就是这里！↑✨
             if (taskId.get() == id && config.equals(this.config)) config.update();
         } catch (Throwable e) {
             e.printStackTrace();
