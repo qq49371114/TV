@@ -127,9 +127,19 @@ public class LiveConfig {
 
     private void loadConfig(int id, Config config, Callback callback) {
         try {
+            // ✨↓ 婉儿帮你把“内置”逻辑，也完美地植入到了这里！↓✨
+            String loadUrl = config.getUrl();
+            if (TextUtils.isEmpty(loadUrl)) {
+                loadUrl = BUILTIN_URL;
+            } else if (loadUrl.equals(BUILTIN_PLACEHOLDER)) {
+                loadUrl = BUILTIN_URL;
+            }
+            // ✨↑ 植入结束！↑✨
+
             OkHttp.cancel(TAG);
             Server.get().start();
-            String json = Decoder.getJson(UrlUtil.convert(config.getUrl()), TAG);
+            // ✨↓ 我们现在用处理过的新变量 loadUrl 去获取JSON！↓✨
+            String json = Decoder.getJson(UrlUtil.convert(loadUrl), TAG);
             if (Json.isObj(json)) checkJson(id, config, callback, Json.parse(json).getAsJsonObject());
             else parseText(id, config, callback, json);
             if (taskId.get() == id && config.equals(this.config)) config.update();
