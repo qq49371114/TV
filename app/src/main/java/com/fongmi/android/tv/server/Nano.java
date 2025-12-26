@@ -45,7 +45,7 @@ public class Nano extends NanoHTTPD {
     }
 
     public static Response ok(String text) {
-        return newFixedLengthResponse(Response.Status.OK, MIME_PLAINTEXT, text);
+        return newFixedLengthResponse(Response.Status.OK, MIME_PLAINTEXT, text == null ? "" : text);
     }
 
     public static Response error(String text) {

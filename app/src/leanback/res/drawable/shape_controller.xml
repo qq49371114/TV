@@ -2,8 +2,14 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
 
-    <solid android:color="@color/white_90" />
+    <!-- 渐变来啦！ -->
+    <gradient
+        android:angle="270"
+        android:endColor="@android:color/transparent"
+        android:startColor="#A0000000"
+        android:type="linear" />
 
+    <!-- 圆角我们还保留，这样上面两个角还是圆润的 -->
     <corners
         android:topLeftRadius="8dp"
         android:topRightRadius="8dp" />
