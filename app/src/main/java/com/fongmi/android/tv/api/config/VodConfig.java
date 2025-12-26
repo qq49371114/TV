@@ -23,7 +23,6 @@ import com.github.catvod.utils.Json;
 import com.google.gson.JsonObject;
 
 import java.io.InterruptedIOException;
-import com.orhanobut.logger.Logger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -100,12 +99,9 @@ public class VodConfig {
         return this;
     }
 
-    private boolean isCancel(Throwable e) {
-    if (e instanceof java.io.InterruptedIOException) return true;
-    if (e instanceof InterruptedException) return true;
-    if (e.getMessage() != null && e.getMessage().equals("Canceled")) return true;
-    return false;
-}
+    private boolean isCanceled(Throwable e) {
+        return "Canceled".equals(e.getMessage()) || e instanceof InterruptedException || e instanceof InterruptedIOException;
+    }
 
     public void load(Callback callback) {
         int id = taskId.incrementAndGet();
@@ -115,32 +111,32 @@ public class VodConfig {
     }
 
     private void loadConfig(int id, Config config, Callback callback) {
-    try {
-        if (config == null) {
-            config = Config.vod();
-        }
-        String loadUrl = config.getUrl();
-        if (TextUtils.isEmpty(loadUrl)) {
-            config = Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 0);
-            loadConfig(id, config, callback);
-            return;
-        }
-        if (Constants.BUILTIN_PLACEHOLDER.equals(loadUrl)) {
-            loadUrl = Constants.BUILTIN_URL;
-        }
-        OkHttp.cancel("vod");
-        // ✨ 修改点1：第二个参数传空字符串 ""
-        String jsonStr = Decoder.getJson(UrlUtil.convert(loadUrl), "");
-        JsonObject json = Json.parse(jsonStr).getAsJsonObject();
-        checkJson(id, config, callback, json);
+        try {
+            // ✨↓ 婉儿帮你把“内置”逻辑，也完美地植入到了这里！↓✨
+            String loadUrl = config.getUrl();
+            if (TextUtils.isEmpty(loadUrl)) {
+                // 如果URL是空的，我们就去加载内置的配置！
+                loadUrl = "http://47.109.61.116:86/yylx/index.json"; // 直接使用我们记下的内置URL
+            } else if (loadUrl.equals("builtin://config")) {
+                // 如果URL是占位符，也换成真正的内置URL
+                loadUrl = "http://47.109.61.116:86/yylx/index.json";
+            }
+            // ✨↑ 植入结束！↑✨
 
-    } catch (Throwable e) {
-        // ✨ 修改点2：使用我们刚加的 isCancel 方法，并用 printStackTrace 打印错误
-        if (isCancel(e)) return;
-        e.printStackTrace();
-        loadConfig(id, Config.find(Constants.BUILTIN_PLACEHOLDER, Constants.BUILTIN_NAME, 0), callback);
+            OkHttp.cancel(TAG);
+            Server.get().start();
+            // ✨↓ 我们现在用处理过的新变量 loadUrl 去获取JSON！↓✨
+            String json = Decoder.getJson(UrlUtil.convert(loadUrl), TAG);
+            checkJson(id, config, callback, Json.parse(json).getAsJsonObject());
+            if (taskId.get() == id && config.equals(this.config)) config.update();
+        } catch (Throwable e) {
+            e.printStackTrace();
+            if (isCanceled(e)) return;
+            if (taskId.get() != id) return;
+            if (TextUtils.isEmpty(config.getUrl())) App.post(() -> callback.error(""));
+            else App.post(() -> callback.error(Notify.getError(R.string.error_config_get, e)));
+        }
     }
-}
 
     private void checkJson(int id, Config config, Callback callback, JsonObject object) {
         if (object.has("msg")) {
