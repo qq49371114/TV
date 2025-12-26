@@ -112,9 +112,21 @@ public class VodConfig {
 
     private void loadConfig(int id, Config config, Callback callback) {
         try {
+            // ✨↓ 婉儿帮你把“内置”逻辑，完美地植入到了这里！↓✨
+            String loadUrl = config.getUrl();
+            if (TextUtils.isEmpty(loadUrl)) {
+                // 如果URL是空的，我们就去加载内置的配置！
+                loadUrl = BUILTIN_URL; // 使用我们植入进来的内置URL
+            } else if (loadUrl.equals(BUILTIN_PLACEHOLDER)) {
+                // 如果URL是占位符，也换成真正的内置URL
+                loadUrl = BUILTIN_URL;
+            }
+            // ✨↑ 植入结束！↑✨
+
             OkHttp.cancel(TAG);
             Server.get().start();
-            String json = Decoder.getJson(UrlUtil.convert(config.getUrl()), TAG);
+            // ✨↓ 我们现在用处理过的新变量 loadUrl 去获取JSON！↓✨
+            String json = Decoder.getJson(UrlUtil.convert(loadUrl), TAG);
             checkJson(id, config, callback, Json.parse(json).getAsJsonObject());
             if (taskId.get() == id && config.equals(this.config)) config.update();
         } catch (Throwable e) {
