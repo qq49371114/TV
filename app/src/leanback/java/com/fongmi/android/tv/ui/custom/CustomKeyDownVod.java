@@ -52,7 +52,7 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
         } else if (KeyUtil.isActionDown(event) && KeyUtil.isRightKey(event)) {
             listener.onSeeking(addTime());
         } else if (KeyUtil.isActionUp(event) && (KeyUtil.isLeftKey(event) || KeyUtil.isRightKey(event))) {
-            App.post(() -> listener.onSeekTo(holdTime), 250);
+            App.post(() -> listener.onSeekEnd(holdTime), 250);
         } else if (KeyUtil.isActionUp(event) && KeyUtil.isUpKey(event)) {
             if (changeSpeed) listener.onSpeedEnd();
             else listener.onKeyUp();
@@ -87,7 +87,7 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
         return holdTime = holdTime - Constant.INTERVAL_SEEK;
     }
 
-    public void resetTime() {
+    public void reset() {
         holdTime = 0;
     }
 
@@ -95,7 +95,7 @@ public class CustomKeyDownVod extends GestureDetector.SimpleOnGestureListener {
 
         void onSeeking(long time);
 
-        void onSeekTo(long time);
+        void onSeekEnd(long time);
 
         void onSpeedUp();
 

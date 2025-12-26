@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.leanback.widget.Presenter;
 
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.bean.Cache;
 import com.fongmi.android.tv.bean.Class;
 import com.fongmi.android.tv.databinding.AdapterTypeBinding;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -48,7 +49,7 @@ public class TypePresenter extends Presenter {
     }
 
     private int getIcon(Class item) {
-        return item.getFilter() == null ? 0 : item.getFilter() ? R.drawable.ic_vod_filter_off : R.drawable.ic_vod_filter_on;
+        return Cache.get(item).isEmpty() ? 0 : item.getFilter() ? R.drawable.ic_vod_filter_off : R.drawable.ic_vod_filter_on;
     }
 
     public static class ViewHolder extends Presenter.ViewHolder {

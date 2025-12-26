@@ -907,8 +907,8 @@ public class LiveActivity extends BaseActivity implements GroupPresenter.OnClick
     }
 
     private void seek(long time) {
-        mKeyDown.resetTime();
         mPlayers.seek(time);
+        mKeyDown.reset();
         showProgress();
         hideCenter();
     }

@@ -17,7 +17,7 @@ import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Text;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -106,15 +106,13 @@ public class Flag implements Parcelable, Diffable<Flag> {
     }
 
     public Episode find(String remarks, boolean strict) {
-        int number = Util.getDigit(remarks);
         if (getEpisodes().isEmpty()) return null;
         if (getEpisodes().size() == 1) return getEpisodes().get(0);
-        for (Episode item : getEpisodes()) if (item.rule1(remarks)) return item;
-        for (Episode item : getEpisodes()) if (item.rule2(number)) return item;
-        if (number == -1) for (Episode item : getEpisodes()) if (item.rule3(remarks)) return item;
-        if (number == -1) for (Episode item : getEpisodes()) if (item.rule4(remarks)) return item;
-        if (getPosition() != -1) return getEpisodes().get(getPosition());
-        return strict ? null : getEpisodes().get(0);
+        int number = Util.getNumber(remarks);
+        return getEpisodes().stream()
+                .map(episode -> new Episode.Rule(episode, episode.getScore(remarks, number)))
+                .filter(Episode.Rule::find).max(Comparator.comparingInt(Episode.Rule::score)).map(Episode.Rule::episode)
+                .orElseGet(() -> getPosition() != -1 ? getEpisodes().get(getPosition()) : strict ? null : getEpisodes().get(0));
     }
 
     public void setEpisodes(String url) {

@@ -1002,17 +1002,17 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
 
     @Override
     public void onSpeedUp() {
-        if (mPlayers.isLive() || !mPlayers.isPlaying()) return;
-        mBinding.control.action.speed.setText(mPlayers.setSpeed(Setting.getSpeed()));
-        mBinding.widget.speed.startAnimation(ResUtil.getAnim(R.anim.forward));
+        if (mPlayers.isLive()) return;
+        if (!mPlayers.isPlaying()) return;
         mBinding.widget.speed.setVisibility(View.VISIBLE);
+        mBinding.widget.speed.startAnimation(ResUtil.getAnim(R.anim.forward));
+        mBinding.control.action.speed.setText(mPlayers.setSpeed(Setting.getSpeed()));
     }
 
     @Override
     public void onSpeedEnd() {
-        mBinding.control.action.speed.setText(mPlayers.setSpeed(1.0f));
-        mBinding.widget.speed.setVisibility(View.GONE);
         mBinding.widget.speed.clearAnimation();
+        mBinding.control.action.speed.setText(mPlayers.setSpeed(1.0f));
     }
 
     @Override
@@ -1025,22 +1025,12 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
     }
 
     @Override
-    public void onBrightEnd() {
-        mBinding.widget.bright.setVisibility(View.GONE);
-    }
-
-    @Override
     public void onVolume(int progress) {
         mBinding.widget.volume.setVisibility(View.VISIBLE);
         mBinding.widget.volumeProgress.setProgress(progress);
         if (progress < 35) mBinding.widget.volumeIcon.setImageResource(R.drawable.ic_widget_volume_low);
         else if (progress < 70) mBinding.widget.volumeIcon.setImageResource(R.drawable.ic_widget_volume_medium);
         else mBinding.widget.volumeIcon.setImageResource(R.drawable.ic_widget_volume_high);
-    }
-
-    @Override
-    public void onVolumeEnd() {
-        mBinding.widget.volume.setVisibility(View.GONE);
     }
 
     @Override
@@ -1056,7 +1046,7 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
     }
 
     @Override
-    public void onSeek(long time) {
+    public void onSeeking(long time) {
         if (mPlayers.isLive()) return;
         mBinding.widget.action.setImageResource(time > 0 ? R.drawable.ic_widget_forward : R.drawable.ic_widget_rewind);
         mBinding.widget.time.setText(mPlayers.getPositionTime(time));
@@ -1067,7 +1057,6 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
     @Override
     public void onSeekEnd(long time) {
         if (mPlayers.isLive()) return;
-        mBinding.widget.seek.setVisibility(View.GONE);
         mPlayers.seek(time);
         showProgress();
         onPlay();
@@ -1083,6 +1072,14 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
         if (isVisible(mBinding.recycler)) hideUI();
         if (isVisible(mBinding.control.getRoot())) hideControl();
         else showControl();
+    }
+
+    @Override
+    public void onTouchEnd() {
+        mBinding.widget.seek.setVisibility(View.GONE);
+        mBinding.widget.speed.setVisibility(View.GONE);
+        mBinding.widget.bright.setVisibility(View.GONE);
+        mBinding.widget.volume.setVisibility(View.GONE);
     }
 
     @Override

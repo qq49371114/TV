@@ -22,7 +22,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @Entity(indices = @Index(value = {"uuid", "name"}, unique = true))
-public class Device implements Diffable<Device> {
+public class Device implements Diffable<Device>, Comparable<Device> {
 
     @PrimaryKey(autoGenerate = true)
     @SerializedName("id")
@@ -191,13 +191,8 @@ public class Device implements Diffable<Device> {
         return getName().equals(other.getName()) && getType() == other.getType();
     }
 
-    public static class Sorter implements Comparator<Device> {
-
-        @Override
-        public int compare(Device o1, Device o2) {
-            int comp = Integer.compare(o1.getType(), o2.getType());
-            if (comp == 0) comp = o1.getName().compareToIgnoreCase(o2.getName());
-            return comp != 0 ? comp : o1.getUuid().compareTo(o2.getUuid());
-        }
+    @Override
+    public int compareTo(Device other) {
+        return Comparator.comparingInt(Device::getType).thenComparing(Device::getName, String.CASE_INSENSITIVE_ORDER).thenComparing(Device::getUuid).compare(this, other);
     }
 }

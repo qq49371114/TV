@@ -6,11 +6,9 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 
 import androidx.fragment.app.FragmentActivity;
-import androidx.lifecycle.ViewModelProvider;
 
 import com.fongmi.android.tv.bean.Episode;
 import com.fongmi.android.tv.databinding.DialogEpisodeListBinding;
-import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.ui.adapter.EpisodeAdapter;
 import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.utils.ResUtil;
@@ -20,18 +18,19 @@ import java.util.List;
 
 public class EpisodeListDialog implements EpisodeAdapter.OnClickListener {
 
+    private final EpisodeAdapter.OnClickListener listener;
     private final FragmentActivity activity;
     private DialogEpisodeListBinding binding;
-    private List<Episode> episodes;
-    private SiteViewModel viewModel;
-    private EpisodeAdapter adapter;
     private SideSheetDialog dialog;
+    private EpisodeAdapter adapter;
+    private List<Episode> episodes;
 
     public static EpisodeListDialog create(FragmentActivity activity) {
         return new EpisodeListDialog(activity);
     }
 
     public EpisodeListDialog(FragmentActivity activity) {
+        this.listener = (EpisodeAdapter.OnClickListener) activity;
         this.activity = activity;
     }
 
@@ -68,7 +67,6 @@ public class EpisodeListDialog implements EpisodeAdapter.OnClickListener {
 
     private void initView() {
         setRecyclerView();
-        setViewModel();
         setEpisode();
     }
 
@@ -78,10 +76,6 @@ public class EpisodeListDialog implements EpisodeAdapter.OnClickListener {
         binding.recycler.setAdapter(adapter = new EpisodeAdapter(this, ViewType.GRID));
     }
 
-    private void setViewModel() {
-        viewModel = new ViewModelProvider(activity).get(SiteViewModel.class);
-    }
-
     private void setEpisode() {
         adapter.addAll(episodes);
         binding.recycler.scrollToPosition(adapter.getPosition());
@@ -89,7 +83,7 @@ public class EpisodeListDialog implements EpisodeAdapter.OnClickListener {
 
     @Override
     public void onItemClick(Episode item) {
-        viewModel.setEpisode(item);
+        listener.onItemClick(item);
         dialog.dismiss();
     }
 }

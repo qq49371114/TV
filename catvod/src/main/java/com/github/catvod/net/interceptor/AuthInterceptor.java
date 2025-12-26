@@ -33,10 +33,10 @@ public class AuthInterceptor implements Interceptor {
         if (response.code() != 401) return response;
         String host = request.url().host();
         String user = request.url().uri().getUserInfo();
-        String header = response.header(HttpHeaders.WWW_AUTHENTICATE);
-        if (user == null && userMap.containsKey(host)) user = userMap.get(host);
+        if (user == null) user = userMap.get(host);
         if (user == null) return response;
-        else response.close();
+        response.close();
+        String header = response.header(HttpHeaders.WWW_AUTHENTICATE);
         String auth = digest(header) ? Util.digest(user, header, request) : Util.basic(user);
         return chain.proceed(request.newBuilder().header(HttpHeaders.AUTHORIZATION, auth).build());
     }

@@ -8,7 +8,12 @@ import java.net.ProxySelector;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class OkProxySelector extends ProxySelector {
 
@@ -16,14 +21,15 @@ public class OkProxySelector extends ProxySelector {
     private final ProxySelector system;
 
     public OkProxySelector() {
-        proxy = new ArrayList<>();
+        proxy = new CopyOnWriteArrayList<>();
         system = ProxySelector.getDefault();
     }
 
     public synchronized void addAll(List<Proxy> items) {
-        for (Proxy item : items) item.init();
-        proxy.addAll(items);
-        Proxy.sort(proxy);
+        items.forEach(Proxy::init);
+        List<Proxy> newList = Stream.concat(proxy.stream(), items.stream()).sorted().toList();
+        proxy.clear();
+        proxy.addAll(newList);
     }
 
     public void clear() {

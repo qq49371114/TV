@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
@@ -29,11 +30,11 @@ public class ResponseInterceptor implements Interceptor {
     private final ConcurrentHashMap<String, String> redirectMap;
 
     public ResponseInterceptor() {
-        headers = new ArrayList<>();
+        headers = new CopyOnWriteArrayList<>();
         redirectMap = new ConcurrentHashMap<>();
     }
 
-    public synchronized void addAll(List<Header> items) {
+    public void addAll(List<Header> items) {
         headers.addAll(items);
     }
 
