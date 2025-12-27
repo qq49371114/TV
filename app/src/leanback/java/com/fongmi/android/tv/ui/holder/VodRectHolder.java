@@ -5,12 +5,9 @@ import androidx.annotation.NonNull;
 import com.bumptech.glide.Glide;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.databinding.AdapterVodRectBinding;
-import com.fongmi.android.tv.event.VodClickEvent;
 import com.fongmi.android.tv.ui.base.BaseVodHolder;
 import com.fongmi.android.tv.ui.presenter.VodPresenter;
 import com.fongmi.android.tv.utils.ImgUtil;
-
-import org.greenrobot.eventbus.EventBus;
 
 public class VodRectHolder extends BaseVodHolder {
 
@@ -39,7 +36,7 @@ public class VodRectHolder extends BaseVodHolder {
         binding.year.setVisibility(item.getYearVisible());
         binding.name.setVisibility(item.getNameVisible());
         binding.remark.setVisibility(item.getRemarkVisible());
-        binding.getRoot().setOnClickListener(v -> EventBus.getDefault().post(new VodClickEvent(item)));
+        binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));
         binding.getRoot().setOnLongClickListener(v -> listener.onLongClick(item));
         ImgUtil.load(item.getName(), item.getPic(), binding.image);
     }
