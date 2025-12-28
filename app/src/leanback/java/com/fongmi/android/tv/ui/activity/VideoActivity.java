@@ -1101,38 +1101,27 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
             case Player.STATE_ENDED:
              // ↓↓↓ 在这里，检查我们的“旗帜”！↓↓↓
                 if (mIsLastEpisode) {
-             // 如果是最后一集播放完了，就启动我们的“双引擎”！
-                  String videoName = getName(); // 获取当前视频的名字
-                if (TextUtils.isEmpty(videoName)) return; // 安全检查
+                  String videoName = getName();
+                if (TextUtils.isEmpty(videoName)) return;
 
                   Toast.makeText(this, "正在获取推荐...", Toast.LENGTH_SHORT).show();
 
-            // 1. 启动爱奇艺引擎，获取相关推荐
-                SuggestHelper.getSuggestions(videoName, suggestions -> {
-            // 在这里，我们拿到了一个包含所有“相关建议词”的列表 (suggestions)！
-        
-            // 用一个Toast来验证一下我们成功了！
-            if (!suggestions.isEmpty()) {
-              Toast.makeText(VideoActivity.this, "相关推荐1：" + suggestions.get(0).getWord(), Toast.LENGTH_LONG).show();
-              }
+                  SuggestHelper.getSuggestions(videoName, suggestions -> {
+                if (suggestions != null && !suggestions.isEmpty()) {
+                // ↓↓↓ 在这里，把 getWord() 换成 getTitle()！↓↓↓
+                   Toast.makeText(VideoActivity.this, "相关推荐1：" + suggestions.get(0).getTitle(), Toast.LENGTH_LONG).show();
+                   }
 
-            // 2. 同时，启动360引擎，获取热门推荐
-              SuggestHelper.getHot(hotWords -> {
-            // 在这里，我们拿到了一个包含“热门排行榜”的列表 (hotWords)！
-            
-            // 同样用Toast验证一下
-            if (!hotWords.isEmpty()) {
-                Toast.makeText(VideoActivity.this, "热门推荐1：" + hotWords.get(0).getWord(), Toast.LENGTH_LONG).show();
-               }
-
-            // TODO: 在这里，我们已经同时拿到了两份数据，
-            // 下一步就是弹出一个漂亮的悬浮窗，把这两份数据都展示出来！
-            });
-            });
-          } else {
-            // 如果不是最后一集，就执行原来的逻辑
-            checkEnded(true);
-          }
+                   SuggestHelper.getHot(hotWords -> {
+                if (hotWords != null && !hotWords.isEmpty()) {
+                // ↓↓↓ 在这里，也把 getWord() 换成 getTitle()！↓↓↓
+                   Toast.makeText(VideoActivity.this, "热门推荐1：" + hotWords.get(0).getTitle(), Toast.LENGTH_LONG).show();
+                  }
+                });
+             });
+                } else {
+                checkEnded(true);
+                }
                  break;
 
             case PlayerEvent.TRACK:
