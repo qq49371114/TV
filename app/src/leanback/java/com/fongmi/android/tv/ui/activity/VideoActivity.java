@@ -47,6 +47,7 @@ import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Sub;
 import com.fongmi.android.tv.bean.Track;
 import com.fongmi.android.tv.bean.Vod;
+import com.fongmi.android.tv.bean.Word;
 import com.fongmi.android.tv.databinding.ActivityVideoBinding;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.event.ActionEvent;
@@ -567,23 +568,12 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     notifyItemChanged(mBinding.episode, mEpisodeAdapter);
     onRefresh();
 
-    // --- 第二部分：植入我们最终的、绝对正确的“旗帜”判断逻辑！---
+    // --- 在这里，植入我们正确的“旗帜”判断逻辑！---
     try {
-        // 1. 获取当前点击的集数位置 (正确的“扳手”是 indexOf(item) !)
         int currentPosition = mEpisodeAdapter.indexOf(item);
-        
-        // 2. 获取总集数 (正确的“扳手”是 size() !)
         int totalEpisodes = mEpisodeAdapter.size();
-        
-        // 3. 判断当前是不是最后一集
         mIsLastEpisode = (currentPosition == totalEpisodes - 1);
-
-        // 4. 我们可以加一个Toast来实时看到我们的判断结果
-        if (mIsLastEpisode) {
-            Toast.makeText(this, "检测到最后一集！", Toast.LENGTH_SHORT).show();
-        }
     } catch (Exception e) {
-        // 加上最外层的保护，防止任何意外情况导致App崩溃
         e.printStackTrace();
     }
 }
@@ -1102,11 +1092,12 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
             case Player.STATE_ENDED:
              // ↓↓↓ 在这里，检查我们的“旗帜”！↓↓↓
                 if (mIsLastEpisode) {
-             // 把Toast换成我们新的“召唤”方法！
+            // 如果是最后一集播放完了，就召唤我们的“智能导航仪”！
                 showSmartNavPanel();
               } else {
+            // 如果不是最后一集，就执行原来的逻辑
                 checkEnded(true);
-             }
+              }
                  break;
 
             case PlayerEvent.TRACK:
@@ -1122,36 +1113,18 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     private void showSmartNavPanel() {
     if (isFinishing()) return;
-    mPlayers.pause();
+    if (mPlayers != null) mPlayers.pause();
     
     String videoName = getName();
     if (TextUtils.isEmpty(videoName)) return;
 
     Toast.makeText(this, "正在获取推荐...", Toast.LENGTH_SHORT).show();
 
-    // 1. 启动爱奇艺引擎
     SuggestHelper.getSuggestions(videoName, suggestions -> {
-        // 2. 接着启动360引擎
         SuggestHelper.getHot(hotWords -> {
-            // 3. 在这里，我们已经同时拿到了两份数据！
-            
-            // 为了传递数据，我们需要把 Word.Data 转换成 ArrayList<String>
-            ArrayList<String> relatedWords = new ArrayList<>();
-            if (suggestions != null) {
-                for (Word.Data data : suggestions) {
-                    relatedWords.add(data.getTitle());
-                }
-            }
-
-            ArrayList<String> hotWordsList = new ArrayList<>();
-            if (hotWords != null) {
-                for (Word.Data data : hotWords) {
-                    hotWordsList.add(data.getTitle());
-                }
-            }
-
-            // 4. 创建并显示我们的Dialog，并通过Bundle把数据传递过去！
-            SmartNavDialog.newInstance(relatedWords, hotWordsList).show(getSupportFragmentManager(), "SmartNav");
+            ArrayList<Word.Data> related = new ArrayList<>(suggestions);
+            ArrayList<Word.Data> hots = new ArrayList<>(hotWords);
+            SmartNavDialog.newInstance(videoName, related, hots).show(getSupportFragmentManager(), "SmartNav");
         });
     });
 }
