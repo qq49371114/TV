@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -132,6 +133,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private View mFocus1;
     private View mFocus2;
     private String tag;
+    // ↓↓↓ 在这里，添加我们的“状态旗帜” ↓↓↓
+    private boolean mIsLastEpisode = false;
 
     public static void push(FragmentActivity activity, String text) {
         if (FileChooser.isValid(activity, Uri.parse(text))) file(activity, FileChooser.getPathFromUri(Uri.parse(text)));
@@ -460,6 +463,17 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         checkFlag(item);
         checkKeepImg();
         updateKeep();
+        // ↓↓↓ 在这里，添加对新方法的调用 ↓↓↓
+        checkIfLastEpisode();
+    }
+
+    private void checkIfLastEpisode() {
+        if (mEpisodeAdapter == null) return; // 安全检查
+        int currentPosition = mEpisodeAdapter.getSelectedPosition();
+        if (currentPosition == -1) return;
+        int totalEpisodes = mEpisodeAdapter.getItemCount();
+        // 判断当前是不是最后一集，并升起我们的“旗帜”
+        mIsLastEpisode = (currentPosition == totalEpisodes - 1);
     }
 
     private int getMaxLines() {
@@ -1074,8 +1088,14 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                 mPlayers.reset();
                 break;
             case Player.STATE_ENDED:
-                checkEnded(true);
-                break;
+             // ↓↓↓ 在这里，检查我们的“旗帜”！↓↓↓
+                if (mIsLastEpisode) {
+                   Toast.makeText(this, "✨ 最后一集已播完，为您推荐...", Toast.LENGTH_LONG).show();
+                   } else {
+                   checkEnded(true);
+                   }
+                 break;
+
             case PlayerEvent.TRACK:
                 setMetadata();
                 setTrackVisible();
