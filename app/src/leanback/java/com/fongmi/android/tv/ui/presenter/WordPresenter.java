@@ -9,6 +9,7 @@ import androidx.leanback.widget.Presenter;
 import com.fongmi.android.tv.bean.Word;
 import com.fongmi.android.tv.databinding.AdapterWordBinding;
 import com.fongmi.android.tv.utils.ImgUtil;
+import com.bumptech.glide.Glide
 
 public class WordPresenter extends Presenter {
 
@@ -40,7 +41,7 @@ public class WordPresenter extends Presenter {
     @Override
     public void onUnbindViewHolder(@NonNull Presenter.ViewHolder viewHolder) {
         ViewHolder holder = (ViewHolder) viewHolder;
-        ImgUtil.clear(holder.binding.image);
+        Glide.with(holder.binding.image.getContext()).clear(holder.binding.image);
     }
 
     public static class ViewHolder extends Presenter.ViewHolder {
