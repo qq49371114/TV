@@ -72,6 +72,7 @@ import com.fongmi.android.tv.ui.presenter.FlagPresenter;
 import com.fongmi.android.tv.ui.presenter.ParsePresenter;
 import com.fongmi.android.tv.ui.presenter.PartPresenter;
 import com.fongmi.android.tv.ui.presenter.QuickPresenter;
+import com.fongmi.android.tv.ui.dialog.SmartNavDialog;
 import com.fongmi.android.tv.utils.Clock;
 import com.fongmi.android.tv.utils.FileChooser;
 import com.fongmi.android.tv.utils.ImgUtil;
@@ -1101,27 +1102,11 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
             case Player.STATE_ENDED:
              // ↓↓↓ 在这里，检查我们的“旗帜”！↓↓↓
                 if (mIsLastEpisode) {
-                  String videoName = getName();
-                if (TextUtils.isEmpty(videoName)) return;
-
-                  Toast.makeText(this, "正在获取推荐...", Toast.LENGTH_SHORT).show();
-
-                  SuggestHelper.getSuggestions(videoName, suggestions -> {
-                if (suggestions != null && !suggestions.isEmpty()) {
-                // ↓↓↓ 在这里，把 getWord() 换成 getTitle()！↓↓↓
-                   Toast.makeText(VideoActivity.this, "相关推荐1：" + suggestions.get(0).getTitle(), Toast.LENGTH_LONG).show();
-                   }
-
-                   SuggestHelper.getHot(hotWords -> {
-                if (hotWords != null && !hotWords.isEmpty()) {
-                // ↓↓↓ 在这里，也把 getWord() 换成 getTitle()！↓↓↓
-                   Toast.makeText(VideoActivity.this, "热门推荐1：" + hotWords.get(0).getTitle(), Toast.LENGTH_LONG).show();
-                  }
-                });
-             });
-                } else {
+             // 把Toast换成我们新的“召唤”方法！
+                showSmartNavPanel();
+              } else {
                 checkEnded(true);
-                }
+             }
                  break;
 
             case PlayerEvent.TRACK:
@@ -1133,6 +1118,26 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                 mBinding.widget.size.setText(mPlayers.getSizeText());
                 break;
         }
+    }
+
+    private void showSmartNavPanel() {
+        // 安全检查，如果Activity已经快要关闭了，就不再弹窗
+        if (isFinishing()) {
+            return;
+        }
+
+        // 暂停播放，防止背景音干扰
+        if (mPlayers != null) {
+            mPlayers.pause();
+        }
+        
+        // 创建并显示我们的Dialog
+        // newInstance() 是我们写在 SmartNavDialog 里的一个静态方法，用来创建它自己
+        // show(...) 是 DialogFragment 自带的方法，用来把它显示出来
+        SmartNavDialog.newInstance().show(getSupportFragmentManager(), "SmartNav");
+
+        // TODO: 在这里，我们会调用SuggestHelper获取数据，
+        // 然后把数据传递给SmartNavDialog。
     }
 
     private void setPosition() {
