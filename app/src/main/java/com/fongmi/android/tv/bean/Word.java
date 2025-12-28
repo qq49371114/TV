@@ -1,5 +1,7 @@
 package com.fongmi.android.tv.bean;
 
+import android.os.Parcel;
+import android.os.Parcelable; // <--- 新增的 import
 import android.text.TextUtils;
 
 import com.fongmi.android.tv.App;
@@ -30,13 +32,24 @@ public class Word {
         return data == null ? Collections.emptyList() : data;
     }
 
-    public static class Data implements Diffable<Data> {
+    // --- 核心修改在这里 ---
+    // 我们让 Data 类实现 Parcelable 接口，这样它才能在不同的组件之间传递
+    public static class Data implements Diffable<Data>, Parcelable {
 
         @SerializedName(value = "title", alternate = "name")
         private String title;
+        
+        // ↓↓↓ 新增的 pic 字段 ↓↓↓
+        @SerializedName("pic")
+        private String pic;
 
         public String getTitle() {
             return TextUtils.isEmpty(title) ? "" : title;
+        }
+
+        // ↓↓↓ 新增的 getPic() 方法 ↓↓↓
+        public String getPic() {
+            return TextUtils.isEmpty(pic) ? "" : pic;
         }
 
         @Override
@@ -53,5 +66,38 @@ public class Word {
             this.title = Trans.s2t(title);
             return this;
         }
+
+        // --- 下面是所有为了实现 Parcelable 而新增的代码 ---
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeString(this.title);
+            dest.writeString(this.pic);
+        }
+
+        public Data() {
+        }
+
+        protected Data(Parcel in) {
+            this.title = in.readString();
+            this.pic = in.readString();
+        }
+
+        public static final Creator<Data> CREATOR = new Creator<Data>() {
+            @Override
+            public Data createFromParcel(Parcel source) {
+                return new Data(source);
+            }
+
+            @Override
+            public Data[] newArray(int size) {
+                return new Data[size];
+            }
+        };
     }
 }
