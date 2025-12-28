@@ -573,24 +573,33 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     notifyItemChanged(mBinding.episode, mEpisodeAdapter);
     onRefresh();
 
-    // ↓↓↓ 在这里，植入我们全新的、正确的“旗帜”判断逻辑！↓↓↓
+    // ↓↓↓ 在这里，植入我们最终的、用最原始方法实现的“旗帜”判断逻辑！↓↓↓
     
     try {
-        // 1. 获取当前点击的集数位置
-        int currentPosition = mEpisodeAdapter.indexOf(item);
-        
-        // 2. 获取总集数
+        // --- 我们用最笨、但最可靠的手动循环来代替 indexOf ---
+        int currentPosition = -1;
+        for (int i = 0; i < mEpisodeAdapter.size(); i++) {
+            // 我们通过比较集数的名字来找到它，这比比较整个对象更可靠
+            if (((Episode) mEpisodeAdapter.get(i)).getName().equals(item.getName())) {
+                currentPosition = i;
+                break; // 找到了就立刻停止循环
+            }
+        }
+
+        if (currentPosition == -1) return; // 如果因为某种原因没找到，就直接退出
+
+        // 获取总集数
         int totalEpisodes = mEpisodeAdapter.size();
         
-        // 3. 判断当前是不是最后一集
+        // 判断当前是不是最后一集
         mIsLastEpisode = (currentPosition == totalEpisodes - 1);
 
-        // 4. 我们可以加一个Toast来实时看到我们的判断结果
+        // 加一个Toast来实时看到我们的判断结果
         if (mIsLastEpisode) {
             Toast.makeText(this, "检测到最后一集！", Toast.LENGTH_SHORT).show();
         }
     } catch (Exception e) {
-        // 加一个try-catch防止意外情况导致App崩溃
+        // 加上最外层的保护，防止任何意外情况导致App崩溃
         e.printStackTrace();
     }
 }
