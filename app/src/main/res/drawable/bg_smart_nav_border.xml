@@ -1,9 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-    <solid android:color="@android:color/transparent" />
-    <corners android:radius="12dp" />
-    <stroke
-        android:width="2dp"
-        android:color="@color/accent" /> <!-- 这里我们先用App的主题色 -->
-</shape>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_blur">
+
+    <!-- 
+        核心修改在这里！
+        我们不再让呼吸灯边框去撑满父容器，
+        而是让它的大小，完全对齐我们下面那个有内容的LinearLayout。
+        这样就不会有尺寸冲突了。
+    -->
+    <View
+        android:id="@+id/breathing_border"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_alignStart="@id/content_layout"
+        android:layout_alignTop="@id/content_layout"
+        android:layout_alignEnd="@id/content_layout"
+        android:layout_alignBottom="@id/content_layout"
+        android:background="@drawable/bg_smart_nav_border" />
+
+    <LinearLayout
+        android:id="@+id/content_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- 顶部标题 -->
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="接下来，看点什么？"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <!-- 相关推荐区域 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="为你推荐"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+
+        <androidx.leanback.widget.HorizontalGridView
+            android:id="@+id/related_recycler"
+            android:layout_width="500dp"
+            android:layout_height="50dp" <!-- 给它一个固定的高度 -->
+            android:layout_marginTop="8dp"
+            android:clipToPadding="false" />
+
+        <!-- 热门推荐区域 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="大家都在看"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+
+        <androidx.leanback.widget.HorizontalGridView
+            android:id="@+id/hot_recycler"
+            android:layout_width="500dp"
+            android:layout_height="50dp" <!-- 也给它一个固定的高度 -->
+            android:layout_marginTop="8dp"
+            android.clipToPadding="false" />
+
+        <!-- 婉儿的签名 -->
+        <TextView
+            android:id="@+id/signature"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="20dp"
+            android:text="婉儿 为你推荐 💕"
+            android:textColor="#B3FFFFFF"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+
+</RelativeLayout>
