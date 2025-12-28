@@ -465,13 +465,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         updateKeep();
     }
 
-    private void checkIfLastEpisode() {
-        if (mEpisodeAdapter == null) return; // 安全检查
-        int currentPosition = mEpisodeAdapter.getSelectedPosition();
-        if (currentPosition == -1) return;
-        int totalEpisodes = mEpisodeAdapter.getItemCount();
-    }
-
     private int getMaxLines() {
         int lines = 1;
         if (isGone(mBinding.actor)) ++lines;
