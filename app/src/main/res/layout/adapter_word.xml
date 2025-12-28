@@ -1,17 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/text"
-    android:layout_width="wrap_content"
+    android:layout_width="100dp"
     android:layout_height="wrap_content"
     android:background="@drawable/selector_word"
     android:focusable="true"
     android:focusableInTouchMode="true"
     android:gravity="center"
-    android:maxLines="1"
-    android:paddingStart="16dp"
-    android:paddingTop="8dp"
-    android:paddingEnd="16dp"
-    android:paddingBottom="8dp"
-    android:textColor="@color/selector_word"
-    tools:text="推荐词" />
+    android:orientation="vertical"
+    android:padding="4dp">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="130dp"
+        app:cardBackgroundColor="@color/black_25"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="0dp">
+
+        <ImageView
+            android:id="@+id/image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop" />
+
+    </androidx.cardview.widget.CardView>
+
+    <TextView
+        android:id="@+id/text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="1"
+        android:textColor="@color/selector_word"
+        android:textSize="12sp"
+        tools:text="电影名字" />
+
+</LinearLayout>
