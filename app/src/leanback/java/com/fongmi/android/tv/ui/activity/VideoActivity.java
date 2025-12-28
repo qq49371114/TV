@@ -1121,25 +1121,41 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void showSmartNavPanel() {
-        // 安全检查，如果Activity已经快要关闭了，就不再弹窗
-        if (isFinishing()) {
-            return;
-        }
+    if (isFinishing()) return;
+    mPlayers.pause();
+    
+    String videoName = getName();
+    if (TextUtils.isEmpty(videoName)) return;
 
-        // 暂停播放，防止背景音干扰
-        if (mPlayers != null) {
-            mPlayers.pause();
-        }
-        
-        // 创建并显示我们的Dialog
-        // newInstance() 是我们写在 SmartNavDialog 里的一个静态方法，用来创建它自己
-        // show(...) 是 DialogFragment 自带的方法，用来把它显示出来
-        SmartNavDialog.newInstance().show(getSupportFragmentManager(), "SmartNav");
+    Toast.makeText(this, "正在获取推荐...", Toast.LENGTH_SHORT).show();
 
-        // TODO: 在这里，我们会调用SuggestHelper获取数据，
-        // 然后把数据传递给SmartNavDialog。
-    }
+    // 1. 启动爱奇艺引擎
+    SuggestHelper.getSuggestions(videoName, suggestions -> {
+        // 2. 接着启动360引擎
+        SuggestHelper.getHot(hotWords -> {
+            // 3. 在这里，我们已经同时拿到了两份数据！
+            
+            // 为了传递数据，我们需要把 Word.Data 转换成 ArrayList<String>
+            ArrayList<String> relatedWords = new ArrayList<>();
+            if (suggestions != null) {
+                for (Word.Data data : suggestions) {
+                    relatedWords.add(data.getTitle());
+                }
+            }
 
+            ArrayList<String> hotWordsList = new ArrayList<>();
+            if (hotWords != null) {
+                for (Word.Data data : hotWords) {
+                    hotWordsList.add(data.getTitle());
+                }
+            }
+
+            // 4. 创建并显示我们的Dialog，并通过Bundle把数据传递过去！
+            SmartNavDialog.newInstance(relatedWords, hotWordsList).show(getSupportFragmentManager(), "SmartNav");
+        });
+    });
+}
+    
     private void setPosition() {
         if (mHistory != null) mPlayers.seekTo(Math.max(mHistory.getOpening(), mHistory.getPosition()));
     }
