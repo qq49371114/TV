@@ -470,8 +470,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         int currentPosition = mEpisodeAdapter.getSelectedPosition();
         if (currentPosition == -1) return;
         int totalEpisodes = mEpisodeAdapter.getItemCount();
-        // 判断当前是不是最后一集，并升起我们的“旗帜”
-        mIsLastEpisode = (currentPosition == totalEpisodes - 1);
     }
 
     private int getMaxLines() {
