@@ -17,6 +17,7 @@ import com.fongmi.android.tv.databinding.DialogSmartNavBinding;
 import com.fongmi.android.tv.ui.activity.SearchActivity;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.ui.presenter.WordPresenter;
+import com.fongmi.android.tv.ui.activity.CollectActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -88,9 +89,10 @@ public class SmartNavDialog extends DialogFragment implements WordPresenter.OnCl
     
     @Override
     public void onItemClick(Word.Data item) {
-        SearchActivity.start(getActivity(), item.getTitle());
+        CollectActivity.start(getActivity(), item.getTitle());
+    // 然后关闭自己
         dismiss();
-    }
+        }
 
     // 这里可以添加更完善的按键处理逻辑
     // @Override
