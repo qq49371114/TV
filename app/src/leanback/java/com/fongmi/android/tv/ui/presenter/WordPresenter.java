@@ -6,7 +6,9 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.leanback.widget.Presenter;
 
+import com.fongmi.android.tv.bean.Word;
 import com.fongmi.android.tv.databinding.AdapterWordBinding;
+import com.fongmi.android.tv.utils.ImgUtil;
 
 public class WordPresenter extends Presenter {
 
@@ -17,7 +19,7 @@ public class WordPresenter extends Presenter {
     }
 
     public interface OnClickListener {
-        void onItemClick(String text);
+        void onItemClick(Word.Data item);
     }
 
     @NonNull
@@ -28,14 +30,17 @@ public class WordPresenter extends Presenter {
 
     @Override
     public void onBindViewHolder(@NonNull Presenter.ViewHolder viewHolder, Object object) {
-        String text = (String) object;
+        Word.Data item = (Word.Data) object;
         ViewHolder holder = (ViewHolder) viewHolder;
-        holder.binding.text.setText(text);
-        setOnClickListener(holder, view -> listener.onItemClick(text));
+        holder.binding.text.setText(item.getTitle());
+        ImgUtil.load(item.getTitle(), item.getPic(), holder.binding.image);
+        setOnClickListener(holder, view -> listener.onItemClick(item));
     }
 
     @Override
     public void onUnbindViewHolder(@NonNull Presenter.ViewHolder viewHolder) {
+        ViewHolder holder = (ViewHolder) viewHolder;
+        ImgUtil.clear(holder.binding.image);
     }
 
     public static class ViewHolder extends Presenter.ViewHolder {
