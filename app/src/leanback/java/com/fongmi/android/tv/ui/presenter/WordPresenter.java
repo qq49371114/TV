@@ -9,7 +9,7 @@ import androidx.leanback.widget.Presenter;
 import com.fongmi.android.tv.bean.Word;
 import com.fongmi.android.tv.databinding.AdapterWordBinding;
 import com.fongmi.android.tv.utils.ImgUtil;
-import com.bumptech.glide.Glide
+import com.bumptech.glide.Glide;
 
 public class WordPresenter extends Presenter {
 
