@@ -463,8 +463,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         checkFlag(item);
         checkKeepImg();
         updateKeep();
-        // ↓↓↓ 在这里，添加对新方法的调用 ↓↓↓
-        checkIfLastEpisode();
     }
 
     private void checkIfLastEpisode() {
@@ -567,14 +565,35 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void setEpisodeActivated(Episode item) {
-        int flagPosition = getFlagPosition();
-        if (shouldEnterFullscreen(item)) return;
-        if (isFullscreen()) Notify.show(getString(R.string.play_ready, item.getName()));
-        for (int i = 0; i < mFlagAdapter.size(); i++) ((Flag) mFlagAdapter.get(i)).toggle(flagPosition == i, item);
-        mBinding.episode.setSelectedPosition(getEpisodePosition());
-        notifyItemChanged(mBinding.episode, mEpisodeAdapter);
-        onRefresh();
+    int flagPosition = getFlagPosition();
+    if (shouldEnterFullscreen(item)) return;
+    if (isFullscreen()) Notify.show(getString(R.string.play_ready, item.getName()));
+    for (int i = 0; i < mFlagAdapter.size(); i++) ((Flag) mFlagAdapter.get(i)).toggle(flagPosition == i, item);
+    mBinding.episode.setSelectedPosition(getEpisodePosition());
+    notifyItemChanged(mBinding.episode, mEpisodeAdapter);
+    onRefresh();
+
+    // ↓↓↓ 在这里，植入我们全新的、正确的“旗帜”判断逻辑！↓↓↓
+    
+    try {
+        // 1. 获取当前点击的集数位置
+        int currentPosition = mEpisodeAdapter.indexOf(item);
+        
+        // 2. 获取总集数
+        int totalEpisodes = mEpisodeAdapter.size();
+        
+        // 3. 判断当前是不是最后一集
+        mIsLastEpisode = (currentPosition == totalEpisodes - 1);
+
+        // 4. 我们可以加一个Toast来实时看到我们的判断结果
+        if (mIsLastEpisode) {
+            Toast.makeText(this, "检测到最后一集！", Toast.LENGTH_SHORT).show();
+        }
+    } catch (Exception e) {
+        // 加一个try-catch防止意外情况导致App崩溃
+        e.printStackTrace();
     }
+}
 
     private void setQualityVisible(boolean visible) {
         mBinding.quality.setVisibility(visible ? View.VISIBLE : View.GONE);
