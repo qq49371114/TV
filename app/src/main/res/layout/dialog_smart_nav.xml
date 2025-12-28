@@ -1,18 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_dialog_blur"> <!-- 我们借用一个已有的毛玻璃背景 -->
+    android:background="@drawable/bg_dialog_blur">
 
-    <!-- 这是我们的呼吸灯边框 -->
+    <!-- 
+        核心修改在这里！
+        我们不再让呼吸灯边框去撑满父容器，
+        而是让它的大小，完全对齐我们下面那个有内容的LinearLayout。
+        这样就不会有尺寸冲突了。
+    -->
     <View
         android:id="@+id/breathing_border"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_alignStart="@id/content_layout"
+        android:layout_alignTop="@id/content_layout"
+        android:layout_alignEnd="@id/content_layout"
+        android:layout_alignBottom="@id/content_layout"
         android:background="@drawable/bg_smart_nav_border" />
 
     <LinearLayout
+        android:id="@+id/content_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -40,7 +49,7 @@
         <androidx.leanback.widget.HorizontalGridView
             android:id="@+id/related_recycler"
             android:layout_width="500dp"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp" <!-- 给它一个固定的高度 -->
             android:layout_marginTop="8dp"
             android:clipToPadding="false" />
 
@@ -56,15 +65,15 @@
         <androidx.leanback.widget.HorizontalGridView
             android:id="@+id/hot_recycler"
             android:layout_width="500dp"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp" <!-- 也给它一个固定的高度 -->
             android:layout_marginTop="8dp"
-            android:clipToPadding="false" />
+            android.clipToPadding="false" />
 
         <!-- 婉儿的签名 -->
         <TextView
             android:id="@+id/signature"
             android:layout_width="wrap_content"
-            android.layout_height="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:layout_marginTop="20dp"
             android:text="婉儿 为你推荐 💕"
