@@ -140,9 +140,9 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     // ↓↓↓ 在这里，添加我们的“状态旗帜” ↓↓↓
     private boolean mIsLastEpisode = false;
     // --- ✨↓ 把婉儿给你的“新零件”粘贴在这里！↓✨ ---
-    private SiteViewModel mSiteViewModel;
-    private List<Site> mSites;
-    private List<Word.Data> mTempSuggestions;
+    //private SiteViewModel mSiteViewModel;
+    //private List<Site> mSites;
+    //private List<Word.Data> mTempSuggestions;
     // --- ✨↑ “新零件”添加完毕！↑✨ ---
 
     public static void push(FragmentActivity activity, String text) {
@@ -294,54 +294,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         checkCast();
         checkId();
         // --- ✨↓ 下面是我们最终的、完美的“安装”代码！↓✨ ---
-        mSiteViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
-        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).collect(Collectors.toList());
-
-        mSiteViewModel.search.observe(this, result -> {
-            // 安全检查 1: 如果推荐列表是空的，或者后台搜索没返回结果，就直接显示一个没有海报的弹窗，保证不崩溃！
-            if (mTempSuggestions == null || mTempSuggestions.isEmpty() || result == null || result.getList() == null) {
-                SuggestHelper.getHot(hotWords -> {
-                    // 关闭可能存在的旧弹窗，防止重影
-                    Fragment prev = getSupportFragmentManager().findFragmentByTag("SmartNav");
-                    if (prev instanceof DialogFragment) ((DialogFragment) prev).dismiss();
-                    // 显示一个最基础的弹窗
-                    SmartNavDialog.newInstance(getName(), new ArrayList<>(mTempSuggestions), new ArrayList<>(hotWords)).show(getSupportFragmentManager(), "SmartNav");
-                    mTempSuggestions = null;
-                });
-                return;
-            }
-
-            // 核心逻辑：尝试去“借”海报
-            String foundPic = "";
-            for (Vod item : result.getList()) {
-                if (!TextUtils.isEmpty(item.getPic()) && !item.getPic().contains("douban")) {
-                    foundPic = item.getPic();
-                    break;
-                }
-            }
-
-            // 如果“借”到了，就给推荐项换上
-            if (!foundPic.isEmpty()) {
-                mTempSuggestions.get(0).setPic(foundPic);
-            }
-
-            SuggestHelper.getHot(hotWords -> {
-                // 安全检查 2: 再次检查，防止多线程问题
-                List<Word.Data> safeSuggestions = mTempSuggestions != null ? mTempSuggestions : Collections.emptyList();
-                List<Word.Data> safeHotWords = hotWords != null ? hotWords : Collections.emptyList();
-
-                ArrayList<Word.Data> related = new ArrayList<>(safeSuggestions);
-                ArrayList<Word.Data> hots = new ArrayList<>(safeHotWords);
-                
-                // 【防重影核心】: 显示新弹窗前，先把旧的关掉！
-                Fragment prev = getSupportFragmentManager().findFragmentByTag("SmartNav");
-                if (prev instanceof DialogFragment) ((DialogFragment) prev).dismiss();
-
-                SmartNavDialog.newInstance(getName(), related, hots).show(getSupportFragmentManager(), "SmartNav");
-                mTempSuggestions = null;
-            });
-        });
-        // --- ✨↑ “安装”代码结束 ↑✨ ---
+        
     }
     
 
@@ -1168,30 +1121,44 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void showSmartNavPanel() {
-        if (isFinishing()) return;
-        if (mPlayers != null) mPlayers.pause();
+    if (isFinishing()) return;
+    if (mPlayers != null) mPlayers.pause();
 
-        String videoName = getName();
-        if (TextUtils.isEmpty(videoName)) return;
-
-        Toast.makeText(this, "正在智能推荐...", Toast.LENGTH_SHORT).show();
-
-        SuggestHelper.getSuggestions(videoName, suggestions -> {
-            if (suggestions.isEmpty()) {
-                // 如果一开始就没拿到推荐，也显示一个空的弹窗，保证流程完整
-                SuggestHelper.getHot(hotWords -> {
-                    Fragment prev = getSupportFragmentManager().findFragmentByTag("SmartNav");
-                    if (prev instanceof DialogFragment) ((DialogFragment) prev).dismiss();
-                    SmartNavDialog.newInstance(getName(), new ArrayList<>(), new ArrayList<>(hotWords)).show(getSupportFragmentManager(), "SmartNav");
-                });
-                return;
-            }
-
-            mTempSuggestions = suggestions;
-            String targetName = mTempSuggestions.get(0).getTitle();
-            mSiteViewModel.searchContent(mSites, targetName, false);
-        });
+    String videoName = getName();
+    if (TextUtils.isEmpty(videoName)) {
+        Log.d("婉儿在查案", "播放结束了，但获取当前视频名字失败了！");
+        return;
     }
+
+    Toast.makeText(this, "正在智能推荐...", Toast.LENGTH_SHORT).show();
+    Log.d("婉儿在查案", "准备用关键词【" + videoName + "】去获取推荐...");
+
+    // --- ✨ 核心诊断逻辑 ✨ ---
+    SuggestHelper.getSuggestions(videoName, suggestions -> {
+        // 只要这个方法被调用了，就说明网络请求是通的！
+        Log.d("婉儿在查案", "SuggestHelper 的回调被执行了！");
+
+        if (suggestions == null) {
+            Log.e("婉儿在查案", "天呐！获取到的推荐列表竟然是 null！");
+            return;
+        }
+
+        if (suggestions.isEmpty()) {
+            Log.w("婉儿在查案", "获取到的推荐列表是空的，一个推荐都没有！");
+        } else {
+            // 如果列表不是空的，我们就把拿到的第一个推荐的标题打印出来！
+            String firstSuggestionTitle = suggestions.get(0).getTitle();
+            Log.d("婉儿在查案", "太棒了！成功获取到推荐！第一个是：" + firstSuggestionTitle);
+        }
+
+        // 为了安全，我们最后显示一个最简单的、不带任何数据的弹窗，保证它能出来，但可能没内容
+        SuggestHelper.getHot(hotWords -> {
+            Fragment prev = getSupportFragmentManager().findFragmentByTag("SmartNav");
+            if (prev instanceof DialogFragment) ((DialogFragment) prev).dismiss();
+            SmartNavDialog.newInstance(getName(), new ArrayList<>(), new ArrayList<>()).show(getSupportFragmentManager(), "SmartNav");
+        });
+    });
+}
     
     private void setPosition() {
         if (mHistory != null) mPlayers.seekTo(Math.max(mHistory.getOpening(), mHistory.getPosition()));
