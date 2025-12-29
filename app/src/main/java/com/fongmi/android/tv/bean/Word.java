@@ -32,14 +32,11 @@ public class Word {
         return data == null ? Collections.emptyList() : data;
     }
 
-    // --- 核心修改在这里 ---
-    // 我们让 Data 类实现 Parcelable 接口，这样它才能在不同的组件之间传递
     public static class Data implements Diffable<Data>, Parcelable {
 
         @SerializedName(value = "title", alternate = "name")
         private String title;
         
-        // ↓↓↓ 新增的 pic 字段 ↓↓↓
         @SerializedName("pic")
         private String pic;
 
@@ -47,10 +44,19 @@ public class Word {
             return TextUtils.isEmpty(title) ? "" : title;
         }
 
-        // ↓↓↓ 新增的 getPic() 方法 ↓↓↓
         public String getPic() {
             return TextUtils.isEmpty(pic) ? "" : pic;
         }
+
+        // --- ✨↓ 婉儿帮你加上 set 方法，方便我们后续操作！↓✨ ---
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        public void setPic(String pic) {
+            this.pic = pic;
+        }
+        // --- ✨↑ set 方法添加完毕！↑✨ ---
 
         @Override
         public boolean isSameItem(Data other) {
@@ -66,8 +72,6 @@ public class Word {
             this.title = Trans.s2t(title);
             return this;
         }
-
-        // --- 下面是所有为了实现 Parcelable 而新增的代码 ---
 
         @Override
         public int describeContents() {
