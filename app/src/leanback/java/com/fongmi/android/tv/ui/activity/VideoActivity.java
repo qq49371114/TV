@@ -104,6 +104,7 @@ import java.util.stream.Collectors; // <--- ✨ 把这行加在这里！
 import android.util.Log;                 // <--- ✨ 加在这里
 import androidx.fragment.app.Fragment;      // <--- ✨ 加在这里
 import androidx.fragment.app.DialogFragment; // <--- ✨ 加在这里
+import com.fongmi.android.tv.api.Api.Callback; // <--- ✨ 1. 补上 Callback 的“身份证”！
 
 public class VideoActivity extends BaseActivity implements CustomKeyDownVod.Listener, TrackDialog.Listener, ArrayPresenter.OnClickListener, Clock.Callback {
 
@@ -1134,14 +1135,9 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     Toast.makeText(this, "正在智能推荐...", Toast.LENGTH_SHORT).show();
 
-    // --- ✨ 1. 首选“智能推荐” ✨ ---
     SuggestHelper.getSuggestions(videoName, suggestions -> {
-        // 检查“智能推荐”的结果
         if (suggestions != null && !suggestions.isEmpty()) {
-            // 【情况A：智能推荐成功了！】
-            // 我们拿到了下一部的标题，比如“流浪地球2”
             String targetName = suggestions.get(0).getTitle();
-            // 用这个新标题去后台“借”海报
             mSiteViewModel.searchContent(mSites, targetName, new Callback<Vod>() {
                 @Override
                 public void onResponse(List<Vod> items) {
@@ -1150,32 +1146,25 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                         for (Vod item : items) {
                             if (!TextUtils.isEmpty(item.getPic()) && !item.getPic().contains("douban")) {
                                 foundPic = item.getPic();
-                
                                 break;
                             }
                         }
                     }
-                    // 如果找到了海报，就给它换上
                     if (!foundPic.isEmpty()) {
                         suggestions.get(0).setPic(foundPic);
                     }
-                    // 把这个带海报的“智能推荐”结果显示出来
                     showTheFinalDialog(suggestions);
                 }
 
                 @Override
                 public void onError(Throwable e) {
-                    // “借海报”失败了也没关系，直接显示没海报的“智能推荐”
                     showTheFinalDialog(suggestions);
                 }
             });
         } else {
-            // 【情况B：智能推荐失败了（返回了空列表）！】
-            // 启动“备用计划”：直接用当前视频的标题去搜索
             mSiteViewModel.searchContent(mSites, videoName, new Callback<Vod>() {
                 @Override
                 public void onResponse(List<Vod> items) {
-                    // 把搜索结果转换成弹窗需要的数据格式
                     ArrayList<Word.Data> related = new ArrayList<>();
                     if (items != null) {
                         for (Vod item : items) {
@@ -1185,13 +1174,11 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                             related.add(data);
                         }
                     }
-                    // 把“备用计划”的结果显示出来
                     showTheFinalDialog(related);
                 }
 
                 @Override
                 public void onError(Throwable e) {
-                    // 如果“备用计划”也失败了，就显示一个空的弹窗，保证不崩溃
                     showTheFinalDialog(new ArrayList<>());
                 }
             });
@@ -1201,15 +1188,17 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
 // --- ✨↓ 这个负责显示弹窗的小方法，我们保留它，因为它带了“防重影”功能！↓✨ ---
    private void showTheFinalDialog(List<Word.Data> suggestions) {
-      SuggestHelper.getHot(hotWords -> {
+    SuggestHelper.getHot(hotWords -> {
         List<Word.Data> safeHotWords = hotWords != null ? hotWords : Collections.emptyList();
         ArrayList<Word.Data> hots = new ArrayList<>(safeHotWords);
 
-        // 【防重影核心】
+        // ✨【重大修正】: 在这里把 List 转换成弹窗需要的 ArrayList！✨
+        ArrayList<Word.Data> related = new ArrayList<>(suggestions != null ? suggestions : Collections.emptyList());
+
         Fragment prev = getSupportFragmentManager().findFragmentByTag("SmartNav");
         if (prev instanceof DialogFragment) ((DialogFragment) prev).dismiss();
 
-        SmartNavDialog.newInstance(getName(), suggestions, hots).show(getSupportFragmentManager(), "SmartNav");
+        SmartNavDialog.newInstance(getName(), related, hots).show(getSupportFragmentManager(), "SmartNav");
     });
 }
     
