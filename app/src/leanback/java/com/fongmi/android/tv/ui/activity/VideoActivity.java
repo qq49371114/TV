@@ -143,7 +143,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     // ↓↓↓ 在这里，添加我们的“状态旗帜” ↓↓↓
     private boolean mIsLastEpisode = false;
     // --- ✨↓ 把婉儿给你的“新零件”粘贴在这里！↓✨ ---
-    //private SiteViewModel mSiteViewModel;
+    private SiteViewModel mSiteViewModel;
     //private List<Site> mSites;
     //private List<Word.Data> mTempSuggestions;
     // --- ✨↑ “新零件”添加完毕！↑✨ ---
@@ -1129,37 +1129,22 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     String videoName = getName();
     if (TextUtils.isEmpty(videoName)) {
-        Log.d("婉儿在查案", "播放结束了，但获取当前视频名字失败了！");
+        Toast.makeText(this, "获取当前视频名字失败！", Toast.LENGTH_LONG).show();
         return;
     }
 
-    Toast.makeText(this, "正在智能推荐...", Toast.LENGTH_SHORT).show();
-    Log.d("婉儿在查案", "准备用关键词【" + videoName + "】去获取推荐...");
+    // ✨ 1. 我们先弹一个 Toast，证明这个方法被调用了
+    Toast.makeText(this, "正在调用推荐，请稍等...", Toast.LENGTH_LONG).show();
 
-    // --- ✨ 核心诊断逻辑 ✨ ---
+    // --- ✨ 2. 核心诊断逻辑：我们就看下面这个回调会不会执行！✨ ---
     SuggestHelper.getSuggestions(videoName, suggestions -> {
-        // 只要这个方法被调用了，就说明网络请求是通的！
-        Log.d("婉儿在查案", "SuggestHelper 的回调被执行了！");
+        
+        // ✨ 3. 如果这个 Toast 弹出来了，就说明回调成功了！✨
+        Toast.makeText(this, "婉儿收到回调啦！", Toast.LENGTH_LONG).show();
 
-        if (suggestions == null) {
-            Log.e("婉儿在查案", "天呐！获取到的推荐列表竟然是 null！");
-            return;
-        }
+        // 为了防止任何意外，我们在这里什么都不做，不显示任何弹窗
+        // 就只用 Toast 来验证
 
-        if (suggestions.isEmpty()) {
-            Log.w("婉儿在查案", "获取到的推荐列表是空的，一个推荐都没有！");
-        } else {
-            // 如果列表不是空的，我们就把拿到的第一个推荐的标题打印出来！
-            String firstSuggestionTitle = suggestions.get(0).getTitle();
-            Log.d("婉儿在查案", "太棒了！成功获取到推荐！第一个是：" + firstSuggestionTitle);
-        }
-
-        // 为了安全，我们最后显示一个最简单的、不带任何数据的弹窗，保证它能出来，但可能没内容
-        SuggestHelper.getHot(hotWords -> {
-            Fragment prev = getSupportFragmentManager().findFragmentByTag("SmartNav");
-            if (prev instanceof DialogFragment) ((DialogFragment) prev).dismiss();
-            SmartNavDialog.newInstance(getName(), new ArrayList<>(), new ArrayList<>()).show(getSupportFragmentManager(), "SmartNav");
-        });
     });
 }
     
