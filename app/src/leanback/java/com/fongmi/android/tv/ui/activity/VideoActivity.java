@@ -104,7 +104,7 @@ import java.util.stream.Collectors; // <--- ✨ 把这行加在这里！
 import android.util.Log;                 // <--- ✨ 加在这里
 import androidx.fragment.app.Fragment;      // <--- ✨ 加在这里
 import androidx.fragment.app.DialogFragment; // <--- ✨ 加在这里
-import com.fongmi.android.tv.api.Api.Callback; // <--- ✨ 1. 补上 Callback 的“身份证”！
+import com.fongmi.android.tv.api.Callback; // <--- ✨ 1. 补上 Callback 的“身份证”！
 
 public class VideoActivity extends BaseActivity implements CustomKeyDownVod.Listener, TrackDialog.Listener, ArrayPresenter.OnClickListener, Clock.Callback {
 
