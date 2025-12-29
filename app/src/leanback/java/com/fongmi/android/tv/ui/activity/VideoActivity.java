@@ -293,25 +293,23 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         checkCast();
         checkId();
         // 初始化我们的“大脑”和“网站列表”
-        mSiteViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
-        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).toList();
-
         mSiteViewModel.search.observe(this, result -> {
             if (mTempSuggestions == null || mTempSuggestions.isEmpty()) return;
 
             String foundPic = "";
             for (Vod item : result.getList()) {
-                // ✨↓ 修正点1：改回 item.getVodPic()，因为它是私有的！↓✨
-                if (!TextUtils.isEmpty(item.getVodPic()) && !item.getVodPic().contains("douban")) {
-                    // ✨↓ 修正点2：改回 item.getVodPic() ↓✨
-                    foundPic = item.getVodPic();
+                if (!TextUtils.isEmpty(item.getPic()) && !item.getPic().contains("douban")) {
+                    foundPic = item.getPic();
                     break;
                 }
             }
 
             if (!foundPic.isEmpty()) {
-                // ✨↓ 修正点3：改回 .setPic() 方法，因为 pic 是私有的！↓✨
-                mTempSuggestions.get(0).setPic(foundPic);
+                Word.Data originalData = mTempSuggestions.get(0);
+                Word.Data perfectData = new Word.Data();
+                perfectData.setTitle(originalData.getTitle()); // 使用 set 方法
+                perfectData.setPic(foundPic);                   // 使用 set 方法
+                mTempSuggestions.set(0, perfectData);
             }
 
             SuggestHelper.getHot(hotWords -> {
@@ -321,7 +319,6 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                 mTempSuggestions = null;
             });
         });
-        // --- ✨↑ “安装”代码结束 ↑✨ ---
     }
     
 
@@ -1160,8 +1157,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
             if (suggestions.isEmpty()) return;
 
             mTempSuggestions = suggestions;
-            // ✨↓ 修正点4：把 .name 改为 .text，因为变量名叫 text！↓✨
-            String targetName = mTempSuggestions.get(0).text;
+            // ✨【已修正】: 正确方法是 getTitle()！
+            String targetName = mTempSuggestions.get(0).getTitle();
 
             mSiteViewModel.searchContent(mSites, targetName, false);
         });
