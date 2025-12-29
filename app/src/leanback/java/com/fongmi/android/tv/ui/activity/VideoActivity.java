@@ -298,8 +298,20 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).collect(Collectors.toList());
 
         mSiteViewModel.search.observe(this, result -> {
-            if (mTempSuggestions == null || mTempSuggestions.isEmpty()) return;
+            // 安全检查 1: 如果推荐列表是空的，或者后台搜索没返回结果，就直接显示一个没有海报的弹窗，保证不崩溃！
+            if (mTempSuggestions == null || mTempSuggestions.isEmpty() || result == null || result.getList() == null) {
+                SuggestHelper.getHot(hotWords -> {
+                    // 关闭可能存在的旧弹窗，防止重影
+                    Fragment prev = getSupportFragmentManager().findFragmentByTag("SmartNav");
+                    if (prev instanceof DialogFragment) ((DialogFragment) prev).dismiss();
+                    // 显示一个最基础的弹窗
+                    SmartNavDialog.newInstance(getName(), new ArrayList<>(mTempSuggestions), new ArrayList<>(hotWords)).show(getSupportFragmentManager(), "SmartNav");
+                    mTempSuggestions = null;
+                });
+                return;
+            }
 
+            // 核心逻辑：尝试去“借”海报
             String foundPic = "";
             for (Vod item : result.getList()) {
                 if (!TextUtils.isEmpty(item.getPic()) && !item.getPic().contains("douban")) {
@@ -308,22 +320,23 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                 }
             }
 
-            // ✨【重大修正】: 我们不创建新对象了！直接修改原来的那个！✨
+            // 如果“借”到了，就给推荐项换上
             if (!foundPic.isEmpty()) {
-                // 直接拿出原来的对象
-                Word.Data originalData = mTempSuggestions.get(0);
-                // 调用我们之前加好的 setPic 方法，给它换上新海报！
-                originalData.setPic(foundPic);
+                mTempSuggestions.get(0).setPic(foundPic);
             }
 
             SuggestHelper.getHot(hotWords -> {
-                // ✨【安全检查】: 为了绝对安全，我们保留这里的空指针检查 ✨
+                // 安全检查 2: 再次检查，防止多线程问题
                 List<Word.Data> safeSuggestions = mTempSuggestions != null ? mTempSuggestions : Collections.emptyList();
                 List<Word.Data> safeHotWords = hotWords != null ? hotWords : Collections.emptyList();
 
                 ArrayList<Word.Data> related = new ArrayList<>(safeSuggestions);
                 ArrayList<Word.Data> hots = new ArrayList<>(safeHotWords);
                 
+                // 【防重影核心】: 显示新弹窗前，先把旧的关掉！
+                Fragment prev = getSupportFragmentManager().findFragmentByTag("SmartNav");
+                if (prev instanceof DialogFragment) ((DialogFragment) prev).dismiss();
+
                 SmartNavDialog.newInstance(getName(), related, hots).show(getSupportFragmentManager(), "SmartNav");
                 mTempSuggestions = null;
             });
@@ -1164,12 +1177,18 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         Toast.makeText(this, "正在智能推荐...", Toast.LENGTH_SHORT).show();
 
         SuggestHelper.getSuggestions(videoName, suggestions -> {
-            if (suggestions.isEmpty()) return;
+            if (suggestions.isEmpty()) {
+                // 如果一开始就没拿到推荐，也显示一个空的弹窗，保证流程完整
+                SuggestHelper.getHot(hotWords -> {
+                    Fragment prev = getSupportFragmentManager().findFragmentByTag("SmartNav");
+                    if (prev instanceof DialogFragment) ((DialogFragment) prev).dismiss();
+                    SmartNavDialog.newInstance(getName(), new ArrayList<>(), new ArrayList<>(hotWords)).show(getSupportFragmentManager(), "SmartNav");
+                });
+                return;
+            }
 
             mTempSuggestions = suggestions;
-            // ✨【已修正】: 正确方法是 getTitle()！
             String targetName = mTempSuggestions.get(0).getTitle();
-
             mSiteViewModel.searchContent(mSites, targetName, false);
         });
     }
