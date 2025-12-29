@@ -292,23 +292,31 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         setViewModel();
         checkCast();
         checkId();
-        // 初始化我们的“大脑”和“网站列表”
+        // --- ✨↓ 下面是我们最终的、完美的“安装”代码！↓✨ ---
+        mSiteViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
+        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).toList();
+
         mSiteViewModel.search.observe(this, result -> {
             if (mTempSuggestions == null || mTempSuggestions.isEmpty()) return;
 
             String foundPic = "";
             for (Vod item : result.getList()) {
+                // ✨【已修正】: 正确方法是 getPic()！
                 if (!TextUtils.isEmpty(item.getPic()) && !item.getPic().contains("douban")) {
                     foundPic = item.getPic();
                     break;
                 }
             }
 
+            // ✨【重大修正】: 既然不能直接修改，我们就创建一个新的！
             if (!foundPic.isEmpty()) {
                 Word.Data originalData = mTempSuggestions.get(0);
+                // 创建一个全新的、完美的 Data 对象
                 Word.Data perfectData = new Word.Data();
-                perfectData.setTitle(originalData.getTitle()); // 使用 set 方法
-                perfectData.setPic(foundPic);                   // 使用 set 方法
+                // 使用我们刚刚添加的 set 方法，把旧的标题和新的海报都给它
+                perfectData.setTitle(originalData.getTitle());
+                perfectData.setPic(foundPic);
+                // 用这个完美的对象，替换掉列表里原来的那个
                 mTempSuggestions.set(0, perfectData);
             }
 
@@ -316,9 +324,10 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                 ArrayList<Word.Data> related = new ArrayList<>(mTempSuggestions);
                 ArrayList<Word.Data> hots = new ArrayList<>(hotWords);
                 SmartNavDialog.newInstance(getName(), related, hots).show(getSupportFragmentManager(), "SmartNav");
-                mTempSuggestions = null;
+                mTempSuggestions = null; // 任务完成，清空“中转站”
             });
         });
+        // --- ✨↑ “安装”代码结束 ↑✨ ---
     }
     
 
