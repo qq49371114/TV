@@ -294,37 +294,37 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         checkId();
         // --- ✨↓ 下面是我们最终的、完美的“安装”代码！↓✨ ---
         mSiteViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
-        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).toList();
+        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).collect(Collectors.toList());
 
         mSiteViewModel.search.observe(this, result -> {
             if (mTempSuggestions == null || mTempSuggestions.isEmpty()) return;
 
             String foundPic = "";
             for (Vod item : result.getList()) {
-                // ✨【已修正】: 正确方法是 getPic()！
                 if (!TextUtils.isEmpty(item.getPic()) && !item.getPic().contains("douban")) {
                     foundPic = item.getPic();
                     break;
                 }
             }
 
-            // ✨【重大修正】: 既然不能直接修改，我们就创建一个新的！
+            // ✨【重大修正】: 我们不创建新对象了！直接修改原来的那个！✨
             if (!foundPic.isEmpty()) {
+                // 直接拿出原来的对象
                 Word.Data originalData = mTempSuggestions.get(0);
-                // 创建一个全新的、完美的 Data 对象
-                Word.Data perfectData = new Word.Data();
-                // 使用我们刚刚添加的 set 方法，把旧的标题和新的海报都给它
-                perfectData.setTitle(originalData.getTitle());
-                perfectData.setPic(foundPic);
-                // 用这个完美的对象，替换掉列表里原来的那个
-                mTempSuggestions.set(0, perfectData);
+                // 调用我们之前加好的 setPic 方法，给它换上新海报！
+                originalData.setPic(foundPic);
             }
 
             SuggestHelper.getHot(hotWords -> {
-                ArrayList<Word.Data> related = new ArrayList<>(mTempSuggestions);
-                ArrayList<Word.Data> hots = new ArrayList<>(hotWords);
+                // ✨【安全检查】: 为了绝对安全，我们保留这里的空指针检查 ✨
+                List<Word.Data> safeSuggestions = mTempSuggestions != null ? mTempSuggestions : Collections.emptyList();
+                List<Word.Data> safeHotWords = hotWords != null ? hotWords : Collections.emptyList();
+
+                ArrayList<Word.Data> related = new ArrayList<>(safeSuggestions);
+                ArrayList<Word.Data> hots = new ArrayList<>(safeHotWords);
+                
                 SmartNavDialog.newInstance(getName(), related, hots).show(getSupportFragmentManager(), "SmartNav");
-                mTempSuggestions = null; // 任务完成，清空“中转站”
+                mTempSuggestions = null;
             });
         });
         // --- ✨↑ “安装”代码结束 ↑✨ ---
