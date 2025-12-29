@@ -301,17 +301,17 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
             String foundPic = "";
             for (Vod item : result.getList()) {
-                // ✨↓ 修改点1：item.getVodPic() 改为 item.vodPic ↓✨
-                if (!TextUtils.isEmpty(item.vodPic) && !item.vodPic.contains("douban")) {
-                    // ✨↓ 修改点2：item.getVodPic() 改为 item.vodPic ↓✨
-                    foundPic = item.vodPic;
+                // ✨↓ 修正点1：改回 item.getVodPic()，因为它是私有的！↓✨
+                if (!TextUtils.isEmpty(item.getVodPic()) && !item.getVodPic().contains("douban")) {
+                    // ✨↓ 修正点2：改回 item.getVodPic() ↓✨
+                    foundPic = item.getVodPic();
                     break;
                 }
             }
 
             if (!foundPic.isEmpty()) {
-                // ✨↓ 修改点3：mTempSuggestions.get(0).setPic(foundPic) 改为 mTempSuggestions.get(0).pic = foundPic ↓✨
-                mTempSuggestions.get(0).pic = foundPic;
+                // ✨↓ 修正点3：改回 .setPic() 方法，因为 pic 是私有的！↓✨
+                mTempSuggestions.get(0).setPic(foundPic);
             }
 
             SuggestHelper.getHot(hotWords -> {
@@ -1160,8 +1160,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
             if (suggestions.isEmpty()) return;
 
             mTempSuggestions = suggestions;
-            // ✨↓ 修改点4：mTempSuggestions.get(0).getName() 改为 mTempSuggestions.get(0).name ↓✨
-            String targetName = mTempSuggestions.get(0).name;
+            // ✨↓ 修正点4：把 .name 改为 .text，因为变量名叫 text！↓✨
+            String targetName = mTempSuggestions.get(0).text;
 
             mSiteViewModel.searchContent(mSites, targetName, false);
         });
