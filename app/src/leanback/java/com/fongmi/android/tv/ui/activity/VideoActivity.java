@@ -144,8 +144,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private boolean mIsLastEpisode = false;
     // --- ✨↓ 把婉儿给你的“新零件”粘贴在这里！↓✨ ---
     private SiteViewModel mSiteViewModel;
-    //private List<Site> mSites;
-    //private List<Word.Data> mTempSuggestions;
+    private List<Site> mSites;
+    private List<Word.Data> mTempSuggestions;
     // --- ✨↑ “新零件”添加完毕！↑✨ ---
 
     public static void push(FragmentActivity activity, String text) {
@@ -297,8 +297,10 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         checkCast();
         checkId();
         // --- ✨↓ 下面是我们最终的、完美的“安装”代码！↓✨ ---
-        
+        mSiteViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
+        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).collect(Collectors.toList());
     }
+    
     
 
     @Override
@@ -1128,23 +1130,86 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     if (mPlayers != null) mPlayers.pause();
 
     String videoName = getName();
-    if (TextUtils.isEmpty(videoName)) {
-        Toast.makeText(this, "获取当前视频名字失败！", Toast.LENGTH_LONG).show();
-        return;
-    }
+    if (TextUtils.isEmpty(videoName)) return;
 
-    // ✨ 1. 我们先弹一个 Toast，证明这个方法被调用了
-    Toast.makeText(this, "正在调用推荐，请稍等...", Toast.LENGTH_LONG).show();
+    Toast.makeText(this, "正在智能推荐...", Toast.LENGTH_SHORT).show();
 
-    // --- ✨ 2. 核心诊断逻辑：我们就看下面这个回调会不会执行！✨ ---
+    // --- ✨ 1. 首选“智能推荐” ✨ ---
     SuggestHelper.getSuggestions(videoName, suggestions -> {
-        
-        // ✨ 3. 如果这个 Toast 弹出来了，就说明回调成功了！✨
-        Toast.makeText(this, "婉儿收到回调啦！", Toast.LENGTH_LONG).show();
+        // 检查“智能推荐”的结果
+        if (suggestions != null && !suggestions.isEmpty()) {
+            // 【情况A：智能推荐成功了！】
+            // 我们拿到了下一部的标题，比如“流浪地球2”
+            String targetName = suggestions.get(0).getTitle();
+            // 用这个新标题去后台“借”海报
+            mSiteViewModel.searchContent(mSites, targetName, new Callback<Vod>() {
+                @Override
+                public void onResponse(List<Vod> items) {
+                    String foundPic = "";
+                    if (items != null) {
+                        for (Vod item : items) {
+                            if (!TextUtils.isEmpty(item.getPic()) && !item.getPic().contains("douban")) {
+                                foundPic = item.getPic();
+                
+                                break;
+                            }
+                        }
+                    }
+                    // 如果找到了海报，就给它换上
+                    if (!foundPic.isEmpty()) {
+                        suggestions.get(0).setPic(foundPic);
+                    }
+                    // 把这个带海报的“智能推荐”结果显示出来
+                    showTheFinalDialog(suggestions);
+                }
 
-        // 为了防止任何意外，我们在这里什么都不做，不显示任何弹窗
-        // 就只用 Toast 来验证
+                @Override
+                public void onError(Throwable e) {
+                    // “借海报”失败了也没关系，直接显示没海报的“智能推荐”
+                    showTheFinalDialog(suggestions);
+                }
+            });
+        } else {
+            // 【情况B：智能推荐失败了（返回了空列表）！】
+            // 启动“备用计划”：直接用当前视频的标题去搜索
+            mSiteViewModel.searchContent(mSites, videoName, new Callback<Vod>() {
+                @Override
+                public void onResponse(List<Vod> items) {
+                    // 把搜索结果转换成弹窗需要的数据格式
+                    ArrayList<Word.Data> related = new ArrayList<>();
+                    if (items != null) {
+                        for (Vod item : items) {
+                            Word.Data data = new Word.Data();
+                            data.setTitle(item.getName());
+                            data.setPic(item.getPic());
+                            related.add(data);
+                        }
+                    }
+                    // 把“备用计划”的结果显示出来
+                    showTheFinalDialog(related);
+                }
 
+                @Override
+                public void onError(Throwable e) {
+                    // 如果“备用计划”也失败了，就显示一个空的弹窗，保证不崩溃
+                    showTheFinalDialog(new ArrayList<>());
+                }
+            });
+        }
+    });
+}
+
+// --- ✨↓ 这个负责显示弹窗的小方法，我们保留它，因为它带了“防重影”功能！↓✨ ---
+   private void showTheFinalDialog(List<Word.Data> suggestions) {
+      SuggestHelper.getHot(hotWords -> {
+        List<Word.Data> safeHotWords = hotWords != null ? hotWords : Collections.emptyList();
+        ArrayList<Word.Data> hots = new ArrayList<>(safeHotWords);
+
+        // 【防重影核心】
+        Fragment prev = getSupportFragmentManager().findFragmentByTag("SmartNav");
+        if (prev instanceof DialogFragment) ((DialogFragment) prev).dismiss();
+
+        SmartNavDialog.newInstance(getName(), suggestions, hots).show(getSupportFragmentManager(), "SmartNav");
     });
 }
     
