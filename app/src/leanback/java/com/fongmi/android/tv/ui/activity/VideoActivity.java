@@ -138,6 +138,11 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     private String tag;
     // ↓↓↓ 在这里，添加我们的“状态旗帜” ↓↓↓
     private boolean mIsLastEpisode = false;
+    // --- ✨↓ 把婉儿给你的“新零件”粘贴在这里！↓✨ ---
+    private SiteViewModel mSiteViewModel;
+    private List<Site> mSites;
+    private List<Word.Data> mTempSuggestions;
+    // --- ✨↑ “新零件”添加完毕！↑✨ ---
 
     public static void push(FragmentActivity activity, String text) {
         if (FileChooser.isValid(activity, Uri.parse(text))) file(activity, FileChooser.getPathFromUri(Uri.parse(text)));
@@ -287,6 +292,40 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         setViewModel();
         checkCast();
         checkId();
+        // 初始化我们的“大脑”和“网站列表”
+        mSiteViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
+        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).toList();
+
+        // 设置一个强大的“监听器”，随时准备接收“借海报”的后台搜索结果
+        mSiteViewModel.search.observe(this, result -> {
+            // 如果我们的“中转站”是空的，说明不是“借海报”的搜索，直接忽略
+            if (mTempSuggestions == null || mTempSuggestions.isEmpty()) return;
+
+            // 从搜索结果里，找到第一张可用的海报
+            String foundPic = "";
+            for (Vod item : result.getList()) {
+                if (!TextUtils.isEmpty(item.getVodPic()) && !item.getVodPic().contains("douban")) { // 过滤掉豆瓣的图片
+                    foundPic = item.getVodPic();
+                    break; // 找到了就立刻跑！
+                }
+            }
+
+            // 把“借”来的海报，更新到我们的推荐数据里
+            if (!foundPic.isEmpty()) {
+                // ✨ 注意：如果下面的 setPic 方法名不对，请哥哥改成 Word.Data 里正确的设置图片方法名
+                mTempSuggestions.get(0).setPic(foundPic);
+            }
+
+            // 万事俱备，只欠东风！现在才真正显示我们完美的弹窗！
+            SuggestHelper.getHot(hotWords -> {
+                ArrayList<Word.Data> related = new ArrayList<>(mTempSuggestions);
+                ArrayList<Word.Data> hots = new ArrayList<>(hotWords);
+                SmartNavDialog.newInstance(getName(), related, hots).show(getSupportFragmentManager(), "SmartNav");
+                mTempSuggestions = null; // 任务完成，清空“中转站”，避免影响其他功能
+            });
+        });
+        // --- ✨↑ “安装”代码结束 ↑✨ ---
+    }
     }
 
     @Override
@@ -1112,22 +1151,26 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void showSmartNavPanel() {
-    if (isFinishing()) return;
-    if (mPlayers != null) mPlayers.pause();
-    
-    String videoName = getName();
-    if (TextUtils.isEmpty(videoName)) return;
+        if (isFinishing()) return;
+        if (mPlayers != null) mPlayers.pause();
 
-    Toast.makeText(this, "正在获取推荐...", Toast.LENGTH_SHORT).show();
+        String videoName = getName();
+        if (TextUtils.isEmpty(videoName)) return;
 
-    SuggestHelper.getSuggestions(videoName, suggestions -> {
-        SuggestHelper.getHot(hotWords -> {
-            ArrayList<Word.Data> related = new ArrayList<>(suggestions);
-            ArrayList<Word.Data> hots = new ArrayList<>(hotWords);
-            SmartNavDialog.newInstance(videoName, related, hots).show(getSupportFragmentManager(), "SmartNav");
+        Toast.makeText(this, "正在智能推荐...", Toast.LENGTH_SHORT).show();
+
+        // 第一步：照常获取推荐
+        SuggestHelper.getSuggestions(videoName, suggestions -> {
+            if (suggestions.isEmpty()) return;
+
+            // 第二步：把推荐结果存到我们的“中转站”里
+            mTempSuggestions = suggestions;
+            String targetName = mTempSuggestions.get(0).getName(); // 获取推荐电影的标题
+
+            // 第三步：调用我们的“终极武器”，发起“借海报”的静默搜索！
+            mSiteViewModel.searchContent(mSites, targetName, false);
         });
-    });
-}
+    }
     
     private void setPosition() {
         if (mHistory != null) mPlayers.seekTo(Math.max(mHistory.getOpening(), mHistory.getPosition()));
