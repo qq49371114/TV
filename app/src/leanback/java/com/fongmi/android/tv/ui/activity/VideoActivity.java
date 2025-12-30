@@ -1108,15 +1108,38 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                 mPlayers.reset();
                 break;
             case Player.STATE_ENDED:
-             // ↓↓↓ 在这里，检查我们的“旗帜”！↓↓↓
-                if (mIsLastEpisode) {
-            // 如果是最后一集播放完了，就召唤我们的“智能导航仪”！
+            // 1. 检查你的“状态旗帜”，确认这是最后一集！
+            if (mIsLastEpisode) {
+                // 2. 我们只在需要的时候，才临时安装“传令兵”来监听“大脑”！
+                mSiteViewModel.search.observe(this, result -> {
+                    // “传令兵”听到了“大脑”的回应！
+                    
+                    // a. 把搜索结果 (result) 转换成弹窗需要的格式
+                    ArrayList<Word.Data> related = new ArrayList<>();
+                    if (result != null && result.getList() != null) {
+                        for (Vod item : result.getList()) {
+                            Word.Data data = new Word.Data();
+                            data.setTitle(item.getName());
+                            data.setPic(item.getPic());
+                            related.add(data);
+                        }
+                    }
+                    
+                    // b. 命令你的“展示员”，去显示最终的弹窗！
+                    showTheFinalDialog(related);
+
+                    // c. 最关键的一步：传令兵完成任务后，立刻“自毁”，防止下次再监听到！
+                    mSiteViewModel.search.removeObservers(this);
+                });
+
+                // 3. 在安装好“传令兵”之后，命令你的“发令员”去按下按钮！
                 showSmartNavPanel();
-              } else {
-            // 如果不是最后一集，就执行原来的逻辑
+
+            } else {
+                // 如果不是最后一集，就执行原来的逻辑
                 checkEnded(true);
-              }
-                 break;
+            }
+            break; // 千万不要忘了这个 break！
 
             case PlayerEvent.TRACK:
                 setMetadata();
