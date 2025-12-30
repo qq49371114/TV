@@ -6,7 +6,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Bundle; // ✨ 需要 Bundle
+import android.os.Bundle;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -17,16 +17,17 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.DialogFragment; // ✨ 需要 DialogFragment
-import androidx.fragment.app.Fragment;      // ✨ 需要 Fragment
+import androidx.fragment.app.DialogFragment; // ✨【新增】
+import androidx.fragment.app.Fragment;      // ✨【新增】
 import androidx.fragment.app.FragmentActivity;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.ItemBridgeAdapter;
 import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProvider; // ✨【新增】
 import androidx.media3.common.C;
 import androidx.media3.common.Player;
 import androidx.recyclerview.widget.RecyclerView;
@@ -48,7 +49,7 @@ import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Sub;
 import com.fongmi.android.tv.bean.Track;
 import com.fongmi.android.tv.bean.Vod;
-import com.fongmi.android.tv.bean.Word; // ✨ 需要 Word
+import com.fongmi.android.tv.bean.Word;
 import com.fongmi.android.tv.databinding.ActivityVideoBinding;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.event.ActionEvent;
@@ -56,7 +57,7 @@ import com.fongmi.android.tv.event.ErrorEvent;
 import com.fongmi.android.tv.event.PlayerEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.CustomTarget;
-import com.fongmi.android.tv.model.SiteViewModel;
+import com.fongmi.android.tv.model.SiteViewModel; // ✨【新增】
 import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.player.exo.ExoUtil;
 import com.fongmi.android.tv.service.PlaybackService;
@@ -66,7 +67,7 @@ import com.fongmi.android.tv.ui.custom.CustomKeyDownVod;
 import com.fongmi.android.tv.ui.custom.CustomMovement;
 import com.fongmi.android.tv.ui.dialog.DanmakuDialog;
 import com.fongmi.android.tv.ui.dialog.DescDialog;
-import com.fongmi.android.tv.ui.dialog.SmartNavDialog; // ✨ 需要 SmartNavDialog
+import com.fongmi.android.tv.ui.dialog.SmartNavDialog;
 import com.fongmi.android.tv.ui.dialog.SubtitleDialog;
 import com.fongmi.android.tv.ui.dialog.TrackDialog;
 import com.fongmi.android.tv.ui.presenter.ArrayPresenter;
@@ -83,7 +84,7 @@ import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.PartUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.Sniffer;
-import com.fongmi.android.tv.utils.SuggestHelper; // ✨ 需要 SuggestHelper
+import com.fongmi.android.tv.utils.SuggestHelper;
 import com.fongmi.android.tv.utils.Traffic;
 import com.github.bassaer.library.MDColor;
 import com.github.catvod.utils.Trans;
@@ -99,7 +100,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Matcher;
-// --- ✨↑ “户口本”齐全！↑✨ ---
+import java.util.stream.Collectors; // ✨【新增】
+// --- ✨↑ “户口本”补全完毕！↑✨ ---
+
 
 public class VideoActivity extends BaseActivity implements CustomKeyDownVod.Listener, TrackDialog.Listener, ArrayPresenter.OnClickListener, Clock.Callback {
 
@@ -293,9 +296,29 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         setViewModel();
         checkCast();
         checkId();
-        // --- ✨↓ 下面是我们最终的、完美的“安装”代码！↓✨ ---
-        //mSiteViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
-        //mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).collect(Collectors.toList());
+        // 1. 安装“大脑” (SiteViewModel) 和“通讯录” (mSites)
+        mSiteViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
+        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).collect(Collectors.toList());
+
+        // 2. 安装“订阅器”，并告诉它收到通知后该做什么
+        mSiteViewModel.search.observe(this, result -> {
+            // ✨ 当“大脑”在后台搜到任何结果，都会在这里收到通知！✨
+
+            // a. 把搜索结果 (List<Vod>) 转换成弹窗需要的格式 (ArrayList<Word.Data>)
+            ArrayList<Word.Data> related = new ArrayList<>();
+            if (result != null && result.getList() != null) {
+                for (Vod item : result.getList()) {
+                    Word.Data data = new Word.Data();
+                    data.setTitle(item.getName());
+                    data.setPic(item.getPic());
+                    related.add(data);
+                }
+            }
+            
+            // b. 把转换好的结果，交给最终的弹窗去显示
+            showTheFinalDialog(related);
+        });
+        // --- ✨↑ “安装”代码结束 ↑✨ ---
     }
     
     
@@ -1127,79 +1150,34 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void showSmartNavPanel() {
-        if (isFinishing()) return;
-        if (mPlayers != null) mPlayers.pause();
+    if (isFinishing()) return;
+    if (mPlayers != null) mPlayers.pause();
 
-        String videoName = getName();
-        if (TextUtils.isEmpty(videoName)) return;
+    String videoName = getName();
+    if (TextUtils.isEmpty(videoName)) return;
 
-        Toast.makeText(this, "正在为您推荐...", Toast.LENGTH_SHORT).show();
+    Toast.makeText(this, "正在为您推荐...", Toast.LENGTH_SHORT).show();
 
-        // ✨ 1. 获取“为你推荐”的数据
-        OkHttp.newCall("https://suggest.video.iqiyi.com/?if=mobile&key=" + URLEncoder.encode(ZhuToPin.get(videoName))).enqueue(new okhttp3.Callback() {
-            @Override
-            public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
-                App.post(() -> fetchHotAndShowDialog(new ArrayList<>()));
-            }
+    // ✨ 核心逻辑：只负责下达“开始搜索”的命令！✨
+    // “大脑先生(mViewModel)，请用这份网站通讯录(mSites)，去搜索这个关键词(videoName)！”
+    mViewModel.searchContent(mSites, videoName, false);
+}
 
-            @Override
-            public void onResponse(@NonNull okhttp3.Call call, @NonNull okhttp3.Response response) {
-                try {
-                    List<Word.Data> suggestions = Word.objectFrom(response.body().string()).getData();
-                    // ✨ 2. 为拿到的推荐项“借”海报
-                    borrowPictures(suggestions, () -> App.post(() -> fetchHotAndShowDialog(suggestions)));
-                } catch (Exception e) {
-                    App.post(() -> fetchHotAndShowDialog(new ArrayList<>()));
-                }
-            }
-        });
-    }
+// --- ✨↓ 这个负责显示弹窗的小方法，我们保留它，因为它带了“防重影”功能！↓✨ ---
+   private void showTheFinalDialog(ArrayList<Word.Data> suggestions) {
+    // ✨ 我们在这里获取“大家都在看”的热搜词 ✨
+    SuggestHelper.getHot(hotWords -> {
+        List<Word.Data> safeHotWords = hotWords != null ? hotWords : Collections.emptyList();
+        ArrayList<Word.Data> hots = new ArrayList<>(safeHotWords);
 
-    // ✨ 下面是 showSmartNavPanel 需要用到的三个辅助方法，请把它们也复制进去
-    private void fetchHotAndShowDialog(List<Word.Data> relatedSuggestions) {
-        SuggestHelper.getHot(hotWords -> {
-            // ✨ 3. 获取“大家都在看”的数据，并为它们“借”海报
-            borrowPictures(hotWords, () -> App.post(() -> showTheFinalDialog(relatedSuggestions, hotWords)));
-        });
-    }
-
-    private void borrowPictures(List<Word.Data> list, Runnable onCompleted) {
-        if (list == null || list.isEmpty()) {
-            onCompleted.run();
-            return;
-        }
-        AtomicInteger counter = new AtomicInteger(list.size());
-        for (Word.Data item : list) {
-            mSiteViewModel.searchContent(mSites, item.getTitle(), new Api.Callback<Vod>() {
-                @Override
-                public void onResponse(List<Vod> items) {
-                    if (items != null && !items.isEmpty()) {
-                        for(Vod vod : items) {
-                            if(!TextUtils.isEmpty(vod.getPic())) {
-                                item.setPic(vod.getPic());
-								break;
-                            }
-                        }
-                    }
-                    if (counter.decrementAndGet() == 0) onCompleted.run();
-                }
-                @Override
-                public void onError(Throwable e) {
-                    if (counter.decrementAndGet() == 0) onCompleted.run();
-                }
-            });
-        }
-    }
-
-    private void showTheFinalDialog(List<Word.Data> suggestions, List<Word.Data> hotWords) {
-        ArrayList<Word.Data> related = new ArrayList<>(suggestions != null ? suggestions : Collections.emptyList());
-        ArrayList<Word.Data> hots = new ArrayList<>(hotWords != null ? hotWords : Collections.emptyList());
-
+        // 【防重影核心】
         Fragment prev = getSupportFragmentManager().findFragmentByTag("SmartNav");
         if (prev instanceof DialogFragment) ((DialogFragment) prev).dismiss();
 
-        SmartNavDialog.newInstance(getName(), related, hots).show(getSupportFragmentManager(), "SmartNav");
-    }
+        // 把“为你推荐”(suggestions)和“大家都在看”(hots) 一起交给弹窗！
+        SmartNavDialog.newInstance(getName(), suggestions, hots).show(getSupportFragmentManager(), "SmartNav");
+    });
+}
     // ... 这里是你 VideoActivity 原来的其他所有方法 ...
     
     private void setPosition() {
