@@ -1131,9 +1131,21 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         String videoName = getName();
         if (TextUtils.isEmpty(videoName)) return;
     
-        // 2. ✨ 就做这一件事：把名字传给弹窗，然后叫它出来！✨
-        //    所有复杂的工作，都交给 SmartNavDialog 自己去完成！
-        SmartNavDialog.newInstance(videoName).show(getSupportFragmentManager(), "SmartNav");
+        // 2. 自己动手，创建一个只包含标题的推荐项
+        Word.Data selfMadeSuggestion = new Word.Data();
+        selfMadeSuggestion.setTitle(videoName); // 使用我们之前在 Word.java 里加的 set 方法
+
+        // 3. 把这个推荐项放到一个列表里
+        ArrayList<Word.Data> related = new ArrayList<>();
+        related.add(selfMadeSuggestion);
+
+        // 4. 获取热搜词（SuggestHelper 在这里是可用的）
+        SuggestHelper.getHot(hotWords -> {
+            ArrayList<Word.Data> hots = new ArrayList<>(hotWords != null ? hotWords : Collections.emptyList());
+            
+            // 5. 把两个列表都交给“傻瓜”弹窗去显示
+            SmartNavDialog.newInstance(videoName, related, hots).show(getSupportFragmentManager(), "SmartNav");
+        });
     }
 
     
