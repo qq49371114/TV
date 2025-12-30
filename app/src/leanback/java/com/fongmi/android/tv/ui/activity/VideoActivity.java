@@ -1175,7 +1175,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         if (prev instanceof DialogFragment) ((DialogFragment) prev).dismiss();
 
         // 把“为你推荐”(suggestions)和“大家都在看”(hots) 一起交给弹窗！
-        SmartNavDialog.newInstance(getName(), suggestions, hots).show(getSupportFragmentManager(), "SmartNav");
+        SmartNavDialog.newInstance(getName()).show(getSupportFragmentManager(), "SmartNav");
     });
 }
     // ... 这里是你 VideoActivity 原来的其他所有方法 ...
