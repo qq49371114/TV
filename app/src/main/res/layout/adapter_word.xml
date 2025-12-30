@@ -32,7 +32,7 @@
             android:gravity="center"
             android:maxLines="1"
             android:padding="4dp"
-            android:textColor="@color/selector_word"
+            android:textColor="@android:color/white"
             android:textSize="12sp"
             tools:text="电影名字" />
 
