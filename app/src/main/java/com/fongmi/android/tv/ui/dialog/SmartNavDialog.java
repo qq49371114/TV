@@ -151,32 +151,40 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
 
     // ✨ 2. 获取“为你推荐”，完成后，再触发下一步
     private void fetchSuggestions(String keyword, Runnable callback) {
-        OkHttp.newCall("https://suggest.video.iqiyi.com/?if=mobile&key=" + URLEncoder.encode(ZhuToPin.get(keyword))).enqueue(new okhttp3.Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) { callback.run(); }
+    OkHttp.newCall("https://suggest.video.iqiyi.com/?if=mobile&key=" + URLEncoder.encode(ZhuToPin.get(keyword))).enqueue(new okhttp3.Callback() {
+        // ✨【修正】就算失败了，也必须把“接力棒”传下去！
+        @Override
+        public void onFailure(@NonNull Call call, @NonNull IOException e) {
+            // 即使获取失败，我们也要保证流程能继续，所以直接调用 callback
+            App.post(callback::run);
+        }
 
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                List<Word.Data> suggestions = Word.objectFrom(response.body().string()).getData();
-                List<Vod> vodList = new ArrayList<>();
-                if (!suggestions.isEmpty()) {
-                    for (Word.Data item : suggestions) {
-                        if (!item.getTitle().equals(keyword)) {
-                            Vod vod = new Vod();
-                            vod.setName(item.getTitle());
-                            vod.setPic(item.getPic()); // 此时的 pic 很可能是空的
-                            vodList.add(vod);
-                        }
+        @Override
+        public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+            List<Word.Data> suggestions = Word.objectFrom(response.body().string()).getData();
+            List<Vod> vodList = new ArrayList<>();
+
+            // ✨【修正】我们不再因为列表为空就直接返回！
+            if (suggestions != null && !suggestions.isEmpty()) {
+                for (Word.Data item : suggestions) {
+                    if (!item.getTitle().equals(keyword)) {
+                        Vod vod = new Vod();
+                        vod.setName(item.getTitle());
+                        vod.setPic(item.getPic());
+                        vodList.add(vod);
                     }
                 }
-                App.post(() -> {
-                    mRelatedAdapter.setItems(vodList, new BaseDiffCallback<>());
-                    mQueue.addAll(vodList); // 把任务加入“任务清单”
-                    callback.run(); // ✨ 通知“链条”，可以进行下一步了！
-                });
             }
-        });
-    }
+
+            // ✨【修正】无论如何，都必须把“接力棒”传下去！
+            App.post(() -> {
+                mRelatedAdapter.setItems(vodList, new BaseDiffCallback<>());
+                mQueue.addAll(vodList);
+                callback.run(); // ✨ 把“接力棒”稳稳地传给下一个选手！
+            });
+        }
+    });
+}
 
     // ✨ 3. 获取“大家都在看”，完成后，启动“海报突击队”！
     private void fetchHotWords() {
