@@ -144,9 +144,9 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     // ↓↓↓ 在这里，添加我们的“状态旗帜” ↓↓↓
     private boolean mIsLastEpisode = false;
     // --- ✨↓ 把婉儿给你的“新零件”粘贴在这里！↓✨ ---
-    private SiteViewModel mSiteViewModel;
-    private List<Site> mSites;
-    private List<Word.Data> mTempSuggestions;
+    //private SiteViewModel mSiteViewModel;
+    //private List<Site> mSites;
+    //private List<Word.Data> mTempSuggestions;
     // --- ✨↑ “新零件”添加完毕！↑✨ ---
 
     public static void push(FragmentActivity activity, String text) {
@@ -298,8 +298,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         checkCast();
         checkId();
         // --- ✨↓ 下面是我们最终的、完美的“安装”代码！↓✨ ---
-        mSiteViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
-        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).collect(Collectors.toList());
+        
     }
     
     
@@ -1130,76 +1129,11 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     if (isFinishing()) return;
     if (mPlayers != null) mPlayers.pause();
 
+    // 获取当前视频的名字
     String videoName = getName();
-    if (TextUtils.isEmpty(videoName)) return;
-
-    Toast.makeText(this, "正在智能推荐...", Toast.LENGTH_SHORT).show();
-
-    SuggestHelper.getSuggestions(videoName, suggestions -> {
-        if (suggestions != null && !suggestions.isEmpty()) {
-            String targetName = suggestions.get(0).getTitle();
-            mSiteViewModel.searchContent(mSites, targetName, new Callback<Vod>() {
-                @Override
-                public void onResponse(List<Vod> items) {
-                    String foundPic = "";
-                    if (items != null) {
-                        for (Vod item : items) {
-                            if (!TextUtils.isEmpty(item.getPic()) && !item.getPic().contains("douban")) {
-                                foundPic = item.getPic();
-                                break;
-                            }
-                        }
-                    }
-                    if (!foundPic.isEmpty()) {
-                        suggestions.get(0).setPic(foundPic);
-                    }
-                    showTheFinalDialog(suggestions);
-                }
-
-                @Override
-                public void onError(Throwable e) {
-                    showTheFinalDialog(suggestions);
-                }
-            });
-        } else {
-            mSiteViewModel.searchContent(mSites, videoName, new Callback<Vod>() {
-                @Override
-                public void onResponse(List<Vod> items) {
-                    ArrayList<Word.Data> related = new ArrayList<>();
-                    if (items != null) {
-                        for (Vod item : items) {
-                            Word.Data data = new Word.Data();
-                            data.setTitle(item.getName());
-                            data.setPic(item.getPic());
-                            related.add(data);
-                        }
-                    }
-                    showTheFinalDialog(related);
-                }
-
-                @Override
-                public void onError(Throwable e) {
-                    showTheFinalDialog(new ArrayList<>());
-                }
-            });
-        }
-    });
-}
-
-// --- ✨↓ 这个负责显示弹窗的小方法，我们保留它，因为它带了“防重影”功能！↓✨ ---
-   private void showTheFinalDialog(List<Word.Data> suggestions) {
-    SuggestHelper.getHot(hotWords -> {
-        List<Word.Data> safeHotWords = hotWords != null ? hotWords : Collections.emptyList();
-        ArrayList<Word.Data> hots = new ArrayList<>(safeHotWords);
-
-        // ✨【重大修正】: 在这里把 List 转换成弹窗需要的 ArrayList！✨
-        ArrayList<Word.Data> related = new ArrayList<>(suggestions != null ? suggestions : Collections.emptyList());
-
-        Fragment prev = getSupportFragmentManager().findFragmentByTag("SmartNav");
-        if (prev instanceof DialogFragment) ((DialogFragment) prev).dismiss();
-
-        SmartNavDialog.newInstance(getName(), related, hots).show(getSupportFragmentManager(), "SmartNav");
-    });
+    
+    // ✨ 就做这一件事：把名字传给弹窗，然后叫它出来！✨
+    SmartNavDialog.newInstance(videoName).show(getSupportFragmentManager(), "SmartNav");
 }
     
     private void setPosition() {
