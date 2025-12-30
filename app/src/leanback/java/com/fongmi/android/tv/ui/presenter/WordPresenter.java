@@ -34,12 +34,20 @@ public class WordPresenter extends Presenter {
         Word.Data item = (Word.Data) object;
         ViewHolder holder = (ViewHolder) viewHolder;
 
-        // --- 核心修改1：每次工作前，先“打扫战场”！---
-        // 在加载新图片之前，先把旧的图片清理掉，防止复用时显示旧图。
+        // --- 每次工作前，先打扫战场！---
         holder.binding.image.setImageDrawable(null);
 
-        // 然后再开始布置新的展品
-        holder.binding.text.setText(item.getTitle());
+        // --- ✨【核心诊断】用“透视眼镜”检查拿到的名字！✨ ---
+        String title = item.getTitle();
+        if (TextUtils.isEmpty(title)) {
+            // 如果名字是空的，我们就强制显示一个提示，这样就能立刻知道问题所在！
+            holder.binding.text.setText("名字丢了!");
+        } else {
+            // 如果名字正常，就显示名字
+            holder.binding.text.setText(title);
+        }
+        
+        // --- 开始加载图片和设置点击事件 ---
         ImgUtil.load(item.getTitle(), item.getPic(), holder.binding.image);
         setOnClickListener(holder, view -> listener.onItemClick(item));
     }
