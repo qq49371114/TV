@@ -1,7 +1,7 @@
 package com.fongmi.android.tv.ui.dialog;
 
 import android.os.Bundle;
-import android.view.KeyEvent;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,30 +9,45 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.ItemBridgeAdapter;
 
+import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.api.Api;
+import com.fongmi.android.tv.bean.Site;
+import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.bean.Word;
 import com.fongmi.android.tv.databinding.DialogSmartNavBinding;
-import com.fongmi.android.tv.ui.activity.SearchActivity;
+import com.fongmi.android.tv.model.SiteViewModel;
+import com.fongmi.android.tv.net.OkHttp;
+import com.fongmi.android.tv.player.VodConfig;
+import com.fongmi.android.tv.ui.activity.CollectActivity;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.ui.presenter.WordPresenter;
-import com.fongmi.android.tv.ui.activity.CollectActivity;
+import com.fongmi.android.tv.utils.ZhuToPin;
 
+import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SmartNavDialog extends DialogFragment implements WordPresenter.OnClickListener {
 
     private DialogSmartNavBinding binding;
     private ArrayObjectAdapter mRelatedAdapter;
     private ArrayObjectAdapter mHotAdapter;
+    
+    // --- ✨↓ 我们为它装上了“大脑”和“通讯录”！↓✨ ---
+    private SiteViewModel mSiteViewModel;
+    private List<Site> mSites;
 
-    public static SmartNavDialog newInstance(String currentVideo, ArrayList<Word.Data> related, ArrayList<Word.Data> hots) {
+    // --- ✨↓ 改造 newInstance，只接收一个关键词！↓✨ ---
+    public static SmartNavDialog newInstance(String keyword) {
         Bundle args = new Bundle();
-        args.putString("current_video", currentVideo);
-        args.putParcelableArrayList("related", related);
-        args.putParcelableArrayList("hot", hots);
+        args.putString("keyword", keyword);
         SmartNavDialog fragment = new SmartNavDialog();
         fragment.setArguments(args);
         return fragment;
@@ -48,10 +63,20 @@ public class SmartNavDialog extends DialogFragment implements WordPresenter.OnCl
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        // ✨ 1. 初始化我们新加的“器官”
+        initViewModel();
+        // ✨ 2. 初始化界面
         setRecyclerViews();
-        setData();
+        // ✨ 3. 开始干活！
+        startWorks();
     }
 
+    // --- ✨↓ 新增的初始化方法 ↓✨ ---
+    private void initViewModel() {
+        mSiteViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
+        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).collect(Collectors.toList());
+    }
+    
     private void setRecyclerViews() {
         binding.relatedRecycler.setHasFixedSize(true);
         binding.relatedRecycler.addItemDecoration(new SpaceItemDecoration(1, 16));
@@ -61,42 +86,80 @@ public class SmartNavDialog extends DialogFragment implements WordPresenter.OnCl
         binding.hotRecycler.setAdapter(new ItemBridgeAdapter(mHotAdapter = new ArrayObjectAdapter(new WordPresenter(this))));
     }
 
-    private void setData() {
-        if (getArguments() == null) return;
+    // --- ✨↓ 核心工作方法，取代了旧的 setData() ↓✨ ---
+    private void startWorks() {
+        String keyword = getArguments().getString("keyword");
+        if (TextUtils.isEmpty(keyword)) return;
 
-        String currentVideoName = getArguments().getString("current_video");
-        List<Word.Data> relatedWords = getArguments().getParcelableArrayList("related");
-        List<Word.Data> hotWords = getArguments().getParcelableArrayList("hot");
+        // ✨ a. 自己去获取“为你推荐”
+        fetchSuggestions(keyword);
+        // ✨ b. 自己去获取“大家都在看”
+        fetchHotWords();
+    }
 
-        if (relatedWords != null && !relatedWords.isEmpty()) {
-            List<Word.Data> filteredList = new ArrayList<>();
-            for (Word.Data item : relatedWords) {
-                if (!item.getTitle().equals(currentVideoName)) {
-                    filteredList.add(item);
-                }
+    private void fetchSuggestions(String keyword) {
+        OkHttp.newCall("https://suggest.video.iqiyi.com/?if=mobile&key=" + URLEncoder.encode(ZhuToPin.get(keyword))).enqueue(new okhttp3.Callback() {
+            @Override
+            public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {}
+
+            @Override
+            public void onResponse(@NonNull okhttp3.Call call, @NonNull okhttp3.Response response) throws IOException {
+                List<Word.Data> suggestions = Word.objectFrom(response.body().string()).getData();
+                if (suggestions.isEmpty()) return;
+                
+                // 为推荐列表“借”海报
+                borrowPictures(suggestions, () -> App.post(() -> {
+                    // 过滤掉和当前视频名字一样的
+                    List<Word.Data> filtered = new ArrayList<>();
+                    for (Word.Data item : suggestions) {
+                        if (!item.getTitle().equals(keyword)) {
+                            filtered.add(item);
+                        }
+                    }
+                    mRelatedAdapter.setItems(filtered, null);
+                }));
             }
-            mRelatedAdapter.setItems(filteredList, null);
-        } else {
-            binding.relatedRecycler.setVisibility(View.GONE);
-        }
+        });
+    }
 
-        if (hotWords != null && !hotWords.isEmpty()) {
-            mHotAdapter.setItems(hotWords, null);
-        } else {
-            binding.hotRecycler.setVisibility(View.GONE);
+    private void fetchHotWords() {
+        SuggestHelper.getHot(hotWords -> {
+            if (hotWords == null || hotWords.isEmpty()) return;
+            // 为热搜列表“借”海报
+            borrowPictures(hotWords, () -> App.post(() -> mHotAdapter.setItems(hotWords, null)));
+        });
+    }
+
+    // --- ✨↓ 我们把“借海报”的逻辑，也封装成了一个方法！↓✨ ---
+    private void borrowPictures(List<Word.Data> list, Runnable onCompleted) {
+        AtomicInteger counter = new AtomicInteger(list.size());
+        if (counter.get() == 0) {
+            onCompleted.run();
+            return;
+        }
+        for (Word.Data item : list) {
+            mSiteViewModel.searchContent(mSites, item.getTitle(), new Api.Callback<Vod>() {
+                @Override
+                public void onResponse(List<Vod> items) {
+                    if (items != null && !items.isEmpty()) {
+                        item.setPic(items.get(0).getPic());
+                    }
+                    if (counter.decrementAndGet() == 0) onCompleted.run();
+                }
+                @Override
+                public void onError(Throwable e) {
+                    if (counter.decrementAndGet() == 0) onCompleted.run();
+                }
+            });
         }
     }
-    
+
+    // --- ✨↓ 点击事件的逻辑是完全正确的，我们保留它！↓✨ ---
     @Override
     public void onItemClick(Word.Data item) {
         CollectActivity.start(getActivity(), item.getTitle());
-    // 然后关闭自己
         dismiss();
-        }
-
-    // 这里可以添加更完善的按键处理逻辑
-    // @Override
-    // public boolean onKeyDown(int keyCode, KeyEvent event) { ... }
+    }
 
     @Override
     public void onStart() {
