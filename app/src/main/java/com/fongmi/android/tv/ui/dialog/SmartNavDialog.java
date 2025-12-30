@@ -12,7 +12,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.ItemBridgeAdapter;
 import com.fongmi.android.tv.App;
-import com.fongmi.android.tv.api.config.Config; // ✨ Api -> Config
+import com.fongmi.android.tv.impl.Callback;       // 为了让 new Callback<Vod>() 能用
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Vod;
