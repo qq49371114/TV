@@ -1206,7 +1206,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     // ... 这里是你 VideoActivity 原来的其他所有方法 ...
-}
+
     
     private void setPosition() {
         if (mHistory != null) mPlayers.seekTo(Math.max(mHistory.getOpening(), mHistory.getPosition()));
