@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_blur"
     android:orientation="vertical"
     android:padding="24dp">
 
@@ -21,10 +22,11 @@
         android:textColor="@android:color/white"
         android:textSize="16sp" />
 
+    <!-- ✨ 我们让“店铺”的宽度撑满“商场”，并给它一个合适的高度！✨ -->
     <androidx.leanback.widget.HorizontalGridView
         android:id="@+id/relatedRecycler"
         android:layout_width="match_parent"
-        android:layout_height="190dp"
+        android:layout_height="190dp" 
         android:layout_marginTop="8dp" />
 
     <TextView
@@ -35,13 +37,13 @@
         android:textColor="@android:color/white"
         android:textSize="16sp" />
 
+    <!-- ✨ 另一个“店铺”也一样！✨ -->
     <androidx.leanback.widget.HorizontalGridView
         android:id="@+id/hotRecycler"
         android:layout_width="match_parent"
-        android:layout_height="190dp"
+        android:layout_height="190dp" 
         android:layout_marginTop="8dp" />
 
-    <!-- ✨✨✨ 在这里，我们把属于我们的“荣誉勋章”加回来！✨✨✨ -->
     <TextView
         android:id="@+id/signature"
         android:layout_width="wrap_content"
