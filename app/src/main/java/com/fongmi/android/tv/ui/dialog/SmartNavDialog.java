@@ -1,6 +1,5 @@
 package com.fongmi.android.tv.ui.dialog;
 
-// --- ✨↓ 婉儿把所有需要的“身份证”，都帮你写在这里了！↓✨ ---
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -13,14 +12,14 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.ItemBridgeAdapter;
 import com.fongmi.android.tv.App;
-import com.fongmi.android.tv.api.Api;
+import com.fongmi.android.tv.api.config.Config; // ✨ Api -> Config
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.bean.Word;
 import com.fongmi.android.tv.databinding.DialogSmartNavBinding;
 import com.fongmi.android.tv.model.SiteViewModel;
-import com.fongmi.android.tv.net.OkHttp;
+import com.github.catvod.net.OkHttp; // ✨ OkHttp 搬家啦
 import com.fongmi.android.tv.ui.activity.CollectActivity;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.ui.presenter.WordPresenter;
@@ -133,32 +132,33 @@ public class SmartNavDialog extends DialogFragment implements WordPresenter.OnCl
 
     // --- ✨↓ 我们把“借海报”的逻辑，也封装成了一个方法！↓✨ ---
     private void borrowPictures(List<Word.Data> list, Runnable onCompleted) {
-        AtomicInteger counter = new AtomicInteger(list.size());
-        if (counter.get() == 0) {
-            onCompleted.run();
-            return;
-        }
-        for (Word.Data item : list) {
-            mSiteViewModel.searchContent(mSites, item.getTitle(), new Api.Callback<Vod>() {
-                @Override
-                public void onResponse(List<Vod> items) {
-                    if (items != null && !items.isEmpty()) {
-                        for(Vod vod : items) {
-                            if(!TextUtils.isEmpty(vod.getPic())) {
-                                item.setPic(vod.getPic());
-                                break;
-                            }
+    AtomicInteger counter = new AtomicInteger(list.size());
+    if (counter.get() == 0) {
+        onCompleted.run();
+        return;
+    }
+    for (Word.Data item : list) {
+        // ✨ 把 Api.Callback 改成了新的 Callback ✨
+        mSiteViewModel.searchContent(mSites, item.getTitle(), new Callback<Vod>() {
+            @Override
+            public void onResponse(List<Vod> items) {
+                if (items != null && !items.isEmpty()) {
+                    for(Vod vod : items) {
+                        if(!TextUtils.isEmpty(vod.getPic())) {
+                            item.setPic(vod.getPic());
+                            break;
                         }
                     }
-                    if (counter.decrementAndGet() == 0) onCompleted.run();
                 }
-                @Override
-                public void onError(Throwable e) {
-                    if (counter.decrementAndGet() == 0) onCompleted.run();
-                }
-            });
-        }
+                if (counter.decrementAndGet() == 0) onCompleted.run();
+            }
+            @Override
+            public void onError(Throwable e) {
+                if (counter.decrementAndGet() == 0) onCompleted.run();
+            }
+        });
     }
+}
 
     // --- ✨↓ 点击事件的逻辑是完全正确的，我们保留它！↓✨ ---
     @Override
