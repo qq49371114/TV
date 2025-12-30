@@ -12,7 +12,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.ItemBridgeAdapter;
 import com.fongmi.android.tv.App;
-import com.fongmi.android.tv.impl.Callback;       // 为了让 new Callback<Vod>() 能用
+import com.fongmi.android.tv.api.Callback; // ✅ 这个才是能装数据的专用本！
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Vod;
