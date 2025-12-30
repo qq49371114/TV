@@ -20,8 +20,9 @@
             android:id="@+id/image"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scaleType="centerCrop" />
-
+            android:scaleType="centerCrop"
+            android:layout_marginBottom="30dp" /> 
+            <!-- ✨↑↑↑ 看这里！我们强行让它离底部远一点！↑↑↑✨ -->
         <TextView
         android:id="@+id/text"
         android:layout_width="match_parent"
