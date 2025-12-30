@@ -26,11 +26,10 @@
         android:textColor="@android:color/white"
         android:textSize="16sp" />
 
-    <!-- 修正：之前这里有一个错误的注释，现在已经移除 -->
     <androidx.leanback.widget.HorizontalGridView
         android:id="@+id/related_recycler"
-        android:layout_width="500dp"
-        android:layout_height="50dp"
+        android:layout_width="match_parent" 
+        android:layout_height="190dp" 
         android:layout_marginTop="8dp"
         android:clipToPadding="false" />
 
@@ -43,13 +42,12 @@
         android:textColor="@android:color/white"
         android:textSize="16sp" />
 
-    <!-- 修正：之前这里有一个错误的注释，现在已经移除 -->
     <androidx.leanback.widget.HorizontalGridView
         android:id="@+id/hot_recycler"
-        android:layout_width="500dp"
-        android:layout_height="50dp"
+        android:layout_width="match_parent" 
+        android:layout_height="190dp" 
         android:layout_marginTop="8dp"
-        android.clipToPadding="false" />
+        android:clipToPadding="false" />
 
     <!-- 婉儿的签名 -->
     <TextView
