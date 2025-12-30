@@ -10,39 +10,35 @@
     app:cardCornerRadius="8dp"
     app:cardElevation="0dp">
 
-    <!-- 我们用一个FrameLayout来叠放图片和文字 -->
-    <FrameLayout
+    <!-- ✨ 我们换了一个更智能的“画板”(RelativeLayout)！ ✨ -->
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/selector_word">
 
+        <!-- 1. 我们告诉“图片”，你的位置必须在“文字”的上面，绝对不许碰到它！ -->
         <ImageView
             android:id="@+id/image"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:layout_marginBottom="30dp" /> 
-            <!-- ✨↑↑↑ 看这里！我们强行让它离底部远一点！↑↑↑✨ -->
-        <TextView
-        android:id="@+id/text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:background="#80000000"
-        android:ellipsize="end"
-        android:gravity="center"
-        android:maxLines="1"
-        android:padding="4dp"
-        android:textColor="@android:color/white"
-        android:textSize="12sp"
-        
-        android:shadowColor="@android:color/black"
-        android:shadowDx="1"
-        android:shadowDy="1"
-        android:shadowRadius="2"
-        
-        tools:text="电影名字" />
+            android:layout_above="@id/text" 
+            android:scaleType="centerCrop" />
 
-    </FrameLayout>
+        <!-- 2. 我们用钉子把“文字”钉在了画板的最底下！ -->
+        <TextView
+            android:id="@+id/text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:background="#80000000"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="1"
+            android:padding="4dp"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            tools:text="电影名字" />
+
+    </RelativeLayout>
 
 </androidx.cardview.widget.CardView>
