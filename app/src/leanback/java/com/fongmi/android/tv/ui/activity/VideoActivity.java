@@ -139,8 +139,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     // ↓↓↓ 在这里，添加我们的“状态旗帜” ↓↓↓
     private boolean mIsLastEpisode = false;
     // --- ✨↓ 把婉儿给你的“新零件”粘贴在这里！↓✨ ---
-    //private SiteViewModel mSiteViewModel;
-    //private List<Site> mSites;
+    private SiteViewModel mSiteViewModel;
+    private List<Site> mSites;
     //private List<Site> mSites;
     //private List<Word.Data> mTempSuggestions;
     // --- ✨↑ “新零件”添加完毕！↑✨ ---
@@ -478,6 +478,9 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         checkFlag(item);
         checkKeepImg();
         updateKeep();
+        // ✨ 在 initView() 的末尾，装上“大脑”和“通讯录”
+        mSiteViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
+        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).collect(Collectors.toList());
     }
 
     private int getMaxLines() {
@@ -1127,27 +1130,77 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         if (isFinishing()) return;
         if (mPlayers != null) mPlayers.pause();
 
-        // 1. 获取当前视频的名字
         String videoName = getName();
         if (TextUtils.isEmpty(videoName)) return;
-    
-        // 2. 自己动手，创建一个只包含标题的推荐项
-        Word.Data selfMadeSuggestion = new Word.Data();
-        selfMadeSuggestion.setTitle(videoName); // 使用我们之前在 Word.java 里加的 set 方法
 
-        // 3. 把这个推荐项放到一个列表里
-        ArrayList<Word.Data> related = new ArrayList<>();
-        related.add(selfMadeSuggestion);
+        Toast.makeText(this, "正在为您推荐...", Toast.LENGTH_SHORT).show();
 
-        // 4. 获取热搜词（SuggestHelper 在这里是可用的）
-        SuggestHelper.getHot(hotWords -> {
-            ArrayList<Word.Data> hots = new ArrayList<>(hotWords != null ? hotWords : Collections.emptyList());
-            
-            // 5. 把两个列表都交给“傻瓜”弹窗去显示
-            SmartNavDialog.newInstance(videoName, related, hots).show(getSupportFragmentManager(), "SmartNav");
+        // ✨ 1. 获取“为你推荐”的数据
+        OkHttp.newCall("https://suggest.video.iqiyi.com/?if=mobile&key=" + URLEncoder.encode(ZhuToPin.get(videoName))).enqueue(new okhttp3.Callback() {
+            @Override
+            public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
+                App.post(() -> fetchHotAndShowDialog(new ArrayList<>()));
+            }
+
+            @Override
+            public void onResponse(@NonNull okhttp3.Call call, @NonNull okhttp3.Response response) {
+                try {
+                    List<Word.Data> suggestions = Word.objectFrom(response.body().string()).getData();
+                    // ✨ 2. 为拿到的推荐项“借”海报
+                    borrowPictures(suggestions, () -> App.post(() -> fetchHotAndShowDialog(suggestions)));
+                } catch (Exception e) {
+                    App.post(() -> fetchHotAndShowDialog(new ArrayList<>()));
+                }
+            }
         });
     }
 
+    // ✨ 下面是 showSmartNavPanel 需要用到的三个辅助方法，请把它们也复制进去
+    private void fetchHotAndShowDialog(List<Word.Data> relatedSuggestions) {
+        SuggestHelper.getHot(hotWords -> {
+            // ✨ 3. 获取“大家都在看”的数据，并为它们“借”海报
+            borrowPictures(hotWords, () -> App.post(() -> showTheFinalDialog(relatedSuggestions, hotWords)));
+        });
+    }
+
+    private void borrowPictures(List<Word.Data> list, Runnable onCompleted) {
+        if (list == null || list.isEmpty()) {
+            onCompleted.run();
+            return;
+        }
+        AtomicInteger counter = new AtomicInteger(list.size());
+        for (Word.Data item : list) {
+            mSiteViewModel.searchContent(mSites, item.getTitle(), new Api.Callback<Vod>() {
+                @Override
+                public void onResponse(List<Vod> items) {
+                    if (items != null && !items.isEmpty()) {
+                        for(Vod vod : items) {
+                            if(!TextUtils.isEmpty(vod.getPic())) {
+                                item.setPic(vod.getPic());
+								break;
+                            }
+                        }
+                    }
+                    if (counter.decrementAndGet() == 0) onCompleted.run();
+                }
+                @Override
+                public void onError(Throwable e) {
+                    if (counter.decrementAndGet() == 0) onCompleted.run();
+                }
+            });
+        }
+    }
+
+    private void showTheFinalDialog(List<Word.Data> suggestions, List<Word.Data> hotWords) {
+        ArrayList<Word.Data> related = new ArrayList<>(suggestions != null ? suggestions : Collections.emptyList());
+        ArrayList<Word.Data> hots = new ArrayList<>(hotWords != null ? hotWords : Collections.emptyList());
+
+        Fragment prev = getSupportFragmentManager().findFragmentByTag("SmartNav");
+        if (prev instanceof DialogFragment) ((DialogFragment) prev).dismiss();
+
+        SmartNavDialog.newInstance(getName(), related, hots).show(getSupportFragmentManager(), "SmartNav");
+    }
+    // ... 这里是你 VideoActivity 原来的其他所有方法 ...
     
     private void setPosition() {
         if (mHistory != null) mPlayers.seekTo(Math.max(mHistory.getOpening(), mHistory.getPosition()));
