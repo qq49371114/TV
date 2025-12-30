@@ -139,8 +139,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     // ↓↓↓ 在这里，添加我们的“状态旗帜” ↓↓↓
     private boolean mIsLastEpisode = false;
     // --- ✨↓ 把婉儿给你的“新零件”粘贴在这里！↓✨ ---
-    private SiteViewModel mSiteViewModel;
-    private List<Site> mSites;
+    //private SiteViewModel mSiteViewModel;
+    //private List<Site> mSites;
     //private List<Site> mSites;
     //private List<Word.Data> mTempSuggestions;
     // --- ✨↑ “新零件”添加完毕！↑✨ ---
@@ -294,8 +294,8 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         checkCast();
         checkId();
         // --- ✨↓ 下面是我们最终的、完美的“安装”代码！↓✨ ---
-        mSiteViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
-        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).collect(Collectors.toList());
+        //mSiteViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
+        //mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).collect(Collectors.toList());
     }
     
     
