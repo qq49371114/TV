@@ -1126,15 +1126,15 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void showSmartNavPanel() {
-    if (isFinishing()) return;
-    if (mPlayers != null) mPlayers.pause();
+        if (isFinishing()) return;
+        if (mPlayers != null) mPlayers.pause();
 
-    // 获取当前视频的名字
-    String videoName = getName();
+        String videoName = getName();
+        if (TextUtils.isEmpty(videoName)) return;
     
-    // ✨ 就做这一件事：把名字传给弹窗，然后叫它出来！✨
-    SmartNavDialog.newInstance(videoName).show(getSupportFragmentManager(), "SmartNav");
-}
+        // ✨ 核心逻辑：只负责把当前视频的名字，传给弹窗，然后叫它出来！✨
+        SmartNavDialog.newInstance(videoName).show(getSupportFragmentManager(), "SmartNav");
+    }
     
     private void setPosition() {
         if (mHistory != null) mPlayers.seekTo(Math.max(mHistory.getOpening(), mHistory.getPosition()));
