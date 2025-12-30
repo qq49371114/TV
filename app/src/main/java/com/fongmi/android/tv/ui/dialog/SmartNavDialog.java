@@ -12,7 +12,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.ItemBridgeAdapter;
 import com.fongmi.android.tv.App;
-import com.fongmi.android.tv.api.Callback; // ✅ 这个才是能装数据的专用本！
+import com.fongmi.android.tv.impl.Callback; // ✅ 这个才是能装数据的专用本！
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Vod;
@@ -138,20 +138,26 @@ public class SmartNavDialog extends DialogFragment implements WordPresenter.OnCl
         return;
     }
     for (Word.Data item : list) {
-        // ✨ 把 Api.Callback 改成了新的 Callback ✨
-        mSiteViewModel.searchContent(mSites, item.getTitle(), new Callback<Vod>() {
+        // ✨ 1. 使用 new Callback()，不再加 <Vod>
+        mSiteViewModel.searchContent(mSites, item.getTitle(), new Callback() {
+            // ✨ 2. onResponse 接收的是一个通用的 Object
             @Override
-            public void onResponse(List<Vod> items) {
-                if (items != null && !items.isEmpty()) {
-                    for(Vod vod : items) {
-                        if(!TextUtils.isEmpty(vod.getPic())) {
-                            item.setPic(vod.getPic());
-                            break;
+            public void onResponse(Object result) {
+                // ✨ 3. 我们在这里把它“变身”成 List<Vod>
+                if (result instanceof List) {
+                    List<Vod> items = (List<Vod>) result;
+                    if (!items.isEmpty()) {
+                        for (Vod vod : items) {
+                            if (!TextUtils.isEmpty(vod.getPic())) {
+                                item.setPic(vod.getPic());
+                                break;
+                            }
                         }
                     }
                 }
                 if (counter.decrementAndGet() == 0) onCompleted.run();
             }
+
             @Override
             public void onError(Throwable e) {
                 if (counter.decrementAndGet() == 0) onCompleted.run();
