@@ -1127,23 +1127,30 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         if (isFinishing()) return;
         if (mPlayers != null) mPlayers.pause();
 
-        // 1. 获取当前视频的名字
         String videoName = getName();
         if (TextUtils.isEmpty(videoName)) return;
     
-        // 2. 自己动手，创建一个只包含标题的推荐项
-        Word.Data selfMadeSuggestion = new Word.Data();
-        selfMadeSuggestion.setTitle(videoName);
+        // --- ✨ 1. 获取“为你推荐”的数据，也就是“搜索历史”！✨ ---
+        // 从设置里，读取保存为 JSON 字符串的搜索历史
+        String historyJson = Setting.getKeyword(); 
+        // 使用 Gson 把 JSON 字符串转换成一个字符串列表
+        List<String> historyKeywords = App.gson().fromJson(historyJson, new com.google.gson.reflect.TypeToken<List<String>>() {}.getType());
 
-        // 3. 把这个推荐项放到一个列表里
+        // 把字符串列表，转换成弹窗需要的 ArrayList<Word.Data> 格式
         ArrayList<Word.Data> related = new ArrayList<>();
-        related.add(selfMadeSuggestion);
+        if (historyKeywords != null) {
+            for (String keyword : historyKeywords) {
+                Word.Data data = new Word.Data();
+                data.setTitle(keyword);
+                related.add(data);
+            }
+        }
 
-        // 4. 获取热搜词
+        // --- ✨ 2. 获取“大家都在看”的数据 ✨ ---
         SuggestHelper.getHot(hotWords -> {
             ArrayList<Word.Data> hots = new ArrayList<>(hotWords != null ? hotWords : Collections.emptyList());
             
-            // 5. 把两个列表都交给“傻瓜”弹窗去显示
+            // --- ✨ 3. 把两个准备好的列表，交给“傻瓜”弹窗去显示！✨ ---
             SmartNavDialog.newInstance(videoName, related, hots).show(getSupportFragmentManager(), "SmartNav");
         });
     }
