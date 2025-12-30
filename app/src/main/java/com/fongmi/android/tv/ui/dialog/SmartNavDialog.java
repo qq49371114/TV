@@ -8,18 +8,12 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.ItemBridgeAdapter;
 
 import com.fongmi.android.tv.App;
-import com.fongmi.android.tv.api.config.VodConfig;
-import com.fongmi.android.tv.bean.Result; // ✨【修正】导入“包裹”类
-import com.fongmi.android.tv.bean.Site;
-import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.bean.Word;
 import com.fongmi.android.tv.databinding.DialogSmartNavBinding;
-import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.ui.activity.CollectActivity;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.ui.presenter.WordPresenter;
@@ -30,24 +24,17 @@ import com.github.catvod.net.OkHttp;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
-import java.util.stream.Collectors;
 
 import okhttp3.Call;
 import okhttp3.Response;
 
+// ✨ 一个最简单的、只负责显示名字的导航仪！✨
 public class SmartNavDialog extends DialogFragment implements WordPresenter.OnClickListener {
 
     private DialogSmartNavBinding binding;
     private ArrayObjectAdapter mRelatedAdapter;
     private ArrayObjectAdapter mHotAdapter;
-
-    private SiteViewModel mSiteViewModel;
-    private List<Site> mSites;
-    private Queue<Word.Data> mQueue;
-    private boolean mRunning;
 
     public static SmartNavDialog newInstance(String keyword) {
         Bundle args = new Bundle();
@@ -67,80 +54,12 @@ public class SmartNavDialog extends DialogFragment implements WordPresenter.OnCl
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        initViewModel();
         setRecyclerViews();
         startWorks();
     }
 
-    private void initViewModel() {
-        mSiteViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
-        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).collect(Collectors.toList());
-        mQueue = new LinkedList<>();
-
-        // ✨【修正】监听“对讲机”，接收一个叫 Result 的“包裹”
-        mSiteViewModel.search.observe(getViewLifecycleOwner(), result -> {
-            // ✨【修正】先“拆开包裹”，拿出里面的东西
-            List<Vod> vods = result.getList();
-            if (vods == null || vods.isEmpty()) {
-                processQueue();
-                return;
-            }
-
-            String poster = findPoster(vods);
-            if (poster.isEmpty()) {
-                processQueue();
-                return;
-            }
-
-            Word.Data currentTask = mQueue.peek();
-            if (currentTask != null) {
-                currentTask.setPic(poster);
-                updateAdapter(currentTask);
-            }
-            processQueue();
-        });
-    }
-
-    private String findPoster(List<Vod> vods) {
-        for (Vod vod : vods) {
-            if (!TextUtils.isEmpty(vod.getPic())) {
-                return vod.getPic();
-            }
-        }
-        return "";
-    }
-
-    private void updateAdapter(Word.Data item) {
-        int index = mRelatedAdapter.indexOf(item);
-        if (index != -1) {
-            mRelatedAdapter.notifyArrayItemRangeChanged(index, 1);
-            return;
-        }
-        index = mHotAdapter.indexOf(item);
-        if (index != -1) {
-            mHotAdapter.notifyArrayItemRangeChanged(index, 1);
-        }
-    }
-
-    private void processQueue() {
-        mQueue.poll();
-
-        if (mQueue.isEmpty()) {
-            mRunning = false;
-            return;
-        }
-
-        Word.Data nextTask = mQueue.peek();
-        if (nextTask == null || TextUtils.isEmpty(nextTask.getTitle())) {
-            processQueue();
-        } else {
-            // ✨【修正】使用正确的命令：(一堆商店, 一个电影名, false)
-            mSiteViewModel.searchContent(mSites, nextTask.getTitle(), false);
-        }
-    }
-
+    // ✨ 设置两个列表的展示架
     private void setRecyclerViews() {
-        // ✨【修正】使用“转接头”ItemBridgeAdapter 来设置列表
         mRelatedAdapter = new ArrayObjectAdapter(new WordPresenter(this));
         binding.relatedRecycler.setHasFixedSize(true);
         binding.relatedRecycler.addItemDecoration(new SpaceItemDecoration(1, 16));
@@ -152,6 +71,7 @@ public class SmartNavDialog extends DialogFragment implements WordPresenter.OnCl
         binding.hotRecycler.setAdapter(new ItemBridgeAdapter(mHotAdapter));
     }
 
+    // ✨ 开始获取数据
     private void startWorks() {
         String keyword = getArguments().getString("keyword");
         if (TextUtils.isEmpty(keyword)) return;
@@ -159,6 +79,7 @@ public class SmartNavDialog extends DialogFragment implements WordPresenter.OnCl
         fetchHotWords();
     }
 
+    // ✨ 获取“为你推荐”的名字列表
     private void fetchSuggestions(String keyword) {
         OkHttp.newCall("https://suggest.video.iqiyi.com/?if=mobile&key=" + URLEncoder.encode(ZhuToPin.get(keyword))).enqueue(new okhttp3.Callback() {
             @Override
@@ -169,6 +90,7 @@ public class SmartNavDialog extends DialogFragment implements WordPresenter.OnCl
                 List<Word.Data> suggestions = Word.objectFrom(response.body().string()).getData();
                 if (suggestions.isEmpty()) return;
 
+                // 在主线程更新界面
                 App.post(() -> {
                     List<Word.Data> filtered = new ArrayList<>();
                     for (Word.Data item : suggestions) {
@@ -177,30 +99,21 @@ public class SmartNavDialog extends DialogFragment implements WordPresenter.OnCl
                         }
                     }
                     mRelatedAdapter.setItems(filtered, null);
-                    mQueue.addAll(filtered);
-                    if (!mRunning) {
-                        mRunning = true;
-                        processQueue();
-                    }
                 });
             }
         });
     }
 
+    // ✨ 获取“大家都在看”的名字列表
     private void fetchHotWords() {
         SuggestHelper.getHot(hotWords -> {
             if (hotWords == null || hotWords.isEmpty()) return;
-            App.post(() -> {
-                mHotAdapter.setItems(hotWords, null);
-                mQueue.addAll(hotWords);
-                if (!mRunning) {
-                    mRunning = true;
-                    processQueue();
-                }
-            });
+            // 在主线程更新界面
+            App.post(() -> mHotAdapter.setItems(hotWords, null));
         });
     }
 
+    // ✨ 点击任何一个名字，就带着名字去 CollectActivity 显示线路！
     @Override
     public void onItemClick(Word.Data item) {
         CollectActivity.start(getActivity(), item.getTitle());
