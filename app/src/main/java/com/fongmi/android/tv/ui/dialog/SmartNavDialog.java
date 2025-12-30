@@ -120,13 +120,22 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-        android.view.Window window = getDialog().getWindow();
-        if (window == null) return;
-        int screenWidth = com.fongmi.android.tv.utils.ResUtil.getScreenWidth();
-        int width = (int) (screenWidth * 0.8f);
-        window.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
-        window.setBackgroundDrawableResource(android.R.color.transparent);
-    }
+public void onStart() {
+    super.onStart();
+    // 1. 先获取到我们的“画框”(Dialog)的“窗户”(Window)
+    android.view.Window window = getDialog().getWindow();
+    if (window == null) return;
+
+    // 2. 获取我们整个电视屏幕的宽度
+    int screenWidth = com.fongmi.android.tv.utils.ResUtil.getScreenWidth();
+
+    // 3. ✨✨✨【最终的王者命令】✨✨✨
+    // 我们命令这个“窗户”，你的宽度必须是屏幕的 80%！
+    int width = (int) (screenWidth * 0.8f);
+    // ✨ 而你的高度，必须是“自适应内容”！不多一分，也不少一分！✨
+    window.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+    
+    // 4. 我们顺便再把背景设置成透明，让我们的圆角和模糊效果能显示出来
+    window.setBackgroundDrawableResource(android.R.color.transparent);
+ }
 }
