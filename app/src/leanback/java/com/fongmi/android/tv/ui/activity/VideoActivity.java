@@ -297,27 +297,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         checkCast();
         checkId();
         // 1. 安装“大脑” (SiteViewModel) 和“通讯录” (mSites)
-        mSiteViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
-        mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).collect(Collectors.toList());
-
-        // 2. 安装“订阅器”，并告诉它收到通知后该做什么
-        mSiteViewModel.search.observe(this, result -> {
-            // ✨ 当“大脑”在后台搜到任何结果，都会在这里收到通知！✨
-
-            // a. 把搜索结果 (List<Vod>) 转换成弹窗需要的格式 (ArrayList<Word.Data>)
-            ArrayList<Word.Data> related = new ArrayList<>();
-            if (result != null && result.getList() != null) {
-                for (Vod item : result.getList()) {
-                    Word.Data data = new Word.Data();
-                    data.setTitle(item.getName());
-                    data.setPic(item.getPic());
-                    related.add(data);
-                }
-            }
-            
-            // b. 把转换好的结果，交给最终的弹窗去显示
-            showTheFinalDialog(related);
-        });
+        
         // --- ✨↑ “安装”代码结束 ↑✨ ---
     }
     
