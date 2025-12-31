@@ -6,6 +6,7 @@
     android:padding="24dp">
 
     <TextView
+        android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="接下来，看点什么？"
@@ -13,34 +14,40 @@
         android:textSize="20sp"
         android:textStyle="bold" />
 
+    <!-- ✨ 1. “为你推荐”的标题，我们给它一个ID，让它能接收焦点！✨ -->
     <TextView
+        android:id="@+id/relatedTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:text="为你推荐"
-        android:textColor="@android:color/white"
-        android:textSize="16sp" />
+        android:textColor="@color/selector_title" 
+        android:textSize="16sp"
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
 
-    <!-- ✨ 我们不再给它一个写死的高度，而是让它“自适应”里面内容的高度！✨ -->
     <androidx.leanback.widget.HorizontalGridView
         android:id="@+id/relatedRecycler"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" 
+        android:layout_height="190dp"
         android:layout_marginTop="8dp" />
 
+    <!-- ✨ 2. “大家都在看”的标题，也一样！✨ -->
     <TextView
+        android:id="@+id/hotTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="大家都在看"
-        android:textColor="@android:color/white"
-        android:textSize="16sp" />
+        android:textColor="@color/selector_title"
+        android:textSize="16sp"
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
 
-    <!-- ✨ 另一个“展柜”也一样！让它自己决定该有多高！✨ -->
     <androidx.leanback.widget.HorizontalGridView
         android:id="@+id/hotRecycler"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" 
+        android:layout_height="190dp"
         android:layout_marginTop="8dp" />
 
     <TextView
