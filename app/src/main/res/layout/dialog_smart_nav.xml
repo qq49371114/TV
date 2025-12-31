@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/content_layout"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_dialog_blur"
     android:orientation="vertical"
     android:padding="24dp">
 
-    <!-- 顶部标题 -->
     <TextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
@@ -17,8 +14,8 @@
         android:textSize="20sp"
         android:textStyle="bold" />
 
-    <!-- 相关推荐区域 -->
     <TextView
+        android:id="@+id/relatedTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
@@ -26,16 +23,15 @@
         android:textColor="@android:color/white"
         android:textSize="16sp" />
 
-    <!-- ✨✨✨【最终的答案】我们把“展柜”的高度加高到 190dp！✨✨✨ -->
+    <!-- 这是第一只手！ -->
     <androidx.leanback.widget.HorizontalGridView
-        android:id="@+id/related_recycler"
-        android:layout_width="500dp"
-        android:layout_height="190dp" 
-        android:layout_marginTop="8dp"
-        android:clipToPadding="false" />
+        android:id="@+id/relatedRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" 
+        android:layout_marginTop="8dp" />
 
-    <!-- 热门推荐区域 -->
     <TextView
+        android:id="@+id/hotTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
@@ -43,15 +39,13 @@
         android:textColor="@android:color/white"
         android:textSize="16sp" />
 
-    <!-- ✨✨✨【最终的答案】另一个“展柜”也一样！✨✨✨ -->
+    <!-- 这是第二只手！ -->
     <androidx.leanback.widget.HorizontalGridView
-        android:id="@+id/hot_recycler"
-        android:layout_width="500dp"
-        android:layout_height="190dp" 
-        android:layout_marginTop="8dp"
-        android:clipToPadding="false" />
+        android:id="@+id/hotRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" 
+        android:layout_marginTop="8dp" />
 
-    <!-- 婉儿的签名 -->
     <TextView
         android:id="@+id/signature"
         android:layout_width="wrap_content"
