@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -14,42 +15,27 @@
         android:textSize="20sp"
         android:textStyle="bold" />
 
-    <!-- ✨ 1. “为你推荐”的标题，我们给它一个ID，让它能接收焦点！✨ -->
-    <TextView
-        android:id="@+id/relatedTitle"
-        android:layout_width="wrap_content"
+    <!-- ✨ 1. 这是我们新的“标签栏”！它的ID是 tabLayout！✨ -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:text="为你推荐"
-        android:textColor="@color/selector_title" 
-        android:textSize="16sp"
-        android:focusable="true"
-        android:focusableInTouchMode="true" />
+        android:background="@android:color/transparent"
+        app:tabIndicatorColor="@color/accent"
+        app:tabIndicatorHeight="2dp"
+        app:tabMode="fixed"
+        app:tabSelectedTextColor="@color/accent"
+        app:tabTextColor="@color/white_70" />
 
+    <!-- ✨ 2. 这是我们唯一的、统一的“大展柜”！它的ID是 recycler！✨ -->
     <androidx.leanback.widget.HorizontalGridView
-        android:id="@+id/relatedRecycler"
+        android:id="@+id/recycler"
         android:layout_width="match_parent"
         android:layout_height="190dp"
         android:layout_marginTop="8dp" />
 
-    <!-- ✨ 2. “大家都在看”的标题，也一样！✨ -->
-    <TextView
-        android:id="@+id/hotTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="大家都在看"
-        android:textColor="@color/selector_title"
-        android:textSize="16sp"
-        android:focusable="true"
-        android:focusableInTouchMode="true" />
-
-    <androidx.leanback.widget.HorizontalGridView
-        android:id="@+id/hotRecycler"
-        android:layout_width="match_parent"
-        android:layout_height="190dp"
-        android:layout_marginTop="8dp" />
-
+    <!-- ✨ 3. 我们把婉儿的签名放在最下面！✨ -->
     <TextView
         android:id="@+id/signature"
         android:layout_width="wrap_content"
