@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
+    android:id="@+id/content_layout"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_blur"
     android:orientation="vertical"
     android:padding="24dp">
 
+    <!-- 顶部标题 -->
     <TextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
@@ -15,27 +17,41 @@
         android:textSize="20sp"
         android:textStyle="bold" />
 
-    <!-- ✨ 1. 这是我们新的“标签栏”！它的ID是 tabLayout！✨ -->
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tabLayout"
-        android:layout_width="match_parent"
+    <!-- 相关推荐区域 -->
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:background="@android:color/transparent"
-        app:tabIndicatorColor="@color/accent"
-        app:tabIndicatorHeight="2dp"
-        app:tabMode="fixed"
-        app:tabSelectedTextColor="@color/accent"
-        app:tabTextColor="@color/white_70" />
+        android:text="为你推荐"
+        android:textColor="@android:color/white"
+        android:textSize="16sp" />
 
-    <!-- ✨ 2. 这是我们唯一的、统一的“大展柜”！它的ID是 recycler！✨ -->
+    <!-- ✨✨✨【最终的答案】我们把“展柜”的高度加高到 190dp！✨✨✨ -->
     <androidx.leanback.widget.HorizontalGridView
-        android:id="@+id/recycler"
-        android:layout_width="match_parent"
-        android:layout_height="190dp"
-        android:layout_marginTop="8dp" />
+        android:id="@+id/related_recycler"
+        android:layout_width="500dp"
+        android:layout_height="190dp" 
+        android:layout_marginTop="8dp"
+        android:clipToPadding="false" />
 
-    <!-- ✨ 3. 我们把婉儿的签名放在最下面！✨ -->
+    <!-- 热门推荐区域 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="大家都在看"
+        android:textColor="@android:color/white"
+        android:textSize="16sp" />
+
+    <!-- ✨✨✨【最终的答案】另一个“展柜”也一样！✨✨✨ -->
+    <androidx.leanback.widget.HorizontalGridView
+        android:id="@+id/hot_recycler"
+        android:layout_width="500dp"
+        android:layout_height="190dp" 
+        android:layout_marginTop="8dp"
+        android:clipToPadding="false" />
+
+    <!-- 婉儿的签名 -->
     <TextView
         android:id="@+id/signature"
         android:layout_width="wrap_content"
