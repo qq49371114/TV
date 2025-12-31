@@ -28,7 +28,6 @@ import java.util.List;
 import okhttp3.Call;
 import okhttp3.Response;
 
-// ✨ 我们回归到那个最简单、最稳定的版本！✨
 public class SmartNavDialog extends DialogFragment implements VodPresenter.OnClickListener {
 
     private DialogSmartNavBinding binding;
@@ -57,11 +56,8 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
         startWorks();
     }
 
-    // ✨✨✨【最终的答案】我们回归到最稳定的“双列表”方案！✨✨✨
     private void setRecyclerViews() {
-        // 大脑现在认识 relatedRecycler 了！
         binding.relatedRecycler.setAdapter(new ItemBridgeAdapter(mRelatedAdapter = new ArrayObjectAdapter(new VodPresenter(this))));
-        // 大脑现在也认识 hotRecycler 了！
         binding.hotRecycler.setAdapter(new ItemBridgeAdapter(mHotAdapter = new ArrayObjectAdapter(new VodPresenter(this))));
     }
 
@@ -71,7 +67,6 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
         fetchHotWords();
     }
 
-    // ✨ “为你推荐”的选手，只负责获取名字和占位图！
     private void fetchSuggestions(String keyword) {
         OkHttp.newCall("https://suggest.video.iqiyi.com/?if=mobile&key=" + URLEncoder.encode(ZhuToPin.get(keyword))).enqueue(new okhttp3.Callback() {
             @Override
@@ -87,7 +82,8 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
                     if (!item.getTitle().equals(keyword)) {
                         Vod vod = new Vod();
                         vod.setName(item.getTitle());
-                        vod.setPic(item.getPic()); // 就算 pic 是空的也没关系，ImgUtil 会处理
+                        vod.setPic(item.getPic());
+                        vod.setNameVisible(true); // 💖 关键修改：告诉 Vod 对象，名字需要显示
                         vodList.add(vod);
                     }
                 }
@@ -97,16 +93,16 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
         });
     }
 
-    // ✨ “大家都在看”的选手，也只负责获取名字和占位图！
     private void fetchHotWords() {
         SuggestHelper.getHot(hotWords -> {
             if (hotWords == null || hotWords.isEmpty()) return;
-            
+
             List<Vod> vodList = new ArrayList<>();
             for (Word.Data item : hotWords) {
                 Vod vod = new Vod();
                 vod.setName(item.getTitle());
-                vod.setPic(item.getPic()); // 就算 pic 是空的也没关系，ImgUtil 会处理
+                vod.setPic(item.getPic());
+                vod.setNameVisible(true); // 💖 关键修改：告诉 Vod 对象，名字需要显示
                 vodList.add(vod);
             }
 
@@ -114,7 +110,6 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
         });
     }
 
-    // ✨ 点击事件，我们只做最简单、最可靠的跳转！
     @Override
     public void onItemClick(Vod item) {
         CollectActivity.start(getActivity(), item.getName());
