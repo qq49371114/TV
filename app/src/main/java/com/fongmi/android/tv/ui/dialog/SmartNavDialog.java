@@ -140,11 +140,29 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
     @Override
     public void onStart() {
         super.onStart();
+    // 1. 先获取到我们的“画框”(Dialog)的“窗户”(Window)
         android.view.Window window = getDialog().getWindow();
-        if (window == null) return;
+    if (window == null) return;
+
+    // 2. 获取这个“窗户”的布局参数
+        android.view.WindowManager.LayoutParams params = window.getAttributes();
+    
+    // 3. ✨✨✨【反重力引擎启动！】✨✨✨
+    // 我们把它的“重力”设置为“顶部”！这样它就会紧贴屏幕最上方！
+        params.gravity = android.view.Gravity.TOP;
+
+    // 4. 获取我们整个电视屏幕的宽度
         int screenWidth = com.fongmi.android.tv.utils.ResUtil.getScreenWidth();
+
+    // 5. 我们命令这个“窗户”，你的宽度必须是屏幕的 80%！高度则根据内容自适应！
         int width = (int) (screenWidth * 0.8f);
-        window.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.width = width;
+        params.height = android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+
+    // 6. 把我们修改好的新参数，重新应用给“窗户”！
+        window.setAttributes(params);
+    
+    // 7. 我们顺便再把背景设置成透明，让我们的圆角和模糊效果能显示出来
         window.setBackgroundDrawableResource(android.R.color.transparent);
+       }
     }
-}
