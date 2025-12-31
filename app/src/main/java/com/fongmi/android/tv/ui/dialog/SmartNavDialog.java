@@ -71,7 +71,7 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
         fetchHotWords();
     }
 
-    // ✨ “为你推荐”的选手，只负责更新自己的列表 mRelatedAdapter！
+    // ✨ “为你推荐”的选手，只负责获取名字和占位图！
     private void fetchSuggestions(String keyword) {
         OkHttp.newCall("https://suggest.video.iqiyi.com/?if=mobile&key=" + URLEncoder.encode(ZhuToPin.get(keyword))).enqueue(new okhttp3.Callback() {
             @Override
@@ -87,7 +87,7 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
                     if (!item.getTitle().equals(keyword)) {
                         Vod vod = new Vod();
                         vod.setName(item.getTitle());
-                        vod.setPic(item.getPic());
+                        vod.setPic(item.getPic()); // 就算 pic 是空的也没关系，ImgUtil 会处理
                         vodList.add(vod);
                     }
                 }
@@ -97,7 +97,7 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
         });
     }
 
-    // ✨ “大家都在看”的选手，也只负责更新自己的列表 mHotAdapter！
+    // ✨ “大家都在看”的选手，也只负责获取名字和占位图！
     private void fetchHotWords() {
         SuggestHelper.getHot(hotWords -> {
             if (hotWords == null || hotWords.isEmpty()) return;
@@ -106,7 +106,7 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
             for (Word.Data item : hotWords) {
                 Vod vod = new Vod();
                 vod.setName(item.getTitle());
-                vod.setPic(item.getPic());
+                vod.setPic(item.getPic()); // 就算 pic 是空的也没关系，ImgUtil 会处理
                 vodList.add(vod);
             }
 
@@ -114,6 +114,7 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
         });
     }
 
+    // ✨ 点击事件，我们只做最简单、最可靠的跳转！
     @Override
     public void onItemClick(Vod item) {
         CollectActivity.start(getActivity(), item.getName());
