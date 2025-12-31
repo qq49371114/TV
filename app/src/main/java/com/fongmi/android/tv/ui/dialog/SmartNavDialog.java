@@ -43,10 +43,10 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
     private ArrayObjectAdapter mRelatedAdapter;
     private ArrayObjectAdapter mHotAdapter;
 
-    // --- ✨↓ “借海报”计划的“作战指挥部” ↓✨ ---
+    // --- ✨↓ “借海报”计划的“作战指挥部”又回来了！而且更强大了！↓✨ ---
     private SiteViewModel mSiteViewModel;
     private List<Site> mSites;
-    private Queue<Vod> mQueue; // 我们的“任务清单”，这次里面直接放 Vod 对象
+    private Queue<Vod> mQueue; // 我们的“任务清单”
     private boolean mRunning;  // “海报突击队”是否正在行动
 
     public static SmartNavDialog newInstance(String keyword) {
@@ -78,26 +78,24 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
         mSites = VodConfig.get().getSites().stream().filter(Site::isSearchable).collect(Collectors.toList());
         mQueue = new LinkedList<>();
 
-        // ✨ 监听“对讲机”！
-        mSiteViewModel.search.observe(getViewLifecycleOwner(), result -> {
+        // ✨ 监听正确的“result”频道！
+        mSiteViewModel.result.observe(getViewLifecycleOwner(), result -> {
             List<Vod> vods = result.getList();
             if (vods == null || vods.isEmpty()) {
-                processQueue(); // 没搜到，处理下一个
+                processQueue();
                 return;
             }
-            // 从返回的结果里，找一张最好的海报
             String poster = findPoster(vods);
             if (poster.isEmpty()) {
-                processQueue(); // 还是没找到，处理下一个
+                processQueue();
                 return;
             }
-            // ✨ 成功！我们拿到了海报！✨
-            Vod currentTask = mQueue.peek(); // 看看当前正在处理的任务是哪个
+            Vod currentTask = mQueue.peek();
             if (currentTask != null) {
-                currentTask.setPic(poster); // 把“借”来的海报地址，给我们的任务对象
-                updateAdapter(currentTask); // 通知界面，赶紧把这张海报显示出来！
+                currentTask.setPic(poster);
+                updateAdapter(currentTask);
             }
-            processQueue(); // 全部搞定，处理下一个任务！
+            processQueue();
         });
     }
 
@@ -122,18 +120,18 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
         }
     }
 
-    // ✨ “海报突击队”的“引擎”，负责处理“任务清单”
+    // ✨ “海报突击队”的“引擎”
     private void processQueue() {
-        mQueue.poll(); // 先把已经完成的任务从单子上划掉
+        mQueue.poll();
         if (mQueue.isEmpty()) {
-            mRunning = false; // 任务都完成了，收队！
+            mRunning = false;
             return;
         }
         Vod nextTask = mQueue.peek();
-        if (nextTask == null || TextUtils.isEmpty(nextTask.getName())) {
-            processQueue(); // 这个任务有问题，跳过
+        if (nextTask == null || TextUtils.isEmpty(nextTask.getName()) || mSites.isEmpty()) {
+            processQueue();
         } else {
-            // ✨ 命令“海报突击队”，去搜索下一个任务的海报！
+            // ✨ 命令“海报突击队”，进行“地毯式轰炸”！
             mSiteViewModel.searchContent(mSites, nextTask.getName(), false);
         }
     }
@@ -143,29 +141,25 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
         binding.hotRecycler.setAdapter(new ItemBridgeAdapter(mHotAdapter = new ArrayObjectAdapter(new VodPresenter(this))));
     }
 
+    // ✨ 我们让两个列表“同时起跑”，不再搞“接力赛”！
     private void startWorks() {
         String keyword = getArguments().getString("keyword");
-        // ✨ 我们用一个安全的“链式调用”，来保证两个列表不会打架！
-        fetchSuggestions(keyword, () -> fetchHotWords());
+        fetchSuggestions(keyword);
+        fetchHotWords();
     }
 
-    // ✨ 2. 获取“为你推荐”，完成后，再触发下一步
-    private void fetchSuggestions(String keyword, Runnable callback) {
-    OkHttp.newCall("https://suggest.video.iqiyi.com/?if=mobile&key=" + URLEncoder.encode(ZhuToPin.get(keyword))).enqueue(new okhttp3.Callback() {
-        // ✨【修正】就算失败了，也必须把“接力棒”传下去！
-        @Override
-        public void onFailure(@NonNull Call call, @NonNull IOException e) {
-            // 即使获取失败，我们也要保证流程能继续，所以直接调用 callback
-            App.post(callback::run);
-        }
+    // ✨ 获取“为你推荐”
+    private void fetchSuggestions(String keyword) {
+        OkHttp.newCall("https://suggest.video.iqiyi.com/?if=mobile&key=" + URLEncoder.encode(ZhuToPin.get(keyword))).enqueue(new okhttp3.Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {}
 
-        @Override
-        public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-            List<Word.Data> suggestions = Word.objectFrom(response.body().string()).getData();
-            List<Vod> vodList = new ArrayList<>();
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                List<Word.Data> suggestions = Word.objectFrom(response.body().string()).getData();
+                if (suggestions == null || suggestions.isEmpty()) return;
 
-            // ✨【修正】我们不再因为列表为空就直接返回！
-            if (suggestions != null && !suggestions.isEmpty()) {
+                List<Vod> vodList = new ArrayList<>();
                 for (Word.Data item : suggestions) {
                     if (!item.getTitle().equals(keyword)) {
                         Vod vod = new Vod();
@@ -174,40 +168,45 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
                         vodList.add(vod);
                     }
                 }
+
+                App.post(() -> {
+                    mRelatedAdapter.setItems(vodList, new BaseDiffCallback<>());
+                    mQueue.addAll(vodList); // 把任务加入“任务清单”
+                    startProcess(); // ✨ 尝试启动“海报突击队”
+                });
             }
+        });
+    }
 
-            // ✨【修正】无论如何，都必须把“接力棒”传下去！
-            App.post(() -> {
-                mRelatedAdapter.setItems(vodList, new BaseDiffCallback<>());
-                mQueue.addAll(vodList);
-                callback.run(); // ✨ 把“接力棒”稳稳地传给下一个选手！
-            });
-        }
-    });
-}
-
-    // ✨ 3. 获取“大家都在看”，完成后，启动“海报突击队”！
+    // ✨ 获取“大家都在看”
     private void fetchHotWords() {
         SuggestHelper.getHot(hotWords -> {
+            if (hotWords == null || hotWords.isEmpty()) return;
+            
             List<Vod> vodList = new ArrayList<>();
-            if (hotWords != null && !hotWords.isEmpty()) {
-                for (Word.Data item : hotWords) {
-                    Vod vod = new Vod();
-                    vod.setName(item.getTitle());
-                    vod.setPic(item.getPic());
-                    vodList.add(vod);
-                }
+            for (Word.Data item : hotWords) {
+                Vod vod = new Vod();
+                vod.setName(item.getTitle());
+                vod.setPic(item.getPic());
+                vodList.add(vod);
             }
+
             App.post(() -> {
                 mHotAdapter.setItems(vodList, new BaseDiffCallback<>());
                 mQueue.addAll(vodList); // 把第二批任务也加入“任务清单”
-                // ✨✨✨ 所有“步兵”都已就位，启动“海报突击队”！✨✨✨
-                if (!mRunning && !mQueue.isEmpty()) {
-                    mRunning = true;
-                    processQueue();
-                }
+                startProcess(); // ✨ 再次尝试启动“海报突击队”
             });
         });
+    }
+
+    // ✨✨✨【全新的“门禁”系统】✨✨✨
+    // 这是一个同步方法，可以防止两个侦察队同时启动突击队！
+    private synchronized void startProcess() {
+        // 如果“海报突击队”没在行动，并且“任务清单”里有任务，就启动它！
+        if (!mRunning && !mQueue.isEmpty()) {
+            mRunning = true;
+            processQueue();
+        }
     }
 
     @Override
