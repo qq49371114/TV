@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+    <selector xmlns:android="http://schemas.android.com/apk/res/android">
+        <!-- 当获得焦点时，文字颜色变成 accent 颜色 (通常是主题色，很亮眼) -->
+        <item android:color="@color/accent" android:state_focused="true" />
+        <!-- 默认情况下，文字颜色是 70% 透明度的白色 -->
+        <item android:color="@color/white_70" />
+    </selector>
