@@ -10,7 +10,6 @@ import androidx.fragment.app.DialogFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.ItemBridgeAdapter;
 import com.fongmi.android.tv.App;
-import com.fongmi.android.tv.R; // ✨【重要】导入资源文件
 import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.bean.Word;
 import com.fongmi.android.tv.databinding.DialogSmartNavBinding;
@@ -20,7 +19,6 @@ import com.fongmi.android.tv.ui.presenter.VodPresenter;
 import com.fongmi.android.tv.utils.SuggestHelper;
 import com.fongmi.android.tv.utils.ZhuToPin;
 import com.github.catvod.net.OkHttp;
-import com.google.android.material.tabs.TabLayout; // ✨【重要】导入 TabLayout
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -30,10 +28,12 @@ import java.util.List;
 import okhttp3.Call;
 import okhttp3.Response;
 
+// ✨ 我们回归到那个最简单、最稳定的版本！✨
 public class SmartNavDialog extends DialogFragment implements VodPresenter.OnClickListener {
 
     private DialogSmartNavBinding binding;
-    private ArrayObjectAdapter mAdapter; // ✨ 我们现在只需要一个 Adapter！
+    private ArrayObjectAdapter mRelatedAdapter;
+    private ArrayObjectAdapter mHotAdapter;
 
     public static SmartNavDialog newInstance(String keyword) {
         Bundle args = new Bundle();
@@ -53,41 +53,25 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        initView(); // ✨ 我们把初始化逻辑都放在一个方法里
+        setRecyclerViews();
+        startWorks();
     }
 
-    private void initView() {
-        // 1. 设置我们唯一的“大展柜”
-        binding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(new VodPresenter(this))));
-
-        // 2. 初始化“标签栏”
-        binding.tabLayout.addTab(binding.tabLayout.newTab().setText("为你推荐"));
-        binding.tabLayout.addTab(binding.tabLayout.newTab().setText("大家都在看"));
-
-        // 3. 设置“标签栏”的监听器，这是所有魔法的核心！
-        binding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                // 当一个标签被选中时，根据它的位置去加载不同的数据！
-                if (tab.getPosition() == 0) {
-                    fetchSuggestions(getArguments().getString("keyword"));
-                } else {
-                    fetchHotWords();
-                }
-            }
-
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {}
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {}
-        });
-
-        // 4. 默认加载第一个标签的内容
-        fetchSuggestions(getArguments().getString("keyword"));
+    // ✨✨✨【最终的答案】我们回归到最稳定的“双列表”方案！✨✨✨
+    private void setRecyclerViews() {
+        // 大脑现在认识 relatedRecycler 了！
+        binding.relatedRecycler.setAdapter(new ItemBridgeAdapter(mRelatedAdapter = new ArrayObjectAdapter(new VodPresenter(this))));
+        // 大脑现在也认识 hotRecycler 了！
+        binding.hotRecycler.setAdapter(new ItemBridgeAdapter(mHotAdapter = new ArrayObjectAdapter(new VodPresenter(this))));
     }
 
-    // ✨ “为你推荐”的方法，现在只负责获取数据，并更新我们唯一的 Adapter！
+    private void startWorks() {
+        String keyword = getArguments().getString("keyword");
+        fetchSuggestions(keyword);
+        fetchHotWords();
+    }
+
+    // ✨ “为你推荐”的选手，只负责更新自己的列表 mRelatedAdapter！
     private void fetchSuggestions(String keyword) {
         OkHttp.newCall("https://suggest.video.iqiyi.com/?if=mobile&key=" + URLEncoder.encode(ZhuToPin.get(keyword))).enqueue(new okhttp3.Callback() {
             @Override
@@ -97,6 +81,7 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 List<Word.Data> suggestions = Word.objectFrom(response.body().string()).getData();
                 if (suggestions == null || suggestions.isEmpty()) return;
+
                 List<Vod> vodList = new ArrayList<>();
                 for (Word.Data item : suggestions) {
                     if (!item.getTitle().equals(keyword)) {
@@ -106,15 +91,17 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
                         vodList.add(vod);
                     }
                 }
-                App.post(() -> mAdapter.setItems(vodList, new BaseDiffCallback<>()));
+
+                App.post(() -> mRelatedAdapter.setItems(vodList, new BaseDiffCallback<>()));
             }
         });
     }
 
-    // ✨ “大家都在看”的方法，也只负责获取数据，并更新我们唯一的 Adapter！
+    // ✨ “大家都在看”的选手，也只负责更新自己的列表 mHotAdapter！
     private void fetchHotWords() {
         SuggestHelper.getHot(hotWords -> {
             if (hotWords == null || hotWords.isEmpty()) return;
+            
             List<Vod> vodList = new ArrayList<>();
             for (Word.Data item : hotWords) {
                 Vod vod = new Vod();
@@ -122,7 +109,8 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
                 vod.setPic(item.getPic());
                 vodList.add(vod);
             }
-            App.post(() -> mAdapter.setItems(vodList, new BaseDiffCallback<>()));
+
+            App.post(() -> mHotAdapter.setItems(vodList, new BaseDiffCallback<>()));
         });
     }
 
@@ -140,29 +128,11 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
     @Override
     public void onStart() {
         super.onStart();
-    // 1. 先获取到我们的“画框”(Dialog)的“窗户”(Window)
         android.view.Window window = getDialog().getWindow();
-    if (window == null) return;
-
-    // 2. 获取这个“窗户”的布局参数
-        android.view.WindowManager.LayoutParams params = window.getAttributes();
-    
-    // 3. ✨✨✨【反重力引擎启动！】✨✨✨
-    // 我们把它的“重力”设置为“顶部”！这样它就会紧贴屏幕最上方！
-        params.gravity = android.view.Gravity.TOP;
-
-    // 4. 获取我们整个电视屏幕的宽度
+        if (window == null) return;
         int screenWidth = com.fongmi.android.tv.utils.ResUtil.getScreenWidth();
-
-    // 5. 我们命令这个“窗户”，你的宽度必须是屏幕的 80%！高度则根据内容自适应！
         int width = (int) (screenWidth * 0.8f);
-        params.width = width;
-        params.height = android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
-
-    // 6. 把我们修改好的新参数，重新应用给“窗户”！
-        window.setAttributes(params);
-    
-    // 7. 我们顺便再把背景设置成透明，让我们的圆角和模糊效果能显示出来
+        window.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
         window.setBackgroundDrawableResource(android.R.color.transparent);
-       }
     }
+}
