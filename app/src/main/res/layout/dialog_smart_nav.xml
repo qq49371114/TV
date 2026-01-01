@@ -1,59 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="20dp">
+    android:padding="24dp">
 
-    <!-- 主标题 -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="接下来，看点什么？"
         android:textColor="@android:color/white"
-        android:textSize="15sp"
+        android:textSize="20sp"
         android:textStyle="bold" />
 
-    <!-- 标签栏，背景已设为透明 -->
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tabLayout"
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/relatedTitle"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:background="@android:color/transparent"
-        app:tabIndicatorColor="@android:color/white"
-        app:tabTextColor="@android:color/darker_gray"
-        app:tabSelectedTextColor="@android:color/white" />
+        android:text="为你推荐"
+        android:textColor="@android:color/white"
+        android:textSize="16sp" />
 
-    <!-- 内容区，用 FrameLayout 把两个列表叠在一起 -->
-    <FrameLayout
+    <!-- 💖 最终解决方案：不再使用 rowHeight，而是直接给列表一个固定的高度！ 💖 -->
+    <androidx.leanback.widget.HorizontalGridView
+        android:id="@+id/relatedRecycler"
         android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:id="@+id/hotTitle"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingTop="8dp">
+        android:layout_marginTop="16dp"
+        android:text="大家都在看"
+        android:textColor="@android:color/white"
+        android:textSize="16sp" />
 
-        <!-- 第一个列表：“为你推荐”，默认显示 -->
-        <androidx.leanback.widget.HorizontalGridView
-            android:id="@+id/relatedRecycler"
-            android:layout_width="match_parent"
-            android:layout_height="120dp" />
+    <!-- 💖 另一个列表也一样，给一个固定的高度！ 💖 -->
+    <androidx.leanback.widget.HorizontalGridView
+        android:id="@+id/hotRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:layout_marginTop="8dp" />
 
-        <!-- 第二个列表：“大家都在看”，默认隐藏 -->
-        <androidx.leanback.widget.HorizontalGridView
-            android:id="@+id/hotRecycler"
-            android:layout_width="match_parent"
-            android:layout_height="120dp"
-            android:visibility="gone" />
-
-    </FrameLayout>
-
-    <!-- 婉儿的签名，调整了位置 -->
     <TextView
         android:id="@+id/signature"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end"
-        android:layout_marginTop="35dp"
+        android:layout_marginTop="30dp"
         android:text="婉儿 为你推荐 💕"
         android:textColor="#B3FFFFFF"
         android:textSize="12sp" />
