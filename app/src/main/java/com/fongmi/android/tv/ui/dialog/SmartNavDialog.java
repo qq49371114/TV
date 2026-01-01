@@ -19,6 +19,7 @@ import com.fongmi.android.tv.ui.presenter.VodPresenter;
 import com.fongmi.android.tv.utils.SuggestHelper;
 import com.fongmi.android.tv.utils.ZhuToPin;
 import com.github.catvod.net.OkHttp;
+import com.google.android.material.tabs.TabLayout;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -53,12 +54,39 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         setRecyclerViews();
+        initTabs(); // 💖 增加一个初始化Tab的方法 💖
         startWorks();
     }
 
     private void setRecyclerViews() {
         binding.relatedRecycler.setAdapter(new ItemBridgeAdapter(mRelatedAdapter = new ArrayObjectAdapter(new VodPresenter(this))));
         binding.hotRecycler.setAdapter(new ItemBridgeAdapter(mHotAdapter = new ArrayObjectAdapter(new VodPresenter(this))));
+    }
+
+    // 💖 最终的、最简单的解决方案！ 💖
+    private void initTabs() {
+        binding.tabLayout.addTab(binding.tabLayout.newTab().setText("为你推荐"));
+        binding.tabLayout.addTab(binding.tabLayout.newTab().setText("大家都在看"));
+        binding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                if (tab.getPosition() == 0) {
+                    binding.relatedRecycler.setVisibility(View.VISIBLE);
+                    binding.hotRecycler.setVisibility(View.GONE);
+                } else {
+                    binding.relatedRecycler.setVisibility(View.GONE);
+                    binding.hotRecycler.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+            }
+        });
     }
 
     private void startWorks() {
@@ -76,7 +104,6 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 List<Word.Data> suggestions = Word.objectFrom(response.body().string()).getData();
                 if (suggestions == null || suggestions.isEmpty()) return;
-
                 List<Vod> vodList = new ArrayList<>();
                 for (Word.Data item : suggestions) {
                     if (!item.getTitle().equals(keyword)) {
@@ -86,7 +113,6 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
                         vodList.add(vod);
                     }
                 }
-
                 App.post(() -> mRelatedAdapter.setItems(vodList, new BaseDiffCallback<>()));
             }
         });
@@ -95,7 +121,6 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
     private void fetchHotWords() {
         SuggestHelper.getHot(hotWords -> {
             if (hotWords == null || hotWords.isEmpty()) return;
-
             List<Vod> vodList = new ArrayList<>();
             for (Word.Data item : hotWords) {
                 Vod vod = new Vod();
@@ -103,7 +128,6 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
                 vod.setPic(item.getPic());
                 vodList.add(vod);
             }
-
             App.post(() -> mHotAdapter.setItems(vodList, new BaseDiffCallback<>()));
         });
     }
