@@ -1,5 +1,7 @@
+<!-- dialog_smart_nav.xml -->
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -13,39 +15,21 @@
         android:textSize="20sp"
         android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/relatedTitle"
-        android:layout_width="wrap_content"
+    <!-- 💖 真正的标签栏！ 💖 -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:text="为你推荐"
-        android:textColor="@android:color/white"
-        android:textSize="16sp" />
+        app:tabIndicatorColor="@android:color/white"
+        app:tabTextColor="@android:color/darker_gray"
+        app:tabSelectedTextColor="@android:color/white" />
 
-    <!-- 💖 最终解决方案：直接在XML里设置行高，一劳永逸！ 💖 -->
-    <androidx.leanback.widget.HorizontalGridView
-        android:id="@+id/relatedRecycler"
+    <!-- 💖 真正的内容切换区！ 💖 -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:rowHeight="120dp" />
-
-    <TextView
-        android:id="@+id/hotTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="大家都在看"
-        android:textColor="@android:color/white"
-        android:textSize="16sp" />
-
-    <!-- 💖 另一个列表也一样！ 💖 -->
-    <androidx.leanback.widget.HorizontalGridView
-        android:id="@+id/hotRecycler"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:rowHeight="120dp" />
+        android:layout_height="150dp" /> <!-- 我们先给一个固定的高度，保证布局稳定 -->
 
     <TextView
         android:id="@+id/signature"
