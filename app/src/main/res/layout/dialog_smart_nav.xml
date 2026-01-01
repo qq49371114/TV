@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -13,35 +14,40 @@
         android:textSize="20sp"
         android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/relatedTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="为你推荐"
-        android:textColor="@android:color/white"
-        android:textSize="16sp" />
-
-    <androidx.leanback.widget.HorizontalGridView
-        android:id="@+id/relatedRecycler"
+    <!-- 💖 真正的标签栏！背景已设为透明 💖 -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="10dp"
+        android:background="@android:color/transparent"
+        app:tabIndicatorColor="@android:color/white"
+        app:tabTextColor="@android:color/darker_gray"
+        app:tabSelectedTextColor="@android:color/white" />
 
-    <TextView
-        android:id="@+id/hotTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="大家都在看"
-        android:textColor="@android:color/white"
-        android:textSize="16sp" />
-
-    <androidx.leanback.widget.HorizontalGridView
-        android:id="@+id/hotRecycler"
+    <!-- 💖 真正的内容切换区！用一个 FrameLayout 把两个列表叠起来 💖 -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp" />
+        android:layout_height="150dp"> <!-- 给一个固定的高度，保证布局稳定 -->
+
+        <!-- 第一个列表：“为你推荐”，默认显示 -->
+        <androidx.leanback.widget.HorizontalGridView
+            android:id="@+id/relatedRecycler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingTop="8dp"
+            android:rowHeight="120dp" /> <!-- 💖 名字不显示的问题，在这里彻底解决！ 💖 -->
+
+        <!-- 第二个列表：“大家都在看”，默认隐藏 -->
+        <androidx.leanback.widget.HorizontalGridView
+            android:id="@+id/hotRecycler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingTop="8dp"
+            android:rowHeight="120dp"
+            android:visibility="gone" /> <!-- 💖 名字不显示的问题，在这里也解决了！ 💖 -->
+
+    </FrameLayout>
 
     <TextView
         android:id="@+id/signature"
