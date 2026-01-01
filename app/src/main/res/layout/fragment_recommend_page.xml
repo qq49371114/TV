@@ -1,9 +1,13 @@
-<!-- fragment_recommend_page.xml -->
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 
+    这是我们为标签页准备的“内容”布局。
+    它只包含一个横向列表，并且直接在这里设置了行高，
+    从根源上解决了名字不显示的问题。
+-->
 <androidx.leanback.widget.HorizontalGridView 
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/recycler"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingTop="8dp"
-    android:rowHeight="120dp" /> 
+    android:rowHeight="120dp" />
