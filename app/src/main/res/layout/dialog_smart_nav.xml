@@ -4,56 +4,56 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:padding="20dp">
 
+    <!-- 主标题 -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="接下来，看点什么？"
         android:textColor="@android:color/white"
-        android:textSize="20sp"
+        android:textSize="15sp"
         android:textStyle="bold" />
 
-    <!-- 💖 标签栏，保持不变 💖 -->
+    <!-- 标签栏，背景已设为透明 -->
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
+        android:background="@android:color/transparent"
         app:tabIndicatorColor="@android:color/white"
         app:tabTextColor="@android:color/darker_gray"
         app:tabSelectedTextColor="@android:color/white" />
 
-    <!-- 💖 用一个简单的 FrameLayout 把两个列表叠起来！ 💖 -->
+    <!-- 内容区，用 FrameLayout 把两个列表叠在一起 -->
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="150dp"> <!-- 给一个固定的高度，保证布局稳定 -->
+        android:layout_height="wrap_content"
+        android:paddingTop="8dp">
 
-        <!-- 第一个列表 -->
+        <!-- 第一个列表：“为你推荐”，默认显示 -->
         <androidx.leanback.widget.HorizontalGridView
             android:id="@+id/relatedRecycler"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:paddingTop="8dp"
-            android:rowHeight="120dp" /> <!-- 💖 名字不显示的问题，在这里彻底解决！ 💖 -->
+            android:layout_height="120dp" />
 
-        <!-- 第二个列表，默认隐藏 -->
+        <!-- 第二个列表：“大家都在看”，默认隐藏 -->
         <androidx.leanback.widget.HorizontalGridView
             android:id="@+id/hotRecycler"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:paddingTop="8dp"
-            android:rowHeight="120dp"
-            android:visibility="gone" /> <!-- 💖 名字不显示的问题，在这里也解决了！ 💖 -->
+            android:layout_height="120dp"
+            android:visibility="gone" />
 
     </FrameLayout>
 
+    <!-- 婉儿的签名，调整了位置 -->
     <TextView
         android:id="@+id/signature"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="35dp"
         android:text="婉儿 为你推荐 💕"
         android:textColor="#B3FFFFFF"
         android:textSize="12sp" />
