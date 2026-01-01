@@ -1,3 +1,4 @@
+<!-- dialog_smart_nav.xml -->
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -14,7 +15,7 @@
         android:textSize="20sp"
         android:textStyle="bold" />
 
-    <!-- 💖 真正的标签栏！ 💖 -->
+    <!-- 💖 标签栏，保持不变 💖 -->
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
         android:layout_width="match_parent"
@@ -24,11 +25,29 @@
         app:tabTextColor="@android:color/darker_gray"
         app:tabSelectedTextColor="@android:color/white" />
 
-    <!-- 💖 真正的内容切换区！ 💖 -->
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/viewPager"
+    <!-- 💖 用一个简单的 FrameLayout 把两个列表叠起来！ 💖 -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="150dp" /> <!-- 我们先给一个固定的高度，保证布局稳定 -->
+        android:layout_height="150dp"> <!-- 给一个固定的高度，保证布局稳定 -->
+
+        <!-- 第一个列表 -->
+        <androidx.leanback.widget.HorizontalGridView
+            android:id="@+id/relatedRecycler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingTop="8dp"
+            android:rowHeight="120dp" /> <!-- 💖 名字不显示的问题，在这里彻底解决！ 💖 -->
+
+        <!-- 第二个列表，默认隐藏 -->
+        <androidx.leanback.widget.HorizontalGridView
+            android:id="@+id/hotRecycler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingTop="8dp"
+            android:rowHeight="120dp"
+            android:visibility="gone" /> <!-- 💖 名字不显示的问题，在这里也解决了！ 💖 -->
+
+    </FrameLayout>
 
     <TextView
         android:id="@+id/signature"
