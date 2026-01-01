@@ -55,7 +55,7 @@
         android:id="@+id/name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/image" <!-- 💖 唯一的、最终的、绝对正确的修改！ 💖 -->
+        android:layout_alignBottom="@+id/image" 
         android:layout_alignStart="@+id/image"
         android:layout_alignEnd="@+id/image"
         android:background="@drawable/shape_vod_name"
