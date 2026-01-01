@@ -6,7 +6,6 @@
     android:padding="24dp">
 
     <TextView
-        android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="接下来，看点什么？"
@@ -18,17 +17,17 @@
         android:id="@+id/relatedTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="10dp"  <!-- 💖 优化一：减小间距 -->
         android:text="为你推荐"
         android:textColor="@android:color/white"
         android:textSize="16sp" />
 
-    <!-- 这是第一只手！ -->
     <androidx.leanback.widget.HorizontalGridView
         android:id="@+id/relatedRecycler"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" 
-        android:layout_marginTop="8dp" />
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:rowHeight="120dp" /> <!-- 💖 最终解决方案：直接在这里设置行高！ -->
 
     <TextView
         android:id="@+id/hotTitle"
@@ -39,12 +38,12 @@
         android:textColor="@android:color/white"
         android:textSize="16sp" />
 
-    <!-- 这是第二只手！ -->
     <androidx.leanback.widget.HorizontalGridView
         android:id="@+id/hotRecycler"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" 
-        android:layout_marginTop="8dp" />
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:rowHeight="120dp" /> <!-- 💖 另一个列表也一样！ -->
 
     <TextView
         android:id="@+id/signature"
