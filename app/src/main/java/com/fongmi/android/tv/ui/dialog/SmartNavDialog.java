@@ -83,7 +83,6 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
                         Vod vod = new Vod();
                         vod.setName(item.getTitle());
                         vod.setPic(item.getPic());
-                        // 我们不再需要 setNameVisible(true)
                         vodList.add(vod);
                     }
                 }
@@ -102,7 +101,6 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
                 Vod vod = new Vod();
                 vod.setName(item.getTitle());
                 vod.setPic(item.getPic());
-                // 我们不再需要 setNameVisible(true)
                 vodList.add(vod);
             }
 
@@ -129,12 +127,9 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
         int screenWidth = com.fongmi.android.tv.utils.ResUtil.getScreenWidth();
         int width = (int) (screenWidth * 0.8f);
 
-        // 💖 最终的、绝对正确的解决方案！ 💖
-        // 我们不再使用 WRAP_CONTENT，而是给弹窗一个固定的、足够的高度。
-        int heightInDp = 300; // 你可以根据实际效果微调这个值
-        int heightInPixels = com.fongmi.android.tv.utils.ResUtil.dp2px(heightInDp);
-        window.setLayout(width, heightInPixels);
-
+        // 💖 恢复到最初的、正确的 WRAP_CONTENT 设置！💖
+        // 因为我们在 XML 里已经设置了正确的行高，所以弹窗的高度应该由内容自适应，这样两个列表才能都显示出来。
+        window.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
         window.setBackgroundDrawableResource(android.R.color.transparent);
     }
 }
