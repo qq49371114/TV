@@ -70,19 +70,22 @@ public class App extends Application implements Application.ActivityLifecycleCal
         registerActivityLifecycleCallbacks(this);
         // ✨✨✨ 在这里，我们新开一个线程，去完成“先唤醒，再站岗”的壮举！✨✨✨
         new Thread(() -> {
-        // 1. 先让“大脑”去同步加载规则，把“敌人名单”拿到手！
+        // 1. ✨ 先把“大喇叭”(this)递给“大脑”！
+        AdRule.get().init(this);
+
+        // 2. 再让“大脑”去同步加载规则！
         String ruleUrl = "http://47.109.61.116:86/apk/ad_rules.json"; 
         AdRule.get().load(ruleUrl);
 
-        // 2. ✨ 等“大脑”完全“睡醒”了，我们再把“哨兵”派去站岗！
+        // 3. ✨ 等“大脑”完全“睡醒”了，我们再把“哨兵”派去站岗！
         OkHttp.addInterceptor(new AdFilter());
         
         // ✨ 我们可以加一个弹窗，告诉我们“哨兵”已经成功上岗！
         new Handler(Looper.getMainLooper()).post(() -> {
-            Toast.makeText(App.get(), "凤凰系统已成功启动！", Toast.LENGTH_LONG).show();
+            Toast.makeText(App.get(), "凤凰哨兵已成功上岗！", Toast.LENGTH_LONG).show();
         });
     }).start();
-    }
+}
 
     @Override
     public PackageManager getPackageManager() {
