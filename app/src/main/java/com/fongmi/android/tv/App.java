@@ -27,6 +27,7 @@ import java.util.concurrent.Future;
 import com.fongmi.android.tv.player.AdFilter;
 import com.fongmi.android.tv.player.AdRule;
 import com.github.catvod.net.OkHttp;
+import android.widget.Toast;
 
 public class App extends Application implements Application.ActivityLifecycleCallbacks {
 
@@ -70,7 +71,6 @@ public class App extends Application implements Application.ActivityLifecycleCal
         // ✨✨✨ 在这里，我们新开一个线程，去完成“先唤醒，再站岗”的壮举！✨✨✨
         new Thread(() -> {
         // 1. 先让“大脑”去同步加载规则，把“敌人名单”拿到手！
-        // 这个load方法现在是同步的，会在这里卡住，直到规则下载完毕！
         String ruleUrl = "http://47.109.61.116:86/apk/ad_rules.json"; 
         AdRule.get().load(ruleUrl);
 
