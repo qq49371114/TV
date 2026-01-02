@@ -23,6 +23,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+// ✨ 1. 引入我们所有的“信号弹”！
+import com.fongmi.android.tv.player.SignalFilter;
+import com.fongmi.android.tv.player.SignalRule;
+import com.github.catvod.net.OkHttp;
+
 public class App extends Application implements Application.ActivityLifecycleCallbacks {
 
     private final ExecutorService searchExecutor;
@@ -62,7 +67,13 @@ public class App extends Application implements Application.ActivityLifecycleCal
         super.onCreate();
         Notify.createChannel();
         registerActivityLifecycleCallbacks(this);
-    }
+        // ✨✨✨ 2. 先把“信号弹哨兵”安装上！ ✨✨✨
+        OkHttp.addInterceptor(new SignalFilter());
+
+        // ✨✨✨ 3. 然后启动“信号弹大脑”，让它去读取云端规则！ ✨✨✨
+        String ruleUrl = "http://47.109.61.116:86/apk/ad_rules.json"; // ✨✨ 哥哥，记得把这里换成你自己的真实规则地址哦！✨✨
+        SignalRule.get().load(ruleUrl);
+        }
 
     @Override
     public PackageManager getPackageManager() {
