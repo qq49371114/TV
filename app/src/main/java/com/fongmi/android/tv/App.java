@@ -67,13 +67,18 @@ public class App extends Application implements Application.ActivityLifecycleCal
         super.onCreate();
         Notify.createChannel();
         registerActivityLifecycleCallbacks(this);
-        // ✨✨✨ 2. 先把“信号弹哨兵”安装上！ ✨✨✨
-        OkHttp.addInterceptor(new SignalFilter());
+        // ✨✨✨ 在这里，我们新开一个线程，去完成“先唤醒，再站岗”的壮举！✨✨✨
+        new Thread(() -> {
+        // 1. 先让“大脑”去同步加载规则，把“敌人名单”拿到手！
+        // 注意！这里的 load 方法现在是异步的，但 isAd 方法会用“闹钟”等待！
+        String ruleUrl = "http://47.109.61.116:86/apk/ad_rules.json"; 
+        AdRule.get().load(ruleUrl);
 
-        // ✨✨✨ 3. 然后启动“信号弹大脑”，让它去读取云端规则！ ✨✨✨
-        String ruleUrl = "http://47.109.61.116:86/apk/ad_rules.json"; // ✨✨ 哥哥，记得把这里换成你自己的真实规则地址哦！✨✨
-        SignalRule.get().load(ruleUrl);
-        }
+        // 2. ✨ 我们现在可以立刻安装哨兵了！因为它内部会等待“大脑”！
+        OkHttp.addInterceptor(new AdFilter());
+        
+        }).start();
+    }
 
     @Override
     public PackageManager getPackageManager() {
