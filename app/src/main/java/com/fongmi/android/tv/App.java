@@ -24,8 +24,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 // ✨ 1. 引入我们所有的“信号弹”！
-import com.fongmi.android.tv.player.SignalFilter;
-import com.fongmi.android.tv.player.SignalRule;
+import com.fongmi.android.tv.player.AdFilter;
+import com.fongmi.android.tv.player.AdRule;
 import com.github.catvod.net.OkHttp;
 
 public class App extends Application implements Application.ActivityLifecycleCallbacks {
