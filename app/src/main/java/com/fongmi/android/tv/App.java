@@ -70,14 +70,18 @@ public class App extends Application implements Application.ActivityLifecycleCal
         // ✨✨✨ 在这里，我们新开一个线程，去完成“先唤醒，再站岗”的壮举！✨✨✨
         new Thread(() -> {
         // 1. 先让“大脑”去同步加载规则，把“敌人名单”拿到手！
-        // 注意！这里的 load 方法现在是异步的，但 isAd 方法会用“闹钟”等待！
+        // 这个load方法现在是同步的，会在这里卡住，直到规则下载完毕！
         String ruleUrl = "http://47.109.61.116:86/apk/ad_rules.json"; 
         AdRule.get().load(ruleUrl);
 
-        // 2. ✨ 我们现在可以立刻安装哨兵了！因为它内部会等待“大脑”！
+        // 2. ✨ 等“大脑”完全“睡醒”了，我们再把“哨兵”派去站岗！
         OkHttp.addInterceptor(new AdFilter());
         
-        }).start();
+        // ✨ 我们可以加一个弹窗，告诉我们“哨兵”已经成功上岗！
+        new Handler(Looper.getMainLooper()).post(() -> {
+            Toast.makeText(App.get(), "凤凰系统已成功启动！", Toast.LENGTH_LONG).show();
+        });
+    }).start();
     }
 
     @Override
