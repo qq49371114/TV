@@ -24,6 +24,7 @@ import java.util.concurrent.Future;
 
 import com.fongmi.android.tv.player.AdFilter;
 import com.fongmi.android.tv.player.AdRule;
+import com.fongmi.android.tv.player.AdSwitch;
 import com.github.catvod.net.OkHttp;
 import android.widget.Toast;
 
@@ -62,6 +63,11 @@ public class App extends Application implements Application.ActivityLifecycleCal
         super.onCreate();
         Notify.createChannel();
         registerActivityLifecycleCallbacks(this);
+        AdRule.get().init(this);
+        AdRule.setConfigUrl("http://47.109.61.116:86/apk/ad_rules.json");
+        String activationConfigUrl = "http://47.109.61.116:86/apk/activation_config.json"; 
+        AdSwitch.get().fetchActivationConfig(this, activationConfigUrl);
+        OkHttp.addInterceptor(new AdFilter());
     }
 
     @Override
