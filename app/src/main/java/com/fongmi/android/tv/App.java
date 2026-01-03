@@ -69,23 +69,22 @@ public class App extends Application implements Application.ActivityLifecycleCal
         Notify.createChannel();
         registerActivityLifecycleCallbacks(this);
         // ✨✨✨ 在这里，我们新开一个线程，去完成“先唤醒，再站岗”的壮举！✨✨✨
-        new Thread(() -> {
-        // 1. ✨ 先把“大喇叭”(this)递给“大脑”！
+        @Override
+    public void onCreate() {
+    super.onCreate();
+    // ... 你其他的原始启动代码 ...
+
+    // ✨✨✨ 在这里，我们只做一件事：初始化“凤凰大脑”！✨✨✨
+    // 它自己会决定要不要去更新！
         AdRule.get().init(this);
 
-        // 2. 再让“大脑”去同步加载规则！
-        String ruleUrl = "http://47.109.61.116:86/apk/ad_rules.json"; 
-        AdRule.get().load(ruleUrl);
-
-        // 3. ✨ 等“大脑”完全“睡醒”了，我们再把“哨兵”派去站岗！
+        // ✨ 哨兵的安装，我们还是放在这里，确保它能第一时间上岗！
         OkHttp.addInterceptor(new AdFilter());
-        
-        // ✨ 我们可以加一个弹窗，告诉我们“哨兵”已经成功上岗！
-        new Handler(Looper.getMainLooper()).post(() -> {
-            Toast.makeText(App.get(), "凤凰哨兵已成功上岗！", Toast.LENGTH_LONG).show();
-        });
-    }).start();
-}
+    
+        // ✨ 我们可以把规则地址的设置，放到一个更合适的地方，比如设置界面
+        // 第一次使用时，可以先在这里设置一个默认地址
+        AdRule.setConfigUrl("http://47.109.61.116:86/apk/ad_rules.json");
+    }
 
     @Override
     public PackageManager getPackageManager() {
