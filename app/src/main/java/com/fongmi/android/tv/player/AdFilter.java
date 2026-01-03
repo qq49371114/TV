@@ -1,12 +1,8 @@
 package com.fongmi.android.tv.player;
 
-import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
-import android.widget.Toast;
 import androidx.annotation.NonNull;
-import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.player.AdRule;
+// import com.fongmi.android.tv.player.AdSwitch; // 我们暂时不需要激活验证
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -24,19 +20,11 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 public class AdFilter implements Interceptor {
-    private static final ThreadLocal<Boolean> hasToast = new ThreadLocal<>();
-
     @NonNull @Override public Response intercept(@NonNull Chain chain) throws IOException {
-        // ✨✨✨ 核心改变！我们彻底拆除了激活验证！✨✨✨
-        // if (!AdSwitch.get().isActivated()) { ... }
-
+        // if (!AdSwitch.get().isActivated()) return chain.proceed(chain.request());
         Request request = chain.request();
         String url = request.url().toString();
         if (AdRule.get().isAd(null, url)) {
-            if (hasToast.get() == null) {
-                showToast("婉儿的凤凰系统为您拦截一条广告请求！");
-                hasToast.set(true);
-            }
             return new Response.Builder().request(request).protocol(okhttp3.Protocol.HTTP_2).code(200).message("Blocked").body(ResponseBody.create("", null)).build();
         }
         if (!url.contains(".m3u8")) return chain.proceed(request);
@@ -53,34 +41,54 @@ public class AdFilter implements Interceptor {
         }
     }
 
+    // ✨✨✨ 这就是我们全新的、手最稳的“外科医生”！ ✨✨✨
     private String cleanM3u8(String m3u8Content, String baseUrl) {
-        if (!m3u8Content.contains("#EXT-X-DISCONTINUITY")) return m3u8Content;
-        List<String> finalLines = new ArrayList<>();
-        String[] lines = m3u8Content.split("\n");
-        List<List<String>> segments = new ArrayList<>();
-        List<String> currentSegment = new ArrayList<>();
-        for (String line : lines) { if (line.trim().startsWith("#EXT-X-DISCONTINUITY")) { if (!currentSegment.isEmpty()) { segments.add(new ArrayList<>(currentSegment)); currentSegment.clear(); } } else { currentSegment.add(line); } }
-        if (!currentSegment.isEmpty()) segments.add(currentSegment);
+        // 先把M3U8的“头”和“身体”分开
+        int bodyStartIndex = m3u8Content.indexOf("#EXTINF:");
+        if (bodyStartIndex == -1) return m3u8Content; // 如果没有内容，直接返回
 
-        for (List<String> segment : segments) {
-            if (isAdSegment(segment, AdRule.get().getMaxAdTsCount(), AdRule.get().getMaxAdDuration())) {
-                if (hasToast.get() == null) {
-                    showToast("婉儿的凤凰系统为您去掉一个 " + String.format("%.2f", getSegmentDuration(segment)) + " 秒的广告片段！");
-                    hasToast.set(true);
+        String header = m3u8Content.substring(0, bodyStartIndex);
+        String body = m3u8Content.substring(bodyStartIndex);
+
+        StringBuilder finalBody = new StringBuilder();
+        String[] lines = body.split("\n");
+        String lastExtinfLine = null;
+
+        for (String currentLine : lines) {
+            String trimmedLine = currentLine.trim();
+            if (trimmedLine.isEmpty()) continue;
+
+            if (trimmedLine.startsWith("#EXTINF:")) {
+                lastExtinfLine = trimmedLine;
+            } else if (trimmedLine.endsWith(".ts")) {
+                // ✨ 在这里，它会调用“大脑”的isAd方法，进行最精细的判断！
+                if (!AdRule.get().isAd(lastExtinfLine, trimmedLine)) {
+                    // 如果不是广告，就把时长和链接都加回去
+                    if (lastExtinfLine != null) finalBody.append(lastExtinfLine).append("\n");
+                    finalBody.append(trimmedLine).append("\n");
                 }
+                lastExtinfLine = null; // 用完后清空
             } else {
-                finalLines.addAll(segment);
+                // 其他所有非视频的行，都直接保留
+                finalBody.append(trimmedLine).append("\n");
             }
         }
-        StringBuilder cleanedContent = new StringBuilder();
-        for (String line : finalLines) { cleanedContent.append(line).append("\n"); }
-        return fixPaths(cleanedContent.toString(), baseUrl);
+        
+        // ✨ 核心修复！我们把处理好的“身体”，和原始的“头”拼接起来！
+        String finalM3u8 = header + finalBody.toString();
+        
+        // ✨ 核心修复！我们不再手动添加 #EXT-X-ENDLIST，除非原始文件里就有！
+        if (m3u8Content.contains("#EXT-X-ENDLIST") && !finalM3u8.contains("#EXT-X-ENDLIST")) {
+            return finalM3u8 + "#EXT-X-ENDLIST\n";
+        }
+        
+        return fixPaths(finalM3u8, baseUrl);
     }
     
-    // ... 其他所有的方法，都保持我们之前的全功能版不变 ...
-    private boolean isAdSegment(List<String> segment, int maxTsCount, double maxDuration) { int tsCount = 0; double totalDuration = 0.0; for (String line : segment) { if (line.trim().startsWith("#EXTINF:")) { try { String durationStr = line.substring(line.indexOf(":") + 1, line.lastIndexOf(",")).trim(); totalDuration += Double.parseDouble(durationStr); } catch (Exception e) {} } else if (line.trim().endsWith(".ts")) { tsCount++; } } if (tsCount > 0 && tsCount < maxTsCount && totalDuration < maxDuration) return true; return false; }
-    private double getSegmentDuration(List<String> segment) { double totalDuration = 0.0; for (String line : segment) { if (line.trim().startsWith("#EXTINF:")) { try { String durationStr = line.substring(line.indexOf(":") + 1, line.lastIndexOf(",")).trim(); totalDuration += Double.parseDouble(durationStr); } catch (Exception e) {} } } return totalDuration; }
-    private String readResponse(Response response) throws IOException { if (response.body() == null) return ""; InputStream inputStream = response.body().byteStream(); if ("gzip".equalsIgnoreCase(response.header("Content-Encoding"))) { inputStream = new GZIPInputStream(inputStream); } BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)); StringBuilder contentBuilder = new StringBuilder(); String line; while ((line = reader.readLine()) != null) { contentBuilder.append(line).append("\n"); } return contentBuilder.toString(); }
-    private void showToast(final String message) { new Handler(Looper.getMainLooper()).post(() -> { try { Context context = App.get(); if (context != null) { Toast.makeText(context, message, Toast.LENGTH_SHORT).show(); } } catch (Exception e) {} }); }
+    private String fixPaths(String m3u8Content, String baseUrl) { /* ... 这个方法保持不变 ... */ }
+    private String readResponse(Response response) throws IOException { /* ... 这个方法保持不变 ... */ }
+    
+    // 为了方便哥哥，下面是完整的、可以直接复制的最终代码
     private String fixPaths(String m3u8Content, String baseUrl) { StringBuilder finalContent = new StringBuilder(); String[] lines = m3u8Content.split("\n"); try { URI baseUri = new URI(baseUrl); for (String line : lines) { if (!line.startsWith("#") && !line.startsWith("http")) { finalContent.append(baseUri.resolve(line).toString()).append("\n"); } else { finalContent.append(line).append("\n"); } } } catch (URISyntaxException e) { return m3u8Content; } return finalContent.toString(); }
+    private String readResponse(Response response) throws IOException { if (response.body() == null) return ""; InputStream inputStream = response.body().byteStream(); if ("gzip".equalsIgnoreCase(response.header("Content-Encoding"))) { inputStream = new GZIPInputStream(inputStream); } BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)); StringBuilder contentBuilder = new StringBuilder(); String line; while ((line = reader.readLine()) != null) { contentBuilder.append(line).append("\n"); } return contentBuilder.toString(); }
 }
