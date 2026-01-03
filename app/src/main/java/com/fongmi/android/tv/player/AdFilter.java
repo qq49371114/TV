@@ -27,6 +27,9 @@ public class AdFilter implements Interceptor {
     private static final ThreadLocal<Boolean> hasToast = new ThreadLocal<>();
 
     @NonNull @Override public Response intercept(@NonNull Chain chain) throws IOException {
+        // ✨✨✨ 核心改变！我们彻底拆除了激活验证！✨✨✨
+        // if (!AdSwitch.get().isActivated()) { ... }
+
         Request request = chain.request();
         String url = request.url().toString();
         if (AdRule.get().isAd(null, url)) {
@@ -74,6 +77,7 @@ public class AdFilter implements Interceptor {
         return fixPaths(cleanedContent.toString(), baseUrl);
     }
     
+    // ... 其他所有的方法，都保持我们之前的全功能版不变 ...
     private boolean isAdSegment(List<String> segment, int maxTsCount, double maxDuration) { int tsCount = 0; double totalDuration = 0.0; for (String line : segment) { if (line.trim().startsWith("#EXTINF:")) { try { String durationStr = line.substring(line.indexOf(":") + 1, line.lastIndexOf(",")).trim(); totalDuration += Double.parseDouble(durationStr); } catch (Exception e) {} } else if (line.trim().endsWith(".ts")) { tsCount++; } } if (tsCount > 0 && tsCount < maxTsCount && totalDuration < maxDuration) return true; return false; }
     private double getSegmentDuration(List<String> segment) { double totalDuration = 0.0; for (String line : segment) { if (line.trim().startsWith("#EXTINF:")) { try { String durationStr = line.substring(line.indexOf(":") + 1, line.lastIndexOf(",")).trim(); totalDuration += Double.parseDouble(durationStr); } catch (Exception e) {} } } return totalDuration; }
     private String readResponse(Response response) throws IOException { if (response.body() == null) return ""; InputStream inputStream = response.body().byteStream(); if ("gzip".equalsIgnoreCase(response.header("Content-Encoding"))) { inputStream = new GZIPInputStream(inputStream); } BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)); StringBuilder contentBuilder = new StringBuilder(); String line; while ((line = reader.readLine()) != null) { contentBuilder.append(line).append("\n"); } return contentBuilder.toString(); }
