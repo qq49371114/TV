@@ -9,6 +9,7 @@ import com.fongmi.android.tv.App;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -19,7 +20,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import okhttp3.OkHttpClient; // ✨ 1. 引入我们需要的“私人飞机”
+import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
@@ -29,17 +30,13 @@ public class AdRule {
     private static final String KEY_ETAG = "etag";
     private static final String KEY_LAST_MODIFIED = "last_modified";
     private static final String KEY_CONFIG_URL = "config_url";
-
     private static final AdRule instance = new AdRule();
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final List<String> ads = new CopyOnWriteArrayList<>();
     private final List<String> durations = new CopyOnWriteArrayList<>();
     private CountDownLatch latch = new CountDownLatch(1);
     private SharedPreferences prefs;
-
-    // ✨✨✨ 2. 为“大脑”配备一个专属的、干净的“私人飞机”！✨✨✨
     private final OkHttpClient internalClient = new OkHttpClient();
-
     private int maxAdTsCount = 10;
     private double maxAdDuration = 60.0;
 
@@ -62,33 +59,26 @@ public class AdRule {
         latch = new CountDownLatch(1);
         executor.execute(() -> {
             try {
-                // ✨✨✨ 3. 不再用HttpURLConnection，而是用我们自己的“私人飞机”去取货！✨✨✨
                 Request.Builder requestBuilder = new Request.Builder().url(urlString);
                 String etag = prefs.getString(KEY_ETAG, "");
                 String lastModified = prefs.getString(KEY_LAST_MODIFIED, "");
                 if (!etag.isEmpty()) requestBuilder.header("If-None-Match", etag);
                 if (!lastModified.isEmpty()) requestBuilder.header("If-Modified-Since", lastModified);
-                
                 Response response = internalClient.newCall(requestBuilder.build()).execute();
-
-                if (response.code() == 304) { // HTTP_NOT_MODIFIED
+                if (response.code() == 304) {
                     latch.countDown();
                     return;
                 }
-
                 if (!response.isSuccessful() || response.body() == null) {
                     throw new IOException("Failed to fetch rules: " + response.code());
                 }
-
                 String content = response.body().string();
                 String newEtag = response.header("ETag");
                 String newLastModified = response.header("Last-Modified");
                 prefs.edit().putString(KEY_RULES_JSON_CACHE, content).putString(KEY_ETAG, newEtag != null ? newEtag : "").putString(KEY_LAST_MODIFIED, newLastModified != null ? newLastModified : "").apply();
-                
                 showToast("云端去广告规则更新成功！");
-
-                if (urlString.endsWith(".txt")) parseTxt(content.toString());
-                else parseJson(content.toString());
+                if (urlString.endsWith(".txt")) parseTxt(content);
+                else parseJson(content);
             } catch (Exception e) {
                 showToast("云端去广告规则更新失败！");
             } finally {
@@ -97,7 +87,6 @@ public class AdRule {
         });
     }
 
-    // ... 其他所有的方法，都保持我们之前的全功能版不变 ...
     private void loadRulesFromPrefs() { String json = prefs.getString(KEY_RULES_JSON_CACHE, null); if (json != null) { try { String url = prefs.getString(KEY_CONFIG_URL, ""); if (url.endsWith(".txt")) parseTxt(json); else parseJson(json); } catch (Exception e) {} } }
     public static void setConfigUrl(String url) { SharedPreferences p = App.get().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE); p.edit().putString(KEY_CONFIG_URL, url).apply(); get().fetchConfig(); }
     private void parseTxt(String content) { List<String> newAds = new ArrayList<>(); String[] lines = content.split("\n"); for (String line : lines) { String trimmedLine = line.trim(); if (!trimmedLine.isEmpty() && !trimmedLine.startsWith("#")) newAds.add(trimmedLine); } ads.clear(); ads.addAll(newAds); durations.clear(); }
