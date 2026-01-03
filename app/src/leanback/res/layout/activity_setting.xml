@@ -457,6 +457,49 @@
 
         </androidx.appcompat.widget.LinearLayoutCompat>
         <!-- ✨↑ 新功能结束 ↑✨ -->
+        <!-- ✨↓ 婉儿帮你添加的“可用时段”显示区 ↓✨ -->
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/selector_item"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="当前可用时段"
+                android:textColor="@color/white"
+                android:textSize="18sp" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/timeSlotsTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="未设置"
+                android:textColor="@color/white_60"
+                android:textSize="16sp" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+        <!-- ✨↑ “可用时段”结束 ↑✨ -->
+
+
+        <!-- ✨↓ 婉儿帮你添加的“退出应用”按钮 ↓✨ -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/exitButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:background="@drawable/selector_item"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="退出应用"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
+        <!-- ✨↑ “退出应用”结束 ↑✨ -->
 
     </androidx.appcompat.widget.LinearLayoutCompat>
 </androidx.core.widget.NestedScrollView>
