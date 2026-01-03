@@ -1,6 +1,11 @@
 package com.fongmi.android.tv.player;
 
+import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
+import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.player.AdRule;
 //import com.fongmi.android.tv.player.AdSwitch;
 import java.io.BufferedReader;
@@ -20,11 +25,18 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 public class AdFilter implements Interceptor {
+    private static final ThreadLocal<Boolean> hasToast = new ThreadLocal<>();
+
     @NonNull @Override public Response intercept(@NonNull Chain chain) throws IOException {
         //if (!AdSwitch.get().isActivated()) return chain.proceed(chain.request());
         Request request = chain.request();
         String url = request.url().toString();
         if (AdRule.get().isAd(null, url)) {
+            // ✨✨✨ 在这里，弹窗报捷！ ✨✨✨
+            if (hasToast.get() == null) {
+                showToast("婉儿的凤凰系统为您拦截一条广告请求！");
+                hasToast.set(true);
+            }
             return new Response.Builder().request(request).protocol(okhttp3.Protocol.HTTP_2).code(200).message("Blocked").body(ResponseBody.create("", null)).build();
         }
         if (!url.contains(".m3u8")) return chain.proceed(request);
@@ -55,7 +67,13 @@ public class AdFilter implements Interceptor {
         if (!currentSegment.isEmpty()) segments.add(currentSegment);
 
         for (List<String> segment : segments) {
-            if (!isAdSegment(segment, AdRule.get().getMaxAdTsCount(), AdRule.get().getMaxAdDuration())) {
+            if (isAdSegment(segment, AdRule.get().getMaxAdTsCount(), AdRule.get().getMaxAdDuration())) {
+                // ✨✨✨ 在这里，弹窗报捷！ ✨✨✨
+                if (hasToast.get() == null) {
+                    showToast("婉儿的凤凰系统为您去掉一个 " + String.format("%.2f", getSegmentDuration(segment)) + " 秒的广告片段！");
+                    hasToast.set(true);
+                }
+            } else {
                 finalLines.addAll(segment);
             }
         }
@@ -67,38 +85,22 @@ public class AdFilter implements Interceptor {
         return fixPaths(cleanedContent.toString(), baseUrl);
     }
     
+    // ... 其他所有的方法，都保持我们之前的全功能版不变 ...
     private boolean isAdSegment(List<String> segment, int maxTsCount, double maxDuration) { int tsCount = 0; double totalDuration = 0.0; for (String line : segment) { if (line.trim().startsWith("#EXTINF:")) { try { String durationStr = line.substring(line.indexOf(":") + 1, line.lastIndexOf(",")).trim(); totalDuration += Double.parseDouble(durationStr); } catch (Exception e) {} } else if (line.trim().endsWith(".ts")) { tsCount++; } } if (tsCount > 0 && tsCount < maxTsCount && totalDuration < maxDuration) return true; return false; }
+    private double getSegmentDuration(List<String> segment) { double totalDuration = 0.0; for (String line : segment) { if (line.trim().startsWith("#EXTINF:")) { try { String durationStr = line.substring(line.indexOf(":") + 1, line.lastIndexOf(",")).trim(); totalDuration += Double.parseDouble(durationStr); } catch (Exception e) {} } } return totalDuration; }
+    private String readResponse(Response response) throws IOException { if (response.body() == null) return ""; InputStream inputStream = response.body().byteStream(); if ("gzip".equalsIgnoreCase(response.header("Content-Encoding"))) { inputStream = new GZIPInputStream(inputStream); } BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)); StringBuilder contentBuilder = new StringBuilder(); String line; while ((line = reader.readLine()) != null) { contentBuilder.append(line).append("\n"); } return contentBuilder.toString(); }
     
-    private String fixPaths(String m3u8Content, String baseUrl) {
-        StringBuilder finalContent = new StringBuilder();
-        String[] lines = m3u8Content.split("\n");
-        try {
-            URI baseUri = new URI(baseUrl);
-            for (String line : lines) {
-                if (!line.startsWith("#") && !line.startsWith("http")) {
-                    finalContent.append(baseUri.resolve(line).toString()).append("\n");
-                } else {
-                    finalContent.append(line).append("\n");
+    // ✨ 新增一个用来在主线程弹窗的方法
+    private void showToast(final String message) {
+        new Handler(Looper.getMainLooper()).post(() -> {
+            try {
+                Context context = App.get();
+                if (context != null) {
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
                 }
-            }
-        } catch (URISyntaxException e) {
-            return m3u8Content;
-        }
-        return finalContent.toString();
+            } catch (Exception e) {}
+        });
     }
-
-    private String readResponse(Response response) throws IOException {
-        if (response.body() == null) return "";
-        InputStream inputStream = response.body().byteStream();
-        if ("gzip".equalsIgnoreCase(response.header("Content-Encoding"))) {
-            inputStream = new GZIPInputStream(inputStream);
-        }
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-        StringBuilder contentBuilder = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            contentBuilder.append(line).append("\n");
-        }
-        return contentBuilder.toString();
-    }
+    
+    private String fixPaths(String m3u8Content, String baseUrl) { StringBuilder finalContent = new StringBuilder(); String[] lines = m3u8Content.split("\n"); try { URI baseUri = new URI(baseUrl); for (String line : lines) { if (!line.startsWith("#") && !line.startsWith("http")) { finalContent.append(baseUri.resolve(line).toString()).append("\n"); } else { finalContent.append(line).append("\n"); } } } catch (URISyntaxException e) { return m3u8Content; } return finalContent.toString(); }
 }
