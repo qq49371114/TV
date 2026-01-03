@@ -30,10 +30,9 @@ public class AdFilter implements Interceptor {
     @NonNull @Override public Response intercept(@NonNull Chain chain) throws IOException {
         // ✨✨✨ 核心改变一：云端远程激活验证！ ✨✨✨
         // 如果“凤凰之心”尚未激活，我们直接放行所有请求，不做任何处理！
-        if (!AdSwitch.get().isActivated()) {
-            return chain.proceed(chain.request());
-        }
-
+        if (!AdSwitch.get().isOn()) {
+        return chain.proceed(chain.request());
+    }
         Request request = chain.request();
         String url = request.url().toString();
         if (AdRule.get().isAd(null, url)) {
