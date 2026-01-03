@@ -71,7 +71,7 @@ public class App extends Application implements Application.ActivityLifecycleCal
         // ✨✨✨ 在这里，我们新开一个线程，去完成“先唤醒，再站岗”的壮举！✨✨✨
         new Thread(() -> {
             // 1. ✨ 先把“大喇叭”(this)递给“大脑”！
-            AdRule.get().init(this);
+            AdRule.get().init(getApplicationContext());
 
             // 2. 再让“大脑”去加载规则！
             String ruleUrl = "http://47.109.61.116:86/apk/ad_rules.json"; 
