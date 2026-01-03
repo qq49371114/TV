@@ -30,6 +30,7 @@ public class AdRule {
     private static final String KEY_ETAG = "etag";
     private static final String KEY_LAST_MODIFIED = "last_modified";
     private static final String KEY_CONFIG_URL = "config_url";
+
     private static final AdRule instance = new AdRule();
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final List<String> ads = new CopyOnWriteArrayList<>();
@@ -37,17 +38,15 @@ public class AdRule {
     private CountDownLatch latch = new CountDownLatch(1);
     private SharedPreferences prefs;
     private final OkHttpClient internalClient = new OkHttpClient();
+
     private int maxAdTsCount = 10;
     private double maxAdDuration = 60.0;
-    private Context appContext; // ✨ 我们需要一个地方来存放“大喇叭”
 
     private AdRule() {}
     public static AdRule get() { return instance; }
 
-    // ✨✨✨ 在这里！我们把那个被我删掉的“接收器”给加回来！ ✨✨✨
     public void init(Context context) {
-        this.appContext = context.getApplicationContext();
-        this.prefs = appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        this.prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         loadRulesFromPrefs();
         fetchConfig();
     }
@@ -97,14 +96,5 @@ public class AdRule {
     public boolean isAd(String extinfLine, String urlLine) { try { latch.await(2, TimeUnit.SECONDS); } catch (InterruptedException e) { return false; } if (urlLine != null && !urlLine.trim().isEmpty()) { for (String keyword : ads) { if (urlLine.contains(keyword)) return true; } } if (extinfLine != null && !durations.isEmpty()) { try { String duration = extinfLine.substring(extinfLine.indexOf(":") + 1, extinfLine.lastIndexOf(",")).trim(); if (durations.contains(duration)) return true; } catch (Exception e) { } } return false; }
     public int getMaxAdTsCount() { return maxAdTsCount; }
     public double getMaxAdDuration() { return maxAdDuration; }
-    
-    // ✨ 我们用我们自己的“大喇叭”来喊话！
-    private void showToast(final String message) {
-        if (appContext == null) return;
-        new Handler(Looper.getMainLooper()).post(() -> {
-            try {
-                Toast.makeText(appContext, message, Toast.LENGTH_LONG).show();
-            } catch (Exception e) {}
-        });
-    }
+    private void showToast(final String message) { Context context = App.get(); if (context == null) return; new Handler(Looper.getMainLooper()).post(() -> { try { Toast.makeText(context, message, Toast.LENGTH_LONG).show(); } catch (Exception e) {} }); }
 }
