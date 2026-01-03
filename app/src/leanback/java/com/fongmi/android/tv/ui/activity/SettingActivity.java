@@ -100,7 +100,9 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         setCacheText();
         setOtherText();
         // --- 原来代码结束 ---
-
+        // ↓↓↓ 在这里，添加我们的新代码！↓↓↓
+            // 智能地显示允许时段
+        mBinding.timeSlotsTextView.setText(TimeLockUtils.getTodayAllowedSlotsText(this));
         // --- ✨↓ 我们现在只需要这两行新代码！↓✨ ---
         // 1. 初始化我们的“小本本”，给后面的“总开关”用
         mPrefs = getSharedPreferences("app_lock_prefs", MODE_PRIVATE);
@@ -168,8 +170,11 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
                 }).show(getSupportFragmentManager(), "SuperPassword");
             }
         });
-        // --- ✨↑ 新功能结束 ↑✨ ---
-    }
+        // 2. 为我们新增的“退出”按钮绑定事件
+                mBinding.exitButton.setOnClickListener(v -> {
+                    finishAffinity(); // 调用这个最标准的方法，彻底关闭App
+                });
+        }
     
     @Override
     public void setConfig(Config config) {
