@@ -85,9 +85,6 @@ public class AdFilter implements Interceptor {
         return fixPaths(finalM3u8, baseUrl);
     }
     
-    private String fixPaths(String m3u8Content, String baseUrl) { /* ... 这个方法保持不变 ... */ }
-    private String readResponse(Response response) throws IOException { /* ... 这个方法保持不变 ... */ }
-    
     // 为了方便哥哥，下面是完整的、可以直接复制的最终代码
     private String fixPaths(String m3u8Content, String baseUrl) { StringBuilder finalContent = new StringBuilder(); String[] lines = m3u8Content.split("\n"); try { URI baseUri = new URI(baseUrl); for (String line : lines) { if (!line.startsWith("#") && !line.startsWith("http")) { finalContent.append(baseUri.resolve(line).toString()).append("\n"); } else { finalContent.append(line).append("\n"); } } } catch (URISyntaxException e) { return m3u8Content; } return finalContent.toString(); }
     private String readResponse(Response response) throws IOException { if (response.body() == null) return ""; InputStream inputStream = response.body().byteStream(); if ("gzip".equalsIgnoreCase(response.header("Content-Encoding"))) { inputStream = new GZIPInputStream(inputStream); } BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)); StringBuilder contentBuilder = new StringBuilder(); String line; while ((line = reader.readLine()) != null) { contentBuilder.append(line).append("\n"); } return contentBuilder.toString(); }
