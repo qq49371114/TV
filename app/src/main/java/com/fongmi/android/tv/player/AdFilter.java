@@ -21,7 +21,7 @@ import okhttp3.ResponseBody;
 
 public class AdFilter implements Interceptor {
     @NonNull @Override public Response intercept(@NonNull Chain chain) throws IOException {
-        if (!AdSwitch.get().isActivated()) return chain.proceed(chain.request());
+        if (!AdSwitch.get().isOn()) return chain.proceed(chain.request());
         Request request = chain.request();
         String url = request.url().toString();
         if (AdRule.get().isAd(null, url)) {
