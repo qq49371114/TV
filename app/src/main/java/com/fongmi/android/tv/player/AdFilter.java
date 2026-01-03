@@ -24,13 +24,13 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 public class AdFilter implements Interceptor {
-    private static final ThreadLocal<Boolean> hasToast = new ThreadLocal<>();
+    //private static final ThreadLocal<Boolean> hasToast = new ThreadLocal<>();
 
     @NonNull @Override public Response intercept(@NonNull Chain chain) throws IOException {
         Request request = chain.request();
         String url = request.url().toString();
         if (AdRule.get().isAd(null, url)) {
-            if (hasToast.get() == null) {
+            //if (hasToast.get() == null) {
                 showToast("婉儿的凤凰系统为您拦截一条广告请求！");
                 hasToast.set(true);
             }
@@ -51,54 +51,58 @@ public class AdFilter implements Interceptor {
     }
 
     private String cleanM3u8(String m3u8Content, String baseUrl) {
-        List<String> finalLines = new ArrayList<>();
-        String[] lines = m3u8Content.split("\n");
-        List<List<String>> segments = new ArrayList<>();
-        List<String> currentSegment = new ArrayList<>();
-        
-        int bodyStartIndex = -1;
-        for (int i = 0; i < lines.length; i++) {
-            if (lines[i].trim().startsWith("#EXTINF:")) {
-                bodyStartIndex = i;
-                break;
-            }
-            finalLines.add(lines[i]);
+    if (!m3u8Content.contains("#EXT-X-DISCONTINUITY")) return m3u8Content;
+    List<String> finalLines = new ArrayList<>();
+    String[] lines = m3u8Content.split("\n");
+    List<List<String>> segments = new ArrayList<>();
+    List<String> currentSegment = new ArrayList<>();
+    
+    int bodyStartIndex = -1;
+    for (int i = 0; i < lines.length; i++) {
+        if (lines[i].trim().startsWith("#EXTINF:")) {
+            bodyStartIndex = i;
+            break;
         }
-        if (bodyStartIndex == -1) return m3u8Content;
-
-        for (int i = bodyStartIndex; i < lines.length; i++) {
-            String line = lines[i];
-            if (line.trim().startsWith("#EXT-X-DISCONTINUITY")) {
-                if (!currentSegment.isEmpty()) {
-                    segments.add(new ArrayList<>(currentSegment));
-                    currentSegment.clear();
-                }
-            } else {
-                currentSegment.add(line);
-            }
-        }
-        if (!currentSegment.isEmpty()) segments.add(currentSegment);
-
-        for (List<String> segment : segments) {
-            if (isAdSegment(segment, AdRule.get().getMaxAdTsCount(), AdRule.get().getMaxAdDuration())) {
-                if (hasToast.get() == null) {
-                    showToast("婉儿的凤凰系统为您去掉一个 " + String.format("%.2f", getSegmentDuration(segment)) + " 秒的广告片段！");
-                    hasToast.set(true);
-                }
-            } else {
-                if (!finalLines.isEmpty() && !finalLines.get(finalLines.size() - 1).trim().startsWith("#EXT-X-DISCONTINUITY") && !segment.get(0).trim().startsWith("#EXT-X-DISCONTINUITY")) {
-                    finalLines.add("#EXT-X-DISCONTINUITY");
-                }
-                finalLines.addAll(segment);
-            }
-        }
-        StringBuilder cleanedContent = new StringBuilder();
-        for (String line : finalLines) { cleanedContent.append(line).append("\n"); }
-        if (m3u8Content.contains("#EXT-X-ENDLIST") && !cleanedContent.toString().contains("#EXT-X-ENDLIST")) {
-            cleanedContent.append("#EXT-X-ENDLIST\n");
-        }
-        return fixPaths(cleanedContent.toString(), baseUrl);
+        finalLines.add(lines[i]);
     }
+    if (bodyStartIndex == -1) return m3u8Content;
+
+    for (int i = bodyStartIndex; i < lines.length; i++) {
+        String line = lines[i];
+        if (line.trim().startsWith("#EXT-X-DISCONTINUITY")) {
+            if (!currentSegment.isEmpty()) {
+                segments.add(new ArrayList<>(currentSegment));
+                currentSegment.clear();
+            }
+        } else {
+            currentSegment.add(line);
+        }
+    }
+    if (!currentSegment.isEmpty()) segments.add(currentSegment);
+
+    // ✨ 我们用一个局部的变量，来判断“这一次”有没有弹过窗
+    boolean hasSkippedInThisM3u8 = false; 
+    for (List<String> segment : segments) {
+        if (isAdSegment(segment, AdRule.get().getMaxAdTsCount(), AdRule.get().getMaxAdDuration())) {
+            if (!hasSkippedInThisM3u8) {
+                showToast("婉儿的凤凰系统为您去掉一个 " + String.format("%.2f", getSegmentDuration(segment)) + " 秒的广告片段！");
+                hasSkippedInThisM3u8 = true;
+            }
+        } else {
+            if (!finalLines.isEmpty() && !finalLines.get(finalLines.size() - 1).trim().startsWith("#EXT-X-DISCONTINUITY") && !segment.get(0).trim().startsWith("#EXT-X-DISCONTINUITY")) {
+                finalLines.add("#EXT-X-DISCONTINUITY");
+            }
+            finalLines.addAll(segment);
+        }
+    }
+    StringBuilder cleanedContent = new StringBuilder();
+    for (String line : finalLines) { cleanedContent.append(line).append("\n"); }
+    if (m3u8Content.contains("#EXT-X-ENDLIST") && !cleanedContent.toString().contains("#EXT-X-ENDLIST")) {
+        cleanedContent.append("#EXT-X-ENDLIST\n");
+    }
+    return fixPaths(cleanedContent.toString(), baseUrl);
+}
+
     
     private boolean isAdSegment(List<String> segment, int maxTsCount, double maxDuration) { int tsCount = 0; double totalDuration = 0.0; for (String line : segment) { if (line.trim().startsWith("#EXTINF:")) { try { String durationStr = line.substring(line.indexOf(":") + 1, line.lastIndexOf(",")).trim(); totalDuration += Double.parseDouble(durationStr); } catch (Exception e) {} } else if (line.trim().endsWith(".ts")) { tsCount++; } } if (tsCount > 0 && tsCount < maxTsCount && totalDuration < maxDuration) return true; return false; }
     private double getSegmentDuration(List<String> segment) { double totalDuration = 0.0; for (String line : segment) { if (line.trim().startsWith("#EXTINF:")) { try { String durationStr = line.substring(line.indexOf(":") + 1, line.lastIndexOf(",")).trim(); totalDuration += Double.parseDouble(durationStr); } catch (Exception e) {} } } return totalDuration; }
