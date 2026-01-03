@@ -131,49 +131,105 @@ public class TimeLockUtils {
         return !jsonCache.isEmpty();
     }
 
+    public static String getTodayAllowedSlotsText(Context context) {
+    SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+    String json = prefs.getString(KEY_TIME_SLOTS_JSON_CACHE, null);
+    if (json == null) return "允许时段：未设置";
+
+    try {
+        Type type = new TypeToken<ArrayList<TimeSlot>>() {}.getType();
+        List<TimeSlot> allSlots = new Gson().fromJson(json, type);
+
+        if (allSlots == null || allSlots.isEmpty()) {
+            return "允许时段：未设置";
+        }
+
+        Calendar current = Calendar.getInstance();
+        int dayOfWeek = current.get(Calendar.DAY_OF_WEEK);
+        int ourDayOfWeek = (dayOfWeek == Calendar.SUNDAY) ? 0 : dayOfWeek - 1;
+
+        StringBuilder sb = new StringBuilder();
+        for (TimeSlot slot : allSlots) {
+            if (slot.getDays() != null && slot.getDays().contains(ourDayOfWeek)) {
+                if (sb.length() > 0) {
+                    sb.append(", ");
+                }
+                // 格式化时间，保证是两位数，比如 08:05
+                String startTime = String.format("%02d:%02d", slot.getStartHour(), slot.getStartMinute());
+                String endTime = String.format("%02d:%02d", slot.getEndHour(), slot.getEndMinute());
+                sb.append(startTime).append("-").append(endTime);
+            }
+        }
+
+        if (sb.length() == 0) {
+            return "今天没有允许的时段";
+        } else {
+            return "允许时段：" + sb.toString();
+        }
+    } catch (Exception e) {
+        return "允许时段：规则解析错误";
+    }
+}
+
     public static boolean isAllowedTime(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+    SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
-        if (!prefs.getBoolean(KEY_LOCK_ENABLED, true)) {
-            return true;
-        }
+    if (!prefs.getBoolean(KEY_LOCK_ENABLED, true)) {
+        return true;
+    }
 
-        if (!isConfigReady(context)) {
-            return false; // 如果配置没准备好，就直接锁定！
-        }
+    if (!isConfigReady(context)) {
+        return false;
+    }
 
-        String json = prefs.getString(KEY_TIME_SLOTS_JSON_CACHE, null);
-        try {
-            Type type = new TypeToken<ArrayList<TimeSlot>>() {}.getType();
-            List<TimeSlot> allowedSlots = new Gson().fromJson(json, type);
+    String json = prefs.getString(KEY_TIME_SLOTS_JSON_CACHE, null);
+    try {
+        // --- 核心修改1：我们的数据模型现在是 TimeSlot ---
+        Type type = new TypeToken<ArrayList<TimeSlot>>() {}.getType();
+        List<TimeSlot> allowedSlots = new Gson().fromJson(json, type);
 
-            if (allowedSlots == null || allowedSlots.isEmpty()) {
-                return false;
-            }
-
-            Calendar current = Calendar.getInstance();
-            int currentTimeInMinutes = current.get(Calendar.HOUR_OF_DAY) * 60 + current.get(Calendar.MINUTE);
-
-            for (TimeSlot slot : allowedSlots) {
-                int startTimeInMinutes = slot.startHour * 60 + slot.startMinute;
-                int endTimeInMinutes = slot.endHour * 60 + slot.endMinute;
-
-                boolean isWithinSlot;
-                if (startTimeInMinutes > endTimeInMinutes) {
-                    isWithinSlot = currentTimeInMinutes >= startTimeInMinutes || currentTimeInMinutes < endTimeInMinutes;
-                } else {
-                    isWithinSlot = currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes;
-                }
-
-                if (isWithinSlot) {
-                    return true;
-                }
-            }
-        } catch (Exception e) {
-            showToast(context, "错误：解析时间段JSON失败！");
+        if (allowedSlots == null || allowedSlots.isEmpty()) {
             return false;
         }
 
+        Calendar current = Calendar.getInstance();
+        
+        // --- 核心修改2：获取今天的星期 ---
+        // Java的Calendar里，周日是1，周一是2...周六是7。我们需要转换一下。
+        int dayOfWeek = current.get(Calendar.DAY_OF_WEEK);
+        // 转换为我们约定的：周一=1, 周二=2, ..., 周六=6, 周日=0
+        int ourDayOfWeek = (dayOfWeek == Calendar.SUNDAY) ? 0 : dayOfWeek - 1;
+
+        int currentTimeInMinutes = current.get(Calendar.HOUR_OF_DAY) * 60 + current.get(Calendar.MINUTE);
+
+        for (TimeSlot slot : allowedSlots) {
+            // --- 核心修改3：进行“双重匹配”！---
+            
+            // 1. 先判断星期匹不匹配
+            if (slot.getDays() == null || !slot.getDays().contains(ourDayOfWeek)) {
+                continue; // 如果这条规则不包含今天，就直接跳过，看下一条规则
+            }
+
+            // 2. 如果星期匹配上了，再判断时间
+            int startTimeInMinutes = slot.getStartHour() * 60 + slot.getStartMinute();
+            int endTimeInMinutes = slot.getEndHour() * 60 + slot.getEndMinute();
+
+            boolean isWithinSlot;
+            if (startTimeInMinutes > endTimeInMinutes) { // 跨天时间段
+                isWithinSlot = currentTimeInMinutes >= startTimeInMinutes || currentTimeInMinutes < endTimeInMinutes;
+            } else {
+                isWithinSlot = currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes;
+            }
+
+            if (isWithinSlot) {
+                return true; // 只要找到任何一条完全匹配的规则，就立刻返回true！
+            }
+        }
+    } catch (Exception e) {
+        showToast(context, "错误：解析时间段JSON失败！");
         return false;
     }
+
+    return false; // 如果遍历完所有规则，都没找到匹配的，就返回false
+  }
 }
