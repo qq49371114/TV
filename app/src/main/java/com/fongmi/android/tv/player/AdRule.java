@@ -19,6 +19,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import okhttp3.OkHttpClient; // ✨ 1. 引入我们需要的“私人飞机”
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class AdRule {
     private static final String PREFS_NAME = "ad_rule_prefs";
@@ -34,7 +37,9 @@ public class AdRule {
     private CountDownLatch latch = new CountDownLatch(1);
     private SharedPreferences prefs;
 
-    // ✨ 我们为“智能参数”准备好了变量，并赋予了默认值！
+    // ✨✨✨ 2. 为“大脑”配备一个专属的、干净的“私人飞机”！✨✨✨
+    private final OkHttpClient internalClient = new OkHttpClient();
+
     private int maxAdTsCount = 10;
     private double maxAdDuration = 60.0;
 
@@ -57,31 +62,28 @@ public class AdRule {
         latch = new CountDownLatch(1);
         executor.execute(() -> {
             try {
-                URL url = new URL(urlString);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setConnectTimeout(5000);
-                connection.setReadTimeout(5000);
+                // ✨✨✨ 3. 不再用HttpURLConnection，而是用我们自己的“私人飞机”去取货！✨✨✨
+                Request.Builder requestBuilder = new Request.Builder().url(urlString);
                 String etag = prefs.getString(KEY_ETAG, "");
                 String lastModified = prefs.getString(KEY_LAST_MODIFIED, "");
-                if (!etag.isEmpty()) connection.setRequestProperty("If-None-Match", etag);
-                if (!lastModified.isEmpty()) connection.setRequestProperty("If-Modified-Since", lastModified);
+                if (!etag.isEmpty()) requestBuilder.header("If-None-Match", etag);
+                if (!lastModified.isEmpty()) requestBuilder.header("If-Modified-Since", lastModified);
+                
+                Response response = internalClient.newCall(requestBuilder.build()).execute();
 
-                if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_MODIFIED) {
+                if (response.code() == 304) { // HTTP_NOT_MODIFIED
                     latch.countDown();
                     return;
                 }
 
-                StringBuilder content = new StringBuilder();
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) { content.append(line).append("\n"); }
-                } finally {
-                    connection.disconnect();
+                if (!response.isSuccessful() || response.body() == null) {
+                    throw new IOException("Failed to fetch rules: " + response.code());
                 }
 
-                String newEtag = connection.getHeaderField("ETag");
-                String newLastModified = connection.getHeaderField("Last-Modified");
-                prefs.edit().putString(KEY_RULES_JSON_CACHE, content.toString()).putString(KEY_ETAG, newEtag != null ? newEtag : "").putString(KEY_LAST_MODIFIED, newLastModified != null ? newLastModified : "").apply();
+                String content = response.body().string();
+                String newEtag = response.header("ETag");
+                String newLastModified = response.header("Last-Modified");
+                prefs.edit().putString(KEY_RULES_JSON_CACHE, content).putString(KEY_ETAG, newEtag != null ? newEtag : "").putString(KEY_LAST_MODIFIED, newLastModified != null ? newLastModified : "").apply();
                 
                 showToast("云端去广告规则更新成功！");
 
@@ -95,51 +97,12 @@ public class AdRule {
         });
     }
 
+    // ... 其他所有的方法，都保持我们之前的全功能版不变 ...
     private void loadRulesFromPrefs() { String json = prefs.getString(KEY_RULES_JSON_CACHE, null); if (json != null) { try { String url = prefs.getString(KEY_CONFIG_URL, ""); if (url.endsWith(".txt")) parseTxt(json); else parseJson(json); } catch (Exception e) {} } }
     public static void setConfigUrl(String url) { SharedPreferences p = App.get().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE); p.edit().putString(KEY_CONFIG_URL, url).apply(); get().fetchConfig(); }
     private void parseTxt(String content) { List<String> newAds = new ArrayList<>(); String[] lines = content.split("\n"); for (String line : lines) { String trimmedLine = line.trim(); if (!trimmedLine.isEmpty() && !trimmedLine.startsWith("#")) newAds.add(trimmedLine); } ads.clear(); ads.addAll(newAds); durations.clear(); }
-    
-    // ✨✨✨ 核心改变！让它能完美解析带“智能参数”的JSON！ ✨✨✨
-    private void parseJson(String content) throws Exception {
-        JSONObject jsonObject = new JSONObject(content);
-        if (jsonObject.has("keywords")) {
-            JSONArray keywordsArray = jsonObject.getJSONArray("keywords");
-            List<String> newAds = new ArrayList<>();
-            for (int i = 0; i < keywordsArray.length(); i++) { newAds.add(keywordsArray.getString(i)); }
-            ads.clear();
-            ads.addAll(newAds);
-        }
-        if (jsonObject.has("durations")) {
-            JSONArray durationsArray = jsonObject.getJSONArray("durations");
-            List<String> newDurations = new ArrayList<>();
-            for (int i = 0; i < durationsArray.length(); i++) { newDurations.add(durationsArray.getString(i)); }
-            durations.clear();
-            durations.addAll(newDurations);
-        }
-        if (jsonObject.has("maxAdTsCount")) maxAdTsCount = jsonObject.getInt("maxAdTsCount");
-        if (jsonObject.has("maxAdDuration")) maxAdDuration = jsonObject.getDouble("maxAdDuration");
-    }
-    
-    public boolean isAd(String extinfLine, String urlLine) {
-        try {
-            latch.await(2, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            return false;
-        }
-        if (urlLine != null && !urlLine.trim().isEmpty()) {
-            for (String keyword : ads) {
-                if (urlLine.contains(keyword)) return true;
-            }
-        }
-        if (extinfLine != null && !durations.isEmpty()) {
-            try {
-                String duration = extinfLine.substring(extinfLine.indexOf(":") + 1, extinfLine.lastIndexOf(",")).trim();
-                if (durations.contains(duration)) return true;
-            } catch (Exception e) { }
-        }
-        return false;
-    }
-    
+    private void parseJson(String content) throws Exception { JSONObject jsonObject = new JSONObject(content); if (jsonObject.has("keywords")) { JSONArray keywordsArray = jsonObject.getJSONArray("keywords"); List<String> newAds = new ArrayList<>(); for (int i = 0; i < keywordsArray.length(); i++) { newAds.add(keywordsArray.getString(i)); } ads.clear(); ads.addAll(newAds); } if (jsonObject.has("durations")) { JSONArray durationsArray = jsonObject.getJSONArray("durations"); List<String> newDurations = new ArrayList<>(); for (int i = 0; i < durationsArray.length(); i++) { newDurations.add(durationsArray.getString(i)); } durations.clear(); durations.addAll(newDurations); } if (jsonObject.has("maxAdTsCount")) maxAdTsCount = jsonObject.getInt("maxAdTsCount"); if (jsonObject.has("maxAdDuration")) maxAdDuration = jsonObject.getDouble("maxAdDuration"); }
+    public boolean isAd(String extinfLine, String urlLine) { try { latch.await(2, TimeUnit.SECONDS); } catch (InterruptedException e) { return false; } if (urlLine != null && !urlLine.trim().isEmpty()) { for (String keyword : ads) { if (urlLine.contains(keyword)) return true; } } if (extinfLine != null && !durations.isEmpty()) { try { String duration = extinfLine.substring(extinfLine.indexOf(":") + 1, extinfLine.lastIndexOf(",")).trim(); if (durations.contains(duration)) return true; } catch (Exception e) { } } return false; }
     public int getMaxAdTsCount() { return maxAdTsCount; }
     public double getMaxAdDuration() { return maxAdDuration; }
     private void showToast(final String message) { Context context = App.get(); if (context == null) return; new Handler(Looper.getMainLooper()).post(() -> { try { Toast.makeText(context, message, Toast.LENGTH_LONG).show(); } catch (Exception e) {} }); }
