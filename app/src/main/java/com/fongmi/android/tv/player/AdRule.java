@@ -6,7 +6,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.widget.Toast;
 import com.fongmi.android.tv.App;
-import com.google.gson.Gson;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.BufferedReader;
@@ -31,9 +30,12 @@ public class AdRule {
     private static final AdRule instance = new AdRule();
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final List<String> ads = new CopyOnWriteArrayList<>();
-    private final List<String> durations = new CopyOnWriteArrayList<>(); // ✨ 我们需要这个来存放时长规则！
+    private final List<String> durations = new CopyOnWriteArrayList<>();
     private CountDownLatch latch = new CountDownLatch(1);
     private SharedPreferences prefs;
+
+    private int maxAdTsCount = 10;
+    private double maxAdDuration = 60.0;
 
     private AdRule() {}
     public static AdRule get() { return instance; }
@@ -58,7 +60,6 @@ public class AdRule {
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setConnectTimeout(5000);
                 connection.setReadTimeout(5000);
-
                 String etag = prefs.getString(KEY_ETAG, "");
                 String lastModified = prefs.getString(KEY_LAST_MODIFIED, "");
                 if (!etag.isEmpty()) connection.setRequestProperty("If-None-Match", etag);
@@ -79,11 +80,7 @@ public class AdRule {
 
                 String newEtag = connection.getHeaderField("ETag");
                 String newLastModified = connection.getHeaderField("Last-Modified");
-                prefs.edit()
-                     .putString(KEY_RULES_JSON_CACHE, content.toString())
-                     .putString(KEY_ETAG, newEtag != null ? newEtag : "")
-                     .putString(KEY_LAST_MODIFIED, newLastModified != null ? newLastModified : "")
-                     .apply();
+                prefs.edit().putString(KEY_RULES_JSON_CACHE, content.toString()).putString(KEY_ETAG, newEtag != null ? newEtag : "").putString(KEY_LAST_MODIFIED, newLastModified != null ? newLastModified : "").apply();
                 
                 showToast("云端去广告规则更新成功！");
 
@@ -100,51 +97,9 @@ public class AdRule {
     private void loadRulesFromPrefs() { String json = prefs.getString(KEY_RULES_JSON_CACHE, null); if (json != null) { try { String url = prefs.getString(KEY_CONFIG_URL, ""); if (url.endsWith(".txt")) parseTxt(json); else parseJson(json); } catch (Exception e) {} } }
     public static void setConfigUrl(String url) { SharedPreferences p = App.get().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE); p.edit().putString(KEY_CONFIG_URL, url).apply(); get().fetchConfig(); }
     private void parseTxt(String content) { List<String> newAds = new ArrayList<>(); String[] lines = content.split("\n"); for (String line : lines) { String trimmedLine = line.trim(); if (!trimmedLine.isEmpty() && !trimmedLine.startsWith("#")) newAds.add(trimmedLine); } ads.clear(); ads.addAll(newAds); durations.clear(); }
-    
-    // ✨✨✨ 核心改变！让它能完美解析带时长规则的JSON！ ✨✨✨
-    private void parseJson(String content) throws Exception {
-        JSONObject jsonObject = new JSONObject(content);
-        if (jsonObject.has("keywords")) {
-            JSONArray keywordsArray = jsonObject.getJSONArray("keywords");
-            List<String> newAds = new ArrayList<>();
-            for (int i = 0; i < keywordsArray.length(); i++) {
-                newAds.add(keywordsArray.getString(i));
-            }
-            ads.clear();
-            ads.addAll(newAds);
-        }
-        if (jsonObject.has("durations")) {
-            JSONArray durationsArray = jsonObject.getJSONArray("durations");
-            List<String> newDurations = new ArrayList<>();
-            for (int i = 0; i < durationsArray.length(); i++) {
-                newDurations.add(durationsArray.getString(i));
-            }
-            durations.clear();
-            durations.addAll(newDurations);
-        }
-    }
-    
-    // ✨ 我们保留这个最强大的、能接收两个参数的 isAd 方法！
-    public boolean isAd(String extinfLine, String urlLine) {
-        try {
-            latch.await(2, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            return false;
-        }
-        if (urlLine != null && !urlLine.trim().isEmpty()) {
-            for (String keyword : ads) {
-                if (urlLine.contains(keyword)) return true;
-            }
-        }
-        // ✨✨✨ 在这里，我们实现了对“时长”的判断！ ✨✨✨
-        if (extinfLine != null && !durations.isEmpty()) {
-            try {
-                String duration = extinfLine.substring(extinfLine.indexOf(":") + 1, extinfLine.lastIndexOf(",")).trim();
-                if (durations.contains(duration)) return true;
-            } catch (Exception e) { }
-        }
-        return false;
-    }
-    
+    private void parseJson(String content) throws Exception { JSONObject jsonObject = new JSONObject(content); if (jsonObject.has("keywords")) { JSONArray keywordsArray = jsonObject.getJSONArray("keywords"); List<String> newAds = new ArrayList<>(); for (int i = 0; i < keywordsArray.length(); i++) { newAds.add(keywordsArray.getString(i)); } ads.clear(); ads.addAll(newAds); } if (jsonObject.has("durations")) { JSONArray durationsArray = jsonObject.getJSONArray("durations"); List<String> newDurations = new ArrayList<>(); for (int i = 0; i < durationsArray.length(); i++) { newDurations.add(durationsArray.getString(i)); } durations.clear(); durations.addAll(newDurations); } if (jsonObject.has("maxAdTsCount")) maxAdTsCount = jsonObject.getInt("maxAdTsCount"); if (jsonObject.has("maxAdDuration")) maxAdDuration = jsonObject.getDouble("maxAdDuration"); }
+    public boolean isAd(String extinfLine, String urlLine) { try { latch.await(2, TimeUnit.SECONDS); } catch (InterruptedException e) { return false; } if (urlLine != null && !urlLine.trim().isEmpty()) { for (String keyword : ads) { if (urlLine.contains(keyword)) return true; } } if (extinfLine != null && !durations.isEmpty()) { try { String duration = extinfLine.substring(extinfLine.indexOf(":") + 1, extinfLine.lastIndexOf(",")).trim(); if (durations.contains(duration)) return true; } catch (Exception e) { } } return false; }
+    public int getMaxAdTsCount() { return maxAdTsCount; }
+    public double getMaxAdDuration() { return maxAdDuration; }
     private void showToast(final String message) { Context context = App.get(); if (context == null) return; new Handler(Looper.getMainLooper()).post(() -> { try { Toast.makeText(context, message, Toast.LENGTH_LONG).show(); } catch (Exception e) {} }); }
 }
