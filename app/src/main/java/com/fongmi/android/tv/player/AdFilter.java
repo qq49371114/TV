@@ -2,7 +2,7 @@ package com.fongmi.android.tv.player;
 
 import androidx.annotation.NonNull;
 import com.fongmi.android.tv.player.AdRule;
-import com.fongmi.android.tv.player.AdSwitch;
+//import com.fongmi.android.tv.player.AdSwitch;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -21,7 +21,7 @@ import okhttp3.ResponseBody;
 
 public class AdFilter implements Interceptor {
     @NonNull @Override public Response intercept(@NonNull Chain chain) throws IOException {
-        if (!AdSwitch.get().isActivated()) return chain.proceed(chain.request());
+        //if (!AdSwitch.get().isActivated()) return chain.proceed(chain.request());
         Request request = chain.request();
         String url = request.url().toString();
         if (AdRule.get().isAd(null, url)) {
