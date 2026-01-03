@@ -7,6 +7,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.player.AdRule;
+//import com.fongmi.android.tv.player.AdSwitch;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -24,45 +25,27 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 public class AdFilter implements Interceptor {
-    private static final ThreadLocal<Boolean> hasToast = new ThreadLocal<>();
+    // ✨✨✨ 核心改变！我们彻底拆除了那个有问题的ThreadLocal！✨✨✨
+    // private static final ThreadLocal<Boolean> hasToast = new ThreadLocal<>();
 
     @NonNull @Override public Response intercept(@NonNull Chain chain) throws IOException {
+        //if (!AdSwitch.get().isActivated()) {
+           // return chain.proceed(chain.request());
+        //}
         Request request = chain.request();
         String url = request.url().toString();
-
-        // 1. ✨ URL预判，执行“源头扼杀”战术！
         if (AdRule.get().isAd(null, url)) {
-            // ✨✨✨ 核心修复！return语句必须在if的大括号里面！ ✨✨✨
-            if (hasToast.get() == null) {
-                showToast("婉儿的凤凰系统为您拦截一条广告请求！");
-                hasToast.set(true);
-            }
-            return new Response.Builder()
-                    .request(request)
-                    .protocol(okhttp3.Protocol.HTTP_2)
-                    .code(200)
-                    .message("Blocked by AdFilter")
-                    .body(ResponseBody.create("", null))
-                    .build();
+            // ✨ 我们让“源头扼杀”也每次都弹窗！
+            showToast("婉儿的凤凰系统为您拦截一条广告请求！");
+            return new Response.Builder().request(request).protocol(okhttp3.Protocol.HTTP_2).code(200).message("Blocked").body(ResponseBody.create("", null)).build();
         }
-
-        // 2. ✨ 如果不是M3U8，或者不是广告API，直接放行！
-        if (!url.contains(".m3u8")) {
-            return chain.proceed(request);
-        }
-
-        // --- 只有M3U8文件，才能走到这里，接受“深度清洗” ---
+        if (!url.contains(".m3u8")) return chain.proceed(request);
         Response response = chain.proceed(request);
-        if (!response.isSuccessful() || response.body() == null) {
-            return response;
-        }
-
+        if (!response.isSuccessful() || response.body() == null) return response;
         try {
             String m3u8Content = readResponse(response);
             String cleanedM3u8 = cleanM3u8(m3u8Content, url);
-            if (!cleanedM3u8.contains(".ts")) {
-                cleanedM3u8 = m3u8Content;
-            }
+            if (!cleanedM3u8.contains(".ts")) cleanedM3u8 = m3u8Content;
             ResponseBody cleanedBody = ResponseBody.create(cleanedM3u8, response.body().contentType());
             return response.newBuilder().body(cleanedBody).build();
         } catch (Exception e) {
@@ -102,10 +85,8 @@ public class AdFilter implements Interceptor {
 
         for (List<String> segment : segments) {
             if (isAdSegment(segment, AdRule.get().getMaxAdTsCount(), AdRule.get().getMaxAdDuration())) {
-                if (hasToast.get() == null) {
-                    showToast("婉儿的凤凰系统为您去掉一个 " + String.format("%.2f", getSegmentDuration(segment)) + " 秒的广告片段！");
-                    hasToast.set(true);
-                }
+                // ✨✨✨ 核心改变！我们在这里，每次都弹窗报捷！✨✨✨
+                showToast("婉儿的凤凰系统为您去掉一个 " + String.format("%.2f", getSegmentDuration(segment)) + " 秒的广告片段！");
             } else {
                 if (!finalLines.isEmpty() && finalLines.size() > 1 && !finalLines.get(finalLines.size() - 1).trim().startsWith("#EXT-X-DISCONTINUITY") && !segment.get(0).trim().startsWith("#EXT-X-DISCONTINUITY")) {
                     finalLines.add("#EXT-X-DISCONTINUITY");
