@@ -64,8 +64,8 @@ public class AdRule {
                 if (!etag.isEmpty()) connection.setRequestProperty("If-None-Match", etag);
                 if (!lastModified.isEmpty()) connection.setRequestProperty("If-Modified-Since", lastModified);
 
+                // ✨✨✨ 核心改变！如果文件未变化，我们就不弹窗了，保持安静！✨✨✨
                 if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_MODIFIED) {
-                    showToast("凤凰大脑：规则文件未变化，无需更新！");
                     latch.countDown();
                     return;
                 }
@@ -86,30 +86,26 @@ public class AdRule {
                      .putString(KEY_LAST_MODIFIED, newLastModified != null ? newLastModified : "")
                      .apply();
                 
+                // ✨✨✨ 核心改变！我们只在成功更新后，弹一个最简单的提示！✨✨✨
+                showToast("云端去广告规则更新成功！");
+
                 if (urlString.endsWith(".txt")) parseTxt(content.toString());
                 else parseJson(content.toString());
             } catch (Exception e) {
-                showToast("凤凰大脑加载规则失败：" + e.getMessage());
+                showToast("云端去广告规则更新失败！");
             } finally {
                 latch.countDown();
             }
         });
     }
 
+    // ✨ 我们让解析方法只负责解析，不再弹窗
+    private void parseTxt(String content) { List<String> newAds = new ArrayList<>(); String[] lines = content.split("\n"); for (String line : lines) { String trimmedLine = line.trim(); if (!trimmedLine.isEmpty() && !trimmedLine.startsWith("#")) newAds.add(trimmedLine); } ads.clear(); ads.addAll(newAds); durations.clear(); }
+    private void parseJson(String content) throws Exception { JSONObject jsonObject = new JSONObject(content); if (jsonObject.has("keywords")) { JSONArray keywordsArray = jsonObject.getJSONArray("keywords"); List<String> newAds = new ArrayList<>(); for (int i = 0; i < keywordsArray.length(); i++) { newAds.add(keywordsArray.getString(i)); } ads.clear(); ads.addAll(newAds); } if (jsonObject.has("durations")) { JSONArray durationsArray = jsonObject.getJSONArray("durations"); List<String> newDurations = new ArrayList<>(); for (int i = 0; i < durationsArray.length(); i++) { newDurations.add(durationsArray.getString(i)); } durations.clear(); durations.addAll(newDurations); } }
+    
+    // ... 其他所有的方法，都保持我们之前的全功能版不变 ...
     private void loadRulesFromPrefs() { String json = prefs.getString(KEY_RULES_JSON_CACHE, null); if (json != null) { try { String url = prefs.getString(KEY_CONFIG_URL, ""); if (url.endsWith(".txt")) parseTxt(json); else parseJson(json); } catch (Exception e) {} } }
     public static void setConfigUrl(String url) { SharedPreferences p = App.get().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE); p.edit().putString(KEY_CONFIG_URL, url).apply(); get().fetchConfig(); }
-    private void parseTxt(String content) { List<String> newAds = new ArrayList<>(); String[] lines = content.split("\n"); for (String line : lines) { String trimmedLine = line.trim(); if (!trimmedLine.isEmpty() && !trimmedLine.startsWith("#")) newAds.add(trimmedLine); } ads.clear(); ads.addAll(newAds); durations.clear(); showToast("凤凰大脑已更新 " + ads.size() + " 条 TXT 规则！"); }
-    private void parseJson(String content) throws Exception { JSONObject jsonObject = new JSONObject(content); if (jsonObject.has("keywords")) { JSONArray keywordsArray = jsonObject.getJSONArray("keywords"); List<String> newAds = new ArrayList<>(); for (int i = 0; i < keywordsArray.length(); i++) { newAds.add(keywordsArray.getString(i)); } ads.clear(); ads.addAll(newAds); } if (jsonObject.has("durations")) { JSONArray durationsArray = jsonObject.getJSONArray("durations"); List<String> newDurations = new ArrayList<>(); for (int i = 0; i < durationsArray.length(); i++) { newDurations.add(durationsArray.getString(i)); } durations.clear(); durations.addAll(newDurations); } showToast("凤凰大脑已更新 " + ads.size() + " 条关键字，" + durations.size() + " 条时长规则！"); }
     public boolean isAd(String extinfLine, String urlLine) { try { latch.await(2, TimeUnit.SECONDS); } catch (InterruptedException e) { return false; } if (urlLine != null && !urlLine.trim().isEmpty()) { for (String keyword : ads) { if (urlLine.contains(keyword)) return true; } } if (extinfLine != null && !durations.isEmpty()) { try { String duration = extinfLine.substring(extinfLine.indexOf(":") + 1, extinfLine.lastIndexOf(",")).trim(); if (durations.contains(duration)) return true; } catch (Exception e) { } } return false; }
-    
-    // ✨ 一个用来在主线程弹窗的方法
-    private void showToast(final String message) {
-        Context context = App.get(); // ✨ 我们直接在这里获取Context
-        if (context == null) return;
-        new Handler(Looper.getMainLooper()).post(() -> {
-            try {
-                Toast.makeText(context, message, Toast.LENGTH_LONG).show();
-            } catch (Exception e) {}
-        });
-    }
+    private void showToast(final String message) { Context context = App.get(); if (context == null) return; new Handler(Looper.getMainLooper()).post(() -> { try { Toast.makeText(context, message, Toast.LENGTH_LONG).show(); } catch (Exception e) {} }); }
 }
