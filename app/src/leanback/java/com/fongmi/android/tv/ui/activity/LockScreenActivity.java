@@ -32,6 +32,7 @@ public class LockScreenActivity extends AppCompatActivity {
 
     private EditText passwordEditText;
     private Button unlockButton;
+    private Button exitButton; // <--- 新增的退出按钮变量
     private TextView timeSlotsTextView;
     private RelativeLayout rootLayout;
     private ValueAnimator alphaAnimator;
@@ -48,13 +49,21 @@ public class LockScreenActivity extends AppCompatActivity {
         rootLayout = findViewById(R.id.rootLayout);
         passwordEditText = findViewById(R.id.passwordEditText);
         unlockButton = findViewById(R.id.unlockButton);
+        exitButton = findViewById(R.id.exitButton); // <--- 找到我们新增的退出按钮
         timeSlotsTextView = findViewById(R.id.timeSlotsTextView);
         timeLockSwitch = findViewById(R.id.timeLockSwitch);
         prefs = getSharedPreferences("app_lock_prefs", MODE_PRIVATE);
 
         startBreathingAnimation();
+        
+        // --- 核心修改在这里 ---
+        // 1. 绑定解锁按钮的点击事件
         unlockButton.setOnClickListener(v -> checkPassword());
-        loadAndDisplayTimeSlots();
+        // 2. 绑定退出按钮的点击事件
+        exitButton.setOnClickListener(v -> finishAffinity());
+        // 3. 智能地显示今天的允许时段
+        timeSlotsTextView.setText(TimeLockUtils.getTodayAllowedSlotsText(this));
+        
         setupSwitch();
     }
 
@@ -81,7 +90,6 @@ public class LockScreenActivity extends AppCompatActivity {
     private void checkPassword() {
         String input = passwordEditText.getText().toString();
 
-        // 1. 我们先检查，输入的是不是我们的“超级密码”，作用是关闭总开关
         if (input.equals(SUPER_PASSWORD)) {
             prefs.edit().putBoolean("lock_enabled", false).apply();
             stopService(new Intent(this, TimeLockService.class));
@@ -91,7 +99,6 @@ public class LockScreenActivity extends AppCompatActivity {
             return;
         }
         
-        // 2. 如果不是“超级密码”，我们再走正常的解锁流程
         if (TimeLockUtils.isConfigReady(this)) {
             String correctPassword = TimeLockUtils.getLockPassword(this);
             if (input.equals(correctPassword)) {
@@ -120,32 +127,8 @@ public class LockScreenActivity extends AppCompatActivity {
         alphaAnimator.start();
     }
 
-    private void loadAndDisplayTimeSlots() {
-        if (!TimeLockUtils.isConfigReady(this)) {
-            timeSlotsTextView.setText("未配置或未成功同步远程数据");
-        } else {
-            String json = prefs.getString("time_slots_json_cache", null);
-            try {
-                Type type = new TypeToken<ArrayList<TimeSlot>>() {}.getType();
-                List<TimeSlot> slots = new Gson().fromJson(json, type);
-                if (slots == null || slots.isEmpty()) {
-                    timeSlotsTextView.setText("未设置允许时段");
-                    return;
-                }
-                StringBuilder sb = new StringBuilder("允许时段：");
-                for (int i = 0; i < slots.size(); i++) {
-                    TimeSlot slot = slots.get(i);
-                    sb.append(String.format(Locale.getDefault(), "%02d:%02d - %02d:%02d", slot.startHour, slot.startMinute, slot.endHour, slot.endMinute));
-                    if (i < slots.size() - 1) {
-                        sb.append(", ");
-                    }
-                }
-                timeSlotsTextView.setText(sb.toString());
-            } catch (Exception e) {
-                timeSlotsTextView.setText("规则解析错误");
-            }
-        }
-    }
+    // 这个旧方法已经不再需要了，我们把它删掉了！
+    // private void loadAndDisplayTimeSlots() { ... }
 
     @Override
     public void onBackPressed() {
