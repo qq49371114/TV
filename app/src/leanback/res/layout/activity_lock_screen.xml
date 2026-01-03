@@ -45,14 +45,35 @@
             android:textColor="@android:color/white"
             android:textColorHint="@color/white_50" />
 
-        <Button
-            android:id="@+id/unlockButton"
+        <!-- 我们用一个LinearLayout来并排显示两个按钮 -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="解 锁" />
+            android:orientation="horizontal"
+            android:layout_marginTop="24dp">
 
-        <!-- ✨↓ 婉儿帮你把“总开关”放在这里啦！↓✨ -->
+            <!-- 这是我们新增的“退出”按钮 -->
+            <Button
+                android:id="@+id/exitButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="退出应用"
+                android:layout_marginEnd="8dp"
+                style="?android:attr/buttonBarButtonStyle" />
+
+            <!-- 这是原来的“解锁”按钮 -->
+            <Button
+                android:id="@+id/unlockButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="解 锁"
+                android:layout_marginStart="8dp"
+                style="?android:attr/buttonBarButtonStyle" />
+
+        </LinearLayout>
+
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/timeLockSwitch"
             android:layout_width="wrap_content"
