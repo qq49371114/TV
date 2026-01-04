@@ -24,26 +24,26 @@ public class SessionCallback extends MediaSessionCompat.Callback {
 
     @Override
     public void onPlay() {
-        ActionEvent.send(ActionEvent.PLAY);
+        ActionEvent.play();
     }
 
     @Override
     public void onPause() {
-        ActionEvent.send(ActionEvent.PAUSE);
+        ActionEvent.pause();
     }
 
     @Override
     public void onSkipToPrevious() {
-        ActionEvent.send(ActionEvent.PREV);
+        ActionEvent.prev();
     }
 
     @Override
     public void onSkipToNext() {
-        ActionEvent.send(ActionEvent.NEXT);
+        ActionEvent.next();
     }
 
     @Override
     public void onStop() {
-        ActionEvent.send(ActionEvent.STOP);
+        ActionEvent.stop();
     }
 }

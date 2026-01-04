@@ -1,7 +1,5 @@
 package com.fongmi.android.tv.api;
 
-import android.net.Uri;
-
 import com.fongmi.android.tv.bean.Channel;
 import com.fongmi.android.tv.bean.Epg;
 import com.fongmi.android.tv.bean.EpgData;
@@ -9,12 +7,15 @@ import com.fongmi.android.tv.bean.Live;
 import com.fongmi.android.tv.bean.Tv;
 import com.fongmi.android.tv.utils.Download;
 import com.fongmi.android.tv.utils.FileUtil;
+import com.fongmi.android.tv.utils.UrlUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.github.catvod.utils.Path;
 
 import org.simpleframework.xml.core.Persister;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.AbstractMap;
 import java.util.Calendar;
@@ -35,9 +36,10 @@ public class EpgParser {
     private static final SimpleDateFormat formatFull = new SimpleDateFormat("yyyyMMddHHmmss Z", Locale.getDefault());
 
     public static boolean start(Live live, String url) throws Exception {
-        File file = Path.epg(Uri.parse(url).getLastPathSegment());
-        if (shouldDownload(file)) Download.create(url, file).get();
-        if (file.getName().endsWith(".gz")) readGzip(live, file);
+        File file = Path.epg(UrlUtil.path(url));
+        boolean refresh = shouldRefresh(file);
+        if (refresh) Download.create(url, file).get();
+        if (isGzip(file)) readGzip(live, file, refresh);
         else readXml(live, file);
         return true;
     }
@@ -49,8 +51,16 @@ public class EpgParser {
         return epg;
     }
 
-    private static boolean shouldDownload(File file) {
+    private static boolean shouldRefresh(File file) {
         return !Path.exists(file) || !isToday(file.lastModified()) || System.currentTimeMillis() - file.lastModified() > TimeUnit.HOURS.toMillis(6);
+    }
+
+    private static boolean isGzip(File file) {
+        try (FileInputStream fis = new FileInputStream(file)) {
+            return (fis.read() | (fis.read() << 8)) == 0x8B1F;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     private static boolean isToday(long millis) {
@@ -59,9 +69,9 @@ public class EpgParser {
         return calendar.get(Calendar.DAY_OF_MONTH) == Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
     }
 
-    private static void readGzip(Live live, File file) throws Exception {
-        File xml = Path.epg(file.getName().replace(".gz", ""));
-        if (!xml.exists()) FileUtil.gzipDecompress(file, xml);
+    private static void readGzip(Live live, File file, boolean refresh) throws Exception {
+        File xml = Path.epg(file.getName() + ".xml");
+        if (!Path.exists(xml) || refresh) FileUtil.gzipDecompress(file, xml);
         readXml(live, xml);
     }
 

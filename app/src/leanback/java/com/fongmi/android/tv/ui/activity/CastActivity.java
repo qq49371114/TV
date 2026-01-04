@@ -286,8 +286,10 @@ public class CastActivity extends BaseActivity implements CustomKeyDownVod.Liste
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onActionEvent(ActionEvent event) {
-        if (ActionEvent.PLAY.equals(event.getAction()) || ActionEvent.PAUSE.equals(event.getAction())) {
-            onKeyCenter();
+        if (ActionEvent.PLAY.equals(event.getAction())) {
+            onPlay();
+        } else if (ActionEvent.PAUSE.equals(event.getAction())) {
+            onPaused();
         } else if (ActionEvent.STOP.equals(event.getAction())) {
             finish();
         }
@@ -347,11 +349,6 @@ public class CastActivity extends BaseActivity implements CustomKeyDownVod.Liste
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
         if (!event.getTag().equals(tag)) return;
-        if (mPlayers.retried()) onError(event);
-        else onReset();
-    }
-
-    private void onError(ErrorEvent event) {
         showError(event.getMsg());
         mPlayers.resetTrack();
         onStopped();
@@ -457,10 +454,10 @@ public class CastActivity extends BaseActivity implements CustomKeyDownVod.Liste
     }
 
     @Override
-    public void onSeekTo(long time) {
+    public void onSeekEnd(long time) {
         if (mPlayers.isEmpty()) return;
-        mKeyDown.resetTime();
         mPlayers.seek(time);
+        mKeyDown.reset();
         showProgress();
         onPlay();
     }
@@ -468,16 +465,16 @@ public class CastActivity extends BaseActivity implements CustomKeyDownVod.Liste
     @Override
     public void onSpeedUp() {
         if (!mPlayers.isPlaying()) return;
-        mBinding.control.speed.setText(mPlayers.setSpeed(Setting.getSpeed()));
-        mBinding.widget.speed.startAnimation(ResUtil.getAnim(R.anim.forward));
         mBinding.widget.speed.setVisibility(View.VISIBLE);
+        mBinding.widget.speed.startAnimation(ResUtil.getAnim(R.anim.forward));
+        mBinding.control.speed.setText(mPlayers.setSpeed(Setting.getSpeed()));
     }
 
     @Override
     public void onSpeedEnd() {
-        mBinding.control.speed.setText(mPlayers.setSpeed(1.0f));
-        mBinding.widget.speed.setVisibility(View.GONE);
         mBinding.widget.speed.clearAnimation();
+        mBinding.widget.speed.setVisibility(View.GONE);
+        mBinding.control.speed.setText(mPlayers.setSpeed(1.0f));
     }
 
     @Override

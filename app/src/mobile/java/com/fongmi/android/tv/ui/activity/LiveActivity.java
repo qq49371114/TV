@@ -289,9 +289,9 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
     }
 
     private void setWidth(Epg epg) {
-        int padding = ResUtil.dp2px(40);
+        int padding = ResUtil.dp2px(48);
         if (epg.getList().isEmpty()) return;
-        int minWidth = ResUtil.getTextWidth(epg.getList().get(0).getTime(), 14);
+        int minWidth = ResUtil.getTextWidth(epg.getList().get(0).getTime(), 12);
         if (epg.getWidth() == 0) for (EpgData item : epg.getList()) epg.setWidth(Math.max(epg.getWidth(), ResUtil.getTextWidth(item.getTitle(), 14)));
         int width = epg.getWidth() == 0 ? 0 : Math.min(Math.max(epg.getWidth(), minWidth) + padding, ResUtil.getScreenWidth() / 2);
         setWidth(mBinding.epgData, width);
@@ -453,7 +453,7 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
     }
 
     private void showUI() {
-        if (isVisible(mBinding.recycler)) return;
+        if (isVisible(mBinding.recycler) || mGroupAdapter.getItemCount() == 0) return;
         mBinding.recycler.setVisibility(View.VISIBLE);
         mBinding.channel.requestFocus();
         setPosition();
@@ -702,9 +702,8 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
     }
 
     private void resetAdapter() {
-        mBinding.channel.getLayoutParams().width = 0;
-        mBinding.epgData.getLayoutParams().width = 0;
-        mBinding.group.getLayoutParams().width = 0;
+        mBinding.control.action.line.setVisibility(View.GONE);
+        mBinding.control.title.setText("");
         mEpgDataAdapter.clear();
         mChannelAdapter.clear();
         mGroupAdapter.clear();
@@ -752,6 +751,7 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
         if (item.isActivated()) item.getGroups().clear();
         LiveConfig.get().setHome(item);
         mPlayers.reset();
+        mPlayers.clear();
         mPlayers.stop();
         resetAdapter();
         hideControl();
@@ -783,8 +783,10 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onActionEvent(ActionEvent event) {
-        if (ActionEvent.PLAY.equals(event.getAction()) || ActionEvent.PAUSE.equals(event.getAction())) {
-            checkPlay();
+        if (ActionEvent.PLAY.equals(event.getAction())) {
+            onPlay();
+        } else if (ActionEvent.PAUSE.equals(event.getAction())) {
+            onPaused();
         } else if (ActionEvent.NEXT.equals(event.getAction())) {
             nextChannel();
         } else if (ActionEvent.PREV.equals(event.getAction())) {
@@ -861,11 +863,6 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onErrorEvent(ErrorEvent event) {
         if (!event.getTag().equals(tag)) return;
-        if (mPlayers.retried()) onError(event);
-        else fetch();
-    }
-
-    private void onError(ErrorEvent event) {
         Track.delete(mPlayers.getUrl());
         showError(event.getMsg());
         mPlayers.resetTrack();
@@ -1002,17 +999,17 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
 
     @Override
     public void onSpeedUp() {
-        if (mPlayers.isLive() || !mPlayers.isPlaying()) return;
-        mBinding.control.action.speed.setText(mPlayers.setSpeed(Setting.getSpeed()));
-        mBinding.widget.speed.startAnimation(ResUtil.getAnim(R.anim.forward));
+        if (mPlayers.isLive()) return;
+        if (!mPlayers.isPlaying()) return;
         mBinding.widget.speed.setVisibility(View.VISIBLE);
+        mBinding.widget.speed.startAnimation(ResUtil.getAnim(R.anim.forward));
+        mBinding.control.action.speed.setText(mPlayers.setSpeed(Setting.getSpeed()));
     }
 
     @Override
     public void onSpeedEnd() {
-        mBinding.control.action.speed.setText(mPlayers.setSpeed(1.0f));
-        mBinding.widget.speed.setVisibility(View.GONE);
         mBinding.widget.speed.clearAnimation();
+        mBinding.control.action.speed.setText(mPlayers.setSpeed(1.0f));
     }
 
     @Override
@@ -1025,22 +1022,12 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
     }
 
     @Override
-    public void onBrightEnd() {
-        mBinding.widget.bright.setVisibility(View.GONE);
-    }
-
-    @Override
     public void onVolume(int progress) {
         mBinding.widget.volume.setVisibility(View.VISIBLE);
         mBinding.widget.volumeProgress.setProgress(progress);
         if (progress < 35) mBinding.widget.volumeIcon.setImageResource(R.drawable.ic_widget_volume_low);
         else if (progress < 70) mBinding.widget.volumeIcon.setImageResource(R.drawable.ic_widget_volume_medium);
         else mBinding.widget.volumeIcon.setImageResource(R.drawable.ic_widget_volume_high);
-    }
-
-    @Override
-    public void onVolumeEnd() {
-        mBinding.widget.volume.setVisibility(View.GONE);
     }
 
     @Override
@@ -1056,7 +1043,7 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
     }
 
     @Override
-    public void onSeek(long time) {
+    public void onSeeking(long time) {
         if (mPlayers.isLive()) return;
         mBinding.widget.action.setImageResource(time > 0 ? R.drawable.ic_widget_forward : R.drawable.ic_widget_rewind);
         mBinding.widget.time.setText(mPlayers.getPositionTime(time));
@@ -1067,7 +1054,6 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
     @Override
     public void onSeekEnd(long time) {
         if (mPlayers.isLive()) return;
-        mBinding.widget.seek.setVisibility(View.GONE);
         mPlayers.seek(time);
         showProgress();
         onPlay();
@@ -1083,6 +1069,14 @@ public class LiveActivity extends BaseActivity implements CustomKeyDown.Listener
         if (isVisible(mBinding.recycler)) hideUI();
         if (isVisible(mBinding.control.getRoot())) hideControl();
         else showControl();
+    }
+
+    @Override
+    public void onTouchEnd() {
+        mBinding.widget.seek.setVisibility(View.GONE);
+        mBinding.widget.speed.setVisibility(View.GONE);
+        mBinding.widget.bright.setVisibility(View.GONE);
+        mBinding.widget.volume.setVisibility(View.GONE);
     }
 
     @Override

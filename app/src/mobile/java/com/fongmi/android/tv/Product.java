@@ -34,7 +34,6 @@ public class Product {
         return getSpec(context, space, column, style);
     }
 
-
     private static int[] getSpec(Context context, int space, int column, Style style) {
         int base = ResUtil.getScreenWidth(context) - space;
         int width = base / column;

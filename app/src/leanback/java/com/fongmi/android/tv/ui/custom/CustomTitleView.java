@@ -19,7 +19,6 @@ import com.fongmi.android.tv.utils.KeyUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class CustomTitleView extends AppCompatTextView {
 

@@ -7,10 +7,14 @@ import com.github.catvod.utils.Util;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
+import kotlin._Assertions;
 import okhttp3.Dns;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
@@ -34,20 +38,20 @@ public class OkDns implements Dns {
         map.clear();
     }
 
-    public synchronized void addAll(List<String> hosts) {
-        for (String host : hosts) {
-            if (!host.contains("=")) continue;
-            String[] splits = host.split("=", 2);
-            String oldHost = splits[0];
-            String newHost = splits[1];
-            map.put(oldHost, newHost);
-        }
+    public void addAll(List<String> hosts) {
+        map.putAll(hosts.stream().filter(Objects::nonNull).map(host -> host.split("=", 2)).filter(splits -> splits.length == 2).collect(Collectors.toMap(s -> s[0].trim(), s -> s[1].trim(), (oldHost, newHost) -> newHost)));
+    }
+
+    private String get(String hostname) {
+        String target = map.get(hostname);
+        if (target != null) return target;
+        for (Map.Entry<String, String> entry : map.entrySet()) if (Util.containOrMatch(hostname, entry.getKey())) return entry.getValue();
+        return hostname;
     }
 
     @NonNull
     @Override
     public List<InetAddress> lookup(@NonNull String hostname) throws UnknownHostException {
-        for (Map.Entry<String, String> entry : map.entrySet()) if (Util.containOrMatch(hostname, entry.getKey())) hostname = entry.getValue();
-        return (doh != null ? doh : Dns.SYSTEM).lookup(hostname);
+        return (doh != null ? doh : Dns.SYSTEM).lookup(get(hostname));
     }
 }

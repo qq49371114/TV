@@ -133,6 +133,11 @@ public class Players implements Player.Listener, ParseCallback {
         MediaControllerCompat.setMediaController(activity, session.getController());
     }
 
+    private void releaseSession() {
+        session.setActive(false);
+        session.release();
+    }
+
     public void init(PlayerView view) {
         releasePlayer();
         setPlayer(view);
@@ -403,7 +408,7 @@ public class Players implements Player.Listener, ParseCallback {
     public void release() {
         stopParse();
         releasePlayer();
-        session.release();
+        releaseSession();
         removeTimeoutCheck();
         Server.get().setPlayer(null);
         App.execute(() -> Source.get().stop());

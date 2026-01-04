@@ -21,7 +21,8 @@ public class Path {
     private static final String TAG = Path.class.getSimpleName();
 
     private static File mkdir(File file) {
-        if (!file.exists()) file.mkdirs();
+        if (file == null || file.exists()) return file;
+        if (file.mkdirs()) Logger.t(TAG).d("Created dir:" + file);
         return file;
     }
 

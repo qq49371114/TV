@@ -27,6 +27,7 @@ import com.fongmi.android.tv.Updater;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.api.config.WallConfig;
+import com.fongmi.android.tv.bean.Cache;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Func;
 import com.fongmi.android.tv.bean.History;
@@ -171,6 +172,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         mViewModel.result.observe(this, result -> {
             mAdapter.remove("progress");
             addVideo(mResult = result);
+            Cache.clear().put(result);
         });
     }
 

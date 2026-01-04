@@ -46,7 +46,6 @@ import okhttp3.Response;
 public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListener, ScanTask.Listener {
 
     private final FormBody.Builder body;
-    private final Device.Sorter sorter;
     private final OkHttpClient client;
     private final ScanTask scanTask;
     private final TypedArray mode;
@@ -60,7 +59,6 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
     }
 
     public SyncDialog() {
-        sorter = new Device.Sorter();
         body = new FormBody.Builder();
         scanTask = new ScanTask(this);
         client = OkHttp.client(Constant.TIMEOUT_SYNC);
@@ -158,7 +156,7 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
 
     @Override
     public void onFind(Device device) {
-        adapter.sort(device, sorter);
+        adapter.sort(device);
     }
 
     @Override

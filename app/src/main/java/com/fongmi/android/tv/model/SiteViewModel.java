@@ -11,8 +11,6 @@ import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Class;
-import com.fongmi.android.tv.bean.Episode;
-import com.fongmi.android.tv.bean.Flag;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.bean.Vod;
@@ -38,7 +36,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import okhttp3.Call;
 import okhttp3.Response;
@@ -50,7 +47,6 @@ public class SiteViewModel extends ViewModel {
     private final AtomicInteger taskId;
     private Future<Result> future;
 
-    public final MutableLiveData<Episode> episode;
     public final MutableLiveData<Result> result;
     public final MutableLiveData<Result> player;
     public final MutableLiveData<Result> search;
@@ -58,7 +54,6 @@ public class SiteViewModel extends ViewModel {
 
     public SiteViewModel() {
         taskId = new AtomicInteger(0);
-        episode = new MutableLiveData<>();
         result = new MutableLiveData<>();
         player = new MutableLiveData<>();
         search = new MutableLiveData<>();
@@ -72,12 +67,7 @@ public class SiteViewModel extends ViewModel {
         result.setValue(null);
         player.setValue(null);
         action.setValue(null);
-        episode.setValue(null);
         return this;
-    }
-
-    public void setEpisode(Episode value) {
-        episode.setValue(value);
     }
 
     public void homeContent() {
