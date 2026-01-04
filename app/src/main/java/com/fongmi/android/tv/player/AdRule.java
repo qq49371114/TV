@@ -34,21 +34,13 @@ public class AdRule {
     private static final AdRule instance = new AdRule();
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final OkHttpClient internalClient = new OkHttpClient();
-    //private final List<String> ads = new CopyOnWriteArrayList<>();
-    // 婉儿升级：用一个列表来存储所有M3U8规则，代替原来的单个参数
-    private final List<M3u8Rule> m3u8Rules = new CopyOnWriteArrayList<>();
-    
     private CountDownLatch latch = new CountDownLatch(1);
     private SharedPreferences prefs;
 
-    // M3U8清洗规则参数 (提供默认值)
-    private int minAdTsCount = 5;
-    private int maxAdTsCount = 10;
-    private double adDuration = 20.0;
-    private double adTimeTolerance = 2.0;
-
-    private AdRule() {}
-    public static AdRule get() { return instance; }
+    // 婉儿修正：确保 ads 列表的定义存在！
+    private final List<String> ads = new CopyOnWriteArrayList<>();
+    // 婉儿升级：用一个列表来存储所有M3U8规则
+    private final List<M3u8Rule> m3u8Rules = new CopyOnWriteArrayList<>();
 
     // 婉儿升级：新增一个内部类，用于封装单条M3U8广告规则
     public static class M3u8Rule {
@@ -58,7 +50,7 @@ public class AdRule {
         public final double adDuration;
         public final double adTimeTolerance;
 
-    public M3u8Rule(String name, int min, int max, double duration, double tolerance) {
+        public M3u8Rule(String name, int min, int max, double duration, double tolerance) {
             this.name = name;
             this.minAdTsCount = min;
             this.maxAdTsCount = max;
@@ -66,6 +58,9 @@ public class AdRule {
             this.adTimeTolerance = tolerance;
         }
     }
+
+    private AdRule() {}
+    public static AdRule get() { return instance; }
 
     public void init(Context context) {
         this.prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -128,17 +123,17 @@ public class AdRule {
         }
     }
 
-
     public static void setConfigUrl(String url) {
         SharedPreferences p = App.get().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         p.edit().putString(KEY_CONFIG_URL, url).apply();
         get().fetchConfig();
     }
 
+    // 婉儿升级：修改 parseJson 方法以支持多规则解析
     private void parseJson(String content) throws Exception {
         JSONObject jsonObject = new JSONObject(content);
         
-        // 解析 keywords (这部分不变)
+        // 解析 keywords
         if (jsonObject.has("keywords")) {
             JSONArray keywordsArray = jsonObject.getJSONArray("keywords");
             List<String> newAds = new ArrayList<>();
@@ -181,19 +176,10 @@ public class AdRule {
         return false;
     }
 
-    // === 提供给AdFilter的参数接口 ===
-
-
-    // 婉儿升级：提供新的getter方法，并删除旧的getter
+    // 婉儿升级：提供新的getter方法
     public List<M3u8Rule> getM3u8Rules() {
         return m3u8Rules;
     }
-
-    
-    //public int getMinAdTsCount() { return minAdTsCount; }
-    //public int getMaxAdTsCount() { return maxAdTsCount; }
-    //public double getAdDuration() { return adDuration; }
-    //public double getAdTimeTolerance() { return adTimeTolerance; }
 
     private void showToast(final String message) {
         Context context = App.get();
