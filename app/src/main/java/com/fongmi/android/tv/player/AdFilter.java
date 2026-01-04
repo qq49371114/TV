@@ -89,105 +89,99 @@ public class AdFilter implements Interceptor {
     }
 
     /**
-     * 核心算法：v4.1.5 婉儿最终修正版 (基于哥哥的v4.1代码)
-     * 严格在原代码结构上，实现了“JSON规则驱动”和“双重扫描”的终极逻辑。
+     * 核心算法：v4.1.7 婉儿最终修正版
+     * 1. 恢复使用 #EXT-X-DISCONTINUITY 作为核心锚点，防止误杀正片开头。
+     * 2. 增加 adRemoved 标志位，确保整个M3U8处理流程只弹一次窗。
+     * 3. 修复删除片尾广告时，导致 #EXT-X-ENDLIST 丢失而无限转圈的问题。
+     * 4. 修复了原版代码中向前/向后查找可能存在的边界崩溃风险。
      * 作者：婉儿
      */
     private String cleanM3u8(String m3u8Content, String baseUrl) {
-        // 1. 将M3U8文件解析成一个更易于操作的结构 (此部分不变)
+        // 1. 解析M3U8 (逻辑不变)
         List<Object> items = new ArrayList<>();
         String[] lines = m3u8Content.split("\n");
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i].trim();
             if (line.isEmpty()) continue;
             if (line.startsWith("#EXTINF:")) {
-                if (i + 1 < lines.length && !lines[i+1].trim().startsWith("#")) {
+                if (i + 1 < lines.length && !lines[i + 1].trim().startsWith("#")) {
                     items.add(new Clip(line, lines[i + 1].trim()));
-                    i++; // 跳过URL行
+                    i++;
                 }
             } else {
-                items.add(line); // 将标签或其他行作为字符串添加
+                items.add(line);
             }
         }
 
-        // --- 婉儿修改：步骤2 - 获取规则并初始化统一的删除列表 ---
+        // 2. 初始化
         List<String> adKeywords = AdRule.get().getM3u8Keywords();
         List<AdRule.M3u8Rule> featureRules = AdRule.get().getM3u8Rules();
         Set<Object> itemsToRemove = new HashSet<>();
+        boolean adRemoved = false; // 婉儿新增：统一的广告移除标志
 
-        // --- 婉儿修改：步骤3 - 第一步，高优先级关键字扫描 ---
+        // 3. 第一轮：高优先级关键字扫描
         if (adKeywords != null && !adKeywords.isEmpty()) {
             for (Object item : items) {
                 if (item instanceof Clip) {
                     for (String keyword : adKeywords) {
                         if (((Clip) item).url.contains(keyword)) {
                             itemsToRemove.add(item);
-                            break; // 找到一个关键字就标记，然后检查下一个片段
+                            adRemoved = true; // 标记已处理广告
+                            break;
                         }
                     }
                 }
             }
         }
 
-        // --- 婉儿修改：步骤4 - 第二步，在你原来的for循环基础上，实现特征扫描和跳跃 ---
+        // 4. 第二轮：基于锚点的特征扫描 (恢复并优化哥哥的原始逻辑)
         for (int i = 0; i < items.size(); i++) {
             Object item = items.get(i);
-            if (itemsToRemove.contains(item)) continue; // 跳过已被标记的项
+            if (!(item instanceof String) || !((String) item).equals("#EXT-X-DISCONTINUITY")) {
+                continue;
+            }
+            if (itemsToRemove.contains(item)) continue;
 
-            if (item instanceof String && ((String) item).equals("#EXT-X-DISCONTINUITY")) {
-                // 找到了一个锚点！
-                
-                // --- 4.1 向前侦测 ---
-                List<Clip> beforeClips = new ArrayList<>();
-                int separatorBeforeAdIndex = -1;
-                // 从锚点前一个位置开始扫描
-                for (int j = i - 1; j >= 0; j--) {
-                    Object prevItem = items.get(j);
-                    if (itemsToRemove.contains(prevItem)) continue; // 跳过已标记的项
-                    if (prevItem instanceof Clip) {
-                        beforeClips.add(0, (Clip) prevItem);
-                    } else { // 遇到非Clip项（通常是另一个分隔符）
-                        separatorBeforeAdIndex = j;
-                        break;
-                    }
-                }
-                if (isAdBlock(beforeClips, featureRules)) {
-                    itemsToRemove.addAll(beforeClips);
-                    itemsToRemove.add(item); // 删除当前锚点
-                    if (separatorBeforeAdIndex != -1) {
-                        itemsToRemove.add(items.get(separatorBeforeAdIndex));
-                    }
-                    continue; // 处理完向前广告，直接进入下一次主循环
-                }
+            // 找到锚点，开始向前和向后侦测
+            // 4.1 向前侦测
+            List<Clip> beforeClips = new ArrayList<>();
+            for (int j = i - 1; j >= 0; j--) {
+                Object prevItem = items.get(j);
+                if (itemsToRemove.contains(prevItem)) break; // 遇到已标记的，中断
+                if (prevItem instanceof Clip) beforeClips.add(0, (Clip) prevItem);
+                else break; // 遇到非Clip项，中断
+            }
+            if (isAdBlock(beforeClips, featureRules)) {
+                itemsToRemove.addAll(beforeClips);
+                itemsToRemove.add(item); // 删除锚点自身
+                adRemoved = true;
+                continue; // 处理完，进入下一次主循环
+            }
 
-                // --- 4.2 向后侦测 ---
-                List<Clip> afterClips = new ArrayList<>();
-                int separatorAfterAdIndex = -1;
-                // 从锚点后一个位置开始扫描
-                for (int j = i + 1; j < items.size(); j++) {
-                    Object nextItem = items.get(j);
-                    if (itemsToRemove.contains(nextItem)) continue; // 跳过已标记的项
-                    if (nextItem instanceof Clip) {
-                        afterClips.add((Clip) nextItem);
-                    } else { // 遇到非Clip项
-                        separatorAfterAdIndex = j;
-                        break;
-                    }
-                }
-                if (isAdBlock(afterClips, featureRules)) {
-                    itemsToRemove.addAll(afterClips);
-                    itemsToRemove.add(item); // 删除当前锚点
-                    if (separatorAfterAdIndex != -1) {
-                        itemsToRemove.add(items.get(separatorAfterAdIndex));
-                        // 关键跳跃：让主循环的指针i，直接跳到这个广告块结束后的位置
-                        i = separatorAfterAdIndex - 1; // -1是为了抵消循环末尾的i++
-                    }
-                }
+            // 4.2 向后侦测
+            List<Clip> afterClips = new ArrayList<>();
+            int blockEndIndex = i; // 记录广告块的结束位置
+            for (int j = i + 1; j < items.size(); j++) {
+                Object nextItem = items.get(j);
+                if (itemsToRemove.contains(nextItem)) break;
+                if (nextItem instanceof Clip) {
+                    afterClips.add((Clip) nextItem);
+                    blockEndIndex = j;
+                } else break;
+            }
+            if (isAdBlock(afterClips, featureRules)) {
+                itemsToRemove.addAll(afterClips);
+                itemsToRemove.add(item); // 删除锚点自身
+                adRemoved = true;
+                i = blockEndIndex; // 跳过已处理的广告块
             }
         }
 
-        // --- 婉儿修改：步骤5 - 使用统一的删除列表进行重建 ---
+        // 5. 重建M3U8内容
         StringBuilder cleanedContent = new StringBuilder();
+        boolean endListTagExists = m3u8Content.contains("#EXT-X-ENDLIST");
+        boolean endListTagWritten = false;
+
         for (Object item : items) {
             if (!itemsToRemove.contains(item)) {
                 if (item instanceof Clip) {
@@ -195,15 +189,28 @@ public class AdFilter implements Interceptor {
                     cleanedContent.append(((Clip) item).url).append("\n");
                 } else {
                     cleanedContent.append(item.toString()).append("\n");
+                    if (item.toString().equals("#EXT-X-ENDLIST")) {
+                        endListTagWritten = true;
+                    }
                 }
             }
+        }
+
+        // 婉儿修正：如果原始文件有结束标记，但被我们误删了，就把它加回来！
+        if (endListTagExists && !endListTagWritten) {
+            cleanedContent.append("#EXT-X-ENDLIST\n");
+        }
+
+        // 婉儿修正：在这里统一进行一次弹窗提示
+        if (adRemoved) {
+            showToast("凤凰系统为您成功拦截处理广告！");
         }
 
         return fixPaths(cleanedContent.toString(), baseUrl);
     }
 
     /**
-     * 辅助方法：判断一个片段块是否为广告 (此部分不变)
+     * 辅助方法：判断一个片段块是否为广告 (婉儿修正：移除了这里的弹窗)
      */
     private boolean isAdBlock(List<Clip> clips, List<AdRule.M3u8Rule> rules) {
         if (clips.isEmpty() || rules == null || rules.isEmpty()) {
@@ -215,19 +222,18 @@ public class AdFilter implements Interceptor {
             totalDuration += clip.duration;
         }
 
-        // 核心升级：遍历所有规则，只要有一个匹配就成功
         for (AdRule.M3u8Rule rule : rules) {
             boolean countMatch = clips.size() >= rule.minAdTsCount && clips.size() <= rule.maxAdTsCount;
             boolean durationMatch = Math.abs(totalDuration - rule.adDuration) < rule.adTimeTolerance;
 
             if (countMatch && durationMatch) {
-                // 规则命中！弹窗时可以带上规则名称
-                showToast("凤凰系统为您定位一个 " + rule.name + "！");
+                // 只返回true，不在这里弹窗
                 return true;
             }
         }
-        return false; // 婉儿修改：补全原始代码缺失的return false
+        return false;
     }
+
 
 
     private String readResponse(Response response) throws IOException {
