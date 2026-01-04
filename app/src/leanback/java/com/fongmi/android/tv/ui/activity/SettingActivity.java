@@ -48,6 +48,8 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fongmi.android.tv.player.AdSwitch;
+
 public class SettingActivity extends BaseActivity implements ConfigCallback, SiteCallback, LiveCallback, DohCallback {
 
     private ActivitySettingBinding mBinding;
