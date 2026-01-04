@@ -89,8 +89,8 @@ public class AdFilter implements Interceptor {
     }
 
     /**
-     * 核心算法：v4.1.6 婉儿最终谢罪版 (基于哥哥的原始v4.1代码)
-     * 严格在原代码结构上，通过统一删除列表，彻底解决广告及分隔符的残留问题。
+     * 核心算法：v4.1.7 婉儿最终谢罪版 (基于v4.1并匹配所有规则)
+     * 严格在原代码结构上，实现了“关键字优先”+“特征扫描”的终极双重扫描逻辑。
      * 作者：婉儿
      */
     private String cleanM3u8(String m3u8Content, String baseUrl) {
@@ -110,60 +110,80 @@ public class AdFilter implements Interceptor {
             }
         }
 
-        // --- 婉儿修改：步骤2 - 获取规则并初始化一个统一的删除列表 ---
-        List<AdRule.M3u8Rule> rules = AdRule.get().getM3u8Rules();
+        // --- 婉儿修改：步骤2 - 获取两套规则，并初始化统一删除列表 ---
+        List<String> adKeywords = AdRule.get().getM3u8Keywords();
+        List<AdRule.M3u8Rule> featureRules = AdRule.get().getM3u8Rules();
         Set<Object> itemsToRemove = new HashSet<>();
 
-        // --- 婉儿修改：步骤3 - 在你原来的for循环上，升级其标记行为 ---
-        for (int i = 0; i < items.size(); i++) {
-            Object item = items.get(i);
-            if (item instanceof String && ((String) item).equals("#EXT-X-DISCONTINUITY")) {
-                // 找到了一个锚点！
-                
-                // --- 3.1 向前侦测 ---
-                List<Clip> beforeClips = new ArrayList<>();
-                int separatorBeforeAdIndex = -1;
-                for (int j = i - 1; j >= 0; j--) {
-                    if (items.get(j) instanceof Clip) {
-                        beforeClips.add(0, (Clip) items.get(j));
-                    } else {
-                        separatorBeforeAdIndex = j; // 记录广告块之前的那个分隔符的位置
-                        break;
-                    }
-                }
-                if (isAdBlock(beforeClips, rules)) {
-                    itemsToRemove.addAll(beforeClips); // 标记广告片段
-                    itemsToRemove.add(item); // 标记广告后面的分隔符 (当前锚点)
-                    if (separatorBeforeAdIndex != -1) {
-                        itemsToRemove.add(items.get(separatorBeforeAdIndex)); // 标记广告前面的分隔符
-                    }
-                }
-
-                // --- 3.2 向后侦测 ---
-                List<Clip> afterClips = new ArrayList<>();
-                int separatorAfterAdIndex = -1;
-                for (int j = i + 1; j < items.size(); j++) {
-                    if (items.get(j) instanceof Clip) {
-                        afterClips.add((Clip) items.get(j));
-                    } else {
-                        separatorAfterAdIndex = j; // 记录广告块之后的那个分隔符的位置
-                        break;
-                    }
-                }
-                if (isAdBlock(afterClips, rules)) {
-                    itemsToRemove.addAll(afterClips); // 标记广告片段
-                    itemsToRemove.add(item); // 标记广告前面的分隔符 (当前锚点)
-                    if (separatorAfterAdIndex != -1) {
-                        itemsToRemove.add(items.get(separatorAfterAdIndex)); // 标记广告后面的分隔符
+        // --- 婉儿修改：步骤3 - 第一步，高优先级关键字扫描 ---
+        if (adKeywords != null && !adKeywords.isEmpty()) {
+            for (Object item : items) {
+                if (item instanceof Clip) {
+                    for (String keyword : adKeywords) {
+                        if (((Clip) item).url.contains(keyword)) {
+                            itemsToRemove.add(item);
+                            break; // 找到一个关键字就标记，然后检查下一个片段
+                        }
                     }
                 }
             }
         }
 
-        // --- 婉儿修改：步骤4 - 使用统一的删除列表进行重建 ---
+        // --- 婉儿修改：步骤4 - 第二步，在你原来的for循环上，实现特征扫描 ---
+        for (int i = 0; i < items.size(); i++) {
+            Object item = items.get(i);
+            if (itemsToRemove.contains(item)) continue; // 跳过已被关键字标记的项
+
+            if (item instanceof String && ((String) item).equals("#EXT-X-DISCONTINUITY")) {
+                // 找到了一个锚点！
+                
+                // --- 4.1 向前侦测 ---
+                List<Clip> beforeClips = new ArrayList<>();
+                int separatorBeforeAdIndex = -1;
+                for (int j = i - 1; j >= 0; j--) {
+                    Object prevItem = items.get(j);
+                    if (itemsToRemove.contains(prevItem)) continue; // 跳过已标记的项
+                    if (prevItem instanceof Clip) {
+                        beforeClips.add(0, (Clip) prevItem);
+                    } else {
+                        separatorBeforeAdIndex = j;
+                        break;
+                    }
+                }
+                if (isAdBlock(beforeClips, featureRules)) {
+                    itemsToRemove.addAll(beforeClips);
+                    itemsToRemove.add(item); // 删除当前锚点
+                    if (separatorBeforeAdIndex != -1) {
+                        itemsToRemove.add(items.get(separatorBeforeAdIndex));
+                    }
+                }
+
+                // --- 4.2 向后侦测 ---
+                List<Clip> afterClips = new ArrayList<>();
+                int separatorAfterAdIndex = -1;
+                for (int j = i + 1; j < items.size(); j++) {
+                    Object nextItem = items.get(j);
+                    if (itemsToRemove.contains(nextItem)) continue; // 跳过已标记的项
+                    if (nextItem instanceof Clip) {
+                        afterClips.add((Clip) nextItem);
+                    } else {
+                        separatorAfterAdIndex = j;
+                        break;
+                    }
+                }
+                if (isAdBlock(afterClips, featureRules)) {
+                    itemsToRemove.addAll(afterClips);
+                    itemsToRemove.add(item); // 删除当前锚点
+                    if (separatorAfterAdIndex != -1) {
+                        itemsToRemove.add(items.get(separatorAfterAdIndex));
+                    }
+                }
+            }
+        }
+
+        // --- 婉儿修改：步骤5 - 使用统一的删除列表进行重建 ---
         StringBuilder cleanedContent = new StringBuilder();
         for (Object item : items) {
-            // 只要这个item不在统一删除列表里，就保留它
             if (!itemsToRemove.contains(item)) {
                 if (item instanceof Clip) {
                     cleanedContent.append(((Clip) item).extinf).append("\n");
