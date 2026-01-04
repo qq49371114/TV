@@ -31,6 +31,13 @@ import okhttp3.ResponseBody;
 
 public class AdFilter implements Interceptor {
 
+
+    // 婉儿在这里加了两个新成员
+    // 1. 用来记录上次弹窗的时间
+    private static volatile long lastToastTime = 0;
+    // 2. 设置一个弹窗的冷却时间，单位是毫秒（这里是3秒）
+    private static final long TOAST_COOLDOWN_MS = 3000;
+    
     // 内部类，用于表示M3U8中的视频片段
     private static class Clip {
         String extinf;
@@ -57,7 +64,8 @@ public class AdFilter implements Interceptor {
 
         // 第一道防线：关键词拦截
         if (AdRule.get().isAd(url)) {
-            showToast("婉儿的凤凰系统为您拦截一条广告请求！");
+            // 使用带冷却的弹窗方法
+            showToastWithCooldown("婉儿的凤凰系统为您拦截一条广告请求！");
             return new Response.Builder()
                     .request(request)
                     .protocol(Protocol.HTTP_2)
@@ -67,7 +75,7 @@ public class AdFilter implements Interceptor {
                     .build();
         }
 
-        // 如果不是M3U8文件，直接放行
+        // 如果不是M3U8文件，直接放行，不处理
         if (!url.contains(".m3u8")) {
             return chain.proceed(request);
         }
@@ -79,15 +87,39 @@ public class AdFilter implements Interceptor {
         }
 
         try {
-            String m3u8Content = readResponse(response);
-            String cleanedM3u8 = cleanM3u8(m3u8Content, url);
+            // 先读取原始的M3U8内容
+            String originalM3u8Content = readResponse(response);
+            
+            // 调用哥哥的清洗方法
+            String cleanedM3u8 = cleanM3u8(originalM3u8Content, url);
+
+            // 核心改动在这里！
+            // 通过比较清洗前后的内容，判断是否真的切掉了广告
+            if (!originalM3u8Content.equals(cleanedM3u8)) {
+                // 内容不一致，说明成功去掉了广告，调用带冷却的弹窗
+                showToastWithCooldown("婉儿的凤凰系统为您净化一条视频流！");
+            }
+
+            // 创建并返回清洗后的响应体
             ResponseBody cleanedBody = ResponseBody.create(cleanedM3u8, response.body().contentType());
             return response.newBuilder().body(cleanedBody).build();
         } catch (Exception e) {
+            // 出现异常时，返回原始响应，避免播放失败
             return response;
         }
     }
 
+    /**
+     * 婉儿新增的带冷却的弹窗方法
+     * @param message 提示信息
+     */
+    private void showToastWithCooldown(String message) {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastToastTime > TOAST_COOLDOWN_MS) {
+            showToast(message); // 调用哥哥原来的 showToast
+            lastToastTime = currentTime; // 更新时间
+        }
+    }
     /**
      * 核心算法：v4.1.7 婉儿最终谢罪版 (基于v4.1并匹配所有规则)
      * 严格在原代码结构上，实现了“关键字优先”+“特征扫描”的终极双重扫描逻辑。
