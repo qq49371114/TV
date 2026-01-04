@@ -207,6 +207,7 @@ public class AdFilter implements Interceptor {
         }
 
         // 5. 重建内容 (不变)
+        // --- 婉儿修改：步骤5 - 智能重建，修复结尾语法！ ---
         StringBuilder cleanedContent = new StringBuilder();
         for (Object item : items) {
             if (!itemsToRemove.contains(item)) {
@@ -219,8 +220,17 @@ public class AdFilter implements Interceptor {
             }
         }
 
-        return fixPaths(cleanedContent.toString(), baseUrl);
-    }
+        String finalM3u8 = cleanedContent.toString();
+
+        // 【最终修正】检查并修复那个会导致播放器卡死的“无效结尾”
+        String problematicEnding = "#EXT-X-DISCONTINUITY\n#EXT-X-ENDLIST\n";
+        if (finalM3u8.endsWith(problematicEnding)) {
+            // 如果发现了这个“病句”，我们就把多余的“分界线”删掉，只留下一个干净的结尾
+            finalM3u8 = finalM3u8.replace(problematicEnding, "#EXT-X-ENDLIST\n");
+        }
+
+        return fixPaths(finalM3u8, baseUrl);
+    } // cleanM3u8 方法的结束括号
 
     /**
      * 【核心修改】
