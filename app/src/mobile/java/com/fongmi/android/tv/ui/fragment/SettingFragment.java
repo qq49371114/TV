@@ -53,6 +53,9 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fongmi.android.tv.player.AdSwitch;
+
+
 public class SettingFragment extends BaseFragment implements ConfigCallback, SiteCallback, LiveCallback {
 
     private FragmentSettingBinding mBinding;
