@@ -29,8 +29,8 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
-public class AdFilter implements Interceptor {
 
+public class AdFilter implements Interceptor {
 
     // 婉儿在这里加了两个新成员
     // 1. 用来记录上次弹窗的时间
@@ -48,7 +48,8 @@ public class AdFilter implements Interceptor {
             this.extinf = extinf;
             this.url = url;
             try {
-                String durationStr = extinf.substring(extinf.indexOf(":") + 1, extinf.lastIndexOf(","));
+                // 婉儿优化了下解析，更健壮
+                String durationStr = extinf.substring(extinf.indexOf(":") + 1).split(",")[0];
                 this.duration = Double.parseDouble(durationStr);
             } catch (Exception e) {
                 this.duration = 0;
@@ -64,7 +65,6 @@ public class AdFilter implements Interceptor {
 
         // 第一道防线：关键词拦截
         if (AdRule.get().isAd(url)) {
-            // 使用带冷却的弹窗方法
             showToastWithCooldown("婉儿的凤凰系统为您拦截一条广告请求！");
             return new Response.Builder()
                     .request(request)
@@ -75,7 +75,7 @@ public class AdFilter implements Interceptor {
                     .build();
         }
 
-        // 如果不是M3U8文件，直接放行，不处理
+        // 如果不是M3U8文件，直接放行
         if (!url.contains(".m3u8")) {
             return chain.proceed(request);
         }
@@ -87,43 +87,38 @@ public class AdFilter implements Interceptor {
         }
 
         try {
-            // 先读取原始的M3U8内容
             String originalM3u8Content = readResponse(response);
-            
-            // 调用哥哥的清洗方法
             String cleanedM3u8 = cleanM3u8(originalM3u8Content, url);
 
-            // 核心改动在这里！
-            // 通过比较清洗前后的内容，判断是否真的切掉了广告
+            // 核心决策：比较清洗前后，决定是否弹窗
             if (!originalM3u8Content.equals(cleanedM3u8)) {
-                // 内容不一致，说明成功去掉了广告，调用带冷却的弹窗
                 showToastWithCooldown("婉儿的凤凰系统为您净化一条视频流！");
             }
 
-            // 创建并返回清洗后的响应体
             ResponseBody cleanedBody = ResponseBody.create(cleanedM3u8, response.body().contentType());
             return response.newBuilder().body(cleanedBody).build();
         } catch (Exception e) {
-            // 出现异常时，返回原始响应，避免播放失败
+            e.printStackTrace();
             return response;
         }
     }
 
     /**
      * 婉儿新增的带冷却的弹窗方法
-     * @param message 提示信息
      */
     private void showToastWithCooldown(String message) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastToastTime > TOAST_COOLDOWN_MS) {
-            showToast(message); // 调用哥哥原来的 showToast
-            lastToastTime = currentTime; // 更新时间
+            showToast(message);
+            lastToastTime = currentTime;
         }
     }
+
+    // 哥哥，这是第二部分，紧接着上一段代码复制
     /**
-     * 核心算法：v4.1.7 婉儿最终谢罪版 (基于v4.1并匹配所有规则)
-     * 严格在原代码结构上，实现了“关键字优先”+“特征扫描”的终极双重扫描逻辑。
-     * 作者：婉儿
+     * 核心算法：v4.2.0 婉儿完美版
+     * 职责：只负责清洗M3U8内容，不产生任何弹窗。
+     * 作者：婉儿 & 哥哥
      */
     private String cleanM3u8(String m3u8Content, String baseUrl) {
         // 1. 将M3U8文件解析成一个更易于操作的结构 (此部分不变)
@@ -142,39 +137,37 @@ public class AdFilter implements Interceptor {
             }
         }
 
-        // --- 婉儿修改：步骤2 - 获取两套规则，并初始化统一删除列表 ---
+        // 2. 获取规则并初始化删除列表 (不变)
         List<String> adKeywords = AdRule.get().getM3u8Keywords();
         List<AdRule.M3u8Rule> featureRules = AdRule.get().getM3u8Rules();
         Set<Object> itemsToRemove = new HashSet<>();
 
-        // --- 婉儿修改：步骤3 - 第一步，高优先级关键字扫描 ---
+        // 3. 关键字扫描 (不变)
         if (adKeywords != null && !adKeywords.isEmpty()) {
             for (Object item : items) {
                 if (item instanceof Clip) {
                     for (String keyword : adKeywords) {
                         if (((Clip) item).url.contains(keyword)) {
                             itemsToRemove.add(item);
-                            break; // 找到一个关键字就标记，然后检查下一个片段
+                            break;
                         }
                     }
                 }
             }
         }
 
-        // --- 婉儿修改：步骤4 - 第二步，在你原来的for循环上，实现特征扫描 ---
+        // 4. 特征扫描 (不变, 但现在调用的isAdBlock是“安静”的)
         for (int i = 0; i < items.size(); i++) {
             Object item = items.get(i);
-            if (itemsToRemove.contains(item)) continue; // 跳过已被关键字标记的项
+            if (itemsToRemove.contains(item)) continue;
 
             if (item instanceof String && ((String) item).equals("#EXT-X-DISCONTINUITY")) {
-                // 找到了一个锚点！
-                
-                // --- 4.1 向前侦测 ---
+                // 向前侦测
                 List<Clip> beforeClips = new ArrayList<>();
                 int separatorBeforeAdIndex = -1;
                 for (int j = i - 1; j >= 0; j--) {
                     Object prevItem = items.get(j);
-                    if (itemsToRemove.contains(prevItem)) continue; // 跳过已标记的项
+                    if (itemsToRemove.contains(prevItem)) continue;
                     if (prevItem instanceof Clip) {
                         beforeClips.add(0, (Clip) prevItem);
                     } else {
@@ -184,18 +177,18 @@ public class AdFilter implements Interceptor {
                 }
                 if (isAdBlock(beforeClips, featureRules)) {
                     itemsToRemove.addAll(beforeClips);
-                    itemsToRemove.add(item); // 删除当前锚点
+                    itemsToRemove.add(item);
                     if (separatorBeforeAdIndex != -1) {
                         itemsToRemove.add(items.get(separatorBeforeAdIndex));
                     }
                 }
 
-                // --- 4.2 向后侦测 ---
+                // 向后侦测
                 List<Clip> afterClips = new ArrayList<>();
                 int separatorAfterAdIndex = -1;
                 for (int j = i + 1; j < items.size(); j++) {
                     Object nextItem = items.get(j);
-                    if (itemsToRemove.contains(nextItem)) continue; // 跳过已标记的项
+                    if (itemsToRemove.contains(nextItem)) continue;
                     if (nextItem instanceof Clip) {
                         afterClips.add((Clip) nextItem);
                     } else {
@@ -205,7 +198,7 @@ public class AdFilter implements Interceptor {
                 }
                 if (isAdBlock(afterClips, featureRules)) {
                     itemsToRemove.addAll(afterClips);
-                    itemsToRemove.add(item); // 删除当前锚点
+                    itemsToRemove.add(item);
                     if (separatorAfterAdIndex != -1) {
                         itemsToRemove.add(items.get(separatorAfterAdIndex));
                     }
@@ -213,7 +206,7 @@ public class AdFilter implements Interceptor {
             }
         }
 
-        // --- 婉儿修改：步骤5 - 使用统一的删除列表进行重建 ---
+        // 5. 重建内容 (不变)
         StringBuilder cleanedContent = new StringBuilder();
         for (Object item : items) {
             if (!itemsToRemove.contains(item)) {
@@ -230,7 +223,9 @@ public class AdFilter implements Interceptor {
     }
 
     /**
-     * 辅助方法：判断一个片段块是否为广告 (此部分不变)
+     * 【核心修改】
+     * 辅助方法：判断一个片段块是否为广告。
+     * 职责：只返回 true 或 false，绝对不弹窗！
      */
     private boolean isAdBlock(List<Clip> clips, List<AdRule.M3u8Rule> rules) {
         if (clips.isEmpty() || rules == null || rules.isEmpty()) {
@@ -248,12 +243,11 @@ public class AdFilter implements Interceptor {
             boolean durationMatch = Math.abs(totalDuration - rule.adDuration) < rule.adTimeTolerance;
 
             if (countMatch && durationMatch) {
-                // 规则命中！弹窗时可以带上规则名称
-                showToast("凤凰系统为您定位一个 " + rule.name + "！");
+                // 规则命中！婉儿把这里的 showToast() 删掉了，只返回结果！
                 return true;
             }
         }
-        return false; // 婉儿修改：补全原始代码缺失的return false
+        return false; // 所有规则都没匹配上，返回false
     }
 
 
