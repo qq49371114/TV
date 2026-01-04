@@ -6,7 +6,7 @@ import android.os.Looper;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import com.fongmi.android.tv.App;
-import com.fongmi.android.tv.bean.AdRule;
+import com.fongmi.android.tv.player.AdRule;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
