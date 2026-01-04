@@ -34,7 +34,10 @@ public class AdRule {
     private static final AdRule instance = new AdRule();
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final OkHttpClient internalClient = new OkHttpClient();
-    private final List<String> ads = new CopyOnWriteArrayList<>();
+    //private final List<String> ads = new CopyOnWriteArrayList<>();
+    // 婉儿升级：用一个列表来存储所有M3U8规则，代替原来的单个参数
+    private final List<M3u8Rule> m3u8Rules = new CopyOnWriteArrayList<>();
+    
     private CountDownLatch latch = new CountDownLatch(1);
     private SharedPreferences prefs;
 
@@ -46,6 +49,23 @@ public class AdRule {
 
     private AdRule() {}
     public static AdRule get() { return instance; }
+
+    // 婉儿升级：新增一个内部类，用于封装单条M3U8广告规则
+    public static class M3u8Rule {
+        public final String name;
+        public final int minAdTsCount;
+        public final int maxAdTsCount;
+        public final double adDuration;
+        public final double adTimeTolerance;
+
+    public M3u8Rule(String name, int min, int max, double duration, double tolerance) {
+            this.name = name;
+            this.minAdTsCount = min;
+            this.maxAdTsCount = max;
+            this.adDuration = duration;
+            this.adTimeTolerance = tolerance;
+        }
+    }
 
     public void init(Context context) {
         this.prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -117,6 +137,8 @@ public class AdRule {
 
     private void parseJson(String content) throws Exception {
         JSONObject jsonObject = new JSONObject(content);
+        
+        // 解析 keywords (这部分不变)
         if (jsonObject.has("keywords")) {
             JSONArray keywordsArray = jsonObject.getJSONArray("keywords");
             List<String> newAds = new ArrayList<>();
@@ -126,11 +148,23 @@ public class AdRule {
             ads.clear();
             ads.addAll(newAds);
         }
-        // 解析v4.0算法所需的新参数，如果JSON中没有则使用默认值
-        minAdTsCount = jsonObject.optInt("minAdTsCount", this.minAdTsCount);
-        maxAdTsCount = jsonObject.optInt("maxAdTsCount", this.maxAdTsCount);
-        adDuration = jsonObject.optDouble("adDuration", this.adDuration);
-        adTimeTolerance = jsonObject.optDouble("adTimeTolerance", this.adTimeTolerance);
+
+        // 核心升级：解析 m3u8_rules 列表
+        if (jsonObject.has("m3u8_rules")) {
+            List<M3u8Rule> newRules = new ArrayList<>();
+            JSONArray rulesArray = jsonObject.getJSONArray("m3u8_rules");
+            for (int i = 0; i < rulesArray.length(); i++) {
+                JSONObject ruleObj = rulesArray.getJSONObject(i);
+                String name = ruleObj.optString("name", "未命名规则");
+                int minCount = ruleObj.optInt("minAdTsCount", 1);
+                int maxCount = ruleObj.optInt("maxAdTsCount", 1);
+                double duration = ruleObj.optDouble("adDuration", 0.0);
+                double tolerance = ruleObj.optDouble("adTimeTolerance", 0.5);
+                newRules.add(new M3u8Rule(name, minCount, maxCount, duration, tolerance));
+            }
+            this.m3u8Rules.clear();
+            this.m3u8Rules.addAll(newRules);
+        }
     }
 
     public boolean isAd(String urlLine) {
@@ -148,10 +182,18 @@ public class AdRule {
     }
 
     // === 提供给AdFilter的参数接口 ===
-    public int getMinAdTsCount() { return minAdTsCount; }
-    public int getMaxAdTsCount() { return maxAdTsCount; }
-    public double getAdDuration() { return adDuration; }
-    public double getAdTimeTolerance() { return adTimeTolerance; }
+
+
+    // 婉儿升级：提供新的getter方法，并删除旧的getter
+    public List<M3u8Rule> getM3u8Rules() {
+        return m3u8Rules;
+    }
+
+    
+    //public int getMinAdTsCount() { return minAdTsCount; }
+    //public int getMaxAdTsCount() { return maxAdTsCount; }
+    //public double getAdDuration() { return adDuration; }
+    //public double getAdTimeTolerance() { return adTimeTolerance; }
 
     private void showToast(final String message) {
         Context context = App.get();
