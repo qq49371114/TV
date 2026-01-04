@@ -37,12 +37,9 @@ public class AdRule {
     private CountDownLatch latch = new CountDownLatch(1);
     private SharedPreferences prefs;
 
-    // 婉儿修正：确保 ads 列表的定义存在！
     private final List<String> ads = new CopyOnWriteArrayList<>();
-    // 婉儿升级：用一个列表来存储所有M3U8规则
     private final List<M3u8Rule> m3u8Rules = new CopyOnWriteArrayList<>();
 
-    // 婉儿升级：新增一个内部类，用于封装单条M3U8广告规则
     public static class M3u8Rule {
         public final String name;
         public final int minAdTsCount;
@@ -129,11 +126,9 @@ public class AdRule {
         get().fetchConfig();
     }
 
-    // 婉儿升级：修改 parseJson 方法以支持多规则解析
     private void parseJson(String content) throws Exception {
         JSONObject jsonObject = new JSONObject(content);
         
-        // 解析 keywords
         if (jsonObject.has("keywords")) {
             JSONArray keywordsArray = jsonObject.getJSONArray("keywords");
             List<String> newAds = new ArrayList<>();
@@ -144,7 +139,6 @@ public class AdRule {
             ads.addAll(newAds);
         }
 
-        // 核心升级：解析 m3u8_rules 列表
         if (jsonObject.has("m3u8_rules")) {
             List<M3u8Rule> newRules = new ArrayList<>();
             JSONArray rulesArray = jsonObject.getJSONArray("m3u8_rules");
@@ -176,10 +170,15 @@ public class AdRule {
         return false;
     }
 
-    // 婉儿升级：提供新的getter方法
+    // --- 婉儿最终修正：提供 AdFilter 所需的两个 getter 方法，确保完美配套 ---
+    public List<String> getM3u8Keywords() {
+        return ads;
+    }
+
     public List<M3u8Rule> getM3u8Rules() {
         return m3u8Rules;
     }
+    // --- 修正结束 ---
 
     private void showToast(final String message) {
         Context context = App.get();
