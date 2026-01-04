@@ -97,7 +97,7 @@ public class AdFilter implements Interceptor {
      * 核心算法：v4.1.7 (哥哥你指定的版本，婉儿一个字都没改)
      */
     private String cleanM3u8(String m3u8Content, String baseUrl) {
-        // 1. 将M3U8文件解析成一个更易于操作的结构 (此部分不变)
+        // 1. 解析M3U8 (不变)
         List<Object> items = new ArrayList<>();
         String[] lines = m3u8Content.split("\n");
         for (int i = 0; i < lines.length; i++) {
@@ -106,85 +106,65 @@ public class AdFilter implements Interceptor {
             if (line.startsWith("#EXTINF:")) {
                 if (i + 1 < lines.length && !lines[i+1].trim().startsWith("#")) {
                     items.add(new Clip(line, lines[i + 1].trim()));
-                    i++; // 跳过URL行
+                    i++;
                 }
             } else {
-                items.add(line); // 将标签或其他行作为字符串添加
+                items.add(line);
             }
         }
 
-        // --- 步骤2 - 获取两套规则，并初始化统一删除列表 ---
+        // 2. 获取规则并初始化 (不变)
         List<String> adKeywords = AdRule.get().getM3u8Keywords();
         List<AdRule.M3u8Rule> featureRules = AdRule.get().getM3u8Rules();
         Set<Object> itemsToRemove = new HashSet<>();
 
-        // --- 步骤3 - 第一步，高优先级关键字扫描 ---
+        // 3. 关键字扫描 (不变)
         if (adKeywords != null && !adKeywords.isEmpty()) {
             for (Object item : items) {
                 if (item instanceof Clip) {
                     for (String keyword : adKeywords) {
                         if (((Clip) item).url.contains(keyword)) {
                             itemsToRemove.add(item);
-                            break; // 找到一个关键字就标记，然后检查下一个片段
+                            break;
                         }
                     }
                 }
             }
         }
 
-        // --- 步骤4 - 第二步，实现特征扫描 ---
+        // 4. 特征扫描 (【核心修改】只标记广告片段，不碰任何结构标签)
         for (int i = 0; i < items.size(); i++) {
             Object item = items.get(i);
-            if (itemsToRemove.contains(item)) continue; // 跳过已被关键字标记的项
+            if (itemsToRemove.contains(item)) continue;
 
             if (item instanceof String && ((String) item).equals("#EXT-X-DISCONTINUITY")) {
-                // 找到了一个锚点！
-                
-                // --- 4.1 向前侦测 ---
+                // 向前侦测
                 List<Clip> beforeClips = new ArrayList<>();
-                int separatorBeforeAdIndex = -1;
                 for (int j = i - 1; j >= 0; j--) {
                     Object prevItem = items.get(j);
-                    if (itemsToRemove.contains(prevItem)) continue; // 跳过已标记的项
-                    if (prevItem instanceof Clip) {
-                        beforeClips.add(0, (Clip) prevItem);
-                    } else {
-                        separatorBeforeAdIndex = j;
-                        break;
-                    }
+                    if (itemsToRemove.contains(prevItem)) continue;
+                    if (prevItem instanceof Clip) { beforeClips.add(0, (Clip) prevItem); } 
+                    else { break; }
                 }
                 if (isAdBlock(beforeClips, featureRules)) {
                     itemsToRemove.addAll(beforeClips);
-                    itemsToRemove.add(item); // 删除当前锚点
-                    if (separatorBeforeAdIndex != -1) {
-                        itemsToRemove.add(items.get(separatorBeforeAdIndex));
-                    }
                 }
 
-                // --- 4.2 向后侦测 ---
+                // 向后侦测
                 List<Clip> afterClips = new ArrayList<>();
-                int separatorAfterAdIndex = -1;
                 for (int j = i + 1; j < items.size(); j++) {
                     Object nextItem = items.get(j);
-                    if (itemsToRemove.contains(nextItem)) continue; // 跳过已标记的项
-                    if (nextItem instanceof Clip) {
-                        afterClips.add((Clip) nextItem);
-                    } else {
-                        separatorAfterAdIndex = j;
-                        break;
-                    }
+                    if (itemsToRemove.contains(nextItem)) continue;
+                    if (nextItem instanceof Clip) { afterClips.add((Clip) nextItem); } 
+                    else { break; }
                 }
                 if (isAdBlock(afterClips, featureRules)) {
                     itemsToRemove.addAll(afterClips);
-                    itemsToRemove.add(item); // 删除当前锚点
-                    if (separatorAfterAdIndex != -1) {
-                        itemsToRemove.add(items.get(separatorAfterAdIndex));
-                    }
                 }
             }
         }
 
-        // --- 步骤5 - 使用统一的删除列表进行重建 ---
+        // 5. 初步重建 (不变)
         StringBuilder cleanedContent = new StringBuilder();
         for (Object item : items) {
             if (!itemsToRemove.contains(item)) {
@@ -197,7 +177,15 @@ public class AdFilter implements Interceptor {
             }
         }
 
-        return fixPaths(cleanedContent.toString(), baseUrl);
+        String finalM3u8 = cleanedContent.toString();
+
+        // 6. 【最终整形】在这里修复所有可能存在的“语法疤痕”
+        // 修复连续的分界线
+        finalM3u8 = finalM3u8.replaceAll("(#EXT-X-DISCONTINUITY\\n)+", "#EXT-X-DISCONTINUITY\\n");
+        // 修复错误的结尾
+        finalM3u8 = finalM3u8.replace("#EXT-X-DISCONTINUITY\n#EXT-X-ENDLIST", "#EXT-X-ENDLIST");
+
+        return fixPaths(finalM3u8, baseUrl);
     }
 
     /**
