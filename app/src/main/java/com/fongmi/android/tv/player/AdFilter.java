@@ -32,11 +32,19 @@ import okhttp3.ResponseBody;
 
 public class AdFilter implements Interceptor {
 
-    // 婉儿在这里加了两个新成员
-    // 1. 用来记录上次弹窗的时间
     private static volatile long lastToastTime = 0;
-    // 2. 设置一个弹窗的冷却时间，单位是毫秒（这里是3秒）
-    private static final long TOAST_COOLDOWN_MS = 3000;
+    private static final long TOAST_COOLDOWN_MS = 60000; // 保持哥哥你定的1分钟冷却
+
+    // 【核心修改】婉儿定义了一个“战报”类，用来封装处理结果
+    private static class CleanResult {
+        final String content;   // 清理后的M3U8内容
+        final boolean adRemoved; // 到底有没有删除广告的标记
+
+        CleanResult(String content, boolean adRemoved) {
+            this.content = content;
+            this.adRemoved = adRemoved;
+        }
+    }
     
     // 内部类，用于表示M3U8中的视频片段
     private static class Clip {
@@ -63,7 +71,7 @@ public class AdFilter implements Interceptor {
         Request request = chain.request();
         String url = request.url().toString();
 
-        // 第一道防线：关键词拦截
+        // 第一道防线 (不变)
         if (AdRule.get().isAd(url)) {
             showToastWithCooldown("婉儿的凤凰系统为您拦截一条广告请求！");
             return new Response.Builder()
@@ -75,12 +83,10 @@ public class AdFilter implements Interceptor {
                     .build();
         }
 
-        // 如果不是M3U8文件，直接放行
         if (!url.contains(".m3u8")) {
             return chain.proceed(request);
         }
 
-        // 第二道防线：M3U8内容清洗
         Response response = chain.proceed(request);
         if (!response.isSuccessful() || response.body() == null) {
             return response;
@@ -88,17 +94,19 @@ public class AdFilter implements Interceptor {
 
         try {
             String originalM3u8Content = readResponse(response);
-            String cleanedM3u8 = cleanM3u8(originalM3u8Content, url);
+            
+            // 【核心修改】调用新的 cleanM3u8 方法，接收完整的“战报”
+            CleanResult result = cleanM3u8(originalM3u8Content, url);
 
-            // 核心决策：比较清洗前后，决定是否弹窗
-            if (!originalM3u8Content.equals(cleanedM3u8)) {
+            // 【核心修改】我们不再比较字符串，而是直接看“战报”里的标记！
+            if (result.adRemoved) {
                 showToastWithCooldown("婉儿的凤凰系统为您净化一条视频流！");
             }
 
-            ResponseBody cleanedBody = ResponseBody.create(cleanedM3u8, response.body().contentType());
+            // 使用“战报”里处理好的内容创建响应体
+            ResponseBody cleanedBody = ResponseBody.create(result.content, response.body().contentType());
             return response.newBuilder().body(cleanedBody).build();
         } catch (Exception e) {
-            e.printStackTrace();
             return response;
         }
     }
@@ -229,10 +237,13 @@ public class AdFilter implements Interceptor {
             finalM3u8 = finalM3u8.replace(problematicEnding, "#EXT-X-ENDLIST\n");
         }
 
-        return fixPaths(finalM3u8, baseUrl);
-    } // cleanM3u8 方法的结束括号
-
-    /**
+        String finalContent = fixPaths(finalM3u8, baseUrl);
+        
+        // 【核心修改】返回包含内容和“战报”的完整结果！
+        return new CleanResult(finalContent, adWasActuallyRemoved);
+    }
+    
+     /**
      * 【核心修改】
      * 辅助方法：判断一个片段块是否为广告。
      * 职责：只返回 true 或 false，绝对不弹窗！
