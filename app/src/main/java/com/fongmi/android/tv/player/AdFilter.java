@@ -8,7 +8,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import com.fongmi.android.tv.App;
-import com.fongmi.android.tv.bean.AdRule; // 婉儿注：请确保这里的import路径是正确的
+import com.fongmi.android.tv.player.AdRule; // 婉儿注：请确保这里的import路径是正确的
 
 import java.io.BufferedReader;
 import java.io.IOException;
