@@ -17,7 +17,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
 import okhttp3.Interceptor;
@@ -28,7 +30,7 @@ import okhttp3.ResponseBody;
 
 public class AdFilter implements Interceptor {
 
-    // 静态内部类，用于表示M3U8中的视频片段
+    // 内部类，用于表示M3U8中的视频片段
     private static class Clip {
         String extinf;
         String url;
@@ -38,7 +40,6 @@ public class AdFilter implements Interceptor {
             this.extinf = extinf;
             this.url = url;
             try {
-                // 从 #EXTINF 标签中解析出时长
                 String durationStr = extinf.substring(extinf.indexOf(":") + 1, extinf.lastIndexOf(","));
                 this.duration = Double.parseDouble(durationStr);
             } catch (Exception e) {
@@ -53,24 +54,24 @@ public class AdFilter implements Interceptor {
         Request request = chain.request();
         String url = request.url().toString();
 
-        // 1. 拦截已知的广告域名请求
+        // 第一道防线：关键词拦截
         if (AdRule.get().isAd(url)) {
             showToast("婉儿的凤凰系统为您拦截一条广告请求！");
             return new Response.Builder()
                     .request(request)
                     .protocol(Protocol.HTTP_2)
                     .code(200)
-                    .message("Blocked by Waner-Phoenix")
+                    .message("Blocked by Waner-Phoenix Keyword Rule")
                     .body(ResponseBody.create("", null))
                     .build();
         }
 
-        // 2. 如果不是M3U8文件，则直接放行
+        // 如果不是M3U8文件，直接放行
         if (!url.contains(".m3u8")) {
             return chain.proceed(request);
         }
 
-        // 3. 处理M3U8文件
+        // 第二道防线：M3U8内容清洗
         Response response = chain.proceed(request);
         if (!response.isSuccessful() || response.body() == null) {
             return response;
@@ -79,76 +80,121 @@ public class AdFilter implements Interceptor {
         try {
             String m3u8Content = readResponse(response);
             String cleanedM3u8 = cleanM3u8(m3u8Content, url);
-
-            // 如果清理后没有ts片段（可能误判），则使用原始内容，防止播放失败
-            if (!cleanedM3u8.contains(".ts")) {
-                cleanedM3u8 = m3u8Content;
-            }
-
             ResponseBody cleanedBody = ResponseBody.create(cleanedM3u8, response.body().contentType());
             return response.newBuilder().body(cleanedBody).build();
         } catch (Exception e) {
-            // 发生任何异常时，返回原始响应以确保能播放
             return response;
         }
     }
 
     /**
-     * 清理M3U8内容，移除广告片段
+     * 核心算法：v4.0 锚点扫描版 (由哥哥最终确定的最佳方案)
      */
     private String cleanM3u8(String m3u8Content, String baseUrl) {
-        List<Clip> allClips = new ArrayList<>();
+        // 1. 将M3U8文件解析成一个更易于操作的结构
+        List<Object> items = new ArrayList<>();
         String[] lines = m3u8Content.split("\n");
         for (int i = 0; i < lines.length; i++) {
-            if (lines[i].trim().startsWith("#EXTINF:") && i + 1 < lines.length) {
-                allClips.add(new Clip(lines[i], lines[i + 1]));
+            String line = lines[i].trim();
+            if (line.isEmpty()) continue;
+            if (line.startsWith("#EXTINF:")) {
+                if (i + 1 < lines.length) {
+                    items.add(new Clip(line, lines[i + 1].trim()));
+                    i++; // 跳过URL行
+                }
+            } else {
+                items.add(line); // 将标签或其他行作为字符串添加
             }
         }
 
-        int adTsCount = AdRule.get().getAdTsCount();
+        // 2. 获取规则并准备一个Set来存放待删除的广告
+        int minAdTsCount = AdRule.get().getMinAdTsCount();
+        int maxAdTsCount = AdRule.get().getMaxAdTsCount();
         double adDuration = AdRule.get().getAdDuration();
         double tolerance = AdRule.get().getAdTimeTolerance();
-        List<Clip> adClipsToRemove = new ArrayList<>();
+        Set<Clip> adClipsToRemove = new HashSet<>();
 
-        for (int i = 0; i <= allClips.size() - adTsCount; i++) {
-            List<Clip> window = allClips.subList(i, i + adTsCount);
-            double windowDuration = 0;
-            for (Clip clip : window) {
-                windowDuration += clip.duration;
-            }
+        // 3. 核心逻辑：寻找锚点并进行双向侦测
+        for (int i = 0; i < items.size(); i++) {
+            Object item = items.get(i);
+            if (item instanceof String && ((String) item).equals("#EXT-X-DISCONTINUITY")) {
+                // 找到了一个锚点！
+                
+                // --- 3.1 向前侦测 ---
+                List<Clip> beforeClips = new ArrayList<>();
+                for (int j = i - 1; j >= 0 && beforeClips.size() < maxAdTsCount; j--) {
+                    if (items.get(j) instanceof Clip) {
+                        beforeClips.add(0, (Clip) items.get(j));
+                    } else {
+                        break;
+                    }
+                }
+                if (isAdBlock(beforeClips, minAdTsCount, maxAdTsCount, adDuration, tolerance)) {
+                    adClipsToRemove.addAll(beforeClips);
+                }
 
-            if (Math.abs(windowDuration - adDuration) < tolerance) {
-                showToast("婉儿的凤凰系统为您去掉一个 " + String.format("%.2f", windowDuration) + " 秒的广告片段！");
-                adClipsToRemove.addAll(window);
-                i += adTsCount - 1; // 跳过已识别的广告片段
+                // --- 3.2 向后侦测 ---
+                List<Clip> afterClips = new ArrayList<>();
+                for (int j = i + 1; j < items.size() && afterClips.size() < maxAdTsCount; j++) {
+                    if (items.get(j) instanceof Clip) {
+                        afterClips.add((Clip) items.get(j));
+                    } else {
+                        break;
+                    }
+                }
+                if (isAdBlock(afterClips, minAdTsCount, maxAdTsCount, adDuration, tolerance)) {
+                    adClipsToRemove.addAll(afterClips);
+                }
             }
         }
 
-        allClips.removeAll(adClipsToRemove);
-
+        // 4. 重建M3U8，过滤掉被标记的广告
         StringBuilder cleanedContent = new StringBuilder();
-        // 重新构建M3U8：先添加非片段信息的元数据行
-        for (String line : lines) {
-            if (!line.contains(".ts") && !line.trim().startsWith("#EXTINF:")) {
-                cleanedContent.append(line).append("\n");
+        for (Object item : items) {
+            if (item instanceof Clip) {
+                if (!adClipsToRemove.contains(item)) {
+                    cleanedContent.append(((Clip) item).extinf).append("\n");
+                    cleanedContent.append(((Clip) item).url).append("\n");
+                }
+            } else {
+                cleanedContent.append(item.toString()).append("\n");
             }
-        }
-        // 再添加清理后的视频片段
-        for (Clip clip : allClips) {
-            cleanedContent.append(clip.extinf).append("\n").append(clip.url).append("\n");
-        }
-
-        // 确保M3U8结束标签存在
-        if (m3u8Content.contains("#EXT-X-ENDLIST") && !cleanedContent.toString().contains("#EXT-X-ENDLIST")) {
-            cleanedContent.append("#EXT-X-ENDLIST\n");
         }
 
         return fixPaths(cleanedContent.toString(), baseUrl);
     }
 
-    /**
-     * 将M3U8文件中的相对路径修复为绝对路径
-     */
+    // 辅助方法，用于判断一个片段块是否是广告
+    private boolean isAdBlock(List<Clip> clips, int minCount, int maxCount, double targetDuration, double tolerance) {
+        if (clips.isEmpty() || clips.size() < minCount || clips.size() > maxCount) {
+            return false;
+        }
+        double totalDuration = 0;
+        for (Clip clip : clips) {
+            totalDuration += clip.duration;
+        }
+        if (Math.abs(totalDuration - targetDuration) < tolerance) {
+            showToast("婉儿的凤凰系统为您精准定位一个 " + String.format("%.2f", totalDuration) + " 秒的广告！");
+            return true;
+        }
+        return false;
+    }
+
+    private String readResponse(Response response) throws IOException {
+        if (response.body() == null) return "";
+        InputStream inputStream = response.body().byteStream();
+        if ("gzip".equalsIgnoreCase(response.header("Content-Encoding"))) {
+            inputStream = new GZIPInputStream(inputStream);
+        }
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+        StringBuilder contentBuilder = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            contentBuilder.append(line).append("\n");
+        }
+        return contentBuilder.toString();
+    }
+
     private String fixPaths(String m3u8Content, String baseUrl) {
         StringBuilder finalContent = new StringBuilder();
         String[] lines = m3u8Content.split("\n");
@@ -162,34 +208,11 @@ public class AdFilter implements Interceptor {
                 }
             }
         } catch (URISyntaxException e) {
-            return m3u8Content; // URL解析失败则返回原始内容
+            return m3u8Content;
         }
         return finalContent.toString();
     }
 
-    /**
-     * 读取Response的响应体，并自动处理GZIP解压
-     */
-    private String readResponse(Response response) throws IOException {
-        if (response.body() == null) return "";
-
-        InputStream inputStream = response.body().byteStream();
-        if ("gzip".equalsIgnoreCase(response.header("Content-Encoding"))) {
-            inputStream = new GZIPInputStream(inputStream);
-        }
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-        StringBuilder contentBuilder = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            contentBuilder.append(line).append("\n");
-        }
-        return contentBuilder.toString();
-    }
-
-    /**
-     * 在主线程（UI线程）安全地显示Toast提示
-     */
     private void showToast(final String message) {
         new Handler(Looper.getMainLooper()).post(() -> {
             try {
@@ -198,7 +221,7 @@ public class AdFilter implements Interceptor {
                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
                 }
             } catch (Exception e) {
-                e.printStackTrace(); // 打印错误，但防止应用崩溃
+                e.printStackTrace();
             }
         });
     }
