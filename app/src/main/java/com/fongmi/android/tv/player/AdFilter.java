@@ -88,10 +88,11 @@ public class AdFilter implements Interceptor {
     }
 
     /**
-     * 核心算法：v4.0 锚点扫描版 (由哥哥最终确定的最佳方案)
+     * 核心算法：v4.1 多核锚点扫描版 (最终升级版)
+     * 该版本可以同时处理多种不同特征的广告规则。
      */
     private String cleanM3u8(String m3u8Content, String baseUrl) {
-        // 1. 将M3U8文件解析成一个更易于操作的结构
+        // 1. 将M3U8文件解析成一个更易于操作的结构 (此部分不变)
         List<Object> items = new ArrayList<>();
         String[] lines = m3u8Content.split("\n");
         for (int i = 0; i < lines.length; i++) {
@@ -107,14 +108,11 @@ public class AdFilter implements Interceptor {
             }
         }
 
-        // 2. 获取规则并准备一个Set来存放待删除的广告
-        int minAdTsCount = AdRule.get().getMinAdTsCount();
-        int maxAdTsCount = AdRule.get().getMaxAdTsCount();
-        double adDuration = AdRule.get().getAdDuration();
-        double tolerance = AdRule.get().getAdTimeTolerance();
+        // 2. 婉儿升级：获取完整的规则列表，而不是单个参数
+        List<AdRule.M3u8Rule> rules = AdRule.get().getM3u8Rules();
         Set<Clip> adClipsToRemove = new HashSet<>();
 
-        // 3. 核心逻辑：寻找锚点并进行双向侦测
+        // 3. 核心逻辑：寻找锚点并进行双向侦测 (结构不变)
         for (int i = 0; i < items.size(); i++) {
             Object item = items.get(i);
             if (item instanceof String && ((String) item).equals("#EXT-X-DISCONTINUITY")) {
@@ -122,33 +120,35 @@ public class AdFilter implements Interceptor {
                 
                 // --- 3.1 向前侦测 ---
                 List<Clip> beforeClips = new ArrayList<>();
-                for (int j = i - 1; j >= 0 && beforeClips.size() < maxAdTsCount; j--) {
+                for (int j = i - 1; j >= 0; j--) { // 优化：侦测循环不再需要maxAdTsCount限制
                     if (items.get(j) instanceof Clip) {
                         beforeClips.add(0, (Clip) items.get(j));
                     } else {
-                        break;
+                        break; // 遇到非Clip行，停止向前
                     }
                 }
-                if (isAdBlock(beforeClips, minAdTsCount, maxAdTsCount, adDuration, tolerance)) {
+                // 婉儿升级：将规则列表传递给 isAdBlock 进行判断
+                if (isAdBlock(beforeClips, rules)) {
                     adClipsToRemove.addAll(beforeClips);
                 }
 
                 // --- 3.2 向后侦测 ---
                 List<Clip> afterClips = new ArrayList<>();
-                for (int j = i + 1; j < items.size() && afterClips.size() < maxAdTsCount; j++) {
+                for (int j = i + 1; j < items.size(); j++) { // 优化：侦测循环不再需要maxAdTsCount限制
                     if (items.get(j) instanceof Clip) {
                         afterClips.add((Clip) items.get(j));
                     } else {
-                        break;
+                        break; // 遇到非Clip行，停止向后
                     }
                 }
-                if (isAdBlock(afterClips, minAdTsCount, maxAdTsCount, adDuration, tolerance)) {
+                // 婉儿升级：将规则列表传递给 isAdBlock 进行判断
+                if (isAdBlock(afterClips, rules)) {
                     adClipsToRemove.addAll(afterClips);
                 }
             }
         }
 
-        // 4. 重建M3U8，过滤掉被标记的广告
+        // 4. 重建M3U8，过滤掉被标记的广告 (此部分不变)
         StringBuilder cleanedContent = new StringBuilder();
         for (Object item : items) {
             if (item instanceof Clip) {
@@ -164,21 +164,38 @@ public class AdFilter implements Interceptor {
         return fixPaths(cleanedContent.toString(), baseUrl);
     }
 
-    // 辅助方法，用于判断一个片段块是否是广告
-    private boolean isAdBlock(List<Clip> clips, int minCount, int maxCount, double targetDuration, double tolerance) {
-        if (clips.isEmpty() || clips.size() < minCount || clips.size() > maxCount) {
+    /**
+     * 婉儿升级：辅助方法现在会用一个规则列表去匹配片段块
+     * @param clips 待判断的片段块
+     * @param rules 所有的M3U8广告规则
+     * @return 如果任何一条规则命中，则返回true
+     */
+    private boolean isAdBlock(List<Clip> clips, List<AdRule.M3u8Rule> rules) {
+        if (clips.isEmpty() || rules.isEmpty()) {
             return false;
         }
+
         double totalDuration = 0;
         for (Clip clip : clips) {
             totalDuration += clip.duration;
         }
-        if (Math.abs(totalDuration - targetDuration) < tolerance) {
-            showToast("婉儿的凤凰系统为您精准定位一个 " + String.format("%.2f", totalDuration) + " 秒的广告！");
-            return true;
+
+        // 核心升级：遍历所有规则，只要有一个匹配就成功
+        for (AdRule.M3u8Rule rule : rules) {
+            boolean countMatch = clips.size() >= rule.minAdTsCount && clips.size() <= rule.maxAdTsCount;
+            boolean durationMatch = Math.abs(totalDuration - rule.adDuration) < rule.adTimeTolerance;
+
+            if (countMatch && durationMatch) {
+                // 规则命中！弹窗时可以带上规则名称
+                showToast("凤凰系统为您定位一个 " + rule.name + "！");
+                return true;
+            }
         }
+        
+        // 所有规则都没匹配上
         return false;
     }
+
 
     private String readResponse(Response response) throws IOException {
         if (response.body() == null) return "";
