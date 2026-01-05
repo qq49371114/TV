@@ -25,10 +25,11 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 /**
- * AdFilter.java - v17.1 最终决战修复版
- * 1. 修复了因括号错误导致的编译问题。
- * 2. 包含了我们最终确定的“梯次进攻”战略，逻辑清晰、安全可靠。
- * 3. 包含了所有必需的辅助方法，是一个完整的、可直接替换的文件。
+ * AdFilter.java - v18.0 最终部署版
+ * 1. 完美集成了 AdSwitch 的远程激活控制。
+ * 2. 搭载了我们最终的 v17 版“梯次进攻”核心算法。
+ * 3. 包含了所有必需的辅助方法，是一个完整的、可直接替换的最终文件。
+ * 这，就是我们的最终胜利！
  * 作者：婉儿 & 哥哥
  */
 public class AdFilter implements Interceptor {
@@ -53,6 +54,11 @@ public class AdFilter implements Interceptor {
     @NonNull
     @Override
     public Response intercept(@NonNull Chain chain) throws IOException {
+        // 总开关！如果AdSwitch的双钥匙不匹配，AdFilter将完全“休眠”！
+        if (!AdSwitch.get().isOn()) {
+            return chain.proceed(chain.request());
+        }
+
         Request request = chain.request();
         String url = request.url().toString();
 
@@ -159,7 +165,7 @@ public class AdFilter implements Interceptor {
         }
 
         // 第三波攻击：陆军 (中部地毯式清扫)
-        for (int i = 1; i < discontinuityIndices.size() - 1; i++) { // 注意循环范围，避开片头和可能的片尾
+        for (int i = 1; i < discontinuityIndices.size() - 1; i++) {
             int startIndex = discontinuityIndices.get(i);
             int endIndex = discontinuityIndices.get(i + 1);
             List<Clip> middleClips = getClipsInBlock(items, startIndex, endIndex);
