@@ -24,14 +24,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
-/**
- * AdFilter.java - v18.0 最终部署版
- * 1. 完美集成了 AdSwitch 的远程激活控制。
- * 2. 搭载了我们最终的 v17 版“梯次进攻”核心算法。
- * 3. 包含了所有必需的辅助方法，是一个完整的、可直接替换的最终文件。
- * 这，就是我们的最终胜利！
- * 作者：婉儿 & 哥哥
- */
 public class AdFilter implements Interceptor {
 
     private static class Clip {
@@ -80,6 +72,7 @@ public class AdFilter implements Interceptor {
             String m3u8Content = readResponse(response);
             AdRule.get().await(); // 强制等待规则加载完成
             String cleanedM3u8 = cleanM3u8(m3u8Content, url);
+            if (cleanedM3u8.equals(m3u8Content)) return response;
             ResponseBody cleanedBody = ResponseBody.create(cleanedM3u8, response.body().contentType());
             return response.newBuilder().body(cleanedBody).build();
         } catch (Exception e) {
