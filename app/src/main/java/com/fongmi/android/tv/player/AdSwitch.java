@@ -79,7 +79,16 @@ public class AdSwitch {
         }
     }
 
-    
+    // 在 AdSwitch.java 文件中
+   public String encrypt(String plainText) throws Exception {
+    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+    SecretKeySpec keySpec = new SecretKeySpec(ACT_DECRYPT_KEY, "AES");
+    IvParameterSpec ivSpec = new IvParameterSpec(ACT_DECRYPT_IV);
+    cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
+    byte[] encryptedData = cipher.doFinal(plainText.getBytes("UTF-8"));
+    return Base64.encodeToString(encryptedData, Base64.NO_WRAP);
+}
+
     
     public void saveUserCode(String activationCode) {
         if (!isInitialized) return;
