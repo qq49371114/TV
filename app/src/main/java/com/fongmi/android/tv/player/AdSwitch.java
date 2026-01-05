@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import com.fongmi.android.tv.App;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.List;
 import javax.crypto.Cipher;
@@ -15,12 +16,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-/**
- * AdSwitch.java - v38.0 最终同步修复版
- * 1. 包含了 activateWith, saveUserCode, fetchValidCodeList 等所有必需的方法。
- * 2. 实现了“明文”、“加密串”、“万能密码”三种激活方式。
- * 作者：婉儿 (根据哥哥的最终指示)
- */
 public class AdSwitch {
     private static final String PREFS_NAME = "ad_switch_prefs";
     private static final String KEY_USER_INPUT_CODE = "user_input_code";
@@ -65,9 +60,7 @@ public class AdSwitch {
         String plainCode = code;
         try {
             plainCode = decrypt(code);
-        } catch (Exception e) {
-            // 解密失败，说明它就是个明文
-        }
+        } catch (Exception e) { /* 解密失败，说明它就是个明文 */ }
         String validCodesJson = prefs.getString(KEY_VALID_CODES_CACHE, "[]");
         Type listType = new TypeToken<List<String>>() {}.getType();
         List<String> validCodes = new Gson().fromJson(validCodesJson, listType);
@@ -78,17 +71,6 @@ public class AdSwitch {
             return false;
         }
     }
-
-    // 在 AdSwitch.java 文件中
-   public String encrypt(String plainText) throws Exception {
-    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-    SecretKeySpec keySpec = new SecretKeySpec(ACT_DECRYPT_KEY, "AES");
-    IvParameterSpec ivSpec = new IvParameterSpec(ACT_DECRYPT_IV);
-    cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
-    byte[] encryptedData = cipher.doFinal(plainText.getBytes("UTF-8"));
-    return Base64.encodeToString(encryptedData, Base64.NO_WRAP);
-}
-
     
     public void saveUserCode(String activationCode) {
         if (!isInitialized) return;
@@ -114,6 +96,15 @@ public class AdSwitch {
                 e.printStackTrace();
             }
         }).start();
+    }
+
+    public String encrypt(String plainText) throws Exception {
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        SecretKeySpec keySpec = new SecretKeySpec(DECRYPT_KEY, "AES");
+        IvParameterSpec ivSpec = new IvParameterSpec(DECRYPT_IV);
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
+        byte[] encryptedData = cipher.doFinal(plainText.getBytes("UTF-8"));
+        return Base64.encodeToString(encryptedData, Base64.NO_WRAP);
     }
 
     private String decrypt(String encryptedText) throws Exception {
