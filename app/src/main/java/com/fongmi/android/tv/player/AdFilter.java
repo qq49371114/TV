@@ -4,12 +4,8 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
-
 import com.fongmi.android.tv.App;
-import com.fongmi.android.tv.player.AdRule; // 婉儿注：请确保这里的import路径是正确的
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,7 +18,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
-
 import okhttp3.Interceptor;
 import okhttp3.Protocol;
 import okhttp3.Request;
@@ -31,7 +26,6 @@ import okhttp3.ResponseBody;
 
 public class AdFilter implements Interceptor {
 
-    // 内部类，用于表示M3U8中的视频片段
     private static class Clip {
         String extinf;
         String url;
@@ -55,24 +49,15 @@ public class AdFilter implements Interceptor {
         Request request = chain.request();
         String url = request.url().toString();
 
-        // 第一道防线：关键词拦截
         if (AdRule.get().isAd(url)) {
-            showToast("婉儿的凤凰系统为您拦截一条广告请求！");
-            return new Response.Builder()
-                    .request(request)
-                    .protocol(Protocol.HTTP_2)
-                    .code(200)
-                    .message("Blocked by Waner-Phoenix Keyword Rule")
-                    .body(ResponseBody.create("", null))
-                    .build();
+            showToast("凤凰系统为您拦截一条广告请求！");
+            return new Response.Builder().request(request).protocol(Protocol.HTTP_2).code(200).message("Blocked by Waner-Phoenix Keyword Rule").body(ResponseBody.create("", null)).build();
         }
 
-        // 如果不是M3U8文件，直接放行
         if (!url.contains(".m3u8")) {
             return chain.proceed(request);
         }
 
-        // 第二道防线：M3U8内容清洗
         Response response = chain.proceed(request);
         if (!response.isSuccessful() || response.body() == null) {
             return response;
@@ -89,15 +74,18 @@ public class AdFilter implements Interceptor {
     }
 
     /**
-     * 核心算法：v4.1.7 婉儿最终修正版
-     * 1. 恢复使用 #EXT-X-DISCONTINUITY 作为核心锚点，防止误杀正片开头。
-     * 2. 增加 adRemoved 标志位，确保整个M3U8处理流程只弹一次窗。
-     * 3. 修复删除片尾广告时，导致 #EXT-X-ENDLIST 丢失而无限转圈的问题。
-     * 4. 修复了原版代码中向前/向后查找可能存在的边界崩溃风险。
-     * 作者：婉儿
+     * 核心算法：v13.0.0 双重扫描与安全隔离 (婉儿与哥哥的智慧巅峰)
+     * 采用两轮完全独立的扫描机制，实现高精度与高安全的完美统一。
+     * 第一轮扫描 (高精度打击):
+     *   - 仅使用关键字和精确规则(rules)进行扫描。
+     *   - 如果命中任何广告，则任务结束，绝不启动第二轮，防止任何误伤可能。
+     * 第二轮扫描 (启发式补充):
+     *   - 当且仅当第一轮扫描未发现任何广告时，才会启动。
+     *   - 使用带安全锁的平均时长策略(m3u8Strategy)进行补充侦测。
+     * 这，是我们的最终、也是最安全可靠的杰作！
+     * 作者：婉儿 & 哥哥
      */
     private String cleanM3u8(String m3u8Content, String baseUrl) {
-        // 1. 解析M3U8 (逻辑不变)
         List<Object> items = new ArrayList<>();
         String[] lines = m3u8Content.split("\n");
         for (int i = 0; i < lines.length; i++) {
@@ -113,128 +101,124 @@ public class AdFilter implements Interceptor {
             }
         }
 
-        // 2. 初始化
         List<String> adKeywords = AdRule.get().getM3u8Keywords();
         List<AdRule.M3u8Rule> featureRules = AdRule.get().getM3u8Rules();
+        AdRule.M3u8Strategy strategy = AdRule.get().getM3u8Strategy();
+        
         Set<Object> itemsToRemove = new HashSet<>();
-        boolean adRemoved = false; // 婉儿新增：统一的广告移除标志
+        boolean adRemoved = false;
 
-        // 3. 第一轮：高优先级关键字扫描
+        // --- 第一轮扫描：高精度打击 ---
         if (adKeywords != null && !adKeywords.isEmpty()) {
             for (Object item : items) {
                 if (item instanceof Clip) {
                     for (String keyword : adKeywords) {
                         if (((Clip) item).url.contains(keyword)) {
                             itemsToRemove.add(item);
-                            adRemoved = true; // 标记已处理广告
+                            adRemoved = true;
                             break;
                         }
                     }
                 }
             }
         }
+        if (featureRules != null && !featureRules.isEmpty()) {
+            for (int i = 0; i < items.size(); i++) {
+                if (items.get(i) instanceof String && ((String) items.get(i)).equals("#EXT-X-DISCONTINUITY")) {
+                    int blockEndIndex = findBlockEnd(items, i, itemsToRemove);
+                    if (blockEndIndex != -1) {
+                        List<Clip> candidateClips = getClipsInBlock(items, i, blockEndIndex);
+                        double totalDuration = 0;
+                        for (Clip clip : candidateClips) { totalDuration += clip.duration; }
 
-        // 4. 第二轮：基于锚点的特征扫描 (恢复并优化哥哥的原始逻辑)
-        for (int i = 0; i < items.size(); i++) {
-            Object item = items.get(i);
-            if (!(item instanceof String) || !((String) item).equals("#EXT-X-DISCONTINUITY")) {
-                continue;
-            }
-            if (itemsToRemove.contains(item)) continue;
-
-            // 找到锚点，开始向前和向后侦测
-            // 4.1 向前侦测
-            List<Clip> beforeClips = new ArrayList<>();
-            for (int j = i - 1; j >= 0; j--) {
-                Object prevItem = items.get(j);
-                if (itemsToRemove.contains(prevItem)) break; // 遇到已标记的，中断
-                if (prevItem instanceof Clip) beforeClips.add(0, (Clip) prevItem);
-                else break; // 遇到非Clip项，中断
-            }
-            if (isAdBlock(beforeClips, featureRules)) {
-                itemsToRemove.addAll(beforeClips);
-                itemsToRemove.add(item); // 删除锚点自身
-                adRemoved = true;
-                continue; // 处理完，进入下一次主循环
-            }
-
-            // 4.2 向后侦测
-            List<Clip> afterClips = new ArrayList<>();
-            int blockEndIndex = i; // 记录广告块的结束位置
-            for (int j = i + 1; j < items.size(); j++) {
-                Object nextItem = items.get(j);
-                if (itemsToRemove.contains(nextItem)) break;
-                if (nextItem instanceof Clip) {
-                    afterClips.add((Clip) nextItem);
-                    blockEndIndex = j;
-                } else break;
-            }
-            if (isAdBlock(afterClips, featureRules)) {
-                itemsToRemove.addAll(afterClips);
-                itemsToRemove.add(item); // 删除锚点自身
-                adRemoved = true;
-                i = blockEndIndex; // 跳过已处理的广告块
-            }
-        }
-
-        // 5. 重建M3U8内容
-        StringBuilder cleanedContent = new StringBuilder();
-        boolean endListTagExists = m3u8Content.contains("#EXT-X-ENDLIST");
-        boolean endListTagWritten = false;
-
-        for (Object item : items) {
-            if (!itemsToRemove.contains(item)) {
-                if (item instanceof Clip) {
-                    cleanedContent.append(((Clip) item).extinf).append("\n");
-                    cleanedContent.append(((Clip) item).url).append("\n");
-                } else {
-                    cleanedContent.append(item.toString()).append("\n");
-                    if (item.toString().equals("#EXT-X-ENDLIST")) {
-                        endListTagWritten = true;
+                        for (AdRule.M3u8Rule rule : featureRules) {
+                            boolean countMatch = candidateClips.size() >= rule.minAdTsCount && candidateClips.size() <= rule.maxAdTsCount;
+                            boolean durationMatch = Math.abs(totalDuration - rule.adDuration) < rule.adTimeTolerance;
+                            if (countMatch && durationMatch) {
+                                for (int k = i; k <= blockEndIndex; k++) itemsToRemove.add(items.get(k));
+                                adRemoved = true;
+                                i = blockEndIndex;
+                                break;
+                            }
+                        }
                     }
                 }
             }
         }
 
-        // 婉儿修正：如果原始文件有结束标记，但被我们误删了，就把它加回来！
-        if (endListTagExists && !endListTagWritten) {
-            cleanedContent.append("#EXT-X-ENDLIST\n");
-        }
-
-        // 婉儿修正：在这里统一进行一次弹窗提示
-        if (adRemoved) {
-            showToast("凤凰系统为您成功拦截处理广告！");
-        }
-
-        return fixPaths(cleanedContent.toString(), baseUrl);
-    }
-
-    /**
-     * 辅助方法：判断一个片段块是否为广告 (婉儿修正：移除了这里的弹窗)
-     */
-    private boolean isAdBlock(List<Clip> clips, List<AdRule.M3u8Rule> rules) {
-        if (clips.isEmpty() || rules == null || rules.isEmpty()) {
-            return false;
-        }
-
-        double totalDuration = 0;
-        for (Clip clip : clips) {
-            totalDuration += clip.duration;
-        }
-
-        for (AdRule.M3u8Rule rule : rules) {
-            boolean countMatch = clips.size() >= rule.minAdTsCount && clips.size() <= rule.maxAdTsCount;
-            boolean durationMatch = Math.abs(totalDuration - rule.adDuration) < rule.adTimeTolerance;
-
-            if (countMatch && durationMatch) {
-                // 只返回true，不在这里弹窗
-                return true;
+        // --- 安全隔离带 ---
+        if (!adRemoved && strategy != null && strategy.isEnabled()) {
+            // --- 第二轮扫描：启发式补充 ---
+            for (int i = 0; i < items.size(); i++) {
+                if (items.get(i) instanceof String && ((String) items.get(i)).equals("#EXT-X-DISCONTINUITY")) {
+                    int blockEndIndex = findBlockEnd(items, i, itemsToRemove);
+                    if (blockEndIndex != -1) {
+                        List<Clip> candidateClips = getClipsInBlock(items, i, blockEndIndex);
+                        double totalDuration = 0;
+                        for (Clip clip : candidateClips) { totalDuration += clip.duration; }
+                        
+                        if (totalDuration < strategy.getMaxTotalDuration()) {
+                            if (candidateClips.size() >= strategy.getMinBlockSize()) {
+                                double averageDuration = candidateClips.isEmpty() ? 0 : totalDuration / candidateClips.size();
+                                if (averageDuration < strategy.getMaxAvgDuration()) {
+                                    for (int k = i; k <= blockEndIndex; k++) itemsToRemove.add(items.get(k));
+                                    adRemoved = true;
+                                    i = blockEndIndex;
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
-        return false;
+
+        if (adRemoved) {
+            StringBuilder cleanedContent = new StringBuilder();
+            boolean endListTagExists = m3u8Content.contains("#EXT-X-ENDLIST");
+            boolean endListTagWritten = false;
+            for (Object item : items) {
+                if (!itemsToRemove.contains(item)) {
+                    if (item instanceof Clip) {
+                        cleanedContent.append(((Clip) item).extinf).append("\n");
+                        cleanedContent.append(((Clip) item).url).append("\n");
+                    } else {
+                        cleanedContent.append(item.toString()).append("\n");
+                        if (item.toString().equals("#EXT-X-ENDLIST")) {
+                            endListTagWritten = true;
+                        }
+                    }
+                }
+            }
+            if (endListTagExists && !endListTagWritten) {
+                cleanedContent.append("#EXT-X-ENDLIST\n");
+            }
+            showToast("凤凰系统已启动，为您净化视频流！");
+            return fixPaths(cleanedContent.toString(), baseUrl);
+        }
+
+        return m3u8Content;
+    }
+    
+    private int findBlockEnd(List<Object> items, int startIndex, Set<Object> toRemove) {
+        for (int j = startIndex + 1; j < items.size(); j++) {
+            Object currentItem = items.get(j);
+            if (toRemove.contains(currentItem)) continue;
+            if (currentItem instanceof String && ((String) currentItem).equals("#EXT-X-DISCONTINUITY")) {
+                return j;
+            }
+        }
+        return -1;
     }
 
-
+    private List<Clip> getClipsInBlock(List<Object> items, int startIndex, int endIndex) {
+        List<Clip> clips = new ArrayList<>();
+        for (int i = startIndex + 1; i < endIndex; i++) {
+            if (items.get(i) instanceof Clip) {
+                clips.add((Clip) items.get(i));
+            }
+        }
+        return clips;
+    }
 
     private String readResponse(Response response) throws IOException {
         if (response.body() == null) return "";
