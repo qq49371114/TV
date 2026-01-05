@@ -21,31 +21,40 @@ public class AdSwitch {
     private static final String KEY_USER_INPUT_CODE = "user_input_code";
     private static final String KEY_REMOTE_PASSWORD_CACHE = "remote_password_cache";
 
-    // --- 密钥1：专门用来解密“激活文件”，必须和你在工具里用的一样！---
     private static final byte[] ACT_DECRYPT_KEY = "ThisIsActKey123!".getBytes();
     private static final byte[] ACT_DECRYPT_IV  = "ThisIsActIv1234!".getBytes();
 
     private static class Loader { static volatile AdSwitch INSTANCE = new AdSwitch(); }
     public static AdSwitch get() { return Loader.INSTANCE; }
 
-    private final SharedPreferences prefs;
+    private SharedPreferences prefs;
     private final OkHttpClient client = new OkHttpClient();
+    private volatile boolean isInitialized = false;
 
-    private AdSwitch() {
-        this.prefs = App.get().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+    private AdSwitch() {}
+
+    // ================= ▼ 婉儿补上的“开机按钮”在这里！▼ =================
+    public void init(Context context) {
+        if (isInitialized) return;
+        this.prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        this.isInitialized = true;
     }
+    // ================= ▲ “开机按钮”已补上！▲ =================
 
     public boolean isOn() {
+        if (!isInitialized) return false; // 如果没初始化，开关默认是关的
         String userInputCode = prefs.getString(KEY_USER_INPUT_CODE, "");
         String remoteCode = prefs.getString(KEY_REMOTE_PASSWORD_CACHE, "");
         return !userInputCode.isEmpty() && userInputCode.equals(remoteCode);
     }
 
     public void saveUserCode(String activationCode) {
+        if (!isInitialized) return;
         prefs.edit().putString(KEY_USER_INPUT_CODE, activationCode).apply();
     }
 
     public void fetchRemoteCode(String url) {
+        if (!isInitialized) return;
         Request request = new Request.Builder().url(url).build();
         client.newCall(request).enqueue(new Callback() {
             @Override public void onFailure(Call call, IOException e) { e.printStackTrace(); }
@@ -76,6 +85,7 @@ public class AdSwitch {
     }
 
     public void deactivate() {
+        if (!isInitialized) return;
         prefs.edit().remove(KEY_USER_INPUT_CODE).apply();
     }
 }
