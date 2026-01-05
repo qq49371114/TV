@@ -200,14 +200,11 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
 
     // ================= ▼ 婉儿新增：状态更新器！▼ =================
     private void updatePhoenixStatus() {
-        if (mBinding == null) return; // 安全检查
+        if (mBinding == null) return;
 
-        // 检查“心脏”是否已激活
         if (AdSwitch.get().isOn()) {
-            // 如果已激活，就把文字改成“已激活”
-            mBinding.phoenixStatusText.setText("已激活"); // 假设你用来显示状态的TextView ID是这个
+            mBinding.phoenixStatusText.setText("已激活"); 
         } else {
-            // 如果未激活，就显示“点击激活”
             mBinding.phoenixStatusText.setText("点击激活");
         }
     }
