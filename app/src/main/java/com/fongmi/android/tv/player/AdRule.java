@@ -30,8 +30,8 @@ public class AdRule {
     private static final String KEY_CONFIG_URL = "config_url";
 
     // --- 密钥2：专门用来解密“规则文件”，必须和你在工具里用的一样！---
-    private static final byte[] RULE_DECRYPT_KEY = "ThisIsRuleKey456".getBytes();
-    private static final byte[] RULE_DECRYPT_IV  = "ThisIsRuleIv5678".getBytes();
+    private static final byte[] RULE_DECRYPT_KEY = "PHOENIX-RULE-KEY".getBytes();
+    private static final byte[] RULE_DECRYPT_IV  = "PHOENIX-RULE-IV!".getBytes();
 
     private static final AdRule instance = new AdRule();
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
