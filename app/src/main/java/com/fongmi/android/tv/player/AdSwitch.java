@@ -23,11 +23,11 @@ import okhttp3.Response;
  */
 public class AdSwitch {
     private static final String PREFS_NAME = "ad_switch_prefs";
-    private static final String KEY_USER_INPUT_CODE = "ThisIsActKey123!"; // ✨ 我们现在只保存验证通过的“明文码”
-    private static final String KEY_VALID_CODES_CACHE = "ThisIsActIv1234!";
+    private static final String KEY_USER_INPUT_CODE = "user_input_code"; // ✨ 我们现在只保存验证通过的“明文码”
+    private static final String KEY_VALID_CODES_CACHE = "valid_codes_cache";
 
-    private static final byte[] LIST_DECRYPT_KEY = "PHOENIX-LIST-KEY".getBytes();
-    private static final byte[] LIST_DECRYPT_IV  = "PHOENIX-LIST-IV!".getBytes();
+    private static final byte[] LIST_DECRYPT_KEY = "ThisIsActKey123!".getBytes();
+    private static final byte[] LIST_DECRYPT_IV  = "ThisIsActIv1234!".getBytes();
 
     private static class Loader { static volatile AdSwitch INSTANCE = new AdSwitch(); }
     public static AdSwitch get() { return Loader.INSTANCE; }
