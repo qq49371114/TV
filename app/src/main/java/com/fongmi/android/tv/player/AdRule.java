@@ -5,27 +5,23 @@ import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
 import android.widget.Toast;
-
 import com.fongmi.android.tv.App;
-import com.google.gson.Gson; // 婉儿注：请确保你的项目中已添加Gson依赖
+import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
 /**
- * AdRule.java - 最终部署版
- * 1. 采用 Gson 全自动解析云端规则，代码更健壮、易于维护。
- * 2. 数据模型与 v13 版 JSON 规则完美匹配，支持所有火力等级。
- * 3. 为 AdFilter 提供所有必需的接口，是“凤凰系统”的坚实基础。
+ * AdRule.java - v17.1 最终修复版
+ * 1. 补上了被遗漏的 await() 方法，解决了编译错误。
+ * 2. 包含了完整的、最终确定的数据模型和所有功能。
  * 作者：婉儿 & 哥哥
  */
 public class AdRule {
@@ -41,7 +37,6 @@ public class AdRule {
     private CountDownLatch latch = new CountDownLatch(1);
     private SharedPreferences prefs;
 
-    // --- 数据字段，与JSON结构完全对应 ---
     @SerializedName("keywords")
     private List<String> keywords = new CopyOnWriteArrayList<>();
     @SerializedName("m3u8Keywords")
@@ -51,30 +46,19 @@ public class AdRule {
     @SerializedName("m3u8Strategy")
     private M3u8Strategy m3u8Strategy;
 
-    // --- 内部类：精确规则 (狙击枪) ---
     public static class M3u8Rule {
-        @SerializedName("name")
-        public String name;
-        @SerializedName("minAdTsCount")
-        public int minAdTsCount;
-        @SerializedName("maxAdTsCount")
-        public int maxAdTsCount;
-        @SerializedName("adDuration")
-        public double adDuration;
-        @SerializedName("adTimeTolerance")
-        public double adTimeTolerance;
+        @SerializedName("name") public String name;
+        @SerializedName("minAdTsCount") public int minAdTsCount;
+        @SerializedName("maxAdTsCount") public int maxAdTsCount;
+        @SerializedName("adDuration") public double adDuration;
+        @SerializedName("adTimeTolerance") public double adTimeTolerance;
     }
 
-    // --- 内部类：模糊策略 (带安全锁的霰弹枪) ---
     public static class M3u8Strategy {
-        @SerializedName("enabled")
-        private boolean enabled;
-        @SerializedName("minBlockSize")
-        private int minBlockSize;
-        @SerializedName("maxAvgDuration")
-        private double maxAvgDuration;
-        @SerializedName("maxTotalDuration")
-        private double maxTotalDuration;
+        @SerializedName("enabled") private boolean enabled;
+        @SerializedName("minBlockSize") private int minBlockSize;
+        @SerializedName("maxAvgDuration") private double maxAvgDuration;
+        @SerializedName("maxTotalDuration") private double maxTotalDuration;
 
         public boolean isEnabled() { return enabled; }
         public int getMinBlockSize() { return minBlockSize; }
@@ -92,8 +76,6 @@ public class AdRule {
     }
 
     public void fetchConfig() {
-        // 恢复成哥哥你原来的逻辑：只从 SharedPreferences 中读取 URL
-        // 如果没有通过 setConfigUrl 设置过，则 url 为空，不执行任何操作。
         String url = prefs.getString(KEY_CONFIG_URL, "");
         if (url != null && !url.isEmpty()) {
             load(url);
@@ -115,7 +97,7 @@ public class AdRule {
                     return;
                 }
                 if (!response.isSuccessful() || response.body() == null) {
-                    throw new IOException("Failed to fetch rules: " + response.code());
+                    throw new IOException("下载规则失败，服务器响应码: " + response.code());
                 }
                 String content = response.body().string();
                 String newEtag = response.header("ETag");
@@ -125,10 +107,9 @@ public class AdRule {
                         .putString(KEY_ETAG, newEtag != null ? newEtag : "")
                         .putString(KEY_LAST_MODIFIED, newLastModified != null ? newLastModified : "")
                         .apply();
-                showToast("凤凰系统云端规则更新成功！");
                 parseJson(content);
             } catch (Exception e) {
-                showToast("凤凰系统云端规则更新失败！");
+                showToast("凤凰系统云端规则更新失败：" + e.getMessage());
                 e.printStackTrace();
             } finally {
                 latch.countDown();
@@ -152,8 +133,9 @@ public class AdRule {
     private void parseJson(String content) {
         try {
             AdRule tempRule = new Gson().fromJson(content, AdRule.class);
-            if (tempRule == null) return;
-
+            if (tempRule == null) {
+                throw new Exception("JSON内容为空或格式不正确");
+            }
             if (tempRule.getKeywords() != null) {
                 this.keywords.clear();
                 this.keywords.addAll(tempRule.getKeywords());
@@ -167,18 +149,15 @@ public class AdRule {
                 this.rules.addAll(tempRule.getM3u8Rules());
             }
             this.m3u8Strategy = tempRule.getM3u8Strategy();
+            showToast("凤凰系统云端规则解析成功！");
         } catch (Exception e) {
             e.printStackTrace();
-            showToast("凤凰系统规则解析失败，请检查格式！");
+            showToast("凤凰系统规则解析失败：" + e.getMessage());
         }
     }
 
     public boolean isAd(String urlLine) {
-        try {
-            latch.await(200, java.util.concurrent.TimeUnit.MILLISECONDS); // 优化等待时间
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        await(); // 域名拦截也需要等待
         if (urlLine == null || urlLine.trim().isEmpty()) return false;
         if (this.keywords.isEmpty()) return false;
         for (String keyword : this.keywords) {
@@ -187,18 +166,28 @@ public class AdRule {
         return false;
     }
 
-    // --- 为 AdFilter 提供所有必需的“弹药”接口 ---
+    // ================= ▼ 婉儿补上的“钥匙”在这里！▼ =================
+    public void await() {
+        try {
+            latch.await(2, java.util.concurrent.TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+    // ================= ▲ “钥匙”已补上！▲ =================
+
     public List<String> getKeywords() { return keywords; }
     public List<String> getM3u8Keywords() { return m3u8Keywords; }
     public List<M3u8Rule> getM3u8Rules() { return rules; }
     public M3u8Strategy getM3u8Strategy() { return m3u8Strategy; }
 
     private void showToast(final String message) {
-        Context context = App.get();
-        if (context == null) return;
         new Handler(Looper.getMainLooper()).post(() -> {
             try {
-                Toast.makeText(context, message, Toast.LENGTH_LONG).show();
+                Context context = App.get();
+                if (context != null) {
+                    Toast.makeText(context, message, Toast.LENGTH_LONG).show();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
