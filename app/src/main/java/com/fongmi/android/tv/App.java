@@ -60,30 +60,22 @@ public class App extends Application implements Application.ActivityLifecycleCal
 
     @Override
     public void onCreate() {
-    super.onCreate();
-    Notify.createChannel();
-    registerActivityLifecycleCallbacks(this);
+        super.onCreate();
+        Notify.createChannel();
+        registerActivityLifecycleCallbacks(this);
 
-    // ✨✨✨ 2. 在后台线程中，初始化并启动我们的整个“凤凰系统”！ ✨✨✨
-    
-    new Thread(() -> {
-        // a. 初始化“大脑”，让它准备好加载规则
+        new Thread(() -> {
         AdRule.get().init(this);
-        // b. 为“大脑”设置加密规则文件的地址
         AdRule.setConfigUrl("http://47.109.61.116:86/apk/ad_rulesa.json");
 
-        // c. 初始化“心脏”，让它准备好进行激活验证
         AdSwitch.get().init(this);
-        // d. 让“心脏”去云端获取最新的“远程钥匙” (activation_code)
-        String activationConfigUrl = "http://47.109.61.116:86/apk/activation_configb.json"; 
-        AdSwitch.get().fetchRemoteCode(activationConfigUrl);
+        String validCodesUrl = "http://47.109.61.116:86/apk/activation_configb.json"; // ✨ 假设你的贵宾名单地址是这个
+        // ✨ 修复了 cannot find symbol 的错误，调用正确的方法名！
+        AdSwitch.get().fetchValidCodeList(validCodesUrl);
 
-        // e. 把我们的“哨兵”，通过“外挂接口”，插到“发动机”上！
         OkHttp.addInterceptor(new AdFilter());
     }).start();
-
-    // ... 你其他的原始启动代码 ...
-   }
+}
 
     @Override
     public PackageManager getPackageManager() {
