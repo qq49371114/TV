@@ -15,19 +15,13 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-/**
- * AdSwitch.java - v32.0 即时验卡版
- * 1. 核心逻辑改为“当场验证”：提供一个方法，接收明文码，直接返回是否在贵宾名单中。
- * 2. 不再需要 saveEncryptedCode，验证和保存在一步完成。
- * 作者：婉儿 (根据哥哥的最终指示)
- */
 public class AdSwitch {
     private static final String PREFS_NAME = "ad_switch_prefs";
-    private static final String KEY_USER_INPUT_CODE = "user_input_code"; // ✨ 我们现在只保存验证通过的“明文码”
+    private static final String KEY_USER_INPUT_CODE = "user_input_code";
     private static final String KEY_VALID_CODES_CACHE = "valid_codes_cache";
 
-    private static final byte[] LIST_DECRYPT_KEY = "ThisIsActKey123!".getBytes();
-    private static final byte[] LIST_DECRYPT_IV  = "ThisIsActIv1234!".getBytes();
+    private static final byte[] DECRYPT_KEY = "PHOENIX-LIST-KEY".getBytes();
+    private static final byte[] DECRYPT_IV  = "PHOENIX-LIST-IV!".getBytes();
 
     private static class Loader { static volatile AdSwitch INSTANCE = new AdSwitch(); }
     public static AdSwitch get() { return Loader.INSTANCE; }
@@ -44,43 +38,58 @@ public class AdSwitch {
         this.isInitialized = true;
     }
 
-    // 最终的“贵宾名单”验证法！
     public boolean isOn() {
         if (!isInitialized) return false;
         String userInputCode = prefs.getString(KEY_USER_INPUT_CODE, "");
         if (userInputCode.isEmpty()) return false;
-
         String validCodesJson = prefs.getString(KEY_VALID_CODES_CACHE, "[]");
         Type listType = new TypeToken<List<String>>() {}.getType();
         List<String> validCodes = new Gson().fromJson(validCodesJson, listType);
-
         return validCodes.contains(userInputCode);
     }
 
-    // ✨✨✨ 这就是我们全新的“当场验卡”核心方法！✨✨✨
     public boolean verifyAndSaveCode(String plainCode) {
         if (!isInitialized) return false;
-        
         String validCodesJson = prefs.getString(KEY_VALID_CODES_CACHE, "[]");
         Type listType = new TypeToken<List<String>>() {}.getType();
         List<String> validCodes = new Gson().fromJson(validCodesJson, listType);
-
         if (validCodes.contains(plainCode)) {
-            // 验证通过！把这个有效的明文码存起来！
             prefs.edit().putString(KEY_USER_INPUT_CODE, plainCode).apply();
             return true;
         } else {
-            // 验证失败！
             return false;
         }
     }
 
-    // 下载并缓存“贵宾名单”
     public void fetchValidCodeList(String url) {
-        // ... (这个方法保持不变)
+        if (!isInitialized) return;
+        new Thread(() -> {
+            try {
+                Request request = new Request.Builder().url(url).build();
+                Response response = client.newCall(request).execute();
+                if (response.isSuccessful() && response.body() != null) {
+                    String encryptedContent = response.body().string();
+                    String decryptedJson = decrypt(encryptedContent);
+                    class Config { List<String> valid_codes; }
+                    Config config = new Gson().fromJson(decryptedJson, Config.class);
+                    if (config != null && config.valid_codes != null) {
+                         prefs.edit().putString(KEY_VALID_CODES_CACHE, new Gson().toJson(config.valid_codes)).apply();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
+    // ✨ 修复了 missing return statement 的错误！
     private String decrypt(String encryptedText) throws Exception {
-        // ... (这个方法保持不变)
+        byte[] encryptedData = Base64.decode(encryptedText, Base64.DEFAULT);
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        SecretKeySpec keySpec = new SecretKeySpec(DECRYPT_KEY, "AES");
+        IvParameterSpec ivSpec = new IvParameterSpec(DECRYPT_IV);
+        cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
+        byte[] decryptedData = cipher.doFinal(encryptedData);
+        return new String(decryptedData, "UTF-8").trim();
     }
 }
