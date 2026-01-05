@@ -74,18 +74,14 @@ public class AdFilter implements Interceptor {
     }
 
     /**
-     * 核心算法：v13.0.0 双重扫描与安全隔离 (婉儿与哥哥的智慧巅峰)
-     * 采用两轮完全独立的扫描机制，实现高精度与高安全的完美统一。
-     * 第一轮扫描 (高精度打击):
-     *   - 仅使用关键字和精确规则(rules)进行扫描。
-     *   - 如果命中任何广告，则任务结束，绝不启动第二轮，防止任何误伤可能。
-     * 第二轮扫描 (启发式补充):
-     *   - 当且仅当第一轮扫描未发现任何广告时，才会启动。
-     *   - 使用带安全锁的平均时长策略(m3u8Strategy)进行补充侦测。
-     * 这，是我们的最终、也是最安全可靠的杰作！
+     * 核心算法：v17.0.0 梯次进攻 (婉儿与哥哥的最终指挥)
+     * 严格按照“关键字 -> 片头片尾 -> 中部”的优先级进行梯次扫描。
+     * 任何一波攻击命中目标，后续的扫描将立即中止，以实现最高效率和绝对安全。
+     * 这，才是我们真正的最终决战形态！
      * 作者：婉儿 & 哥哥
      */
     private String cleanM3u8(String m3u8Content, String baseUrl) {
+        // 1. 解析M3U8 (逻辑不变)
         List<Object> items = new ArrayList<>();
         String[] lines = m3u8Content.split("\n");
         for (int i = 0; i < lines.length; i++) {
@@ -101,100 +97,112 @@ public class AdFilter implements Interceptor {
             }
         }
 
+        // 2. 获取所有云端规则和策略 (弹药库)
         List<String> adKeywords = AdRule.get().getM3u8Keywords();
         List<AdRule.M3u8Rule> featureRules = AdRule.get().getM3u8Rules();
         AdRule.M3u8Strategy strategy = AdRule.get().getM3u8Strategy();
         
         Set<Object> itemsToRemove = new HashSet<>();
-        boolean adRemoved = false;
 
-        // --- 第一轮扫描：高精度打击 ---
+        // --- 第一波攻击：空军 (关键字快速打击) ---
         if (adKeywords != null && !adKeywords.isEmpty()) {
             for (Object item : items) {
                 if (item instanceof Clip) {
                     for (String keyword : adKeywords) {
                         if (((Clip) item).url.contains(keyword)) {
                             itemsToRemove.add(item);
-                            adRemoved = true;
-                            break;
                         }
                     }
                 }
             }
         }
-        if (featureRules != null && !featureRules.isEmpty()) {
-            for (int i = 0; i < items.size(); i++) {
-                if (items.get(i) instanceof String && ((String) items.get(i)).equals("#EXT-X-DISCONTINUITY")) {
-                    int blockEndIndex = findBlockEnd(items, i, itemsToRemove);
-                    if (blockEndIndex != -1) {
-                        List<Clip> candidateClips = getClipsInBlock(items, i, blockEndIndex);
-                        double totalDuration = 0;
-                        for (Clip clip : candidateClips) { totalDuration += clip.duration; }
+        // 如果空军已经命中目标，直接结束战斗！
+        if (!itemsToRemove.isEmpty()) {
+            return buildCleanedM3u8(m3u8Content, items, itemsToRemove, baseUrl);
+        }
 
-                        for (AdRule.M3u8Rule rule : featureRules) {
-                            boolean countMatch = candidateClips.size() >= rule.minAdTsCount && candidateClips.size() <= rule.maxAdTsCount;
-                            boolean durationMatch = Math.abs(totalDuration - rule.adDuration) < rule.adTimeTolerance;
-                            if (countMatch && durationMatch) {
-                                for (int k = i; k <= blockEndIndex; k++) itemsToRemove.add(items.get(k));
-                                adRemoved = true;
-                                i = blockEndIndex;
-                                break;
-                            }
-                        }
-                    }
-                }
+        // --- 第二波攻击：特种部队 (片头 & 片尾定点清除) ---
+        List<Integer> discontinuityIndices = new ArrayList<>();
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i) instanceof String && ((String) items.get(i)).equals("#EXT-X-DISCONTINUITY")) {
+                discontinuityIndices.add(i);
             }
         }
 
-        // --- 安全隔离带 ---
-        if (!adRemoved && strategy != null && strategy.isEnabled()) {
-            // --- 第二轮扫描：启发式补充 ---
-            for (int i = 0; i < items.size(); i++) {
-                if (items.get(i) instanceof String && ((String) items.get(i)).equals("#EXT-X-DISCONTINUITY")) {
-                    int blockEndIndex = findBlockEnd(items, i, itemsToRemove);
-                    if (blockEndIndex != -1) {
-                        List<Clip> candidateClips = getClipsInBlock(items, i, blockEndIndex);
-                        double totalDuration = 0;
-                        for (Clip clip : candidateClips) { totalDuration += clip.duration; }
-                        
-                        if (totalDuration < strategy.getMaxTotalDuration()) {
-                            if (candidateClips.size() >= strategy.getMinBlockSize()) {
-                                double averageDuration = candidateClips.isEmpty() ? 0 : totalDuration / candidateClips.size();
-                                if (averageDuration < strategy.getMaxAvgDuration()) {
-                                    for (int k = i; k <= blockEndIndex; k++) itemsToRemove.add(items.get(k));
-                                    adRemoved = true;
-                                    i = blockEndIndex;
-                                }
-                            }
-                        }
+        if (!discontinuityIndices.isEmpty()) {
+            // 2a. 扫描片头 (第一个分隔符后的区域)
+            int firstDiscIndex = discontinuityIndices.get(0);
+            int secondDiscIndex = discontinuityIndices.size() > 1 ? discontinuityIndices.get(1) : -1;
+            if (secondDiscIndex != -1) {
+                List<Clip> headClips = getClipsInBlock(items, firstDiscIndex, secondDiscIndex);
+                if (isAdBlockByRules(headClips, featureRules) || isAdBlockByStrategy(headClips, strategy)) {
+                    for (int k = firstDiscIndex; k <= secondDiscIndex; k++) itemsToRemove.add(items.get(k));
+                    return buildCleanedM3u8(m3u8Content, items, itemsToRemove, baseUrl); // 命中，结束战斗！
+                }
+            }
+
+            // 2b. 扫描片尾 (最后一个分隔符后的区域)
+            int lastDiscIndex = discontinuityIndices.get(discontinuityIndices.size() - 1);
+            // 确保片头和片尾不是同一个块
+            if (lastDiscIndex != firstDiscIndex || secondDiscIndex == -1) {
+                List<Clip> tailClips = new ArrayList<>();
+                for (int i = lastDiscIndex + 1; i < items.size(); i++) {
+                    if (items.get(i) instanceof Clip) tailClips.add((Clip) items.get(i));
+                    else if (items.get(i) instanceof String && ((String) items.get(i)).startsWith("#EXT")) break;
+                }
+                if (!tailClips.isEmpty()) {
+                    if (isAdBlockByRules(tailClips, featureRules) || isAdBlockByStrategy(tailClips, strategy)) {
+                        itemsToRemove.add(items.get(lastDiscIndex));
+                        itemsToRemove.addAll(tailClips);
+                        return buildCleanedM3u8(m3u8Content, items, itemsToRemove, baseUrl); // 命中，结束战斗！
                     }
                 }
             }
         }
 
-        if (adRemoved) {
-            StringBuilder cleanedContent = new StringBuilder();
-            boolean endListTagExists = m3u8Content.contains("#EXT-X-ENDLIST");
-            boolean endListTagWritten = false;
-            for (Object item : items) {
-                if (!itemsToRemove.contains(item)) {
-                    if (item instanceof Clip) {
-                        cleanedContent.append(((Clip) item).extinf).append("\n");
-                        cleanedContent.append(((Clip) item).url).append("\n");
-                    } else {
-                        cleanedContent.append(item.toString()).append("\n");
-                        if (item.toString().equals("#EXT-X-ENDLIST")) {
-                            endListTagWritten = true;
-                        }
+        // --- 第三波攻击：陆军 (中部地毯式清扫) ---
+        // 只有当空军和特种部队都无功而返时，陆军才出动
+        for (int i = 0; i < discontinuityIndices.size() - 1; i++) {
+            int startIndex = discontinuityIndices.get(i);
+            int endIndex = discontinuityIndices.get(i + 1);
+            // 跳过已经被特种部队扫描过的片头区域
+            if (i == 0) continue; 
+            
+            List<Clip> middleClips = getClipsInBlock(items, startIndex, endIndex);
+            if (isAdBlockByRules(middleClips, featureRules) || isAdBlockByStrategy(middleClips, strategy)) {
+                 for (int k = startIndex; k <= endIndex; k++) itemsToRemove.add(items.get(k));
+                 return buildCleanedM3u8(m3u8Content, items, itemsToRemove, baseUrl); // 命中，结束战斗！
+            }
+        }
+
+        // 如果所有攻击都未能命中，则返回原始内容
+        return m3u8Content;
+    }
+
+    // 婉儿新增：将重建逻辑提炼成独立的辅助方法，避免重复代码
+    private String buildCleanedM3u8(String originalContent, List<Object> items, Set<Object> toRemove, String baseUrl) {
+        StringBuilder cleanedContent = new StringBuilder();
+        boolean endListTagExists = originalContent.contains("#EXT-X-ENDLIST");
+        boolean endListTagWritten = false;
+        for (Object item : items) {
+            if (!toRemove.contains(item)) {
+                if (item instanceof Clip) {
+                    cleanedContent.append(((Clip) item).extinf).append("\n");
+                    cleanedContent.append(((Clip) item).url).append("\n");
+                } else {
+                    cleanedContent.append(item.toString()).append("\n");
+                    if (item.toString().equals("#EXT-X-ENDLIST")) {
+                        endListTagWritten = true;
                     }
                 }
             }
-            if (endListTagExists && !endListTagWritten) {
-                cleanedContent.append("#EXT-X-ENDLIST\n");
-            }
-            showToast("凤凰系统已启动，为您净化视频流！");
-            return fixPaths(cleanedContent.toString(), baseUrl);
         }
+        if (endListTagExists && !endListTagWritten) {
+            cleanedContent.append("#EXT-X-ENDLIST\n");
+        }
+        showToast("凤凰系统已启动，为您净化视频流！");
+        return fixPaths(cleanedContent.toString(), baseUrl);
+    }
 
         return m3u8Content;
     }
