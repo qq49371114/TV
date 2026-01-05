@@ -14,7 +14,6 @@ android {
     defaultConfig {
         applicationId "com.fongmi.android.tv"
         minSdk 24
-        //noinspection ExpiredTargetSdkVersion
         targetSdk 28
         versionCode 51001
         versionName "5.1.0.01"
@@ -23,17 +22,10 @@ android {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString(), "eventBusIndex": "com.fongmi.android.tv.event.EventIndex"]
             }
         }
-        
-        // ================= ▼ 婉儿修改：直接在这里指定我们唯一的目标！▼ =================
         ndk {
             abiFilters "arm64-v8a"
         }
-        // ================= ▲ 修改结束 ▲ =================
     }
-
-    // ================= ▼ 婉儿修改：移除所有 Flavor 相关的配置 ▼ =================
-    // flavorDimensions 和 productFlavors 整个模块都删掉
-    // ================= ▲ 修改结束 ▲ =================
 
     buildFeatures {
         buildConfig true
@@ -55,15 +47,14 @@ android {
         }
     }
 
-    // ================= ▼ 婉儿修改：更新输出文件名的逻辑 ▼ =================
+    // 因为我们已经不使用 productFlavors 了，所以这段旧的命名逻辑也必须注释掉或者删除！
+    /*
     android.applicationVariants.configureEach { variant ->
         variant.outputs.configureEach { output ->
-            // 因为我们只打手机版，所以可以直接命名
-            // 你也可以根据需要改成更简单的名字，比如 "phoenix-test.apk"
-            outputFileName = "mobile-arm64_v8a.apk"
+            outputFileName = "${variant.productFlavors[0].name}-${variant.productFlavors[1].name}.apk"
         }
     }
-    // ================= ▲ 修改结束 ▲ =================
+    */
 
     configurations.configureEach {
         resolutionStrategy {
