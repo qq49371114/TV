@@ -20,8 +20,8 @@ public class AdSwitch {
     private static final String KEY_USER_INPUT_CODE = "user_input_code";
     private static final String KEY_VALID_CODES_CACHE = "valid_codes_cache";
 
-    private static final byte[] DECRYPT_KEY = "PHOENIX-LIST-KEY".getBytes();
-    private static final byte[] DECRYPT_IV  = "PHOENIX-LIST-IV!".getBytes();
+    private static final byte[] DECRYPT_KEY = "ThisIsActKey123!".getBytes();
+    private static final byte[] DECRYPT_IV  = "ThisIsActIv1234!".getBytes();
 
     private static class Loader { static volatile AdSwitch INSTANCE = new AdSwitch(); }
     public static AdSwitch get() { return Loader.INSTANCE; }
