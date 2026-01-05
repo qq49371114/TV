@@ -63,6 +63,16 @@ public class AdRule {
         public double getMaxTotalDuration() { return maxTotalDuration; }
     }
 
+    // 在 AdRule.java 文件中
+public String encrypt(String plainText) throws Exception {
+    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+    SecretKeySpec keySpec = new SecretKeySpec(RULE_DECRYPT_KEY, "AES");
+    IvParameterSpec ivSpec = new IvParameterSpec(RULE_DECRYPT_IV);
+    cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
+    byte[] encryptedData = cipher.doFinal(plainText.getBytes("UTF-8"));
+    return Base64.encodeToString(encryptedData, Base64.NO_WRAP);
+}
+
     private AdRule() {}
     public static AdRule get() { return instance; }
 
