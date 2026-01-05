@@ -51,7 +51,7 @@ import java.util.List;
 import com.fongmi.android.tv.player.AdSwitch;
 import com.fongmi.android.tv.ui.dialog.ActivationDialog; 
 
-public class SettingActivity extends BaseActivity implements ConfigCallback, SiteCallback, LiveCallback, DohCallback {
+public class SettingActivity extends BaseActivity implements ConfigCallback, SiteCallback, LiveCallback, DohCallback, ActivationDialog.ActivationListener{
 
     private ActivitySettingBinding mBinding;
     private String[] size;
@@ -89,6 +89,9 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.versionText.setText(BuildConfig.VERSION_NAME);
         setCacheText();
         setOtherText();
+        // ================= ▼ 婉儿新增：在界面加载时，先刷新一次状态！▼ =================
+        updatePhoenixStatus();
+        // ================= ▲ 新增结束 ▲ =================
     }
 
     private void setOtherText() {
@@ -105,6 +108,33 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
             }
         });
     }
+
+    // ================= ▼ 婉儿新增：状态更新器！▼ =================
+    private void updatePhoenixStatus() {
+        if (mBinding == null) return; // 安全检查
+
+        // 检查“心脏”是否已激活
+        if (AdSwitch.get().isOn()) {
+            // 如果已激活，就把文字改成“已激活”
+            mBinding.phoenixStatusText.setText("已激活"); // 假设你用来显示状态的TextView ID是这个
+        } else {
+            // 如果未激活，就显示“点击激活”
+            mBinding.phoenixStatusText.setText("点击激活");
+        }
+    }
+    // ================= ▲ 新增结束 ▲ =================
+
+
+    // ================= ▼ 婉儿新增：信鸽接收站！▼ =================
+    @Override
+    public void onActivationChanged() {
+        // 当激活弹窗里的“信鸽”飞回来时，这个方法就会被调用！
+        // 我们在这里立刻更新UI状态，实现“即时生效”！
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(this::updatePhoenixStatus);
+        }
+    }
+    // ================= ▲ 新增结束 ▲ =================
 
     @Override
     protected void initEvent() {
