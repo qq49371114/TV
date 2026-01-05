@@ -14,6 +14,7 @@ android {
     defaultConfig {
         applicationId "com.fongmi.android.tv"
         minSdk 24
+        //noinspection ExpiredTargetSdkVersion
         targetSdk 28
         versionCode 51001
         versionName "5.1.0.01"
@@ -22,8 +23,24 @@ android {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString(), "eventBusIndex": "com.fongmi.android.tv.event.EventIndex"]
             }
         }
-        ndk {
-            abiFilters "arm64-v8a"
+    }
+
+    flavorDimensions = ["mode", "abi"]
+
+    productFlavors {
+        leanback {
+            dimension "mode"
+        }
+        mobile {
+            dimension "mode"
+        }
+        arm64_v8a {
+            dimension "abi"
+            ndk { abiFilters "arm64-v8a" }
+        }
+        armeabi_v7a {
+            dimension "abi"
+            ndk { abiFilters "armeabi-v7a" }
         }
     }
 
@@ -47,23 +64,17 @@ android {
         }
     }
 
-    // 因为我们已经不使用 productFlavors 了，所以这段旧的命名逻辑也必须注释掉或者删除！
-    /*
     android.applicationVariants.configureEach { variant ->
         variant.outputs.configureEach { output ->
             outputFileName = "${variant.productFlavors[0].name}-${variant.productFlavors[1].name}.apk"
         }
     }
-    */
 
-    // ================= ▼ 婉儿的最终修复！▼ =================
-    // 我们不再使用 okhttpVersion 这个不确定的“代号”，而是直接指定一个稳定版本！
     configurations.configureEach {
         resolutionStrategy {
-            force 'com.squareup.okhttp3:okhttp:4.10.0'
+            force 'com.squareup.okhttp3:okhttp:' + okhttpVersion
         }
     }
-    // ================= ▲ 修复完毕！▲ =================
 
     lint {
         disable 'UnsafeOptInUsageError'
@@ -75,7 +86,6 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 }
-
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.aar"])
@@ -137,5 +147,4 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:' + glideVersion
     annotationProcessor 'org.greenrobot:eventbus-annotation-processor:3.3.1'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.1.5'
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
 }
