@@ -37,9 +37,19 @@ public class ActivationDialog {
     }
 
     public void show() {
-        // ... (视觉统一的代码不变)
+        android.util.TypedValue typedValue = new android.util.TypedValue();
+        activity.getTheme().resolveAttribute(com.google.android.material.R.attr.materialAlertDialogTheme, typedValue, true);
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(activity, typedValue.resourceId);
+        
+        builder.setTitle("🔥 凤凰之心・激活/工具 🔥");
+        
+        LayoutInflater inflater = LayoutInflater.from(activity);
+        android.view.View view = inflater.inflate(R.layout.dialog_activation, null);
+        etActivationCode = view.findViewById(R.id.et_activation_code);
+        builder.setView(view);
 
-        builder.setPositiveButton("执行", null); // 按钮文字改成“执行”
+        builder.setNegativeButton("取消", (dialogInterface, i) -> dialog.dismiss());
+        builder.setPositiveButton("执行", null);
         dialog = builder.create();
         
         dialog.setOnShowListener(dialogInterface -> {
@@ -50,19 +60,18 @@ public class ActivationDialog {
                     return;
                 }
 
-                // ================= ▼ 婉儿的“创世神力”核心！▼ =================
                 try {
                     // --- 魔法指令1：加密“激活文件” ---
                     if (input.startsWith("act:")) {
-                        String plaintext = input.substring(4); // 截取 "act:" 后面的内容
+                        String plaintext = input.substring(4);
                         String ciphertext = AdSwitch.get().encrypt(plaintext);
-                        etActivationCode.setText(ciphertext); // 将结果显示在输入框
+                        etActivationCode.setText(ciphertext);
                         copyToClipboard(ciphertext);
                         Toast.makeText(activity, "激活文件密文已生成并复制！", Toast.LENGTH_LONG).show();
 
                     // --- 魔法指令2：加密“规则文件” ---
                     } else if (input.startsWith("rule:")) {
-                        String plaintext = input.substring(5); // 截取 "rule:" 后面的内容
+                        String plaintext = input.substring(5);
                         String ciphertext = AdRule.get().encrypt(plaintext);
                         etActivationCode.setText(ciphertext);
                         copyToClipboard(ciphertext);
@@ -84,7 +93,6 @@ public class ActivationDialog {
                     Toast.makeText(activity, "操作失败：" + e.getMessage(), Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
                 }
-                // ================= ▲ 神力施展完毕！▲ =================
             });
         });
 
