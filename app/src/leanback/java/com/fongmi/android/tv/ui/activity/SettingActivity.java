@@ -51,12 +51,12 @@ import java.util.List;
 import com.fongmi.android.tv.player.AdSwitch;
 import com.fongmi.android.tv.ui.dialog.ActivationDialog; 
 
-public class SettingActivity extends BaseActivity implements ConfigCallback, SiteCallback, LiveCallback, DohCallback {
+public class SettingActivity extends BaseActivity implements ConfigCallback, SiteCallback, LiveCallback, DohCallback, ActivationDialog.ActivationListener{
 
     private ActivitySettingBinding mBinding;
     private String[] size;
     private int type;
-
+    
     public static void start(Activity activity) {
         activity.startActivity(new Intent(activity, SettingActivity.class));
     }
