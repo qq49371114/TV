@@ -191,7 +191,7 @@ public class AdFilter implements Interceptor {
         if (endListTagExists && !endListTagWritten) {
             cleanedContent.append("#EXT-X-ENDLIST\n");
         }
-        showToast("凤凰系统已启动，为您净化视频流！");
+        showToast("凤凰系统已启动，为您净化视频流！体验新视界！");
         return fixPaths(cleanedContent.toString(), baseUrl);
     }
 
