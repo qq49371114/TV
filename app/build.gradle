@@ -56,11 +56,14 @@ android {
     }
     */
 
+    // ================= ▼ 婉儿的最终修复！▼ =================
+    // 我们不再使用 okhttpVersion 这个不确定的“代号”，而是直接指定一个稳定版本！
     configurations.configureEach {
         resolutionStrategy {
-            force 'com.squareup.okhttp3:okhttp:' + okhttpVersion
+            force 'com.squareup.okhttp3:okhttp:4.10.0'
         }
     }
+    // ================= ▲ 修复完毕！▲ =================
 
     lint {
         disable 'UnsafeOptInUsageError'
