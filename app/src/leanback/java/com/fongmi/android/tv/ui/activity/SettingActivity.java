@@ -157,9 +157,15 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
         mBinding.wallRefresh.setOnLongClickListener(this::onWallHistory);
         // --- 婉儿新增：为“凤凰系统”按钮绑定最终的点击事件！ ---
-        // ================================================================
-        mBinding.phoenixActivation.setOnClickListener(view -> ActivationDialog.create(this).show());
-       }
+        // ================= ▼ 婉儿的最终修复！▼ =================
+        mBinding.phoenixActivation.setOnClickListener(view -> {
+    // ================= ▼ 婉儿的最终修复：明确提供收信地址！▼ =================
+    // 第一个参数getActivity()是“市长”，用来创建弹窗。
+    // 第二个参数this是“区长”自己，用来接收“信鸽”！
+        ActivationDialog.create(getActivity(), this).show();
+    // ================= ▲ 修复结束！▲ =================
+    });
+}
 
     @Override
     public void setConfig(Config config) {
