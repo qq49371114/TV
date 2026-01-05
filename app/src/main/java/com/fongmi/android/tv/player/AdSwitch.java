@@ -15,6 +15,12 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+/**
+ * AdSwitch.java - v38.0 最终同步修复版
+ * 1. 包含了 activateWith, saveUserCode, fetchValidCodeList 等所有必需的方法。
+ * 2. 实现了“明文”、“加密串”、“万能密码”三种激活方式。
+ * 作者：婉儿 (根据哥哥的最终指示)
+ */
 public class AdSwitch {
     private static final String PREFS_NAME = "ad_switch_prefs";
     private static final String KEY_USER_INPUT_CODE = "user_input_code";
@@ -22,6 +28,7 @@ public class AdSwitch {
 
     private static final byte[] DECRYPT_KEY = "ThisIsActKey123!".getBytes();
     private static final byte[] DECRYPT_IV  = "ThisIsActIv1234!".getBytes();
+    private static final String MASTER_KEY = "waner-love-gege";
 
     private static class Loader { static volatile AdSwitch INSTANCE = new AdSwitch(); }
     public static AdSwitch get() { return Loader.INSTANCE; }
@@ -42,14 +49,25 @@ public class AdSwitch {
         if (!isInitialized) return false;
         String userInputCode = prefs.getString(KEY_USER_INPUT_CODE, "");
         if (userInputCode.isEmpty()) return false;
+        if (userInputCode.equals(MASTER_KEY)) return true;
         String validCodesJson = prefs.getString(KEY_VALID_CODES_CACHE, "[]");
         Type listType = new TypeToken<List<String>>() {}.getType();
         List<String> validCodes = new Gson().fromJson(validCodesJson, listType);
         return validCodes.contains(userInputCode);
     }
 
-    public boolean verifyAndSaveCode(String plainCode) {
+    public boolean activateWith(String code) {
         if (!isInitialized) return false;
+        if (code.equals(MASTER_KEY)) {
+            prefs.edit().putString(KEY_USER_INPUT_CODE, code).apply();
+            return true;
+        }
+        String plainCode = code;
+        try {
+            plainCode = decrypt(code);
+        } catch (Exception e) {
+            // 解密失败，说明它就是个明文
+        }
         String validCodesJson = prefs.getString(KEY_VALID_CODES_CACHE, "[]");
         Type listType = new TypeToken<List<String>>() {}.getType();
         List<String> validCodes = new Gson().fromJson(validCodesJson, listType);
@@ -59,6 +77,11 @@ public class AdSwitch {
         } else {
             return false;
         }
+    }
+    
+    public void saveUserCode(String activationCode) {
+        if (!isInitialized) return;
+        prefs.edit().putString(KEY_USER_INPUT_CODE, activationCode).apply();
     }
 
     public void fetchValidCodeList(String url) {
@@ -82,7 +105,6 @@ public class AdSwitch {
         }).start();
     }
 
-    // ✨ 修复了 missing return statement 的错误！
     private String decrypt(String encryptedText) throws Exception {
         byte[] encryptedData = Base64.decode(encryptedText, Base64.DEFAULT);
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
