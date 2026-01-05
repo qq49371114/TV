@@ -29,7 +29,6 @@ public class AdRule {
     private static final String KEY_LAST_MODIFIED = "last_modified";
     private static final String KEY_CONFIG_URL = "config_url";
 
-    // --- 密钥2：专门用来解密“规则文件”，必须和你在工具里用的一样！---
     private static final byte[] RULE_DECRYPT_KEY = "PHOENIX-RULE-KEY".getBytes();
     private static final byte[] RULE_DECRYPT_IV  = "PHOENIX-RULE-IV!".getBytes();
 
@@ -73,7 +72,6 @@ public class AdRule {
         fetchConfig();
     }
 
-
     public void fetchConfig() {
         String url = prefs.getString(KEY_CONFIG_URL, "");
         if (url != null && !url.isEmpty()) {
@@ -98,8 +96,17 @@ public class AdRule {
                 if (!response.isSuccessful() || response.body() == null) {
                     throw new IOException("下载规则失败: " + response.code());
                 }
-                String encryptedContent = response.body().string();
-                String decryptedContent = decryptRule(encryptedContent);
+                
+                String contentFromServer = response.body().string();
+                String decryptedContent;
+                try {
+                    decryptedContent = decryptRule(contentFromServer);
+                    showToast("规则文件解密成功！");
+                } catch (Exception e) {
+                    decryptedContent = contentFromServer;
+                    showToast("规则文件为明文或解密失败，按明文处理。");
+                }
+
                 String newEtag = response.header("ETag");
                 String newLastModified = response.header("Last-Modified");
                 prefs.edit()
@@ -144,20 +151,11 @@ public class AdRule {
         try {
             AdRule tempRule = new Gson().fromJson(content, AdRule.class);
             if (tempRule == null) throw new Exception("JSON格式不正确");
-            if (tempRule.getKeywords() != null) {
-                this.keywords.clear();
-                this.keywords.addAll(tempRule.getKeywords());
-            }
-            if (tempRule.getM3u8Keywords() != null) {
-                this.m3u8Keywords.clear();
-                this.m3u8Keywords.addAll(tempRule.getM3u8Keywords());
-            }
-            if (tempRule.getM3u8Rules() != null) {
-                this.rules.clear();
-                this.rules.addAll(tempRule.getM3u8Rules());
-            }
+            if (tempRule.getKeywords() != null) this.keywords.addAll(tempRule.getKeywords());
+            if (tempRule.getM3u8Keywords() != null) this.m3u8Keywords.addAll(tempRule.getM3u8Keywords());
+            if (tempRule.getM3u8Rules() != null) this.rules.addAll(tempRule.getM3u8Rules());
             this.m3u8Strategy = tempRule.getM3u8Strategy();
-            showToast("凤凰系统云端规则解析成功！");
+            showToast("凤凰系统规则解析成功！");
         } catch (Exception e) {
             e.printStackTrace();
             showToast("凤凰系统规则解析失败：" + e.getMessage());
@@ -166,7 +164,7 @@ public class AdRule {
 
     public boolean isAd(String urlLine) {
         await();
-        if (urlLine == null || urlLine.trim().isEmpty() || this.keywords.isEmpty()) return false;
+        if (urlLine == null || urlLine.trim().isEmpty() || this.keywords == null || this.keywords.isEmpty()) return false;
         for (String keyword : this.keywords) {
             if (urlLine.contains(keyword)) return true;
         }
