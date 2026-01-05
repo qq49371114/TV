@@ -405,15 +405,18 @@
             android:textColor="@color/white"
             android:textSize="18sp" />
 
+        <!-- ================= ▼ 婉儿的最终修复！给它起个名字！▼ ================= -->
         <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/phoenix_status_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="end"
             android:text="点击激活"
             android:textColor="@color/white_50"
             android:textSize="16sp" />
+        <!-- ================= ▲ 修复完毕！▲ ================= -->
 
-          </LinearLayout>
+    </LinearLayout>
         </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.core.widget.NestedScrollView>
 </androidx.appcompat.widget.LinearLayoutCompat>
