@@ -92,7 +92,9 @@ public class AdRule {
     }
 
     public void fetchConfig() {
-        String url = prefs.getString(KEY_CONFIG_URL, "https://你的/云端/规则/地址.json"); // 婉儿建议：这里可以放一个默认地址
+        // 恢复成哥哥你原来的逻辑：只从 SharedPreferences 中读取 URL
+        // 如果没有通过 setConfigUrl 设置过，则 url 为空，不执行任何操作。
+        String url = prefs.getString(KEY_CONFIG_URL, "");
         if (url != null && !url.isEmpty()) {
             load(url);
         }
