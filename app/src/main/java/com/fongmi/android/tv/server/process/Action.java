@@ -9,6 +9,7 @@ import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Device;
 import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.bean.Keep;
+import com.fongmi.android.tv.event.ActionEvent;
 import com.fongmi.android.tv.event.CastEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.event.ServerEvent;
@@ -46,6 +47,7 @@ public class Action implements Process {
         else if ("search".equals(param)) onSearch(params);
         else if ("setting".equals(param)) onSetting(params);
         else if ("refresh".equals(param)) onRefresh(params);
+        else if ("control".equals(param)) onControl(params);
         return Nano.ok();
     }
 
@@ -84,6 +86,17 @@ public class Action implements Process {
         else if ("player".equals(type)) RefreshEvent.player();
         else if ("danmaku".equals(type)) RefreshEvent.danmaku(path);
         else if ("subtitle".equals(type)) RefreshEvent.subtitle(path);
+    }
+
+    private void onControl(Map<String, String> params) {
+        String type = params.get("type");
+        if ("stop".equals(type)) ActionEvent.stop();
+        else if ("prev".equals(type)) ActionEvent.prev();
+        else if ("next".equals(type)) ActionEvent.next();
+        else if ("loop".equals(type)) ActionEvent.loop();
+        else if ("play".equals(type)) ActionEvent.play();
+        else if ("pause".equals(type)) ActionEvent.pause();
+        else if ("replay".equals(type)) ActionEvent.replay();
     }
 
     private void onCast(Map<String, String> params) {

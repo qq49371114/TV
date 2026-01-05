@@ -69,6 +69,8 @@ public class Result implements Parcelable {
     private List<Sub> subs;
     @SerializedName("playUrl")
     private String playUrl;
+    @SerializedName("artwork")
+    private String artwork;
     @SerializedName("jxFrom")
     private String jxFrom;
     @SerializedName("flag")
@@ -215,6 +217,10 @@ public class Result implements Parcelable {
 
     public void setPlayUrl(String playUrl) {
         this.playUrl = playUrl;
+    }
+
+    public String getArtwork() {
+        return TextUtils.isEmpty(artwork) ? "" : artwork;
     }
 
     public String getJxFrom() {

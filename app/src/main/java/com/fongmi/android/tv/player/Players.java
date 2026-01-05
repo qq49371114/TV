@@ -133,6 +133,11 @@ public class Players implements Player.Listener, ParseCallback {
         MediaControllerCompat.setMediaController(activity, session.getController());
     }
 
+    private void releaseSession() {
+        session.setActive(false);
+        session.release();
+    }
+
     public void init(PlayerView view) {
         releasePlayer();
         setPlayer(view);
@@ -246,10 +251,6 @@ public class Players implements Player.Listener, ParseCallback {
 
     public long getBuffered() {
         return exoPlayer == null ? 0 : exoPlayer.getBufferedPosition();
-    }
-
-    public boolean retried() {
-        return ++retry > 2;
     }
 
     public boolean haveTrack(int type) {
@@ -400,10 +401,16 @@ public class Players implements Player.Listener, ParseCallback {
         stopParse();
     }
 
+    public void replay(long time) {
+        seekTo(time);
+        prepare();
+        play();
+    }
+
     public void release() {
         stopParse();
         releasePlayer();
-        session.release();
+        releaseSession();
         removeTimeoutCheck();
         Server.get().setPlayer(null);
         App.execute(() -> Source.get().stop());
@@ -662,27 +669,28 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     @Override
-    public void onPlayerError(@NonNull PlaybackException error) {
-        if (retried()) ErrorEvent.extract(tag, provider.get(error));
-        else switch (error.errorCode) {
-            case PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW:
-                seekToDefaultPosition();
-                break;
-            case PlaybackException.ERROR_CODE_DECODER_INIT_FAILED:
-            case PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED:
-            case PlaybackException.ERROR_CODE_DECODING_FAILED:
-                toggleDecode();
-                break;
-            case PlaybackException.ERROR_CODE_IO_UNSPECIFIED:
-            case PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED:
-            case PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED:
-            case PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED:
-            case PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED:
-                setFormat(ExoUtil.getMimeType(error.errorCode));
-                break;
-            default:
-                ErrorEvent.extract(tag, provider.get(error));
-                break;
-        }
+    public void onPlayerError(@NonNull PlaybackException e) {
+        if (++retry > 2) ErrorEvent.extract(tag, provider.get(e));
+        else if (provider.isInvalidLength(e)) replay(C.TIME_UNSET);
+        else switch (e.errorCode) {
+                case PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW:
+                    seekToDefaultPosition();
+                    break;
+                case PlaybackException.ERROR_CODE_DECODER_INIT_FAILED:
+                case PlaybackException.ERROR_CODE_DECODER_QUERY_FAILED:
+                case PlaybackException.ERROR_CODE_DECODING_FAILED:
+                    toggleDecode();
+                    break;
+                case PlaybackException.ERROR_CODE_IO_UNSPECIFIED:
+                case PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED:
+                case PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED:
+                case PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED:
+                case PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED:
+                    setFormat(ExoUtil.getMimeType(e.errorCode));
+                    break;
+                default:
+                    setMediaItem();
+                    break;
+            }
     }
 }

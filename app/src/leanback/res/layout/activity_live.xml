@@ -56,6 +56,9 @@
             android:id="@+id/group"
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:padding="12dp"
             tools:itemCount="5"
             tools:listitem="@layout/adapter_group" />
 
@@ -63,6 +66,10 @@
             android:id="@+id/channel"
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:clipChildren="false"
+            android:translationX="-12dp"
+            android:clipToPadding="false"
+            android:padding="12dp"
             tools:itemCount="5"
             tools:listitem="@layout/adapter_channel" />
 
@@ -70,6 +77,9 @@
             android:id="@+id/epgData"
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:padding="12dp"
             tools:itemCount="5"
             tools:listitem="@layout/adapter_epg_data" />
 

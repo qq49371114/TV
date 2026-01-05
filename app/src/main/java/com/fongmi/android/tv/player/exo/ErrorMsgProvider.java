@@ -4,6 +4,10 @@ import androidx.media3.common.PlaybackException;
 
 public class ErrorMsgProvider {
 
+    public boolean isInvalidLength(PlaybackException e) {
+        return e.getCause() != null && e.getCause().getMessage() != null && e.getCause().getMessage().startsWith("Invalid NAL length");
+    }
+
     public String get(PlaybackException e) {
         return switch (e.errorCode) {
             case PlaybackException.ERROR_CODE_TIMEOUT -> "Timeout";

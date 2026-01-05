@@ -58,8 +58,7 @@ public class Spider extends com.github.catvod.crawler.Spider {
     @Override
     public void init(Context context, String extend) throws Exception {
         initializeJS();
-        if (cat) call("init", submit(() -> cfg(extend)).get());
-        else call("init", Json.isObj(extend) ? ctx.parse(extend) : extend);
+        call("init", submit(() -> getExt(extend)).get());
     }
 
     @Override
@@ -181,8 +180,7 @@ public class Spider extends com.github.catvod.crawler.Spider {
             Global.create(ctx, executor);
             Class<?> clz = dex.loadClass("com.github.catvod.js.Function");
             clz.getDeclaredConstructor(QuickJSContext.class).newInstance(ctx);
-        } catch (Throwable e) {
-            e.printStackTrace();
+        } catch (Throwable ignored) {
         }
     }
 
@@ -196,18 +194,19 @@ public class Spider extends com.github.catvod.crawler.Spider {
         jsObject = (JSObject) ctx.getProperty(ctx.getGlobalObject(), spider);
     }
 
-    private JSObject cfg(String ext) {
-        JSObject cfg = ctx.createNewJSObject();
-        cfg.setProperty("stype", 3);
-        cfg.setProperty("skey", siteKey);
-        if (!Json.isObj(ext)) cfg.setProperty("ext", ext);
-        else cfg.setProperty("ext", (JSObject) ctx.parse(ext));
-        return cfg;
+    private Object getExt(String ext) {
+        if (!cat) return Json.isObj(ext) ? ctx.parse(ext) : ext;
+        JSObject obj = ctx.createNewJSObject();
+        obj.setProperty("stype", 3);
+        obj.setProperty("skey", siteKey);
+        if (!Json.isObj(ext)) obj.setProperty("ext", ext);
+        else obj.setProperty("ext", (JSObject) ctx.parse(ext));
+        return obj;
     }
 
     private Object[] proxy1(Map<String, String> params) throws Exception {
-        JSObject object = JSUtil.toObject(ctx, params);
-        JSONArray array = new JSONArray(((JSArray) jsObject.getJSFunction("proxy").call(object)).stringify());
+        JSObject obj = JSUtil.toObject(ctx, params);
+        JSONArray array = new JSONArray(((JSArray) jsObject.getJSFunction("proxy").call(obj)).stringify());
         Map<String, String> headers = array.length() > 3 ? Json.toMap(array.optString(3)) : null;
         boolean base64 = array.length() > 4 && array.optInt(4) == 1;
         Object[] result = new Object[4];
