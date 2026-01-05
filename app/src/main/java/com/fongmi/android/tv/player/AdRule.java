@@ -124,7 +124,7 @@ public class AdRule {
         return Base64.encodeToString(encryptedData, Base64.NO_WRAP);
     }
 
-    private String decryptRule(String encryptedText) throws Exception {
+    public String decryptRule(String encryptedText) throws Exception {
         byte[] encryptedData = Base64.decode(encryptedText, Base64.DEFAULT);
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         SecretKeySpec keySpec = new SecretKeySpec(RULE_DECRYPT_KEY, "AES");
