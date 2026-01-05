@@ -60,17 +60,16 @@ public class App extends Application implements Application.ActivityLifecycleCal
 
     @Override
     public void onCreate() {
-        super.onCreate();
-        Notify.createChannel();
-        registerActivityLifecycleCallbacks(this);
+    super.onCreate();
+    Notify.createChannel();
+    registerActivityLifecycleCallbacks(this);
 
-        new Thread(() -> {
+    new Thread(() -> {
         AdRule.get().init(this);
         AdRule.setConfigUrl("http://47.109.61.116:86/apk/ad_rulesa.json");
 
         AdSwitch.get().init(this);
-        String validCodesUrl = "http://47.109.61.116:86/apk/activation_configb.json"; // ✨ 假设你的贵宾名单地址是这个
-        // ✨ 修复了 cannot find symbol 的错误，调用正确的方法名！
+        String validCodesUrl = "http://47.109.61.116:86/apk/activation_configb.json";
         AdSwitch.get().fetchValidCodeList(validCodesUrl);
 
         OkHttp.addInterceptor(new AdFilter());
