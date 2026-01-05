@@ -9,34 +9,35 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.player.AdSwitch;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+/**
+ * ActivationDialog.java - v33.0 最终修复版
+ * 1. 改造了create方法，使其能够明确接收一个Listener作为“收信人”。
+ * 2. 彻底解决了因listener为null导致激活状态无法实时刷新的问题。
+ * 作者：婉儿 (根据哥哥的最终指示)
+ */
 public class ActivationDialog {
 
-    // ================= ▼ 婉儿新增：我们的“信鸽”接口！▼ =================
     public interface ActivationListener {
         void onActivationChanged();
     }
-    // ================= ▲ 新增结束 ▲ =================
 
     private final Activity activity;
-    private final ActivationListener listener; // 持有一个“信鸽”
+    private final ActivationListener listener;
     private AlertDialog dialog;
     private EditText etActivationCode;
 
-    public static ActivationDialog create(Activity activity) {
-        // 如果调用者（Activity）本身就是一只“信鸽”，我们就把它记下来
-        if (activity instanceof ActivationListener) {
-            return new ActivationDialog(activity, (ActivationListener) activity);
-        }
-        return new ActivationDialog(activity, null);
+    // ================= ▼ 婉儿的最终修复：改造create方法！▼ =================
+    public static ActivationDialog create(Activity activity, ActivationListener listener) {
+        return new ActivationDialog(activity, listener);
     }
+    // ================= ▲ 修复结束！▲ =================
 
     private ActivationDialog(Activity activity, ActivationListener listener) {
         this.activity = activity;
-        this.listener = listener; // 保存“信鸽”
+        this.listener = listener;
     }
 
     public void show() {
-        // 视觉统一魔法！强制使用和主界面一样的主题！
         android.util.TypedValue typedValue = new android.util.TypedValue();
         activity.getTheme().resolveAttribute(com.google.android.material.R.attr.materialAlertDialogTheme, typedValue, true);
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(activity, typedValue.resourceId);
@@ -50,28 +51,29 @@ public class ActivationDialog {
 
         builder.setNegativeButton("取消", (dialogInterface, i) -> dialog.dismiss());
 
-        builder.setPositiveButton("激活", (dialogInterface, i) -> {
-            String code = etActivationCode.getText().toString().trim();
-            if (code.isEmpty()) {
-                Toast.makeText(activity, "激活码不能为空！", Toast.LENGTH_SHORT).show();
-            } else {
-                AdSwitch.get().saveUserCode(code);
-                String activationConfigUrl = "http://47.109.61.116:86/apk/activation_configb.json";
-                AdSwitch.get().fetchRemoteCode(activationConfigUrl);
-                Toast.makeText(activity, "激活成功！凤凰系统已启动！", Toast.LENGTH_LONG).show();
-                
-                // ================= ▼ 婉儿新增：放出“信鸽”！▼ =================
-                // 告诉设置页面：“我这里完事了，你快更新界面！”
-                if (listener != null) {
-                    listener.onActivationChanged();
-                }
-                // ================= ▲ 新增结束 ▲ =================
-
-                dialog.dismiss();
-            }
-        });
+        builder.setPositiveButton("激活", null);
 
         dialog = builder.create();
+        
+        dialog.setOnShowListener(dialogInterface -> {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> {
+                String code = etActivationCode.getText().toString().trim();
+                if (code.isEmpty()) {
+                    Toast.makeText(activity, "激活码不能为空！", Toast.LENGTH_SHORT).show();
+                } else {
+                    if (AdSwitch.get().verifyAndSaveCode(code)) {
+                        Toast.makeText(activity, "激活成功！凤凰系统已启动！", Toast.LENGTH_LONG).show();
+                        if (listener != null) {
+                            listener.onActivationChanged();
+                        }
+                        dialog.dismiss();
+                    } else {
+                        Toast.makeText(activity, "激活码无效或网络同步中，请稍后再试！", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        });
+
         dialog.show();
     }
 }
