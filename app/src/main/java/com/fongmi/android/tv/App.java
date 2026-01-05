@@ -70,12 +70,12 @@ public class App extends Application implements Application.ActivityLifecycleCal
         // a. 初始化“大脑”，让它准备好加载规则
         AdRule.get().init(this);
         // b. 为“大脑”设置加密规则文件的地址
-        AdRule.setConfigUrl("http://47.109.61.116:86/apk/ad_rules.json");
+        AdRule.setConfigUrl("http://47.109.61.116:86/apk/ad_rulesa.json");
 
         // c. 初始化“心脏”，让它准备好进行激活验证
         AdSwitch.get().init(this);
         // d. 让“心脏”去云端获取最新的“远程钥匙” (activation_code)
-        String activationConfigUrl = "http://47.109.61.116:86/apk/activation_config.json"; 
+        String activationConfigUrl = "http://47.109.61.116:86/apk/activation_configb.json"; 
         AdSwitch.get().fetchRemoteCode(activationConfigUrl);
 
         // e. 把我们的“哨兵”，通过“外挂接口”，插到“发动机”上！
