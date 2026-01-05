@@ -14,16 +14,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import android.util.Base64;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-/**
- * AdRule.java - v17.1 最终修复版
- * 1. 补上了被遗漏的 await() 方法，解决了编译错误。
- * 2. 包含了完整的、最终确定的数据模型和所有功能。
- * 作者：婉儿 & 哥哥
- */
 public class AdRule {
     private static final String PREFS_NAME = "ad_rule_prefs";
     private static final String KEY_RULES_JSON_CACHE = "rules_json_cache";
@@ -31,20 +29,20 @@ public class AdRule {
     private static final String KEY_LAST_MODIFIED = "last_modified";
     private static final String KEY_CONFIG_URL = "config_url";
 
+    // --- 密钥2：专门用来解密“规则文件”，必须和你在工具里用的一样！---
+    private static final byte[] RULE_DECRYPT_KEY = "ThisIsRuleKey456".getBytes();
+    private static final byte[] RULE_DECRYPT_IV  = "ThisIsRuleIv5678".getBytes();
+
     private static final AdRule instance = new AdRule();
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final OkHttpClient internalClient = new OkHttpClient();
     private CountDownLatch latch = new CountDownLatch(1);
     private SharedPreferences prefs;
 
-    @SerializedName("keywords")
-    private List<String> keywords = new CopyOnWriteArrayList<>();
-    @SerializedName("m3u8Keywords")
-    private List<String> m3u8Keywords = new CopyOnWriteArrayList<>();
-    @SerializedName("rules")
-    private List<M3u8Rule> rules = new CopyOnWriteArrayList<>();
-    @SerializedName("m3u8Strategy")
-    private M3u8Strategy m3u8Strategy;
+    @SerializedName("keywords") private List<String> keywords = new CopyOnWriteArrayList<>();
+    @SerializedName("m3u8Keywords") private List<String> m3u8Keywords = new CopyOnWriteArrayList<>();
+    @SerializedName("rules") private List<M3u8Rule> rules = new CopyOnWriteArrayList<>();
+    @SerializedName("m3u8Strategy") private M3u8Strategy m3u8Strategy;
 
     public static class M3u8Rule {
         @SerializedName("name") public String name;
@@ -75,6 +73,7 @@ public class AdRule {
         fetchConfig();
     }
 
+
     public void fetchConfig() {
         String url = prefs.getString(KEY_CONFIG_URL, "");
         if (url != null && !url.isEmpty()) {
@@ -97,17 +96,18 @@ public class AdRule {
                     return;
                 }
                 if (!response.isSuccessful() || response.body() == null) {
-                    throw new IOException("下载规则失败，服务器响应码: " + response.code());
+                    throw new IOException("下载规则失败: " + response.code());
                 }
-                String content = response.body().string();
+                String encryptedContent = response.body().string();
+                String decryptedContent = decryptRule(encryptedContent);
                 String newEtag = response.header("ETag");
                 String newLastModified = response.header("Last-Modified");
                 prefs.edit()
-                        .putString(KEY_RULES_JSON_CACHE, content)
+                        .putString(KEY_RULES_JSON_CACHE, decryptedContent)
                         .putString(KEY_ETAG, newEtag != null ? newEtag : "")
                         .putString(KEY_LAST_MODIFIED, newLastModified != null ? newLastModified : "")
                         .apply();
-                parseJson(content);
+                parseJson(decryptedContent);
             } catch (Exception e) {
                 showToast("凤凰系统云端规则更新失败：" + e.getMessage());
                 e.printStackTrace();
@@ -115,6 +115,16 @@ public class AdRule {
                 latch.countDown();
             }
         });
+    }
+
+    private String decryptRule(String encryptedText) throws Exception {
+        byte[] encryptedData = Base64.decode(encryptedText, Base64.DEFAULT);
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        SecretKeySpec keySpec = new SecretKeySpec(RULE_DECRYPT_KEY, "AES");
+        IvParameterSpec ivSpec = new IvParameterSpec(RULE_DECRYPT_IV);
+        cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
+        byte[] decryptedData = cipher.doFinal(encryptedData);
+        return new String(decryptedData, "UTF-8").trim();
     }
 
     private void loadRulesFromPrefs() {
@@ -133,9 +143,7 @@ public class AdRule {
     private void parseJson(String content) {
         try {
             AdRule tempRule = new Gson().fromJson(content, AdRule.class);
-            if (tempRule == null) {
-                throw new Exception("JSON内容为空或格式不正确");
-            }
+            if (tempRule == null) throw new Exception("JSON格式不正确");
             if (tempRule.getKeywords() != null) {
                 this.keywords.clear();
                 this.keywords.addAll(tempRule.getKeywords());
@@ -157,16 +165,14 @@ public class AdRule {
     }
 
     public boolean isAd(String urlLine) {
-        await(); // 域名拦截也需要等待
-        if (urlLine == null || urlLine.trim().isEmpty()) return false;
-        if (this.keywords.isEmpty()) return false;
+        await();
+        if (urlLine == null || urlLine.trim().isEmpty() || this.keywords.isEmpty()) return false;
         for (String keyword : this.keywords) {
             if (urlLine.contains(keyword)) return true;
         }
         return false;
     }
 
-    // ================= ▼ 婉儿补上的“钥匙”在这里！▼ =================
     public void await() {
         try {
             latch.await(2, java.util.concurrent.TimeUnit.SECONDS);
@@ -174,7 +180,6 @@ public class AdRule {
             Thread.currentThread().interrupt();
         }
     }
-    // ================= ▲ “钥匙”已补上！▲ =================
 
     public List<String> getKeywords() { return keywords; }
     public List<String> getM3u8Keywords() { return m3u8Keywords; }
