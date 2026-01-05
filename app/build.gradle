@@ -23,26 +23,17 @@ android {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString(), "eventBusIndex": "com.fongmi.android.tv.event.EventIndex"]
             }
         }
+        
+        // ================= ▼ 婉儿修改：直接在这里指定我们唯一的目标！▼ =================
+        ndk {
+            abiFilters "arm64-v8a"
+        }
+        // ================= ▲ 修改结束 ▲ =================
     }
 
-    flavorDimensions = ["mode", "abi"]
-
-    productFlavors {
-        leanback {
-            dimension "mode"
-        }
-        mobile {
-            dimension "mode"
-        }
-        arm64_v8a {
-            dimension "abi"
-            ndk { abiFilters "arm64-v8a" }
-        }
-        armeabi_v7a {
-            dimension "abi"
-            ndk { abiFilters "armeabi-v7a" }
-        }
-    }
+    // ================= ▼ 婉儿修改：移除所有 Flavor 相关的配置 ▼ =================
+    // flavorDimensions 和 productFlavors 整个模块都删掉
+    // ================= ▲ 修改结束 ▲ =================
 
     buildFeatures {
         buildConfig true
@@ -64,11 +55,15 @@ android {
         }
     }
 
+    // ================= ▼ 婉儿修改：更新输出文件名的逻辑 ▼ =================
     android.applicationVariants.configureEach { variant ->
         variant.outputs.configureEach { output ->
-            outputFileName = "${variant.productFlavors[0].name}-${variant.productFlavors[1].name}.apk"
+            // 因为我们只打手机版，所以可以直接命名
+            // 你也可以根据需要改成更简单的名字，比如 "phoenix-test.apk"
+            outputFileName = "mobile-arm64_v8a.apk"
         }
     }
+    // ================= ▲ 修改结束 ▲ =================
 
     configurations.configureEach {
         resolutionStrategy {
@@ -86,6 +81,7 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 }
+
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.aar"])
