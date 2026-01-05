@@ -63,16 +63,6 @@ public class AdRule {
         public double getMaxTotalDuration() { return maxTotalDuration; }
     }
 
-    // 在 AdRule.java 文件中
-public String encrypt(String plainText) throws Exception {
-    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-    SecretKeySpec keySpec = new SecretKeySpec(RULE_DECRYPT_KEY, "AES");
-    IvParameterSpec ivSpec = new IvParameterSpec(RULE_DECRYPT_IV);
-    cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
-    byte[] encryptedData = cipher.doFinal(plainText.getBytes("UTF-8"));
-    return Base64.encodeToString(encryptedData, Base64.NO_WRAP);
-}
-
     private AdRule() {}
     public static AdRule get() { return instance; }
 
@@ -106,17 +96,8 @@ public String encrypt(String plainText) throws Exception {
                 if (!response.isSuccessful() || response.body() == null) {
                     throw new IOException("下载规则失败: " + response.code());
                 }
-                
-                String contentFromServer = response.body().string();
-                String decryptedContent;
-                try {
-                    decryptedContent = decryptRule(contentFromServer);
-                    showToast("规则文件解密成功！");
-                } catch (Exception e) {
-                    decryptedContent = contentFromServer;
-                    showToast("规则文件为明文或解密失败，按明文处理。");
-                }
-
+                String encryptedContent = response.body().string();
+                String decryptedContent = decryptRule(encryptedContent);
                 String newEtag = response.header("ETag");
                 String newLastModified = response.header("Last-Modified");
                 prefs.edit()
@@ -132,6 +113,15 @@ public String encrypt(String plainText) throws Exception {
                 latch.countDown();
             }
         });
+    }
+
+    public String encrypt(String plainText) throws Exception {
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        SecretKeySpec keySpec = new SecretKeySpec(RULE_DECRYPT_KEY, "AES");
+        IvParameterSpec ivSpec = new IvParameterSpec(RULE_DECRYPT_IV);
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
+        byte[] encryptedData = cipher.doFinal(plainText.getBytes("UTF-8"));
+        return Base64.encodeToString(encryptedData, Base64.NO_WRAP);
     }
 
     private String decryptRule(String encryptedText) throws Exception {
