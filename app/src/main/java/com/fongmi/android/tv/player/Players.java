@@ -149,7 +149,6 @@ public class Players implements Player.Listener, ParseCallback {
         if (BuildConfig.DEBUG) exoPlayer.addAnalyticsListener(new EventLogger());
         exoPlayer.setAudioAttributes(AudioAttributes.DEFAULT, true);
         exoPlayer.setHandleAudioBecomingNoisy(true);
-        view.setRender(Setting.getRender());
         exoPlayer.setPlayWhenReady(true);
         exoPlayer.addListener(this);
         view.setPlayer(exoPlayer);

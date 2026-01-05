@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 使用更适合表单的 LinearLayout -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android.paddingTop="20dp"
+    android:paddingBottom="20dp">
+
+    <!-- EditText 放在这里，更符合对话框的视觉习惯 -->
+    <EditText
+        android:id="@+id/et_activation_code"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="请输入激活码"
+        android:inputType="textVisiblePassword"
+        android:maxLines="1"
+        android:singleLine="true" />
+
+</LinearLayout>

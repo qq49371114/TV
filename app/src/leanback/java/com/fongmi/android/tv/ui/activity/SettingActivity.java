@@ -48,6 +48,9 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fongmi.android.tv.player.AdSwitch;
+import com.fongmi.android.tv.ui.dialog.ActivationDialog; 
+
 public class SettingActivity extends BaseActivity implements ConfigCallback, SiteCallback, LiveCallback, DohCallback {
 
     private ActivitySettingBinding mBinding;
@@ -126,7 +129,10 @@ public class SettingActivity extends BaseActivity implements ConfigCallback, Sit
         mBinding.wallDefault.setOnClickListener(this::setWallDefault);
         mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
         mBinding.wallRefresh.setOnLongClickListener(this::onWallHistory);
-    }
+        // --- 婉儿新增：为“凤凰系统”按钮绑定最终的点击事件！ ---
+        // ================================================================
+        mBinding.phoenixActivation.setOnClickListener(view -> ActivationDialog.create(this).show());
+       }
 
     @Override
     public void setConfig(Config config) {

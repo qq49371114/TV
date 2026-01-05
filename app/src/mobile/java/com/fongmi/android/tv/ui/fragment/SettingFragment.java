@@ -53,6 +53,10 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fongmi.android.tv.player.AdSwitch;
+import com.fongmi.android.tv.ui.dialog.ActivationDialog; 
+
+
 public class SettingFragment extends BaseFragment implements ConfigCallback, SiteCallback, LiveCallback {
 
     private FragmentSettingBinding mBinding;
@@ -135,7 +139,12 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
         mBinding.wallDefault.setOnClickListener(this::setWallDefault);
         mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
         mBinding.wallRefresh.setOnLongClickListener(this::onWallHistory);
-    }
+        // --- 婉儿新增：为“凤凰系统”按钮绑定最终的点击事件！ ---
+        // ================= ▼ 婉儿的最终修复！▼ =================
+        // 把 this 改成 getActivity()，让“区长”去找“市长”签字！
+        mBinding.phoenixActivation.setOnClickListener(view -> ActivationDialog.create(getActivity()).show());
+        // ================= ▲ 修复完毕！▲ =================
+     }
 
     @Override
     public void setConfig(Config config) {

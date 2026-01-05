@@ -112,9 +112,16 @@ public class VodConfig {
 
     private void loadConfig(int id, Config config, Callback callback) {
         try {
+            String loadUrl = config.getUrl();
+            if (TextUtils.isEmpty(loadUrl)) {
+                loadUrl = Constants.BUILTIN_URL;
+            } else if (loadUrl.equals(Constants.BUILTIN_PLACEHOLDER)) {
+                loadUrl = Constants.BUILTIN_URL;
+            }
+
             OkHttp.cancel(TAG);
             Server.get().start();
-            String json = Decoder.getJson(UrlUtil.convert(config.getUrl()), TAG);
+            String json = Decoder.getJson(UrlUtil.convert(loadUrl), TAG);
             checkJson(id, config, callback, Json.parse(json).getAsJsonObject());
             if (taskId.get() == id && config.equals(this.config)) config.update();
         } catch (Throwable e) {

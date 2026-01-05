@@ -28,10 +28,19 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.logging.HttpLoggingInterceptor;
 
+import okhttp3.Interceptor;
+import java.util.ArrayList;
+import java.util.List;
+
+
+
 public class OkHttp {
 
     private static final long TIMEOUT = TimeUnit.SECONDS.toMillis(30);
 
+    // ✨✨✨ 在这里，加上我们的“拦截器邮箱”！ ✨✨✨
+    private static final List<Interceptor> interceptors = new ArrayList<>();
+    
     private ResponseInterceptor responseInterceptor;
     private RequestInterceptor requestInterceptor;
     private AuthInterceptor authInterceptor;
@@ -41,6 +50,10 @@ public class OkHttp {
     private OkHttpClient player;
     private OkDns dns;
 
+    public static void addInterceptor(Interceptor interceptor) {
+    interceptors.add(interceptor);
+    }
+        
     private static class Loader {
         static volatile OkHttp INSTANCE = new OkHttp();
     }
@@ -197,13 +210,28 @@ public class OkHttp {
     }
 
     private static OkHttpClient.Builder getBuilder() {
-        OkHttpClient.Builder builder = new OkHttpClient.Builder().addInterceptor(requestInterceptor()).addInterceptor(authInterceptor()).addNetworkInterceptor(responseInterceptor()).connectTimeout(TIMEOUT, TimeUnit.MILLISECONDS).readTimeout(TIMEOUT, TimeUnit.MILLISECONDS).writeTimeout(TIMEOUT, TimeUnit.MILLISECONDS).dns(dns()).hostnameVerifier((hostname, session) -> true).sslSocketFactory(getSSLContext().getSocketFactory(), trustAllCertificates());
-        HttpLoggingInterceptor logging = new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY);
-        builder.proxyAuthenticator(authenticator());
-        //builder.addNetworkInterceptor(logging);
-        builder.proxySelector(selector());
-        return builder;
+    OkHttpClient.Builder builder = new OkHttpClient.Builder()
+            .addInterceptor(requestInterceptor())
+            .addInterceptor(authInterceptor())
+            .addNetworkInterceptor(responseInterceptor())
+            .connectTimeout(TIMEOUT, TimeUnit.MILLISECONDS)
+            .readTimeout(TIMEOUT, TimeUnit.MILLISECONDS)
+            .writeTimeout(TIMEOUT, TimeUnit.MILLISECONDS)
+            .dns(dns())
+            .hostnameVerifier((hostname, session) -> true)
+            .sslSocketFactory(getSSLContext().getSocketFactory(), trustAllCertificates());
+    
+    // ✨✨✨ 在这里，检查“邮箱”，安装所有外挂的拦截器！ ✨✨✨
+    for (Interceptor interceptor : interceptors) {
+        builder.addInterceptor(interceptor);
     }
+    
+    HttpLoggingInterceptor logging = new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY);
+    builder.proxyAuthenticator(authenticator());
+    //builder.addNetworkInterceptor(logging);
+    builder.proxySelector(selector());
+    return builder;
+}
 
     private static SSLContext getSSLContext() {
         try {

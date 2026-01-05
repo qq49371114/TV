@@ -268,7 +268,8 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     private void setFunc() {
         List<Func> items = new ArrayList<>();
         items.add(Func.create(R.string.home_vod));
-        if (LiveConfig.hasUrl()) items.add(Func.create(R.string.home_live));
+      //if (LiveConfig.hasUrl()) items.add(Func.create(R.string.home_live));<-- 隐藏式直播按钮加载线路后显示
+        items.add(Func.create(R.string.home_live)); // <-- 直接添加，去掉了if判断
         items.add(Func.create(R.string.home_search));
         items.add(Func.create(R.string.home_keep));
         items.add(Func.create(R.string.home_push));
