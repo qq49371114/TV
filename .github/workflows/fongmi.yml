@@ -38,11 +38,10 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Build With Gradle
+      name: Build With Gradle
         run: |
           chmod +x gradlew
-          # 我们继续使用最精准的“点菜”法！
-          ./gradlew clean assembleMobileArm64_v8aRelease --parallel --daemon --warning-mode all --stacktrace
+          ./gradlew clean assembleRelease --parallel --daemon --warning-mode all --stacktrace
 
       - name: Prepare App
         run: |
