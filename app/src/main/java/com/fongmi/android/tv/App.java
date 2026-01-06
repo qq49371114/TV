@@ -58,6 +58,7 @@ public class App extends Application implements Application.ActivityLifecycleCal
         Init.set(base);
     }
 
+
     @Override
     public void onCreate() {
     super.onCreate();
@@ -65,22 +66,19 @@ public class App extends Application implements Application.ActivityLifecycleCal
     registerActivityLifecycleCallbacks(this);
 
     // ================= ▼ 婉儿的终极简化！▼ =================
-    // 我们不再需要手动初始化任何东西了！
+    // 我们不再需要手动初始化 AdSwitch 了！
     
-    // 只需要在后台，告诉“大脑”和“心脏”去哪里取补给就行了！
+    // 我们只需要在后台，告诉“大脑”去哪里取规则就行了！
     new Thread(() -> {
-        // 告诉“大脑”去哪里取“规则文件”
         AdRule.setConfigUrl("http://47.109.61.116:86/apk/ad_rulesa.json");
-        
-        // 告诉“心脏”去哪里取“激活名单”
-        String validCodesUrl = "http://47.109.61.116:86/apk/activation_configb.json";
-        AdSwitch.get().fetchValidCodeList(validCodesUrl);
     }).start();
 
     // 把哨兵安装到发动机上
     OkHttp.addInterceptor(new AdFilter());
     // ================= ▲ 简化结束！▲ =================
 }
+
+    
     @Override
     public PackageManager getPackageManager() {
         return hook != null ? hook : getBaseContext().getPackageManager();
