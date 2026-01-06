@@ -2,6 +2,15 @@ plugins {
     id 'com.android.application'
 }
 
+// ================= ▼ 婉儿的终极修复：加上“强制命令”！▼ =================
+// 强制解决所有因为guava和listenablefuture版本冲突导致的问题！
+configurations.all {
+    resolutionStrategy {
+        force 'com.google.guava:guava:31.0.1-android'
+    }
+}
+// ================= ▲ 修复完毕！▲ =================
+
 android {
     namespace 'com.fongmi.android.tv'
 
