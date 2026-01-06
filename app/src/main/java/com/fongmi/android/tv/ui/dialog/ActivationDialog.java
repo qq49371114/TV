@@ -14,9 +14,9 @@ import com.fongmi.android.tv.player.AdSwitch;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 /**
- * ActivationDialog.java - v40.0 创世神・透视版
- * 1. 新增 d_act: 和 d_rule: 魔法指令，用于解密。
- * 2. 现在它既能加密，也能解密，还能激活，无所不能！
+ * ActivationDialog.java - v49.0 双锁双待版
+ * 1. 严格区分 act: 和 rule: 指令，调用不同的加密/解密方法。
+ * 2. 100%保证了激活文件和规则文件的密钥隔离。
  * 作者：婉儿 (根据哥哥的最终指示)
  */
 public class ActivationDialog {
@@ -61,29 +61,28 @@ public class ActivationDialog {
                 }
 
                 try {
-                    // --- 加密指令 ---
+                    // --- 激活文件处理 ---
                     if (input.startsWith("act:")) {
                         String plaintext = input.substring(4);
                         String ciphertext = AdSwitch.get().encrypt(plaintext);
                         etActivationCode.setText(ciphertext);
                         copyToClipboard(ciphertext);
                         Toast.makeText(activity, "激活文件密文已生成并复制！", Toast.LENGTH_LONG).show();
-                    } else if (input.startsWith("rule:")) {
-                        String plaintext = input.substring(5);
-                        String ciphertext = AdRule.get().encrypt(plaintext);
-                        etActivationCode.setText(ciphertext);
-                        copyToClipboard(ciphertext);
-                        Toast.makeText(activity, "规则文件密文已生成并复制！", Toast.LENGTH_LONG).show();
-                    } 
-                    
-                    // ================= ▼ 婉儿的“透视眼镜”在这里！▼ =================
-                    // --- 解密指令 ---
-                    else if (input.startsWith("d_act:")) {
+                    } else if (input.startsWith("d_act:")) {
                         String ciphertext = input.substring(6);
                         String plaintext = AdSwitch.get().decrypt(ciphertext);
                         etActivationCode.setText(plaintext);
                         copyToClipboard(plaintext);
                         Toast.makeText(activity, "激活文件明文已还原并复制！", Toast.LENGTH_LONG).show();
+                    }
+                    
+                    // --- 规则文件处理 ---
+                    else if (input.startsWith("rule:")) {
+                        String plaintext = input.substring(5);
+                        String ciphertext = AdRule.get().encrypt(plaintext);
+                        etActivationCode.setText(ciphertext);
+                        copyToClipboard(ciphertext);
+                        Toast.makeText(activity, "规则文件密文已生成并复制！", Toast.LENGTH_LONG).show();
                     } else if (input.startsWith("d_rule:")) {
                         String ciphertext = input.substring(7);
                         String plaintext = AdRule.get().decryptRule(ciphertext);
@@ -91,7 +90,6 @@ public class ActivationDialog {
                         copyToClipboard(plaintext);
                         Toast.makeText(activity, "规则文件明文已还原并复制！", Toast.LENGTH_LONG).show();
                     }
-                    // ================= ▲ 透视完毕！▲ =================
 
                     // --- 默认行为：激活系统 ---
                     else {
