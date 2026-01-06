@@ -51,8 +51,8 @@ jobs:
       - name: Build With Gradle
         run: |
           chmod +x gradlew
-          ./gradlew clean assembleRelease --parallel --daemon --warning-mode all --stacktrace
-
+          # 我们只点这一道菜：手机版的 arm64-v8a！
+          ./gradlew clean assembleMobileArm64_v8aRelease --parallel --daemon --warning-mode all --stacktrace
       # ================= ▲ 修改完毕！▲ =================
 
       - name: Prepare App
