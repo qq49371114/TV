@@ -60,21 +60,21 @@ public class App extends Application implements Application.ActivityLifecycleCal
 
     @Override
     public void onCreate() {
-        super.onCreate();
-        Notify.createChannel();
-        registerActivityLifecycleCallbacks(this);
+    super.onCreate();
+    Notify.createChannel();
+    registerActivityLifecycleCallbacks(this);
 
-        new Thread(() -> {
-        AdRule.get().init(this);
+    // ================= ▼ 婉儿的终极简化！▼ =================
+    // 我们不再需要手动初始化 AdSwitch 了！
+    
+    // 我们只需要在后台，告诉“大脑”去哪里取规则就行了！
+    new Thread(() -> {
         AdRule.setConfigUrl("http://47.109.61.116:86/apk/ad_rulesa.json");
-
-        AdSwitch.get().init(this);
-        String validCodesUrl = "http://47.109.61.116:86/apk/activation_configb.json"; // ✨ 假设你的贵宾名单地址是这个
-        // ✨ 修复了 cannot find symbol 的错误，调用正确的方法名！
-        AdSwitch.get().fetchValidCodeList(validCodesUrl);
-
-        OkHttp.addInterceptor(new AdFilter());
     }).start();
+
+    // 把哨兵安装到发动机上
+    OkHttp.addInterceptor(new AdFilter());
+    // ================= ▲ 简化结束！▲ =================
 }
 
     @Override
