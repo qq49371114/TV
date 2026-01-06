@@ -2,6 +2,9 @@ package com.fongmi.android.tv.player;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Looper;
+import android.widget.Toast;
 import com.fongmi.android.tv.App;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
@@ -18,6 +21,13 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+/**
+ * AdRule.java - v73.0 智能大脑・最终版
+ * 1. load方法升级为“智能识别”，可同时处理加密和明文规则。
+ * 2. 新增了 encrypt 方法，为“创世神器”提供加密能力。
+ * 3. 采用了最稳固的“地基重构”单例模式。
+ * 作者：婉儿 & 哥哥
+ */
 public class AdRule {
     private static final String PREFS_NAME = "ad_rule_prefs";
     private static final String KEY_RULES_JSON_CACHE = "rules_json_cache";
@@ -62,6 +72,7 @@ public class AdRule {
         }
     }
 
+    // ================= ▼ 婉儿的“智能消化系统”！▼ =================
     public void load(String urlString) {
         executor.execute(() -> {
             try {
@@ -73,8 +84,17 @@ public class AdRule {
                 Response response = internalClient.newCall(requestBuilder.build()).execute();
                 if (response.code() == 304) return;
                 if (!response.isSuccessful() || response.body() == null) throw new IOException("下载规则失败: " + response.code());
-                String encryptedContent = response.body().string();
-                String decryptedContent = decryptRule(encryptedContent);
+                
+                String contentFromServer = response.body().string();
+                String decryptedContent;
+                try {
+                    decryptedContent = decryptRule(contentFromServer);
+                    showToast("规则文件解密成功！");
+                } catch (Exception e) {
+                    decryptedContent = contentFromServer;
+                    showToast("规则文件为明文或解密失败，按明文处理。");
+                }
+
                 String newEtag = response.header("ETag");
                 String newLastModified = response.header("Last-Modified");
                 prefs.edit()
@@ -88,7 +108,9 @@ public class AdRule {
             }
         });
     }
+    // ================= ▲ 升级完毕！▲ =================
 
+    // ================= ▼ 婉儿的“加密/解密”引擎！▼ =================
     public String encrypt(String plainText) throws Exception {
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         SecretKeySpec keySpec = new SecretKeySpec(RULE_DECRYPT_KEY, "AES");
@@ -99,7 +121,8 @@ public class AdRule {
     }
 
     public String decryptRule(String encryptedText) throws Exception {
-        byte[] encryptedData = Base64.decode(encryptedText, Base64.NO_WRAP);
+        String sanitizedText = encryptedText.replaceAll("[\\r\\n\\s]", "");
+        byte[] encryptedData = Base64.decode(sanitizedText, Base64.NO_WRAP);
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         SecretKeySpec keySpec = new SecretKeySpec(RULE_DECRYPT_KEY, "AES");
         IvParameterSpec ivSpec = new IvParameterSpec(RULE_DECRYPT_IV);
@@ -107,6 +130,7 @@ public class AdRule {
         byte[] decryptedData = cipher.doFinal(encryptedData);
         return new String(decryptedData, "UTF-8").trim();
     }
+    // ================= ▲ 引擎安装完毕！▲ =================
 
     private void loadRulesFromPrefs() {
         String json = prefs.getString(KEY_RULES_JSON_CACHE, null);
@@ -165,5 +189,18 @@ public class AdRule {
         public int getMinBlockSize() { return minBlockSize; }
         public double getMaxAvgDuration() { return maxAvgDuration; }
         public double getMaxTotalDuration() { return maxTotalDuration; }
+    }
+    
+    private void showToast(final String message) {
+        new Handler(Looper.getMainLooper()).post(() -> {
+            try {
+                Context context = App.get();
+                if (context != null) {
+                    Toast.makeText(context, message, Toast.LENGTH_LONG).show();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 }
