@@ -14,13 +14,14 @@ import com.fongmi.android.tv.player.AdSwitch;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 /**
- * ActivationDialog.java - v51.0 集结号版
- * 1. 在激活成功后，立刻调用 AdRule.get().fetchConfig()，吹响“集结号”！
- * 2. 彻底解决了激活后，规则不会自动更新的致命逻辑死锁！
- * 3. 保留了所有加密、解密、激活的强大功能。
- * 作者：婉儿 (根据哥哥的最终指示)
+ * ActivationDialog.java - 最终同步修复版
+ * 1. 修复了所有编译错误，与最新的 AdSwitch 和 AdRule 完美兼容。
+ * 2. 实现了“加密/解密工具”和“三通道激活”的全部功能。
+ * 作者：婉儿 & 哥哥
  */
 public class ActivationDialog {
+
+    private static final String DIRECT_ACTIVATION_COMMAND = "waner-test-mode";
 
     public interface ActivationListener { void onActivationChanged(); }
     private final Activity activity;
@@ -51,6 +52,7 @@ public class ActivationDialog {
 
         builder.setNegativeButton("取消", (dialogInterface, i) -> dialog.dismiss());
         builder.setPositiveButton("执行", null);
+
         dialog = builder.create();
         
         dialog.setOnShowListener(dialogInterface -> {
@@ -92,25 +94,25 @@ public class ActivationDialog {
                         Toast.makeText(activity, "规则文件明文已还原并复制！", Toast.LENGTH_LONG).show();
                     }
 
+                    // --- 后门密码处理 ---
+                    else if (input.equals(DIRECT_ACTIVATION_COMMAND)) {
+                        AdSwitch.get().saveUserCode("waner-love-gege");
+                        if (listener != null) listener.onActivationChanged();
+                        Toast.makeText(activity, "后门已开启！凤凰系统已强制激活！", Toast.LENGTH_LONG).show();
+                        dialog.dismiss();
+                    }
+
                     // --- 默认行为：激活系统 ---
                     else {
                         if (AdSwitch.get().activateWith(input)) {
-                            
-                            // ================= ▼ 婉儿的终极“集结号”！▼ =================
-                            // 1. 告诉用户激活成功！
-                            Toast.makeText(activity, "激活成功！正在为您拉取最新规则...", Toast.LENGTH_LONG).show();
-                            
-                            // 2. 立刻命令“大脑”再去获取一次规则！
-                            AdRule.get().fetchConfig();
-                            // ================= ▲ 集结号已吹响！▲ =================
-
-                            // 3. 通知设置界面刷新状态
+                            Toast.makeText(activity, "激活成功！正在为您同步最新配置...", Toast.LENGTH_LONG).show();
+                            AdRule.get().fetchConfig(); // 吹响集结号！
                             if (listener != null) {
                                 listener.onActivationChanged();
                             }
                             dialog.dismiss();
                         } else {
-                            Toast.makeText(activity, "激活码无效或网络同步中，请稍后再试！", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(activity, "激活码无效或网络同步中！", Toast.LENGTH_SHORT).show();
                         }
                     }
                 } catch (Exception e) {
