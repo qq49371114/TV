@@ -1,6 +1,6 @@
 pluginManagement {
     repositories {
-        // ================= ▼ 婉儿的最终修复：把阿里云仓库放在最前面！▼ =================
+        // ================= ▼ 婉儿的终极修复：把阿里云仓库放在最前面！▼ =================
         maven { url 'https://maven.aliyun.com/repository/public' }
         // ================= ▲ 修复完毕！▲ =================
         gradlePluginPortal()
@@ -14,7 +14,7 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        // ================= ▼ 婉儿的最终修复：把阿里云仓库放在最前面！▼ =================
+        // ================= ▼ 婉儿的终极修复：把阿里云仓库放在最前面！▼ =================
         maven { url 'https://maven.aliyun.com/repository/public' }
         // ================= ▲ 修复完毕！▲ =================
         mavenCentral()
