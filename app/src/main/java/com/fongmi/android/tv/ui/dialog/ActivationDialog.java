@@ -12,7 +12,7 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.player.AdRule;
 import com.fongmi.android.tv.player.AdSwitch;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import java.io.IOException; // ✨ 婉儿把被遗漏的“介绍信”补上了！
+
 
 /**
  * ActivationDialog.java - v74.0 创世神版
