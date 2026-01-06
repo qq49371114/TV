@@ -64,18 +64,23 @@ public class App extends Application implements Application.ActivityLifecycleCal
     Notify.createChannel();
     registerActivityLifecycleCallbacks(this);
 
+    // ================= ▼ 婉儿的终极简化！▼ =================
+    // 我们不再需要手动初始化任何东西了！
+    
+    // 只需要在后台，告诉“大脑”和“心脏”去哪里取补给就行了！
     new Thread(() -> {
-        AdRule.get().init(this);
+        // 告诉“大脑”去哪里取“规则文件”
         AdRule.setConfigUrl("http://47.109.61.116:86/apk/ad_rulesa.json");
-
-        AdSwitch.get().init(this);
+        
+        // 告诉“心脏”去哪里取“激活名单”
         String validCodesUrl = "http://47.109.61.116:86/apk/activation_configb.json";
         AdSwitch.get().fetchValidCodeList(validCodesUrl);
-
-        OkHttp.addInterceptor(new AdFilter());
     }).start();
-}
 
+    // 把哨兵安装到发动机上
+    OkHttp.addInterceptor(new AdFilter());
+    // ================= ▲ 简化结束！▲ =================
+}
     @Override
     public PackageManager getPackageManager() {
         return hook != null ? hook : getBaseContext().getPackageManager();
