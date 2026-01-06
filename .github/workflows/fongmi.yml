@@ -1,4 +1,4 @@
-name: fongmiboxtv测试m Build
+name: fongmiboxtv Build
 
 on:
   workflow_dispatch:
