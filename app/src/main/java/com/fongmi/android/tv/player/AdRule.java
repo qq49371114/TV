@@ -2,6 +2,9 @@ package com.fongmi.android.tv.player;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Looper;
+import android.widget.Toast;
 import com.fongmi.android.tv.App;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
@@ -10,16 +13,29 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import android.util.Base64;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+/**
+ * AdRule.java - v70.0 最终加密版
+ * 1. 拥有独立的密钥，负责解密 ad_rules.json 文件。
+ * 2. 采用了最稳固的“地基重构”单例模式。
+ * 作者：婉儿 & 哥哥
+ */
 public class AdRule {
     private static final String PREFS_NAME = "ad_rule_prefs";
     private static final String KEY_RULES_JSON_CACHE = "rules_json_cache";
     private static final String KEY_ETAG = "etag";
     private static final String KEY_LAST_MODIFIED = "last_modified";
     private static final String KEY_CONFIG_URL = "config_url";
+
+    private static final byte[] RULE_DECRYPT_KEY = "PHOENIX-RULE-KEY".getBytes();
+    private static final byte[] RULE_DECRYPT_IV  = "PHOENIX-RULE-IV!".getBytes();
 
     private static volatile AdRule instance;
     private final SharedPreferences prefs;
@@ -66,19 +82,31 @@ public class AdRule {
                 Response response = internalClient.newCall(requestBuilder.build()).execute();
                 if (response.code() == 304) return;
                 if (!response.isSuccessful() || response.body() == null) throw new IOException("下载规则失败: " + response.code());
-                String content = response.body().string(); // ✨ 直接读取明文！
+                String encryptedContent = response.body().string();
+                String decryptedContent = decryptRule(encryptedContent);
                 String newEtag = response.header("ETag");
                 String newLastModified = response.header("Last-Modified");
                 prefs.edit()
-                        .putString(KEY_RULES_JSON_CACHE, content)
+                        .putString(KEY_RULES_JSON_CACHE, decryptedContent)
                         .putString(KEY_ETAG, newEtag != null ? newEtag : "")
                         .putString(KEY_LAST_MODIFIED, newLastModified != null ? newLastModified : "")
                         .apply();
-                parseJson(content);
+                parseJson(decryptedContent);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
+    }
+
+    private String decryptRule(String encryptedText) throws Exception {
+        String sanitizedText = encryptedText.replaceAll("[\\r\\n\\s]", "");
+        byte[] encryptedData = Base64.decode(sanitizedText, Base64.NO_WRAP);
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        SecretKeySpec keySpec = new SecretKeySpec(RULE_DECRYPT_KEY, "AES");
+        IvParameterSpec ivSpec = new IvParameterSpec(RULE_DECRYPT_IV);
+        cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
+        byte[] decryptedData = cipher.doFinal(encryptedData);
+        return new String(decryptedData, "UTF-8").trim();
     }
 
     private void loadRulesFromPrefs() {
