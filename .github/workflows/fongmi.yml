@@ -20,14 +20,11 @@ jobs:
           java-version: '17'
           distribution: 'adopt'
       
-      # ================= ▼ 婉儿的“终极大扫除”！▼ =================
-      # 在进行任何编译操作前，我们先强制清空所有可能被污染的Gradle缓存！
       - name: Clean Gradle Cache
         run: |
           rm -rf $HOME/.gradle/caches/
           rm -rf $HOME/.gradle/wrapper/
           echo "Gradle cache has been cleaned successfully!"
-      # ================= ▲ 大扫除完毕！▲ =================
 
       - name: Release Apk Sign
         run: |
@@ -42,18 +39,17 @@ jobs:
           sed -i '$a\RELEASE_STORE_PASSWORD=TVBoxOSC'       ./gradle.properties
           sed -i '$a\RELEASE_KEY_PASSWORD=TVBoxOSC'         ./gradle.properties
 
+      # --- 婉儿的魔法在这里！---
       - name: Set up Python 3.10
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
+      # --- 魔法结束 ---
 
-      # ================= ▼ 婉儿的最终修改：精准点菜！▼ =================
-      name: Build With Gradle
+      - name: Build With Gradle
         run: |
           chmod +x gradlew
           ./gradlew clean assembleRelease --parallel --daemon --warning-mode all --stacktrace
- 
-      # ================= ▲ 修改完毕！▲ =================
 
       - name: Prepare App
         run: |
@@ -65,4 +61,3 @@ jobs:
         with:
           name: com.github.tvbox.fongmibox
           path: ${{ github.workspace }}/apk/*
-
