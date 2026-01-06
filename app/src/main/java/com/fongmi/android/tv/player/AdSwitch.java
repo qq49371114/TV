@@ -32,7 +32,7 @@ public class AdSwitch {
     private static final String KEY_ACTIVATED_CODE = "activated_code";
 
     // ✨ 我们用来加密和解密服务器通信的“万能钥匙”！
-    private static final byte[] DECRYPT_KEY = "ThisIsActKey123".getBytes();
+    private static final byte[] DECRYPT_KEY = "ThisIsActKey123!".getBytes();
     private static final byte[] DECRYPT_IV  = "ThisIsActIv1234!".getBytes();
 
     private static volatile AdSwitch instance;
