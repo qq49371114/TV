@@ -31,8 +31,8 @@ public class AdSwitch {
     private static final String KEY_ACTIVATED_CODE = "activated_code";
 
     // ✨ 我们用来解密服务器“圣旨”的钥匙！
-    private static final byte[] DECRYPT_KEY = "PHOENIX-API-KEY!".getBytes();
-    private static final byte[] DECRYPT_IV  = "PHOENIX-API-IV!!".getBytes();
+    private static final byte[] DECRYPT_KEY = "ThisIsActKey123!".getBytes();
+    private static final byte[] DECRYPT_IV  = "ThisIsActIv1234!".getBytes();
 
     private static volatile AdSwitch instance;
     private final SharedPreferences prefs;
