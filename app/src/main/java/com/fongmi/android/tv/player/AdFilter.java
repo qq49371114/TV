@@ -24,18 +24,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
-/**
- * AdFilter.java - v49.0 绿色通行证版 (最终确认版)
- * 1. 增加了对配置请求的“白名单”逻辑，彻底解决了因自身拦截导致的“死锁”问题。
- * 2. 搭载了 v17 版“梯次进攻”核心算法。
- * 3. 与最新的 AdSwitch 和 AdRule 完美兼容。
- * 作者：婉儿 & 哥哥
- */
 public class AdFilter implements Interceptor {
-
-    // “运粮车”的车牌号，必须和 App.java 里设置的地址完全一样！
-    private static final String RULE_CONFIG_URL = "http://47.109.61.116:86/apk/ad_rulesa.json";
-    private static final String ACTIVATION_CONFIG_URL = "http://47.109.61.116:86/apk/activation_configb.json";
 
     private static class Clip {
         String extinf;
@@ -57,26 +46,19 @@ public class AdFilter implements Interceptor {
     @NonNull
     @Override
     public Response intercept(@NonNull Chain chain) throws IOException {
+        // 总开关！如果AdSwitch的双钥匙不匹配，AdFilter将完全“休眠”！
+        if (!AdSwitch.get().isOn()) {
+            return chain.proceed(chain.request());
+        }
+
         Request request = chain.request();
         String url = request.url().toString();
 
-        // 哨兵的第一道检查：看车牌！如果是我们自己的运粮车，直接敬礼放行！
-        if (url.equals(RULE_CONFIG_URL) || url.equals(ACTIVATION_CONFIG_URL)) {
-            return chain.proceed(request);
-        }
-
-        // 总开关！如果AdSwitch没有被激活，AdFilter将完全“休眠”！
-        if (!AdSwitch.get().isOn()) {
-            return chain.proceed(request);
-        }
-
-        // 域名拦截
         if (AdRule.get().isAd(url)) {
             showToast("凤凰系统为您拦截一条广告请求！");
             return new Response.Builder().request(request).protocol(Protocol.HTTP_2).code(200).message("Blocked by Waner-Phoenix Keyword Rule").body(ResponseBody.create("", null)).build();
         }
 
-        // M3U8处理
         if (!url.contains(".m3u8")) {
             return chain.proceed(request);
         }
@@ -88,6 +70,7 @@ public class AdFilter implements Interceptor {
 
         try {
             String m3u8Content = readResponse(response);
+            //AdRule.get().await(); // 强制等待规则加载完成
             String cleanedM3u8 = cleanM3u8(m3u8Content, url);
             if (cleanedM3u8.equals(m3u8Content)) return response;
             ResponseBody cleanedBody = ResponseBody.create(cleanedM3u8, response.body().contentType());
@@ -120,6 +103,7 @@ public class AdFilter implements Interceptor {
         
         Set<Object> itemsToRemove = new HashSet<>();
 
+        // 第一波攻击：空军 (关键字快速打击)
         if (adKeywords != null && !adKeywords.isEmpty()) {
             for (Object item : items) {
                 if (item instanceof Clip) {
@@ -135,6 +119,7 @@ public class AdFilter implements Interceptor {
             return buildCleanedM3u8(m3u8Content, items, itemsToRemove, baseUrl);
         }
 
+        // 第二波攻击：特种部队 (片头 & 片尾定点清除)
         List<Integer> discontinuityIndices = new ArrayList<>();
         for (int i = 0; i < items.size(); i++) {
             if (items.get(i) instanceof String && ((String) items.get(i)).equals("#EXT-X-DISCONTINUITY")) {
@@ -143,6 +128,7 @@ public class AdFilter implements Interceptor {
         }
 
         if (!discontinuityIndices.isEmpty()) {
+            // 2a. 扫描片头
             if (discontinuityIndices.size() > 1) {
                 int firstDiscIndex = discontinuityIndices.get(0);
                 int secondDiscIndex = discontinuityIndices.get(1);
@@ -153,6 +139,7 @@ public class AdFilter implements Interceptor {
                 }
             }
 
+            // 2b. 扫描片尾
             int lastDiscIndex = discontinuityIndices.get(discontinuityIndices.size() - 1);
             if (discontinuityIndices.size() == 1 || (discontinuityIndices.size() > 1 && lastDiscIndex != discontinuityIndices.get(0))) {
                 List<Clip> tailClips = new ArrayList<>();
@@ -170,6 +157,7 @@ public class AdFilter implements Interceptor {
             }
         }
 
+        // 第三波攻击：陆军 (中部地毯式清扫)
         for (int i = 1; i < discontinuityIndices.size() - 1; i++) {
             int startIndex = discontinuityIndices.get(i);
             int endIndex = discontinuityIndices.get(i + 1);
@@ -203,7 +191,7 @@ public class AdFilter implements Interceptor {
         if (endListTagExists && !endListTagWritten) {
             cleanedContent.append("#EXT-X-ENDLIST\n");
         }
-        showToast("凤凰系统已启动，为您净化视频流！");
+        showToast("凤凰系统已启动，为您净化视频流！体验新视界！");
         return fixPaths(cleanedContent.toString(), baseUrl);
     }
 
@@ -240,8 +228,7 @@ public class AdFilter implements Interceptor {
     }
 
     private String readResponse(Response response) throws IOException {
-        ResponseBody body = response.peekBody(Long.MAX_VALUE);
-        InputStream inputStream = body.byteStream();
+        InputStream inputStream = response.body().byteStream();
         if ("gzip".equalsIgnoreCase(response.header("Content-Encoding"))) {
             inputStream = new GZIPInputStream(inputStream);
         }
