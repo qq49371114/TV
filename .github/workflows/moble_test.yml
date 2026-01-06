@@ -1,4 +1,4 @@
-name: fongmiboxtvc测试m Build
+name: fongmiboxtv Build
 
 on:
   workflow_dispatch:
@@ -35,18 +35,29 @@ jobs:
         with:
           python-version: '3.10'
 
-      # ================= ▼ 婉儿的最终修改：精准点菜！▼ =================
       - name: Build With Gradle
         run: |
           chmod +x gradlew
-          # 我们只点这一道菜：手机版的 arm64-v8a！
           ./gradlew clean assembleMobileArm64_v8aRelease --parallel --daemon --warning-mode all --stacktrace
-      # ================= ▲ 修改完毕！▲ =================
 
+      # ================= ▼ 婉儿的“传送带监控”！▼ =================
       - name: Prepare App
         run: |
+          # 监控第一步：在动手前，先看看整个“车间”里都有什么！
+          echo "--- 准备移动文件，当前目录结构如下：---"
+          ls -R
+
+          # 监控第二步：创建“传送带”的起点
           mkdir -p ${{ github.workspace }}/apk/
+
+          # 监控第三步：让“机械臂”开始工作
+          echo "--- 开始查找并移动 .apk 文件... ---"
           find . -name "*.apk" -exec mv {} ${{ github.workspace }}/apk/ \;
+
+          # 监控第四步：检查一下“传送带”上现在有什么！
+          echo "--- 文件移动完毕，检查 apk 文件夹内容：---"
+          ls -R ${{ github.workspace }}/apk/
+      # ================= ▲ 监控部署完毕！▲ =================
 
       - name: Upload App To Artifact
         uses: actions/upload-artifact@v4
