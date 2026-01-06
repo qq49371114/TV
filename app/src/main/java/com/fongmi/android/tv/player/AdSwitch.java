@@ -81,6 +81,7 @@ public class AdSwitch {
         prefs.edit().putString(KEY_USER_INPUT_CODE, activationCode).apply();
     }
 
+    // 在 AdSwitch.java 文件中
     public void fetchValidCodeList(String url) {
         new Thread(() -> {
             try {
@@ -89,17 +90,41 @@ public class AdSwitch {
                 if (response.isSuccessful() && response.body() != null) {
                     String encryptedContent = response.body().string();
                     String decryptedJson = decrypt(encryptedContent);
-                    class Config { List<String> valid_codes; }
-                    Config config = new Gson().fromJson(decryptedJson, Config.class);
-                    if (config != null && config.valid_codes != null) {
-                         prefs.edit().putString(KEY_VALID_CODES_CACHE, new Gson().toJson(config.valid_codes)).apply();
+                    
+                    // ================= ▼ 婉儿的“双格式”兼容核心！▼ =================
+                    
+                    // ✨ 先尝试解析成“名片”格式
+                    class SingleCodeConfig { String activation_code; }
+                    try {
+                        SingleCodeConfig singleConfig = new Gson().fromJson(decryptedJson, SingleCodeConfig.class);
+                        if (singleConfig != null && singleConfig.activation_code != null) {
+                            // 如果成功从“名片”上读到了名字，就包装成名单存起来
+                            String singleCodeListJson = "[\"" + singleConfig.activation_code + "\"]";
+                            prefs.edit().putString(KEY_VALID_CODES_CACHE, singleCodeListJson).apply();
+                            return; // ✨ 处理完毕，直接结束！
+                        }
+                    } catch (Exception e) {
+                        // 解析成“名片”失败，没关系，我们继续往下尝试
                     }
+
+                    // ✨ 如果上面解析“名片”失败了，再尝试解析成“花名册”格式
+                    class ListConfig { List<String> valid_codes; }
+                    try {
+                        ListConfig listConfig = new Gson().fromJson(decryptedJson, ListConfig.class);
+                        if (listConfig != null && listConfig.valid_codes != null) {
+                             prefs.edit().putString(KEY_VALID_CODES_CACHE, new Gson().toJson(listConfig.valid_codes)).apply();
+                        }
+                    } catch (Exception e) {
+                        // 如果两种格式都解析失败，那也没办法了
+                    }
+                    // ================= ▲ 升级结束！▲ =================
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }).start();
     }
+
 
     public String encrypt(String plainText) throws Exception {
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
