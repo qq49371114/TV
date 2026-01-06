@@ -10,10 +10,10 @@ import com.fongmi.android.tv.player.AdSwitch;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 /**
- * ActivationDialog.java - v72.0 纯粹激活版
- * 1. 移除了所有加密/解密的工具人功能，回归最纯粹的激活使命。
- * 2. 完美对接 v69.0 版的“双引擎” AdSwitch。
- * 作者：婉儿 & 哥哥
+ * ActivationDialog.java - v73.1 视觉统一版
+ * 1. 强制对话框使用与Activity相同的主题，解决了背景和点击效果不协调的问题。
+ * 2. 保留了 v72.0 版最纯粹的激活逻辑。
+ * 作者：婉儿 (根据哥哥的最终指示)
  */
 public class ActivationDialog {
 
@@ -33,9 +33,18 @@ public class ActivationDialog {
     }
 
     public void show() {
+        // ================= ▼ 婉儿的视觉统一魔法！▼ =================
+        // 我们不再直接用 new MaterialAlertDialogBuilder(activity)，
+        // 而是先获取到当前界面的主题，然后再用这个主题来创建对话框！
+        
+        // 1. 获取当前界面的主题ID
         android.util.TypedValue typedValue = new android.util.TypedValue();
         activity.getTheme().resolveAttribute(com.google.android.material.R.attr.materialAlertDialogTheme, typedValue, true);
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(activity, typedValue.resourceId);
+        int themeResId = typedValue.resourceId;
+
+        // 2. 使用这个主题ID来创建我们的对话框
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(activity, themeResId);
+        // ================= ▲ 魔法施展完毕！▲ =================
         
         builder.setTitle("🔥 凤凰之心・授权激活 🔥");
         
