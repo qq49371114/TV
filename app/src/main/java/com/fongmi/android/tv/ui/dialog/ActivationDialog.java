@@ -14,9 +14,10 @@ import com.fongmi.android.tv.player.AdSwitch;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 /**
- * ActivationDialog.java - v49.0 双锁双待版
- * 1. 严格区分 act: 和 rule: 指令，调用不同的加密/解密方法。
- * 2. 100%保证了激活文件和规则文件的密钥隔离。
+ * ActivationDialog.java - v51.0 集结号版
+ * 1. 在激活成功后，立刻调用 AdRule.get().fetchConfig()，吹响“集结号”！
+ * 2. 彻底解决了激活后，规则不会自动更新的致命逻辑死锁！
+ * 3. 保留了所有加密、解密、激活的强大功能。
  * 作者：婉儿 (根据哥哥的最终指示)
  */
 public class ActivationDialog {
@@ -94,13 +95,22 @@ public class ActivationDialog {
                     // --- 默认行为：激活系统 ---
                     else {
                         if (AdSwitch.get().activateWith(input)) {
-                            Toast.makeText(activity, "激活成功！凤凰系统已启动！", Toast.LENGTH_LONG).show();
+                            
+                            // ================= ▼ 婉儿的终极“集结号”！▼ =================
+                            // 1. 告诉用户激活成功！
+                            Toast.makeText(activity, "激活成功！正在为您拉取最新规则...", Toast.LENGTH_LONG).show();
+                            
+                            // 2. 立刻命令“大脑”再去获取一次规则！
+                            AdRule.get().fetchConfig();
+                            // ================= ▲ 集结号已吹响！▲ =================
+
+                            // 3. 通知设置界面刷新状态
                             if (listener != null) {
                                 listener.onActivationChanged();
                             }
                             dialog.dismiss();
                         } else {
-                            Toast.makeText(activity, "激活码无效或网络同步中！", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(activity, "激活码无效或网络同步中，请稍后再试！", Toast.LENGTH_SHORT).show();
                         }
                     }
                 } catch (Exception e) {
