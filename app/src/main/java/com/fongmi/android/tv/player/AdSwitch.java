@@ -18,6 +18,9 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+import java.io.IOException; // ✨ 婉儿把被遗漏的“介绍信”补上了！
+
+
 /**
  * AdSwitch.java - v70.0 最终加密版
  * 1. 在 v69.0 的基础上，增加了对服务器返回内容的解密功能。
