@@ -1,17 +1,22 @@
 pluginManagement {
     repositories {
+        // ================= ▼ 婉儿的最终修复：把阿里云仓库放在最前面！▼ =================
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        // ================= ▲ 修复完毕！▲ =================
         gradlePluginPortal()
         mavenCentral()
         google()
-        // ================= ▼ 婉儿的最终修复：加上“Python零件”的专属仓库地址！▼ =================
+        // ✨ 我们之前加的 chaquo 也要保留
         maven { url "https://chaquo.com/maven" }
-        // ================= ▲ 修复完毕！▲ =================
     }
 }
 
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
+        // ================= ▼ 婉儿的最终修复：把阿里云仓库放在最前面！▼ =================
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        // ================= ▲ 修复完毕！▲ =================
         mavenCentral()
         google()
         flatDir { dirs "$rootDir/app/libs" }
@@ -20,7 +25,7 @@ dependencyResolutionManagement {
             url "http://4thline.org/m2"
             allowInsecureProtocol = true
         }
-        // ✨ 为了保险起见，我们在这里也加上这个地址
+        // ✨ 我们之前加的 chaquo 也要保留
         maven { url "https://chaquo.com/maven" }
     }
 }
