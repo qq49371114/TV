@@ -16,12 +16,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-/**
- * AdSwitch.java - v54.0 最终修复版
- * 1. 采用了最稳固的“地基重构”单例模式，杜绝一切初始化问题。
- * 2. 保留了最强大的“三通道激活”逻辑。
- * 作者：婉儿 (根据哥哥的最终指示)
- */
 public class AdSwitch {
     private static final String PREFS_NAME = "ad_switch_prefs";
     private static final String KEY_USER_INPUT_CODE = "user_input_code";
@@ -35,12 +29,10 @@ public class AdSwitch {
     private final SharedPreferences prefs;
     private final OkHttpClient client = new OkHttpClient();
 
-    // 构造方法私有化
     private AdSwitch(Context context) {
         this.prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     }
 
-    // ================= ▼ 婉儿的“地基重构”核心！▼ =================
     public static AdSwitch get() {
         if (instance == null) {
             synchronized (AdSwitch.class) {
@@ -51,7 +43,6 @@ public class AdSwitch {
         }
         return instance;
     }
-    // ================= ▲ 改造结束！▲ =================
 
     public boolean isOn() {
         String userInputCode = prefs.getString(KEY_USER_INPUT_CODE, "");
@@ -64,6 +55,9 @@ public class AdSwitch {
     }
 
     public boolean activateWith(String code) {
+        if (code.startsWith("act:") || code.startsWith("rule:") || code.startsWith("d_act:") || code.startsWith("d_rule:")) {
+            return false;
+        }
         if (code.equals(MASTER_KEY)) {
             prefs.edit().putString(KEY_USER_INPUT_CODE, code).apply();
             return true;
@@ -88,7 +82,6 @@ public class AdSwitch {
     }
 
     public void fetchValidCodeList(String url) {
-        // ✨ 我们不再需要 isInitialized 这个标记了，因为地基重构后，它永远是初始化过的！
         new Thread(() -> {
             try {
                 Request request = new Request.Builder().url(url).build();
@@ -118,10 +111,7 @@ public class AdSwitch {
     }
 
     public String decrypt(String encryptedText) throws Exception {
-        // ================= ▼ 婉儿的最终修复！统一标准！▼ =================
-        // 把 Base64.decode 的第二个参数，从 DEFAULT 改成 NO_WRAP！
         byte[] encryptedData = Base64.decode(encryptedText, Base64.NO_WRAP);
-        // ================= ▲ 修复完毕！▲ =================
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         SecretKeySpec keySpec = new SecretKeySpec(DECRYPT_KEY, "AES");
         IvParameterSpec ivSpec = new IvParameterSpec(DECRYPT_IV);
