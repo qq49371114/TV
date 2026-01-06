@@ -3,12 +3,8 @@ pluginManagement {
         gradlePluginPortal()
         mavenCentral()
         google()
-        // ================= ▼ 婉儿的最终修复：加上“Python零件”的专属仓库地址！▼ =================
-        maven { url "https://chaquo.com/maven" }
-        // ================= ▲ 修复完毕！▲ =================
     }
 }
-
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -20,11 +16,8 @@ dependencyResolutionManagement {
             url "http://4thline.org/m2"
             allowInsecureProtocol = true
         }
-        // ✨ 为了保险起见，我们在这里也加上这个地址
-        maven { url "https://chaquo.com/maven" }
     }
 }
-
 include ':app'
 include ':catvod'
 include ':chaquo'
