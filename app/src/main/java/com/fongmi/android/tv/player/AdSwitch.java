@@ -39,6 +39,10 @@ public class AdSwitch {
     private final SharedPreferences prefs;
     private final OkHttpClient client = new OkHttpClient();
 
+    // ...
+    private static final String MASTER_KEY = "waner-love-gege";
+    // ...
+    
     private AdSwitch(Context context) {
         this.prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     }
@@ -55,9 +59,23 @@ public class AdSwitch {
     }
 
     public boolean isOn() {
-        String activatedCode = prefs.getString(KEY_ACTIVATED_CODE, "");
-        return !activatedCode.isEmpty();
+        String userInputCode = prefs.getString(KEY_USER_INPUT_CODE, "");
+        if (userInputCode.isEmpty()) return false;
+
+        // ================= ▼ 婉儿的“最高指示”！▼ =================
+        // ✨ 在进行任何检查前，先看看他是不是我们自己人！
+        if (userInputCode.equals(MASTER_KEY)) {
+            return true; // 如果是，直接放行！
+        }
+        // ================= ▲ 指示下达完毕！▲ =================
+
+        // 如果不是自己人，再按老规矩，去查“贵宾名单”
+        String validCodesJson = prefs.getString(KEY_VALID_CODES_CACHE, "[]");
+        Type listType = new TypeToken<List<String>>() {}.getType();
+        List<String> validCodes = new Gson().fromJson(validCodesJson, listType);
+        return validCodes != null && validCodes.contains(userInputCode);
     }
+    
 
     public void activate(Context context, String activationCode) {
         new Thread(() -> {
