@@ -62,7 +62,7 @@ public class AdSwitch {
                 String deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
                 String json = "{\"activation_code\": \"" + activationCode + "\", \"device_id\": \"" + deviceId + "\"}";
                 RequestBody body = RequestBody.create(json, MediaType.parse("application/json; charset=utf-8"));
-                String verifyUrl = "http://47.109.61.116:86/apk/activate.php"; // ✨ 注意：这里应该指向你的PHP脚本地址
+                String verifyUrl = "http://47.109.61.116:86/apk/activation_configb.json"; // ✨ 注意：这里应该指向你的PHP脚本地址
                 Request request = new Request.Builder().url(verifyUrl).post(body).build();
                 Response response = client.newCall(request).execute();
                 
