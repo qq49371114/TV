@@ -70,7 +70,7 @@ public class AdFilter implements Interceptor {
 
         try {
             String m3u8Content = readResponse(response);
-            AdRule.get().await(); // 强制等待规则加载完成
+            //AdRule.get().await(); // 强制等待规则加载完成
             String cleanedM3u8 = cleanM3u8(m3u8Content, url);
             if (cleanedM3u8.equals(m3u8Content)) return response;
             ResponseBody cleanedBody = ResponseBody.create(cleanedM3u8, response.body().contentType());
