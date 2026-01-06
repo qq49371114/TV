@@ -48,7 +48,7 @@ jobs:
           python-version: '3.10'
 
       # ================= ▼ 婉儿的最终修改：精准点菜！▼ =================
-      - name: Build With Gradle
+      name: Build With Gradle
         run: |
           chmod +x gradlew
           ./gradlew clean assembleRelease --parallel --daemon --warning-mode all --stacktrace
