@@ -48,7 +48,7 @@ public class AdSwitch {
                 String deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
                 String json = "{\"activation_code\": \"" + activationCode + "\", \"device_id\": \"" + deviceId + "\"}";
                 RequestBody body = RequestBody.create(json, MediaType.parse("application/json; charset=utf-8"));
-                String verifyUrl = "https://your-server.com/api/phoenix/activate"; // 换成你的验证服务器地址
+                String verifyUrl = "http://47.109.61.116:86/apk/activation_configb.json"; // 换成你的验证服务器地址
                 Request request = new Request.Builder().url(verifyUrl).post(body).build();
                 Response response = client.newCall(request).execute();
                 String responseBody = response.body() != null ? response.body().string() : "";
