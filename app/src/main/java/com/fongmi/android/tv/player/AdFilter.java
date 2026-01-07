@@ -34,8 +34,8 @@ import okhttp3.ResponseBody;
 public class AdFilter implements Interceptor {
 
     // ✨ “运粮车”的车牌号，必须和 App.java 里设置的地址完全一样！
-    private static final String RULE_CONFIG_URL = "http://47.109.61.116:86/apk/ad_rules.json";
-    private static final String ACTIVATION_CONFIG_URL = "http://47.109.61.116:86/apk/valid_codes_list.json";
+    private static final String RULE_CONFIG_URL = "http://47.109.61.116:86/apk/ad_rulesa.json";
+    private static final String ACTIVATION_CONFIG_URL = "http://47.109.61.116:86/apk/activation_configb.json";
 
     private static class Clip {
         String extinf;
