@@ -70,20 +70,20 @@ public class App extends Application implements Application.ActivityLifecycleCal
     // 我们在一个后台线程里，完成所有初始化和配置任务，保证APP启动流畅！
     new Thread(() -> {
         
-        // ✨ 第一步：配置“大脑” (AdRule)
-        // AdRule.get() 在第一次被调用时，会自动完成初始化
+        // ✨ 第一步：配置“大脑” (AdRule)，告诉它去哪里取“规则文件”
+        // ✨ 注意：这里的地址，必须和 AdFilter 白名单里的 RULE_CONFIG_URL 一模一样！
         AdRule.setConfigUrl("http://47.109.61.116:86/apk/ad_rulesa.json");
 
-        // ================= ▼ 就是这里！▼ =================
-        // ✨ 第二步：配置“心脏” (AdSwitch)，告诉它去哪里取“贵宾名单”！
+        // ✨ 第二步：配置“心脏” (AdSwitch)，告诉它去哪里取“激活名单”
+        // ✨ 注意：这里的地址，也必须和 AdFilter 白名单里的 ACTIVATION_CONFIG_URL 一模一样！
         String validCodesUrl = "http://47.109.61.116:86/apk/activation_configb.json";
         AdSwitch.get().fetchValidCodeList(validCodesUrl);
-        // ================= ▲ 就是这里！▲ =================
-
-        // ✨ 第三步：把我们的“哨兵” (AdFilter)，安装到网络引擎上！
-        OkHttp.addInterceptor(new AdFilter());
 
     }).start();
+    
+    // ✨ 第三步：把我们的“哨兵” (AdFilter)，安装到网络引擎上！
+    // ✨ 这一步必须在主线程、并且尽早执行，才能拦截到所有请求！
+    OkHttp.addInterceptor(new AdFilter());
     // ================= ▲ 发射程序部署完毕！▲ =================
 }
 
