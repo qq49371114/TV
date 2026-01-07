@@ -19,10 +19,10 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
- * AdSwitch.java - v82.0 全能版
- * 1. 激活逻辑为向服务器发送“激活码+设备ID”。
- * 2. 它会解密服务器返回的加密“圣旨”。
- * 3. 同时提供 encrypt 方法，为“创世神器”提供加密引擎。
+ * AdSwitch.java - v80.0 终极版
+ * 1. 激活逻辑为向服务器发送“激活码+设备ID”，由服务器进行最终裁决。
+ * 2. 内置了“超级密码”作为最高权限后门。
+ * 3. 提供了加密/解密工具方法。
  * 作者：婉儿 & 哥哥
  */
 public class AdSwitch {
@@ -31,6 +31,7 @@ public class AdSwitch {
 
     private static final byte[] API_CRYPT_KEY = "PHOENIX-API-KEY!".getBytes();
     private static final byte[] API_CRYPT_IV  = "PHOENIX-API-IV!!".getBytes();
+    private static final String MASTER_KEY = "waner-love-gege";
 
     private static volatile AdSwitch instance;
     private final SharedPreferences prefs;
@@ -56,13 +57,26 @@ public class AdSwitch {
         return !activatedCode.isEmpty();
     }
 
+    // ✨ 我们全新的、唯一的激活入口！
     public void activate(Context context, String activationCode) {
+        // ✨ 第一重检查：是不是我们的“超级密码”？
+        if (activationCode.equals(MASTER_KEY)) {
+            prefs.edit().putString(KEY_ACTIVATED_CODE, activationCode).apply();
+            showToast("超级权限已激活！");
+            return;
+        }
+
+        // ✨ 如果不是，就去走远程验证流程
+        activateRemotely(context, activationCode);
+    }
+
+    private void activateRemotely(Context context, String activationCode) {
         new Thread(() -> {
             try {
                 String deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
                 String json = "{\"activation_code\": \"" + activationCode + "\", \"device_id\": \"" + deviceId + "\"}";
                 RequestBody body = RequestBody.create(json, MediaType.parse("application/json; charset=utf-8"));
-                String verifyUrl = "https://your-server.com/api/phoenix/activate.php";
+                String verifyUrl = "https://your-server.com/api/phoenix/activate.php"; // 换成你的验证服务器地址
                 Request request = new Request.Builder().url(verifyUrl).post(body).build();
                 Response response = client.newCall(request).execute();
                 
@@ -70,11 +84,9 @@ public class AdSwitch {
                     throw new IOException("请求失败: " + response.code());
                 }
 
-                String encryptedResponseBody = response.body().string();
-                String decryptedResponseBody = decrypt(encryptedResponseBody);
-
+                String responseBody = response.body().string();
                 class ServerResponse { String status; String message; }
-                ServerResponse serverResponse = new Gson().fromJson(decryptedResponseBody, ServerResponse.class);
+                ServerResponse serverResponse = new Gson().fromJson(responseBody, ServerResponse.class);
 
                 if (serverResponse != null && "activated".equals(serverResponse.status)) {
                     prefs.edit().putString(KEY_ACTIVATED_CODE, activationCode).apply();
