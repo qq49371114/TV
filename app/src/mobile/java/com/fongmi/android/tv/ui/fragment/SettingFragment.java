@@ -57,7 +57,7 @@ import com.fongmi.android.tv.player.AdSwitch;
 import com.fongmi.android.tv.ui.dialog.ActivationDialog; 
 
 
-public class SettingFragment extends BaseFragment implements ConfigCallback, SiteCallback, LiveCallback, ActivationDialog.ActivationListener {
+public class SettingFragment extends BaseFragment implements ConfigCallback, SiteCallback, LiveCallback {
 
     private FragmentSettingBinding mBinding;
     private String[] size;
