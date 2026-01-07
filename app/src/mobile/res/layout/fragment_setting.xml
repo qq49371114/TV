@@ -385,38 +385,34 @@
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
-                <!-- 这是“凤凰系统”的专属激活入口 -->
-    <LinearLayout
-        android:id="@+id/phoenix_activation"
+<!-- 这是“凤凰系统”的专属激活入口 (婉儿精装修版) -->
+<androidx.appcompat.widget.LinearLayoutCompat
+    android:id="@+id/phoenix_activation"
+    android:layout_width="match_parent"          <!-- ✨ 保持 match_parent，让它占满整行 -->
+    android:layout_height="wrap_content"
+    android:layout_marginTop="16dp"
+    android:background="@drawable/selector_item"  <!-- 使用和其他设置项一样的皮肤 -->
+    android:padding="16dp"                        <!-- ✨ 核心修复：加上16dp的内边距！-->
+    android:gravity="center_vertical"             <!-- 保持内容垂直居中 -->
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:orientation="horizontal">
+
+    <com.google.android.material.textview.MaterialTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:text="🔥 凤凰系统"
+        android:textColor="@color/white"
+        android:textSize="18sp" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/phoenix_status_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:background="@drawable/selector_setting"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:gravity="end"
+        android:text="点击激活"
+        android:textColor="@color/white_50"
+        android:textSize="16sp" />
 
-        <com.google.android.material.textview.MaterialTextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:text="🔥 凤凰系统"
-            android:textColor="@color/white"
-            android:textSize="18sp" />
-
-        <!-- ================= ▼ 婉儿的最终修复！给它起个名字！▼ ================= -->
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/phoenix_status_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="end"
-            android:text="点击激活"
-            android:textColor="@color/white_50"
-            android:textSize="16sp" />
-        <!-- ================= ▲ 修复完毕！▲ ================= -->
-
-    </LinearLayout>
-        </androidx.appcompat.widget.LinearLayoutCompat>
-    </androidx.core.widget.NestedScrollView>
 </androidx.appcompat.widget.LinearLayoutCompat>
