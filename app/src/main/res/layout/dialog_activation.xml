@@ -15,15 +15,13 @@
         android:layout_height="wrap_content"
         android:hint="请输入激活码或指令..."
         
-        <!-- ✨ 核心修复！我们把 inputType 改成支持多行文本！ -->
+        
         android:inputType="textMultiLine"
         
-        <!-- ✨ 为了让它能显示更多内容，我们给它一个最小高度 -->
+        
         android:minLines="3"
         
-        <!-- ✨ 我们把这两个罪魁祸首彻底删除！ -->
-        <!-- android:maxLines="1" -->
-        <!-- android:singleLine="true" -->
+        
         
         android:gravity="top|start" />
     <!-- ================= ▲ 手术结束！▲ ================= -->
