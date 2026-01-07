@@ -52,7 +52,15 @@ public class AdRule {
         this.prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         loadRulesFromPrefs();
         fetchConfig();
+        // ✨ 婉儿新增：在创建实例时，立刻清空所有旧的规则！保证大脑是全新的！
+    this.keywords.clear();
+    this.m3u8Keywords.clear();
+    this.rules.clear();
+
+    loadRulesFromPrefs();
+    fetchConfig();
     }
+    
 
     public static AdRule get() {
         if (instance == null) {
