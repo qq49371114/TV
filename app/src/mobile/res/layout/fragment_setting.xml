@@ -385,32 +385,33 @@
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
-<!-- 这是“凤凰系统”的专属激活入口 (婉儿精装修版) -->
-<androidx.appcompat.widget.LinearLayoutCompat
-    android:id="@+id/phoenix_activation"
-    android:layout_width="match_parent"          
-    android:layout_height="wrap_content"
-    android:layout_marginTop="16dp"
-    android:background="@drawable/selector_item"  
-    android:padding="16dp"                        
-    android:gravity="center_vertical"             
-    android:focusable="true"
-    android:focusableInTouchMode="true"
-    android:orientation="horizontal">
+            <!-- 这是“凤凰系统”的专属激活入口 (婉儿完美对齐版) -->
+            <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/phoenix_activation"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/selector_item"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:minHeight="?android:attr/listPreferredItemHeight"
+                    android:gravity="center_vertical"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:orientation="horizontal">
 
     <com.google.android.material.textview.MaterialTextView
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:text="🔥 凤凰系统 🔥"
+        android:layout_weight="1"
+        android:text="🔥 凤凰系统"
         android:textColor="@color/white"
         android:textSize="18sp" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/phoenix_status_text"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="end"
         android:text="点击激活"
         android:textColor="@color/white_50"
         android:textSize="16sp" />
