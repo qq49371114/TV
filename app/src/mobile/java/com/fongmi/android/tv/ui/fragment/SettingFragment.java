@@ -56,6 +56,9 @@ import java.util.List;
 import com.fongmi.android.tv.player.AdSwitch;
 import com.fongmi.android.tv.ui.dialog.ActivationDialog; 
 
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+import com.fongmi.android.tv.player.ActivationEvent; // ✨ 导入我们自己的“信号弹”！
 
 public class SettingFragment extends BaseFragment implements ConfigCallback, SiteCallback, LiveCallback {
 
@@ -89,6 +92,13 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
     protected ViewBinding getBinding(@NonNull LayoutInflater inflater, @Nullable ViewGroup container) {
         return mBinding = FragmentSettingBinding.inflate(inflater, container, false);
     }
+
+    @org.greenrobot.eventbus.Subscribe(threadMode = org.greenrobot.eventbus.ThreadMode.MAIN)
+    public void onActivationEvent(ActivationEvent event) {
+    // 一收到广播，立刻更新UI！
+    System.out.println("【凤凰系统-前台】报告哥哥：我收到了激活成功的广播！正在刷新UI！");
+    updatePhoenixStatus();
+}
 
     @Override
     protected void initView() {
