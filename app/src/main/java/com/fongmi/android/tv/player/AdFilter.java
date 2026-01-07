@@ -1,274 +1,110 @@
 package com.fongmi.android.tv.player;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
 import android.widget.Toast;
-import androidx.annotation.NonNull;
 import com.fongmi.android.tv.App;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.zip.GZIPInputStream;
-import okhttp3.Interceptor;
-import okhttp3.Protocol;
+import com.google.gson.Gson;
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import android.util.Base64;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
-import okhttp3.ResponseBody;
 
-public class AdFilter implements Interceptor {
+/**
+ * AdSwitch.java - v81.0 终极限量门票版
+ * 1. 激活逻辑只保留向服务器发送“激活码+设备ID”进行设备绑定和次数验证。
+ * 2. 它会解密服务器返回的加密“圣旨”。
+ * 3. 采用了最稳固的“地基重构”单例模式。
+ * 作者：婉儿 & 哥哥
+ */
+public class AdSwitch {
+    private static final String PREFS_NAME = "ad_switch_prefs";
+    private static final String KEY_ACTIVATED_CODE = "activated_code";
 
-    private static class Clip {
-        String extinf;
-        String url;
-        double duration;
+    // ✨ 我们用来加密和解密服务器通信的“万能钥匙”！
+    private static final byte[] API_CRYPT_KEY = "PHOENIX-API-KEY!".getBytes();
+    private static final byte[] API_CRYPT_IV  = "PHOENIX-API-IV!!".getBytes();
 
-        Clip(String extinf, String url) {
-            this.extinf = extinf;
-            this.url = url;
+    private static volatile AdSwitch instance;
+    private final SharedPreferences prefs;
+    private final OkHttpClient client = new OkHttpClient();
+
+    private AdSwitch(Context context) {
+        this.prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+    }
+
+    public static AdSwitch get() {
+        if (instance == null) {
+            synchronized (AdSwitch.class) {
+                if (instance == null) {
+                    instance = new AdSwitch(App.get());
+                }
+            }
+        }
+        return instance;
+    }
+
+    public boolean isOn() {
+        String activatedCode = prefs.getString(KEY_ACTIVATED_CODE, "");
+        return !activatedCode.isEmpty();
+    }
+
+    public void activate(Context context, String activationCode) {
+        new Thread(() -> {
             try {
-                String durationStr = extinf.substring(extinf.indexOf(":") + 1, extinf.lastIndexOf(","));
-                this.duration = Double.parseDouble(durationStr);
+                String deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+                String json = "{\"activation_code\": \"" + activationCode + "\", \"device_id\": \"" + deviceId + "\"}";
+                RequestBody body = RequestBody.create(json, MediaType.parse("application/json; charset=utf-8"));
+                String verifyUrl = "https://your-server.com/api/phoenix/activate.php"; // 换成你的验证服务器地址
+                Request request = new Request.Builder().url(verifyUrl).post(body).build();
+                Response response = client.newCall(request).execute();
+                
+                if (!response.isSuccessful() || response.body() == null) {
+                    throw new IOException("请求失败，响应码: " + response.code());
+                }
+
+                String encryptedResponseBody = response.body().string();
+                String decryptedResponseBody = decrypt(encryptedResponseBody);
+
+                class ServerResponse { String status; String message; }
+                ServerResponse serverResponse = new Gson().fromJson(decryptedResponseBody, ServerResponse.class);
+
+                if (serverResponse != null && "activated".equals(serverResponse.status)) {
+                    prefs.edit().putString(KEY_ACTIVATED_CODE, activationCode).apply();
+                    showToast("激活成功！" + serverResponse.message);
+                } else {
+                    String errorMessage = serverResponse != null ? serverResponse.message : "未知错误";
+                    showToast("激活失败：" + errorMessage);
+                }
             } catch (Exception e) {
-                this.duration = 0;
+                showToast("激活失败：网络或服务器异常。");
+                e.printStackTrace();
             }
-        }
+        }).start();
     }
-
-    @NonNull
-    @Override
-    public Response intercept(@NonNull Chain chain) throws IOException {
-        // 总开关！如果AdSwitch的双钥匙不匹配，AdFilter将完全“休眠”！
-        if (!AdSwitch.get().isOn()) {
-            return chain.proceed(chain.request());
-        }
-
-        Request request = chain.request();
-        String url = request.url().toString();
-
-        if (AdRule.get().isAd(url)) {
-            showToast("凤凰系统为您拦截一条广告请求！");
-            return new Response.Builder().request(request).protocol(Protocol.HTTP_2).code(200).message("Blocked by Waner-Phoenix Keyword Rule").body(ResponseBody.create("", null)).build();
-        }
-
-        if (!url.contains(".m3u8")) {
-            return chain.proceed(request);
-        }
-
-        Response response = chain.proceed(request);
-        if (!response.isSuccessful() || response.body() == null) {
-            return response;
-        }
-
-        try {
-            String m3u8Content = readResponse(response);
-            //AdRule.get().await(); // 强制等待规则加载完成
-            String cleanedM3u8 = cleanM3u8(m3u8Content, url);
-            if (cleanedM3u8.equals(m3u8Content)) return response;
-            ResponseBody cleanedBody = ResponseBody.create(cleanedM3u8, response.body().contentType());
-            return response.newBuilder().body(cleanedBody).build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return response;
-        }
-    }
-
-    private String cleanM3u8(String m3u8Content, String baseUrl) {
-        List<Object> items = new ArrayList<>();
-        String[] lines = m3u8Content.split("\n");
-        for (int i = 0; i < lines.length; i++) {
-            String line = lines[i].trim();
-            if (line.isEmpty()) continue;
-            if (line.startsWith("#EXTINF:")) {
-                if (i + 1 < lines.length && !lines[i + 1].trim().startsWith("#")) {
-                    items.add(new Clip(line, lines[i + 1].trim()));
-                    i++;
-                }
-            } else {
-                items.add(line);
-            }
-        }
-
-        List<String> adKeywords = AdRule.get().getM3u8Keywords();
-        List<AdRule.M3u8Rule> featureRules = AdRule.get().getM3u8Rules();
-        AdRule.M3u8Strategy strategy = AdRule.get().getM3u8Strategy();
-        
-        Set<Object> itemsToRemove = new HashSet<>();
-
-        // 第一波攻击：空军 (关键字快速打击)
-        if (adKeywords != null && !adKeywords.isEmpty()) {
-            for (Object item : items) {
-                if (item instanceof Clip) {
-                    for (String keyword : adKeywords) {
-                        if (((Clip) item).url.contains(keyword)) {
-                            itemsToRemove.add(item);
-                        }
-                    }
-                }
-            }
-        }
-        if (!itemsToRemove.isEmpty()) {
-            return buildCleanedM3u8(m3u8Content, items, itemsToRemove, baseUrl);
-        }
-
-        // 第二波攻击：特种部队 (片头 & 片尾定点清除)
-        List<Integer> discontinuityIndices = new ArrayList<>();
-        for (int i = 0; i < items.size(); i++) {
-            if (items.get(i) instanceof String && ((String) items.get(i)).equals("#EXT-X-DISCONTINUITY")) {
-                discontinuityIndices.add(i);
-            }
-        }
-
-        if (!discontinuityIndices.isEmpty()) {
-            // 2a. 扫描片头
-            if (discontinuityIndices.size() > 1) {
-                int firstDiscIndex = discontinuityIndices.get(0);
-                int secondDiscIndex = discontinuityIndices.get(1);
-                List<Clip> headClips = getClipsInBlock(items, firstDiscIndex, secondDiscIndex);
-                if (isAdBlockByRules(headClips, featureRules) || isAdBlockByStrategy(headClips, strategy)) {
-                    for (int k = firstDiscIndex; k <= secondDiscIndex; k++) itemsToRemove.add(items.get(k));
-                    return buildCleanedM3u8(m3u8Content, items, itemsToRemove, baseUrl);
-                }
-            }
-
-            // 2b. 扫描片尾
-            int lastDiscIndex = discontinuityIndices.get(discontinuityIndices.size() - 1);
-            if (discontinuityIndices.size() == 1 || (discontinuityIndices.size() > 1 && lastDiscIndex != discontinuityIndices.get(0))) {
-                List<Clip> tailClips = new ArrayList<>();
-                for (int i = lastDiscIndex + 1; i < items.size(); i++) {
-                    if (items.get(i) instanceof Clip) tailClips.add((Clip) items.get(i));
-                    else if (items.get(i) instanceof String && ((String) items.get(i)).startsWith("#EXT")) break;
-                }
-                if (!tailClips.isEmpty()) {
-                    if (isAdBlockByRules(tailClips, featureRules) || isAdBlockByStrategy(tailClips, strategy)) {
-                        itemsToRemove.add(items.get(lastDiscIndex));
-                        itemsToRemove.addAll(tailClips);
-                        return buildCleanedM3u8(m3u8Content, items, itemsToRemove, baseUrl);
-                    }
-                }
-            }
-        }
-
-        // 第三波攻击：陆军 (中部地毯式清扫)
-        for (int i = 1; i < discontinuityIndices.size() - 1; i++) {
-            int startIndex = discontinuityIndices.get(i);
-            int endIndex = discontinuityIndices.get(i + 1);
-            List<Clip> middleClips = getClipsInBlock(items, startIndex, endIndex);
-            if (isAdBlockByRules(middleClips, featureRules) || isAdBlockByStrategy(middleClips, strategy)) {
-                 for (int k = startIndex; k <= endIndex; k++) itemsToRemove.add(items.get(k));
-                 return buildCleanedM3u8(m3u8Content, items, itemsToRemove, baseUrl);
-            }
-        }
-
-        return m3u8Content;
-    }
-
-    private String buildCleanedM3u8(String originalContent, List<Object> items, Set<Object> toRemove, String baseUrl) {
-        StringBuilder cleanedContent = new StringBuilder();
-        boolean endListTagExists = originalContent.contains("#EXT-X-ENDLIST");
-        boolean endListTagWritten = false;
-        for (Object item : items) {
-            if (!toRemove.contains(item)) {
-                if (item instanceof Clip) {
-                    cleanedContent.append(((Clip) item).extinf).append("\n");
-                    cleanedContent.append(((Clip) item).url).append("\n");
-                } else {
-                    cleanedContent.append(item.toString()).append("\n");
-                    if (item.toString().equals("#EXT-X-ENDLIST")) {
-                        endListTagWritten = true;
-                    }
-                }
-            }
-        }
-        if (endListTagExists && !endListTagWritten) {
-            cleanedContent.append("#EXT-X-ENDLIST\n");
-        }
-        showToast("凤凰系统已启动，为您净化视频流！体验新视界！");
-        return fixPaths(cleanedContent.toString(), baseUrl);
-    }
-
-    private boolean isAdBlockByRules(List<Clip> clips, List<AdRule.M3u8Rule> rules) {
-        if (rules == null || rules.isEmpty() || clips.isEmpty()) return false;
-        double totalDuration = 0;
-        for (Clip clip : clips) { totalDuration += clip.duration; }
-        for (AdRule.M3u8Rule rule : rules) {
-            boolean countMatch = clips.size() >= rule.minAdTsCount && clips.size() <= rule.maxAdTsCount;
-            boolean durationMatch = Math.abs(totalDuration - rule.adDuration) < rule.adTimeTolerance;
-            if (countMatch && durationMatch) return true;
-        }
-        return false;
-    }
-
-    private boolean isAdBlockByStrategy(List<Clip> clips, AdRule.M3u8Strategy strategy) {
-        if (strategy == null || !strategy.isEnabled() || clips.isEmpty()) return false;
-        if (clips.size() < strategy.getMinBlockSize()) return false;
-        double totalDuration = 0;
-        for (Clip clip : clips) { totalDuration += clip.duration; }
-        if (totalDuration >= strategy.getMaxTotalDuration()) return false;
-        double averageDuration = totalDuration / clips.size();
-        return averageDuration < strategy.getMaxAvgDuration();
-    }
-
-    private List<Clip> getClipsInBlock(List<Object> items, int startIndex, int endIndex) {
-        List<Clip> clips = new ArrayList<>();
-        for (int i = startIndex + 1; i < endIndex; i++) {
-            if (items.get(i) instanceof Clip) {
-                clips.add((Clip) items.get(i));
-            }
-        }
-        return clips;
-    }
-
-    private String readResponse(Response response) throws IOException {
-        InputStream inputStream = response.body().byteStream();
-        if ("gzip".equalsIgnoreCase(response.header("Content-Encoding"))) {
-            inputStream = new GZIPInputStream(inputStream);
-        }
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-        StringBuilder contentBuilder = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            contentBuilder.append(line).append("\n");
-        }
-        return contentBuilder.toString();
-    }
-
-    private String fixPaths(String m3u8Content, String baseUrl) {
-        StringBuilder finalContent = new StringBuilder();
-        String[] lines = m3u8Content.split("\n");
-        try {
-            URI baseUri = new URI(baseUrl);
-            for (String line : lines) {
-                if (!line.startsWith("#") && !line.trim().isEmpty() && !line.startsWith("http")) {
-                    finalContent.append(baseUri.resolve(line).toString()).append("\n");
-                } else {
-                    finalContent.append(line).append("\n");
-                }
-            }
-        } catch (URISyntaxException e) {
-            return m3u8Content;
-        }
-        return finalContent.toString();
+    
+    private String decrypt(String encryptedText) throws Exception {
+        String sanitizedText = encryptedText.replaceAll("[\\r\\n\\s]", "");
+        byte[] encryptedData = Base64.decode(sanitizedText, Base64.NO_WRAP);
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        SecretKeySpec keySpec = new SecretKeySpec(API_CRYPT_KEY, "AES");
+        IvParameterSpec ivSpec = new IvParameterSpec(API_CRYPT_IV);
+        cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
+        byte[] decryptedData = cipher.doFinal(encryptedData);
+        return new String(decryptedData, "UTF-8").trim();
     }
 
     private void showToast(final String message) {
         new Handler(Looper.getMainLooper()).post(() -> {
-            try {
-                Context context = App.get();
-                if (context != null) {
-                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            Toast.makeText(App.get(), message, Toast.LENGTH_LONG).show();
         });
     }
 }
