@@ -14,8 +14,8 @@ import com.fongmi.android.tv.player.AdSwitch;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 /**
- * ActivationDialog.java - v82.0 全能版
- * 1. 完美融合了“视觉统一”、“加密/解密工具”、“设备绑定激活”所有功能。
+ * ActivationDialog.java - v80.0 终极版
+ * 1. 完美融合了“视觉统一”、“加密/解密工具”、“后门密码”、“远程激活”所有功能。
  * 2. 是我们“凤凰系统”最终的、最完美的UI交互核心。
  * 作者：婉儿 & 哥哥
  */
@@ -98,6 +98,7 @@ public class ActivationDialog {
 
                     // --- 默认行为：激活系统 ---
                     else {
+                        // ✨ 调用我们最强大的“设备绑定”激活方法！
                         AdSwitch.get().activate(activity, input);
                         Toast.makeText(activity, "授权请求已发送，请稍后...", Toast.LENGTH_LONG).show();
                         dialog.dismiss();
