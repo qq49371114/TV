@@ -171,7 +171,8 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
         new ActivationDialog(getActivity()).show();
         });
         // ================= ▲ 修复结束 ▲ =================
-
+     }
+    
     @Override
     public void setConfig(Config config) {
         if (config.getUrl().startsWith("file")) {
