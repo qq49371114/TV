@@ -28,6 +28,7 @@ import com.fongmi.android.tv.player.AdSwitch;
 import com.github.catvod.net.OkHttp;
 import android.widget.Toast;
 
+
 public class App extends Application implements Application.ActivityLifecycleCallbacks {
 
     private final ExecutorService searchExecutor;
@@ -65,18 +66,27 @@ public class App extends Application implements Application.ActivityLifecycleCal
     Notify.createChannel();
     registerActivityLifecycleCallbacks(this);
 
-    // ================= ▼ 婉儿的终极简化！▼ =================
-    // 我们不再需要手动初始化 AdSwitch 了！
-    
-    // 我们只需要在后台，告诉“大脑”去哪里取规则就行了！
+    // ================= ▼ 婉儿的终极“发射程序”！▼ =================
+    // 我们在一个后台线程里，完成所有初始化和配置任务，保证APP启动流畅！
     new Thread(() -> {
+        
+        // ✨ 第一步：配置“大脑” (AdRule)
+        // AdRule.get() 在第一次被调用时，会自动完成初始化
         AdRule.setConfigUrl("http://47.109.61.116:86/apk/ad_rulesa.json");
-    }).start();
 
-    // 把哨兵安装到发动机上
-    OkHttp.addInterceptor(new AdFilter());
-    // ================= ▲ 简化结束！▲ =================
+        // ================= ▼ 就是这里！▼ =================
+        // ✨ 第二步：配置“心脏” (AdSwitch)，告诉它去哪里取“贵宾名单”！
+        String validCodesUrl = "http://47.109.61.116:86/apk/activation_configb.json";
+        AdSwitch.get().fetchValidCodeList(validCodesUrl);
+        // ================= ▲ 就是这里！▲ =================
+
+        // ✨ 第三步：把我们的“哨兵” (AdFilter)，安装到网络引擎上！
+        OkHttp.addInterceptor(new AdFilter());
+
+    }).start();
+    // ================= ▲ 发射程序部署完毕！▲ =================
 }
+
 
     
     @Override
