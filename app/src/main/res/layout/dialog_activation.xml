@@ -13,7 +13,7 @@
         android:id="@+id/et_activation_code"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="请输入激活码或指令..."
+        android:hint="输入激活码"
         
         
         android:inputType="textMultiLine"
