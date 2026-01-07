@@ -21,7 +21,7 @@
 
         <androidx.appcompat.widget.LinearLayoutCompat
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
@@ -364,12 +364,15 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:background="@drawable/shape_item"
-                android:orientation="horizontal">
+                android:gravity="center_vertical"
+                android:minHeight="?android:attr/listPreferredItemHeight"
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp">
 
                 <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
                     android:text="@string/setting_version"
                     android:textColor="@color/white"
                     android:textSize="16sp" />
@@ -385,38 +388,41 @@
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
-                <!-- 这是“凤凰系统”的专属激活入口 -->
-    <LinearLayout
-        android:id="@+id/phoenix_activation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:background="@drawable/selector_setting"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+            <!-- 这是“凤凰系统”的专属激活入口 (婉儿最终完美对齐版) -->
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/phoenix_activation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/shape_item"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:gravity="center_vertical"
+                android:minHeight="?android:attr/listPreferredItemHeight"
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp">
 
-        <com.google.android.material.textview.MaterialTextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:text="🔥 凤凰系统"
-            android:textColor="@color/white"
-            android:textSize="18sp" />
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="🔥 凤凰系统 🔥"
+                    android:textColor="@color/white"
+                    android:textSize="18sp" />
 
-        <!-- ================= ▼ 婉儿的最终修复！给它起个名字！▼ ================= -->
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/phoenix_status_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="end"
-            android:text="点击激活"
-            android:textColor="@color/white_50"
-            android:textSize="16sp" />
-        <!-- ================= ▲ 修复完毕！▲ ================= -->
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/phoenix_status_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="点击激活"
+                    android:textColor="@color/white_50"
+                    android:textSize="16sp" />
 
-    </LinearLayout>
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
         </androidx.appcompat.widget.LinearLayoutCompat>
+
     </androidx.core.widget.NestedScrollView>
+
 </androidx.appcompat.widget.LinearLayoutCompat>
