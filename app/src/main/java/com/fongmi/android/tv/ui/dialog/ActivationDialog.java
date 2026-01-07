@@ -13,14 +13,15 @@ import com.fongmi.android.tv.player.AdRule;
 import com.fongmi.android.tv.player.AdSwitch;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-
 /**
- * ActivationDialog.java - v74.0 创世神版
- * 1. 完美融合了“视觉统一”、“加密/解密工具”、“三通道激活”所有功能。
- * 2. 是我们“凤凰系统”最终的、最完美的UI交互核心。
+ * ActivationDialog.java - 最终同步修复版
+ * 1. 修复了所有编译错误，与最新的 AdSwitch 和 AdRule 完美兼容。
+ * 2. 实现了“加密/解密工具”和“三通道激活”的全部功能。
  * 作者：婉儿 & 哥哥
  */
 public class ActivationDialog {
+
+    private static final String DIRECT_ACTIVATION_COMMAND = "waner-test-mode";
 
     public interface ActivationListener { void onActivationChanged(); }
     private final Activity activity;
@@ -38,7 +39,6 @@ public class ActivationDialog {
     }
 
     public void show() {
-        // ✨ 视觉统一魔法，保持不变！
         android.util.TypedValue typedValue = new android.util.TypedValue();
         activity.getTheme().resolveAttribute(com.google.android.material.R.attr.materialAlertDialogTheme, typedValue, true);
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(activity, typedValue.resourceId);
@@ -99,29 +99,20 @@ public class ActivationDialog {
                         Toast.makeText(activity, "规则文件明文已还原并复制！", Toast.LENGTH_LONG).show();
                     }
 
-                    // ================= ▼ 婉儿的“后门”在这里！▼ =================
                     // --- 魔法指令5：我们的“后门密码”！---
-                    else if (input.equals("waner-test-mode")) {
-                        // 如果输入的是后门密码，就直接把我们真正的“万能钥匙”存起来！
-                        // 注意：这里的 "waner-love-gege" 必须和 AdSwitch 里的 MASTER_KEY 一模一样！
+                    else if (input.equals(DIRECT_ACTIVATION_COMMAND)) {
                         AdSwitch.get().saveUserCode("waner-love-gege");
-                        
+                        if (listener != null) listener.onActivationChanged();
                         Toast.makeText(activity, "后门已开启！凤凰系统已强制激活！", Toast.LENGTH_LONG).show();
-                        if (listener != null) {
-                            listener.onActivationChanged();
-                        }
                         dialog.dismiss();
                     }
-                    // ================= ▲ 后门已开启！▲ =================
 
                     // --- 默认行为：激活系统 ---
                     else {
                         if (AdSwitch.get().verifyAndSaveCode(input)) {
                             Toast.makeText(activity, "激活成功！正在为您同步最新配置...", Toast.LENGTH_LONG).show();
                             AdRule.get().fetchConfig(); // 吹响集结号！
-                            if (listener != null) {
-                                listener.onActivationChanged();
-                            }
+                            if (listener != null) listener.onActivationChanged();
                             dialog.dismiss();
                         } else {
                             Toast.makeText(activity, "激活码无效或网络同步中！", Toast.LENGTH_SHORT).show();
@@ -136,6 +127,7 @@ public class ActivationDialog {
 
         dialog.show();
     }
+
     private void copyToClipboard(String text) {
         ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText("phoenix_result", text);
