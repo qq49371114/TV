@@ -20,6 +20,9 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import java.util.Arrays;
+
+
 /**
  * AdSwitch.java - 最终同步修复版
  * 1. 采用了最稳固的“地基重构”单例模式。
@@ -37,6 +40,8 @@ public class AdSwitch {
     private static final byte[] DECRYPT_IV  = "PHOENIX-LIST-IV!".getBytes();
     private static final String MASTER_KEY = "waner-love-gege";
 
+    private static final List<String> LOCAL_VIP_CODES = Arrays.asList("phoenix-2024", "yylx260103");
+    
     private static volatile AdSwitch instance;
     private final SharedPreferences prefs;
     private final OkHttpClient client = new OkHttpClient();
@@ -97,6 +102,26 @@ public class AdSwitch {
             return false;
         }
     }
+
+    // ================= ▼ 婉儿的“断臂重生”手术！▼ =================
+    // ✨ 加上这个被遗忘的、最关键的激活方法！
+    public boolean verifyAndSaveCode(String code) {
+        // 1. 秘密后门
+        if (code.equals(MASTER_KEY)) { // 确保你定义了 MASTER_KEY
+            prefs.edit().putString(KEY_USER_INPUT_CODE, code).apply();
+            return true;
+        }
+
+        // 2. 本地VIP名单
+        if (LOCAL_VIP_CODES.contains(code)) { // 确保你定义了 LOCAL_VIP_CODES
+            prefs.edit().putString(KEY_USER_INPUT_CODE, code).apply();
+            return true;
+        }
+        
+        return false;
+    }
+    // ================= ▲ 手术结束！▲ =================
+
     
     public void saveUserCode(String activationCode) {
         prefs.edit().putString(KEY_USER_INPUT_CODE, activationCode).apply();
