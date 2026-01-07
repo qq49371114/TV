@@ -388,12 +388,12 @@
 <!-- 这是“凤凰系统”的专属激活入口 (婉儿精装修版) -->
 <androidx.appcompat.widget.LinearLayoutCompat
     android:id="@+id/phoenix_activation"
-    android:layout_width="match_parent"          <!-- ✨ 保持 match_parent，让它占满整行 -->
+    android:layout_width="match_parent"          
     android:layout_height="wrap_content"
     android:layout_marginTop="16dp"
-    android:background="@drawable/selector_item"  <!-- 使用和其他设置项一样的皮肤 -->
-    android:padding="16dp"                        <!-- ✨ 核心修复：加上16dp的内边距！-->
-    android:gravity="center_vertical"             <!-- 保持内容垂直居中 -->
+    android:background="@drawable/selector_item"  
+    android:padding="16dp"                        
+    android:gravity="center_vertical"             
     android:focusable="true"
     android:focusableInTouchMode="true"
     android:orientation="horizontal">
@@ -402,7 +402,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
-        android:text="🔥 凤凰系统"
+        android:text="🔥 凤凰系统 🔥"
         android:textColor="@color/white"
         android:textSize="18sp" />
 
