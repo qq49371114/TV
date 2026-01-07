@@ -19,6 +19,9 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 import java.io.IOException; // ✨ 婉儿把被遗漏的“介绍信”补上了！
+import com.google.gson.reflect.TypeToken;
+import java.lang.reflect.Type;
+import java.util.List;
 
 
 /**
@@ -57,6 +60,47 @@ public class AdSwitch {
         }
         return instance;
     }
+
+    // ================= ▼ 婉儿的“接口修复”手术！▼ =================
+    // ✨ 加上这个“保存用户码”的方法！
+    public void saveUserCode(String activationCode) {
+        if (!isInitialized) return; // isInitialized 是你原来就有的标记
+        prefs.edit().putString(KEY_USER_INPUT_CODE, activationCode).apply();
+    }
+
+    // ✨ 加上这个“三通道激活”的方法！
+    public boolean activateWith(String code) {
+        if (!isInitialized) return false;
+
+        // 防火墙：过滤掉我们自己的工具指令
+        if (code.matches("^(act|d_act|rule|d_rule):.*")) {
+            return false;
+        }
+        
+        // 后门检查
+        if (code.equals(MASTER_KEY)) { // 确保你定义了 MASTER_KEY
+            prefs.edit().putString(KEY_USER_INPUT_CODE, code).apply();
+            return true;
+        }
+        
+        // 贵宾名单验证
+        String plainCode = code;
+        try {
+            plainCode = decrypt(code); // 确保你已经有 decrypt 方法
+        } catch (Exception e) { /* 解密失败，说明是明文 */ }
+
+        String validCodesJson = prefs.getString(KEY_VALID_CODES_CACHE, "[]");
+        Type listType = new TypeToken<List<String>>() {}.getType();
+        List<String> validCodes = new Gson().fromJson(validCodesJson, listType);
+
+        if (validCodes != null && validCodes.contains(plainCode)) {
+            prefs.edit().putString(KEY_USER_INPUT_CODE, plainCode).apply();
+            return true;
+        } else {
+            return false;
+        }
+    }
+    // ================= ▲ 手术结束！▲ =================
 
     public boolean isOn() {
         String userInputCode = prefs.getString(KEY_USER_INPUT_CODE, "");
