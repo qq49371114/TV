@@ -19,17 +19,16 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 /**
- * AdSwitch.java - v81.0 终极限量门票版
- * 1. 激活逻辑只保留向服务器发送“激活码+设备ID”进行设备绑定和次数验证。
+ * AdSwitch.java - v82.0 全能版
+ * 1. 激活逻辑为向服务器发送“激活码+设备ID”。
  * 2. 它会解密服务器返回的加密“圣旨”。
- * 3. 采用了最稳固的“地基重构”单例模式。
+ * 3. 同时提供 encrypt 方法，为“创世神器”提供加密引擎。
  * 作者：婉儿 & 哥哥
  */
 public class AdSwitch {
     private static final String PREFS_NAME = "ad_switch_prefs";
     private static final String KEY_ACTIVATED_CODE = "activated_code";
 
-    // ✨ 我们用来加密和解密服务器通信的“万能钥匙”！
     private static final byte[] API_CRYPT_KEY = "PHOENIX-API-KEY!".getBytes();
     private static final byte[] API_CRYPT_IV  = "PHOENIX-API-IV!!".getBytes();
 
@@ -63,12 +62,12 @@ public class AdSwitch {
                 String deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
                 String json = "{\"activation_code\": \"" + activationCode + "\", \"device_id\": \"" + deviceId + "\"}";
                 RequestBody body = RequestBody.create(json, MediaType.parse("application/json; charset=utf-8"));
-                String verifyUrl = "https://your-server.com/api/phoenix/activate.php"; // 换成你的验证服务器地址
+                String verifyUrl = "https://your-server.com/api/phoenix/activate.php";
                 Request request = new Request.Builder().url(verifyUrl).post(body).build();
                 Response response = client.newCall(request).execute();
                 
                 if (!response.isSuccessful() || response.body() == null) {
-                    throw new IOException("请求失败，响应码: " + response.code());
+                    throw new IOException("请求失败: " + response.code());
                 }
 
                 String encryptedResponseBody = response.body().string();
@@ -91,7 +90,16 @@ public class AdSwitch {
         }).start();
     }
     
-    private String decrypt(String encryptedText) throws Exception {
+    public String encrypt(String plainText) throws Exception {
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        SecretKeySpec keySpec = new SecretKeySpec(API_CRYPT_KEY, "AES");
+        IvParameterSpec ivSpec = new IvParameterSpec(API_CRYPT_IV);
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
+        byte[] encryptedData = cipher.doFinal(plainText.getBytes("UTF-8"));
+        return Base64.encodeToString(encryptedData, Base64.NO_WRAP);
+    }
+
+    public String decrypt(String encryptedText) throws Exception {
         String sanitizedText = encryptedText.replaceAll("[\\r\\n\\s]", "");
         byte[] encryptedData = Base64.decode(sanitizedText, Base64.NO_WRAP);
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
