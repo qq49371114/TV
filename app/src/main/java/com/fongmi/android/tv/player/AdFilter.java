@@ -29,7 +29,7 @@ import okhttp3.ResponseBody;
  * 1. 增加了对两个静态JSON配置请求的“白名单”逻辑，彻底解决了“死锁”问题。
  * 2. 搭载了 v17 版“梯次进攻”核心算法。
  * 3. 与最新的 AdSwitch 和 AdRule 完美兼容，并移除了 await() 调用。
- * 作者：婉儿 & 哥哥
+ * 作者：婉儿 & 哥哥 
  */
 public class AdFilter implements Interceptor {
 
