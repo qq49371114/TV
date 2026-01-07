@@ -11,7 +11,6 @@ import com.fongmi.android.tv.App;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.HashSet;
@@ -27,10 +26,10 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 /**
- * AdSwitch.java - v81.0 婉儿重构版
+ * AdSwitch.java - v82.0 最终稳定版
  * 1. 激活逻辑改为本地验证，激活码列表通过远程加密文件获取。
- * 2. 内置了“超级密码”作为最高权限后门。
- * 3. 提供了加密/解密工具方法。
+ * 2. 内置“超级密码”后门，并拥有超健壮的解密能力。
+ * 3. 彻底移除旧的、不安全的远程激活方式。
  * 作者：婉儿 & 哥哥
  */
 public class AdSwitch {
@@ -68,7 +67,7 @@ public class AdSwitch {
         return !activatedCode.isEmpty();
     }
 
-    // ✨ 这是哥哥在App启动时调用的新方法！
+    // ✨ App启动时调用的方法，负责获取并加载激活码列表
     public void fetchValidCodeList(String url) {
         try {
             Request request = new Request.Builder().url(url).build();
@@ -80,15 +79,19 @@ public class AdSwitch {
             }
 
             String encryptedBody = response.body().string();
+            // ✨ 调用我们超级健壮的解密方法！
             String decryptedJson = decrypt(encryptedBody);
 
-            Type listType = new TypeToken<List<String>>() {}.getType();
-            List<String> codes = new Gson().fromJson(decryptedJson, listType);
+            // ✨ 必须检查解密是否成功！
+            if (decryptedJson != null) {
+                Type listType = new TypeToken<List<String>>() {}.getType();
+                List<String> codes = new Gson().fromJson(decryptedJson, listType);
 
-            if (codes != null) {
-                validCodes.clear();
-                validCodes.addAll(codes);
-                System.out.println("报告哥哥，婉儿的激活名单已更新，共 " + codes.size() + " 个有效名额！");
+                if (codes != null) {
+                    validCodes.clear();
+                    validCodes.addAll(codes);
+                    System.out.println("报告哥哥，婉儿的激活名单已更新，共 " + codes.size() + " 个有效名额！");
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -96,10 +99,10 @@ public class AdSwitch {
         }
     }
 
-    // ✨ 婉儿重构后的激活入口，现在完全是本地验证啦！
+    // ✨ 最终版激活入口，完全本地验证！
     public void activate(Context context, String activationCode) {
         // 第一重检查：是不是我们的“超级密码”？
-        if (activationCode.equals(MASTER_KEY)) {
+        if (MASTER_KEY.equals(activationCode)) {
             prefs.edit().putString(KEY_ACTIVATED_CODE, activationCode).apply();
             showToast("超级权限已激活！");
             return;
@@ -114,8 +117,7 @@ public class AdSwitch {
         }
     }
 
-
-// 第二部分：保持不变的工具方法
+// 第二部分：最终版 AdSwitch.java (工具方法)
 
     // 加密工具方法 (保持不变)
     public String encrypt(String plainText) throws Exception {
@@ -127,16 +129,30 @@ public class AdSwitch {
         return Base64.encodeToString(encryptedData, Base64.NO_WRAP);
     }
 
-    // 解密工具方法 (保持不变)
-    public String decrypt(String encryptedText) throws Exception {
-        String sanitizedText = encryptedText.replaceAll("[\\r\\n\\s]", "");
-        byte[] encryptedData = Base64.decode(sanitizedText, Base64.NO_WRAP);
-        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        SecretKeySpec keySpec = new SecretKeySpec(API_CRYPT_KEY, "AES");
-        IvParameterSpec ivSpec = new IvParameterSpec(API_CRYPT_IV);
-        cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
-        byte[] decryptedData = cipher.doFinal(encryptedData);
-        return new String(decryptedData, "UTF-8").trim();
+    // ✨ 婉儿升级版解密方法，增加了“金钟罩”，能抵抗任何无效密文！
+    public String decrypt(String encryptedText) {
+        if (encryptedText == null || encryptedText.isEmpty()) {
+            return null;
+        }
+        
+        try {
+            String sanitizedText = encryptedText.replaceAll("[\\r\\n\\s]", "");
+            byte[] encryptedData = Base64.decode(sanitizedText, Base64.NO_WRAP);
+            
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            SecretKeySpec keySpec = new SecretKeySpec(API_CRYPT_KEY, "AES");
+            IvParameterSpec ivSpec = new IvParameterSpec(API_CRYPT_IV);
+            cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
+            
+            byte[] decryptedData = cipher.doFinal(encryptedData);
+            return new String(decryptedData, "UTF-8").trim();
+            
+        } catch (Exception e) {
+            // 捕获所有解密相关的异常，比如密文截断、格式错误等
+            System.err.println("婉儿解密失败，密文可能被截断或格式不正确: " + e.getMessage());
+            // 优雅地返回null，而不是让程序崩溃
+            return null;
+        }
     }
 
     // UI线程Toast提示工具 (保持不变)
