@@ -114,6 +114,8 @@ public class AdSwitch {
         if (validCodes.contains(activationCode)) {
             prefs.edit().putString(KEY_ACTIVATED_CODE, activationCode).apply();
             showToast("激活成功！");
+            // ✨✨✨ 婉儿新增：激活成功后，立刻向全城广播！✨✨✨
+        org.greenrobot.eventbus.EventBus.getDefault().post(new ActivationEvent());
         } else {
             showToast("激活失败：无效的激活码。");
         }
