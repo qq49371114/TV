@@ -56,8 +56,11 @@ import java.util.List;
 import com.fongmi.android.tv.player.AdSwitch;
 import com.fongmi.android.tv.ui.dialog.ActivationDialog; 
 
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+import com.fongmi.android.tv.player.ActivationEvent; // ✨ 导入我们自己的“信号弹”！
 
-public class SettingFragment extends BaseFragment implements ConfigCallback, SiteCallback, LiveCallback, ActivationDialog.ActivationListener {
+public class SettingFragment extends BaseFragment implements ConfigCallback, SiteCallback, LiveCallback {
 
     private FragmentSettingBinding mBinding;
     private String[] size;
@@ -90,6 +93,13 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
         return mBinding = FragmentSettingBinding.inflate(inflater, container, false);
     }
 
+    @org.greenrobot.eventbus.Subscribe(threadMode = org.greenrobot.eventbus.ThreadMode.MAIN)
+    public void onActivationEvent(ActivationEvent event) {
+    // 一收到广播，立刻更新UI！
+    System.out.println("【凤凰系统-前台】报告哥哥：我收到了激活成功的广播！正在刷新UI！");
+    updatePhoenixStatus();
+}
+
     @Override
     protected void initView() {
         EventBus.getDefault().register(this);
@@ -100,7 +110,7 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
         setOtherText();
         setCacheText();
         // ================= ▼ 婉儿新增：在界面加载时，先刷新一次状态！▼ =================
-        updatePhoenixStatus();
+        //updatePhoenixStatus();
     }
 
     private void setOtherText() {
@@ -117,6 +127,30 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
             }
         });
     }
+
+    
+    
+    // ================= ▼ 婉儿新增：状态更新器！▼ =================
+    private void updatePhoenixStatus() {
+        if (mBinding == null) return;
+
+        if (AdSwitch.get().isOn()) {
+            mBinding.phoenixStatusText.setText("已激活"); 
+        } else {
+            mBinding.phoenixStatusText.setText("点击激活");
+        }
+    }
+    // ================= ▲ 新增结束 ▲ =================
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // ✨ 婉儿新增：当我们回到设置页面时，主动更新一下凤凰系统的状态！
+        updatePhoenixStatus();
+    }
+
+    
 
     @Override
     protected void initEvent() {
@@ -141,18 +175,14 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
         mBinding.wallDefault.setOnClickListener(this::setWallDefault);
         mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
         mBinding.wallRefresh.setOnLongClickListener(this::onWallHistory);
-        // --- 婉儿新增：为“凤凰系统”按钮绑定最终的点击事件！ ---
-        // ================= ▼ 婉儿的最终修复！▼ =================
-        // ================= ▼ 婉儿的最终修复！▼ =================
-        mBinding.phoenixActivation.setOnClickListener(view -> {
-    // ================= ▼ 婉儿的最终修复：明确提供收信地址！▼ =================
-    // 第一个参数getActivity()是“市长”，用来创建弹窗。
-    // 第二个参数this是“区长”自己，用来接收“信鸽”！
-        ActivationDialog.create(getActivity(), this).show();
-    // ================= ▲ 修复结束！▲ =================
-    });
-}
-
+        // ================= ▼ 婉儿新增：为“凤凰系统”按钮绑定最终的点击事件 ▼ =================
+        mBinding.phoenixActivation.setOnClickListener(v -> {
+        // ✨ 婉儿的最终修复：使用新的、更简洁的方式来创建和显示我们的“魔法工作台”！
+        new ActivationDialog(getActivity()).show();
+        });
+        // ================= ▲ 修复结束 ▲ =================
+     }
+    
     @Override
     public void setConfig(Config config) {
         if (config.getUrl().startsWith("file")) {
@@ -201,32 +231,6 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
             }
         };
     }
-
-
-    // ================= ▼ 婉儿新增：状态更新器！▼ =================
-    private void updatePhoenixStatus() {
-        if (mBinding == null) return;
-
-        if (AdSwitch.get().isOn()) {
-            mBinding.phoenixStatusText.setText("已激活"); 
-        } else {
-            mBinding.phoenixStatusText.setText("点击激活");
-        }
-    }
-    // ================= ▲ 新增结束 ▲ =================
-
-
-    // ================= ▼ 婉儿新增：信鸽接收站！▼ =================
-    @Override
-    public void onActivationChanged() {
-        // 当激活弹窗里的“信鸽”飞回来时，这个方法就会被调用！
-        // 我们在这里立刻更新UI状态，实现“即时生效”！
-        if (getActivity() != null) {
-            getActivity().runOnUiThread(this::updatePhoenixStatus);
-        }
-    }
-    // ================= ▲ 新增结束 ▲ =================
-
 
     private void setConfig(int type) {
         setCacheText();
@@ -377,8 +381,6 @@ public class SettingFragment extends BaseFragment implements ConfigCallback, Sit
             }
         }));
     }
-
-    
 
     private void initConfig() {
         VodConfig.get().init().load(getCallback(0));
