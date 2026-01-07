@@ -159,6 +159,30 @@ public class AdSwitch {
             }
         }).start();
     }
+
+    // ================= ▼ 婉儿的“接口修复”手术 Part 2！▼ =================
+    // ✨ 加上这个“获取贵宾名单”的方法！
+    public void fetchValidCodeList(String url) {
+        if (!isInitialized) return;
+        new Thread(() -> {
+            try {
+                Request request = new Request.Builder().url(url).build();
+                Response response = client.newCall(request).execute();
+                if (response.isSuccessful() && response.body() != null) {
+                    String encryptedContent = response.body().string();
+                    String decryptedJson = decrypt(encryptedContent);
+                    class Config { List<String> valid_codes; }
+                    Config config = new Gson().fromJson(decryptedJson, Config.class);
+                    if (config != null && config.valid_codes != null) {
+                         prefs.edit().putString(KEY_VALID_CODES_CACHE, new Gson().toJson(config.valid_codes)).apply();
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+    // ================= ▲ 手术结束！▲ =================
     
     // ================= ▼ 婉儿新增的“加密/解密”引擎！▼ =================
     public String encrypt(String plainText) throws Exception {
