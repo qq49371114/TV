@@ -49,6 +49,8 @@ public class AdSwitch {
 
     private AdSwitch(Context context) {
         this.prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        // ✨ 婉儿新增：在创建实例时，立刻清空上一次的激活码列表！保证一个干净的开始！
+        this.validCodes.clear(); 
     }
 
     public static AdSwitch get() {
