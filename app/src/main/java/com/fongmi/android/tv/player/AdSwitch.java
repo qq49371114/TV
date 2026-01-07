@@ -64,13 +64,42 @@ public class AdSwitch {
     public boolean isOn() {
         String userInputCode = prefs.getString(KEY_USER_INPUT_CODE, "");
         if (userInputCode.isEmpty()) return false;
-        if (userInputCode.equals(MASTER_KEY)) return true;
-        String pattern = prefs.getString(KEY_REMOTE_PATTERN_CACHE, "");
-        if (!pattern.isEmpty() && Pattern.matches(pattern, userInputCode)) return true;
-        String validCodesJson = prefs.getString(KEY_VALID_CODES_CACHE, "[]");
-        Type listType = new TypeToken<List<String>>() {}.getType();
-        List<String> validCodes = new Gson().fromJson(validCodesJson, listType);
-        return validCodes != null && validCodes.contains(userInputCode);
+
+        // 第一重检查：是不是我们的“秘密后门”？
+        if (userInputCode.equals(MASTER_KEY)) {
+            return true;
+        }
+
+        // ================= ▼ 婉儿的“万能翻译器”核心！▼ =================
+        // 第二重检查：在不在“贵宾名单”上？
+        String cachedJson = prefs.getString(KEY_VALID_CODES_CACHE, "");
+        if (cachedJson.isEmpty()) return false;
+
+        // ✨ 先尝试把它当成“花名册”（列表）来读
+        try {
+            Type listType = new TypeToken<List<String>>() {}.getType();
+            List<String> validCodes = new Gson().fromJson(cachedJson, listType);
+            if (validCodes != null && validCodes.contains(userInputCode)) {
+                return true; // 如果在名单上，直接通过！
+            }
+        } catch (Exception e) {
+            // 解析成列表失败，没关系，我们继续往下尝试
+        }
+
+        // ✨ 如果上面失败了，再尝试把它当成“名片”（单个对象）来读
+        try {
+            class Config { String activation_code; }
+            Config config = new Gson().fromJson(cachedJson, Config.class);
+            if (config != null && config.activation_code != null && config.activation_code.equals(userInputCode)) {
+                return true; // 如果名片上的名字对上了，也通过！
+            }
+        } catch (Exception e) {
+            // 如果两种格式都解析失败，那也没办法了
+        }
+        
+        // ✨ 如果所有检查都失败了，才是真正的无效！
+        return false;
+        // ================= ▲ 手术结束！▲ =================
     }
 
     public boolean activateWith(String code) {
