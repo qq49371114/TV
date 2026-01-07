@@ -14,14 +14,12 @@ import com.fongmi.android.tv.player.AdSwitch;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 /**
- * ActivationDialog.java - 最终同步修复版
- * 1. 修复了所有编译错误，与最新的 AdSwitch 和 AdRule 完美兼容。
- * 2. 实现了“加密/解密工具”和“三通道激活”的全部功能。
+ * ActivationDialog.java - v82.0 全能版
+ * 1. 完美融合了“视觉统一”、“加密/解密工具”、“设备绑定激活”所有功能。
+ * 2. 是我们“凤凰系统”最终的、最完美的UI交互核心。
  * 作者：婉儿 & 哥哥
  */
 public class ActivationDialog {
-
-    private static final String DIRECT_ACTIVATION_COMMAND = "waner-test-mode";
 
     public interface ActivationListener { void onActivationChanged(); }
     private final Activity activity;
@@ -52,7 +50,6 @@ public class ActivationDialog {
 
         builder.setNegativeButton("取消", (dialogInterface, i) -> dialog.dismiss());
         builder.setPositiveButton("执行", null);
-
         dialog = builder.create();
         
         dialog.setOnShowListener(dialogInterface -> {
@@ -99,24 +96,11 @@ public class ActivationDialog {
                         Toast.makeText(activity, "规则文件明文已还原并复制！", Toast.LENGTH_LONG).show();
                     }
 
-                    // --- 魔法指令5：我们的“后门密码”！---
-                    else if (input.equals(DIRECT_ACTIVATION_COMMAND)) {
-                        AdSwitch.get().saveUserCode("waner-love-gege");
-                        if (listener != null) listener.onActivationChanged();
-                        Toast.makeText(activity, "后门已开启！凤凰系统已强制激活！", Toast.LENGTH_LONG).show();
-                        dialog.dismiss();
-                    }
-
                     // --- 默认行为：激活系统 ---
                     else {
-                        if (AdSwitch.get().verifyAndSaveCode(input)) {
-                            Toast.makeText(activity, "激活成功！正在为您同步最新配置...", Toast.LENGTH_LONG).show();
-                            AdRule.get().fetchConfig(); // 吹响集结号！
-                            if (listener != null) listener.onActivationChanged();
-                            dialog.dismiss();
-                        } else {
-                            Toast.makeText(activity, "激活码无效或网络同步中！", Toast.LENGTH_SHORT).show();
-                        }
+                        AdSwitch.get().activate(activity, input);
+                        Toast.makeText(activity, "授权请求已发送，请稍后...", Toast.LENGTH_LONG).show();
+                        dialog.dismiss();
                     }
                 } catch (Exception e) {
                     Toast.makeText(activity, "操作失败：" + e.getMessage(), Toast.LENGTH_SHORT).show();
