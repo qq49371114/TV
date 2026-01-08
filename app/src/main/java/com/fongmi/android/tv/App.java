@@ -74,7 +74,7 @@ public class App extends Application implements Application.ActivityLifecycleCal
 
         // ✨ 第二步：配置“心脏” (AdSwitch)，告诉它去哪里取“激活名单”
         // ✨ 注意：这里的地址，也必须和 AdFilter 白名单里的 ACTIVATION_CONFIG_URL 一模一样！
-        String validCodesUrl = "http://47.109.61.116:86/apk/activation_configb.json";
+        String validCodesUrl = "http://47.109.61.116:86/apk/activation_configcvg.json";
         AdSwitch.get().fetchValidCodeList(validCodesUrl);
 
     }).start();
