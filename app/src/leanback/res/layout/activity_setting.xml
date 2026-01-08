@@ -452,7 +452,7 @@
                 android:textColor="@color/white_50"
                 android:textSize="16sp" />
 
-              </androidx.appcompat.widget.LinearLayoutCompat>
+              
         <!-- ✨↑ “凤凰系统”添加完毕！↑✨ -->
 
             </androidx.appcompat.widget.LinearLayoutCompat>
