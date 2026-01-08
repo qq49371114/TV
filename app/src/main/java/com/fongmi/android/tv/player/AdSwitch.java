@@ -9,13 +9,12 @@ import android.util.Base64;
 
 import com.fongmi.android.tv.App;
 import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -26,15 +25,17 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 /**
- * AdSwitch.java - v82.0 最终稳定版
- * 1. 激活逻辑改为本地验证，激活码列表通过远程加密文件获取。
- * 2. 内置“超级密码”后门，并拥有超健壮的解密能力。
- * 3. 彻底移除旧的、不安全的远程激活方式。
+ * AdSwitch.java - v83.0 激活有效期版
+ * 1. 激活逻辑改为本地验证，支持带“保质期”的激活码。
+ * 2. 内置“超级密码”后门，永不过期。
+ * 3. App自己就能判断激活是否过期，无需服务器支持。
  * 作者：婉儿 & 哥哥
  */
 public class AdSwitch {
     private static final String PREFS_NAME = "ad_switch_prefs";
     private static final String KEY_ACTIVATED_CODE = "activated_code";
+    // ✨ 婉儿新增：用来保存“过期时间戳”的键
+    private static final String KEY_EXPIRES_AT = "expires_at";
 
     private static final byte[] API_CRYPT_KEY = "PHOENIX-API-KEY!".getBytes();
     private static final byte[] API_CRYPT_IV  = "PHOENIX-API-IV!!".getBytes();
@@ -44,12 +45,19 @@ public class AdSwitch {
     private final SharedPreferences prefs;
     private final OkHttpClient client = new OkHttpClient();
 
-    // ✨ 婉儿新增的内存激活码名单，用线程安全的Set来存储，查询超快！
-    private final Set<String> validCodes = Collections.synchronizedSet(new HashSet<>());
+    // ✨ 婉儿升级：内存名单不再是简单的字符串，而是能存放“保质期”的ActivationCode对象！
+    private final List<ActivationCode> validCodes = new CopyOnWriteArrayList<>();
+
+    // ✨ 婉儿新增：定义我们新的“激活码”对象结构
+    private static class ActivationCode {
+        @SerializedName("code")
+        String code;
+        @SerializedName("expires_in")
+        long expiresIn; // 单位是秒
+    }
 
     private AdSwitch(Context context) {
         this.prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        // ✨ 婉儿新增：在创建实例时，立刻清空上一次的激活码列表！保证一个干净的开始！
         this.validCodes.clear(); 
     }
 
@@ -64,94 +72,128 @@ public class AdSwitch {
         return instance;
     }
 
+    /**
+     * ✨ 婉儿升级：自己当保安，检查“月卡”有没有过期！
+     */
     public boolean isOn() {
         String activatedCode = prefs.getString(KEY_ACTIVATED_CODE, "");
-        return !activatedCode.isEmpty();
+        if (activatedCode.isEmpty()) {
+            return false;
+        }
+        
+        // ✨ 超级密码，永不过期！
+        if (activatedCode.equals(MASTER_KEY)) {
+            return true;
+        }
+
+        // ✨ 核心改动：自己检查月卡有效期！
+        long expiresAt = prefs.getLong(KEY_EXPIRES_AT, 0);
+        long currentTime = System.currentTimeMillis() / 1000;
+
+        if (expiresAt > 0 && currentTime > expiresAt) {
+            // 月卡过期了！自己把自己变回未激活状态！
+            prefs.edit().remove(KEY_ACTIVATED_CODE).remove(KEY_EXPIRES_AT).apply();
+            showToast("您的激活已过期，请重新激活。");
+            // ✨ 发送一个广播，通知UI刷新！
+            org.greenrobot.eventbus.EventBus.getDefault().post(new ActivationEvent());
+            return false; // 返回“未激活”
+        }
+
+        return true; // 如果没过期，就返回“已激活”
     }
 
-    // ✨ App启动时调用的方法，负责获取并加载激活码列表
+    /**
+     * ✨ 婉儿升级：加载新的、带“保质期”的激活名单！
+     */
     public void fetchValidCodeList(String url) {
         try {
             Request request = new Request.Builder().url(url).build();
             Response response = client.newCall(request).execute();
 
             if (!response.isSuccessful() || response.body() == null) {
-                System.err.println("婉儿获取激活名单失败了 T_T，响应码: " + response.code());
                 return;
             }
 
             String encryptedBody = response.body().string();
-            // ✨ 调用我们超级健壮的解密方法！
             String decryptedJson = decrypt(encryptedBody);
 
-            // ✨ 必须检查解密是否成功！
             if (decryptedJson != null) {
-                Type listType = new TypeToken<List<String>>() {}.getType();
-                List<String> codes = new Gson().fromJson(decryptedJson, listType);
+                // ✨ 核心改动：用Gson把JSON解析成我们新的ActivationCode对象列表！
+                Type listType = new TypeToken<List<ActivationCode>>() {}.getType();
+                List<ActivationCode> codes = new Gson().fromJson(decryptedJson, listType);
 
                 if (codes != null) {
                     validCodes.clear();
                     validCodes.addAll(codes);
-                    System.out.println("报告哥哥，婉儿的激活名单已更新，共 " + codes.size() + " 个有效名额！");
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
-            System.err.println("婉儿在处理激活名单时遇到异常了...");
         }
     }
 
-    // ✨ 最终版激活入口，完全本地验证！
+
+    /**
+     * ✨ 婉儿升级：激活时，计算并保存“过期时间戳”！
+     */
     public void activate(Context context, String activationCode) {
-        // 第一重检查：是不是我们的“超级密码”？
+        // 第一重检查：超级密码
         if (MASTER_KEY.equals(activationCode)) {
             prefs.edit().putString(KEY_ACTIVATED_CODE, activationCode).apply();
+            // ✨ 超级密码永不过期，所以要清除掉可能存在的旧的过期时间
+            prefs.edit().remove(KEY_EXPIRES_AT).apply();
             showToast("超级权限已激活！");
+            org.greenrobot.eventbus.EventBus.getDefault().post(new ActivationEvent());
             return;
         }
 
-        // 第二重检查：直接查询内存里的激活名单，瞬间完成！
-        if (validCodes.contains(activationCode)) {
+        // ✨ 核心改动：在新的名单里查找激活码！
+        ActivationCode foundCode = null;
+        for (ActivationCode ac : validCodes) {
+            if (ac.code.equals(activationCode)) {
+                foundCode = ac;
+                break;
+            }
+        }
+
+        if (foundCode != null) { // 如果找到了
             prefs.edit().putString(KEY_ACTIVATED_CODE, activationCode).apply();
+            
+            // ✨ 计算并保存“过期时间戳”！
+            if (foundCode.expiresIn > 0) {
+                long expiresAt = (System.currentTimeMillis() / 1000) + foundCode.expiresIn;
+                prefs.edit().putLong(KEY_EXPIRES_AT, expiresAt).apply();
+            } else {
+                // 如果是永不过期的码，就清除掉旧的过期时间
+                prefs.edit().remove(KEY_EXPIRES_AT).apply();
+            }
+            
             showToast("激活成功！");
-            // ✨✨✨ 婉儿新增：激活成功后，立刻向全城广播！✨✨✨
-        org.greenrobot.eventbus.EventBus.getDefault().post(new ActivationEvent());
+            org.greenrobot.eventbus.EventBus.getDefault().post(new ActivationEvent());
         } else {
             showToast("激活失败：无效的激活码。");
         }
     }
 
-// 第二部分：最终版 AdSwitch.java (工具方法)
-
-    
-
-    // ✨ 婉儿升级版解密方法，增加了“金钟罩”，能抵抗任何无效密文！
     public String decrypt(String encryptedText) {
         if (encryptedText == null || encryptedText.isEmpty()) {
             return null;
         }
-        
         try {
             String sanitizedText = encryptedText.replaceAll("[\\r\\n\\s]", "");
             byte[] encryptedData = Base64.decode(sanitizedText, Base64.NO_WRAP);
-            
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             SecretKeySpec keySpec = new SecretKeySpec(API_CRYPT_KEY, "AES");
             IvParameterSpec ivSpec = new IvParameterSpec(API_CRYPT_IV);
             cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
-            
             byte[] decryptedData = cipher.doFinal(encryptedData);
             return new String(decryptedData, "UTF-8").trim();
-            
         } catch (Exception e) {
-            // 捕获所有解密相关的异常，比如密文截断、格式错误等
             System.err.println("婉儿解密失败，密文可能被截断或格式不正确: " + e.getMessage());
-            // 优雅地返回null，而不是让程序崩溃
             return null;
         }
     }
 
-    // UI线程Toast提示工具 (保持不变)
     private void showToast(final String message) {
         new Handler(Looper.getMainLooper()).post(() -> {
             Toast.makeText(App.get(), message, Toast.LENGTH_LONG).show();
