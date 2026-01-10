@@ -5,17 +5,14 @@ plugins {
 android {
     namespace 'com.fongmi.android.tv'
 
-    compileSdk {
-        version = release(36) {
-            it.minorApiLevel = 1
-        }
-    }
+    // 使用一个具体的版本号，而不是动态的，这更稳定
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.fongmi.android.tv"
         minSdk 24
-        //noinspection ExpiredTargetSdkVersion
-        targetSdk 28
+        // 目标SDK版本建议更新到较新的版本，以符合Google Play政策
+        targetSdk 34
         versionCode 51001
         versionName "5.1.0.01"
         javaCompileOptions {
@@ -64,15 +61,12 @@ android {
         }
     }
 
-    android.applicationVariants.configureEach { variant ->
+    applicationVariants.configureEach { variant ->
         variant.outputs.configureEach { output ->
-            outputFileName = "${variant.productFlavors[0].name}-${variant.productFlavors[1].name}.apk"
-        }
-    }
-
-    configurations.configureEach {
-        resolutionStrategy {
-            force 'com.squareup.okhttp3:okhttp:' + okhttpVersion
+            def abi = variant.productFlavors[1].name
+            def mode = variant.productFlavors[0].name
+            // 为了避免版本名带来的混淆，可以简化命名
+            outputFileName = "app-${mode}-${abi}-v${variant.versionName}.apk"
         }
     }
 
@@ -87,48 +81,20 @@ android {
     }
 }
 
-    buildFeatures {
-        buildConfig true
-        viewBinding true
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled true
-            shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-    }
-
-    packagingOptions {
-        resources {
-            exclude 'META-INF/beans.xml'
-            exclude 'META-INF/versions/9/OSGI-INF/MANIFEST.MF'
-        }
-    }
-
-    android.applicationVariants.configureEach { variant ->
-        variant.outputs.configureEach { output ->
-            outputFileName = "${variant.productFlavors[0].name}-${variant.productFlavors[1].name}.apk"
-        }
-    }
-
-    configurations.configureEach {
-        resolutionStrategy {
-            force 'com.squareup.okhttp3:okhttp:' + okhttpVersion
-        }
-    }
-
-    lint {
-        disable 'UnsafeOptInUsageError'
-    }
-
-    compileOptions {
-        coreLibraryDesugaringEnabled true
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+// ✨✨✨ 终极解决方案：在这里统一管理所有的依赖冲突！ ✨✨✨
+configurations.all {
+    resolutionStrategy {
+        // 强制统一 OkHttp 版本
+        force 'com.squareup.okhttp3:okhttp:' + okhttpVersion
+        
+        // 强制统一 Guava 版本，解决 NoSuchMethodError 崩溃
+        force 'com.google.guava:guava:31.1-android'
+        
+        // 强制使用 Guava 自带的 listenablefuture，解决编译时可能出现的重复定义错误
+        force 'com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
     }
 }
+
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.aar"])
