@@ -2,19 +2,6 @@ plugins {
     id 'com.android.application'
 }
 
-// ================= ▼ 婉儿的终极修复：加上“强制命令”！▼ =================
-// 强制解决所有因为guava和listenablefuture版本冲突导致的问题！
-configurations.all {
-    resolutionStrategy {
-        // 强制所有模块都使用这个统一的、不会出错的Guava版本！
-        force 'com.google.guava:guava:31.1-android'
-        
-        // ✨✨✨ 关键补充：强制解决 listenablefuture 的冲突！ ✨✨✨
-        // 这是一个标准技巧，当Guava内部已经包含了listenablefuture时，
-        // 用这个“空”版本来顶替掉其他库想引入的独立版本，避免重复定义的编译错误。
-        force 'com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
-    }
-}
 android {
     namespace 'com.fongmi.android.tv'
 
@@ -29,8 +16,8 @@ android {
         minSdk 24
         //noinspection ExpiredTargetSdkVersion
         targetSdk 28
-        versionCode 51002
-        versionName "5.1.0.02"
+        versionCode 51001
+        versionName "5.1.0.01"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString(), "eventBusIndex": "com.fongmi.android.tv.event.EventIndex"]
@@ -56,6 +43,49 @@ android {
             ndk { abiFilters "armeabi-v7a" }
         }
     }
+
+    buildFeatures {
+        buildConfig true
+        viewBinding true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    packagingOptions {
+        resources {
+            exclude 'META-INF/beans.xml'
+            exclude 'META-INF/versions/9/OSGI-INF/MANIFEST.MF'
+        }
+    }
+
+    android.applicationVariants.configureEach { variant ->
+        variant.outputs.configureEach { output ->
+            outputFileName = "${variant.productFlavors[0].name}-${variant.productFlavors[1].name}.apk"
+        }
+    }
+
+    configurations.configureEach {
+        resolutionStrategy {
+            force 'com.squareup.okhttp3:okhttp:' + okhttpVersion
+        }
+    }
+
+    lint {
+        disable 'UnsafeOptInUsageError'
+    }
+
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
 
     buildFeatures {
         buildConfig true
