@@ -70,7 +70,7 @@ public class App extends Application implements Application.ActivityLifecycleCal
         
         // ✨ 第一步：配置“大脑” (AdRule)，告诉它去哪里取“规则文件”
         // ✨ 注意：这里的地址，必须和 AdFilter 白名单里的 RULE_CONFIG_URL 一模一样！
-        AdRule.setConfigUrl("http://47.109.61.116:86/apk/ad_rulesa.json");
+        AdRule.setConfigUrl("https://gitcode.net/qq49371114/yylx/-/raw/master/ad_rulesa.json");
 
         // ✨ 第二步：配置“心脏” (AdSwitch)，告诉它去哪里取“激活名单”
         // ✨ 注意：这里的地址，也必须和 AdFilter 白名单里的 ACTIVATION_CONFIG_URL 一模一样！
