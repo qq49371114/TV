@@ -6,11 +6,15 @@ plugins {
 // 强制解决所有因为guava和listenablefuture版本冲突导致的问题！
 configurations.all {
     resolutionStrategy {
-        force 'com.google.guava:guava:31.0.1-android'
+        // 强制所有模块都使用这个统一的、不会出错的Guava版本！
+        force 'com.google.guava:guava:31.1-android'
+        
+        // ✨✨✨ 关键补充：强制解决 listenablefuture 的冲突！ ✨✨✨
+        // 这是一个标准技巧，当Guava内部已经包含了listenablefuture时，
+        // 用这个“空”版本来顶替掉其他库想引入的独立版本，避免重复定义的编译错误。
+        force 'com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
     }
 }
-// ================= ▲ 修复完毕！▲ =================
-
 android {
     namespace 'com.fongmi.android.tv'
 
