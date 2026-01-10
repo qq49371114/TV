@@ -156,4 +156,6 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:' + glideVersion
     annotationProcessor 'org.greenrobot:eventbus-annotation-processor:3.3.1'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.1.5'
-}
+    implementation("com.google.guava:guava:31.1-android") {
+        force = true
+    }
