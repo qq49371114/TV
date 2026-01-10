@@ -49,7 +49,6 @@ jobs:
       - name: Build With Gradle
         run: |
           chmod +x gradlew
-          # --- ./gradlew clean assembleRelease --parallel --daemon --warning-mode all --stacktrace  ---
           ./gradlew clean assembleLeanbackArmv7aRelease --parallel --daemon --warning-mode all --stacktrace
 
 
