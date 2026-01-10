@@ -85,3 +85,6 @@
 # --- 👇 婉儿的魔法在这里！👇 ---
 # Chaquopy
 -keep class com.chaquo.python.** { *; }
+
+-keep class com.google.common.** { *; }
+-keep interface com.google.common.** { *; 
