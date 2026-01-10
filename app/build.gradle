@@ -95,7 +95,6 @@ configurations.all {
     }
 }
 
-
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.aar"])
     implementation project(':catvod')
