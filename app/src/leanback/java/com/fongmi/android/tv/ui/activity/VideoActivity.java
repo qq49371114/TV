@@ -1167,21 +1167,19 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 }
 
 // --- ✨↓ 这个负责显示弹窗的小方法，我们保留它，因为它带了“防重影”功能！↓✨ ---
-   private void showTheFinalDialog(ArrayList<Word.Data> suggestions) {
-    // ✨ 我们在这里获取“大家都在看”的热搜词 ✨
-    SuggestHelper.getHot(hotWords -> {
-        List<Word.Data> safeHotWords = hotWords != null ? hotWords : Collections.emptyList();
-        ArrayList<Word.Data> hots = new ArrayList<>(safeHotWords);
+   private void showTheFinalDialog(List<Vod> items) {
+        // 1. 清除旧弹窗
+        androidx.fragment.app.Fragment prev = getSupportFragmentManager().findFragmentByTag("SmartNav");
+        if (prev instanceof androidx.fragment.app.DialogFragment) {
+            ((androidx.fragment.app.DialogFragment) prev).dismiss();
+        }
 
-        // 【防重影核心】
-        Fragment prev = getSupportFragmentManager().findFragmentByTag("SmartNav");
-        if (prev instanceof DialogFragment) ((DialogFragment) prev).dismiss();
-
-        // 把“为你推荐”(suggestions)和“大家都在看”(hots) 一起交给弹窗！
-        // 🟢 现在改成：
-        SmartNavDialog.newInstance(relatedVods).show(getSupportFragmentManager(), "SmartNav");
-    });
-}
+        // 2. 创建新弹窗 (传入 items)
+        SmartNavDialog dialog = SmartNavDialog.newInstance(items);
+        
+        // 3. 显示
+        dialog.show(getSupportFragmentManager(), "SmartNav");
+    }
     // ... 这里是你 VideoActivity 原来的其他所有方法 ...
     
     private void setPosition() {
