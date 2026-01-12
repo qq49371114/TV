@@ -63,6 +63,7 @@
 -keep class org.schabi.newpipe.extractor.services.youtube.protos.** { *; }
 -dontwarn org.mozilla.javascript.JavaToJSONConverters
 -dontwarn org.mozilla.javascript.tools.**
+-dontwarn com.google.re2j.**
 -dontwarn javax.script.**
 -dontwarn jdk.dynalink.**
 

@@ -20,7 +20,7 @@ public class Module {
     }
 
     public Module() {
-        this.cache = new LruCache<>(MAX_SIZE);
+        cache = new LruCache<>(MAX_SIZE);
     }
 
     public String fetch(String name) {
@@ -30,5 +30,9 @@ public class Module {
         else if (name.startsWith("assets")) cache.put(name, content = Asset.read(name));
         else if (name.startsWith("lib/")) cache.put(name, content = Asset.read("js/" + name));
         return content;
+    }
+
+    public void clear() {
+        cache.evictAll();
     }
 }

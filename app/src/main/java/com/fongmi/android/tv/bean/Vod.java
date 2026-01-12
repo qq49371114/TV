@@ -77,9 +77,6 @@ public class Vod implements Parcelable, Diffable<Vod> {
     @SerializedName("vod_play_url")
     private String vodPlayUrl;
 
-    @SerializedName("vod_wallpaper")
-    private String vodWallpaper;
-
     @SerializedName("vod_tag")
     private String vodTag;
 
@@ -190,10 +187,6 @@ public class Vod implements Parcelable, Diffable<Vod> {
 
     public void setPlayUrl(String vodPlayUrl) {
         this.vodPlayUrl = vodPlayUrl;
-    }
-
-    public String getWallpaper() {
-        return TextUtils.isEmpty(vodWallpaper) ? "" : vodWallpaper;
     }
 
     public String getTag() {
