@@ -38,9 +38,15 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
     private static List<Vod> sRealVods;
     
     public static SmartNavDialog newInstance(List<Vod> vods) {
-    sRealVods = vods; // 存起来
-    return new SmartNavDialog();
-}
+        // 把数据存到静态变量里，供后面使用
+        sRealVods = vods; 
+        
+        // 创建 Fragment 实例
+        SmartNavDialog fragment = new SmartNavDialog();
+        
+        // 不需要再传 Bundle keyword 了，因为数据都在 sRealVods 里了
+        return fragment;
+    }
 
     @Nullable
     @Override
@@ -87,10 +93,13 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
             }
         });
     }
-
     private void startWorks() {
-        String keyword = getArguments().getString("keyword");
-        fetchSuggestions(keyword);
+        // 1. 如果有真数据，直接显示！(海报这就来了🖼️)
+        if (sRealVods != null && !sRealVods.isEmpty()) {
+            mRelatedAdapter.setItems(sRealVods, new BaseDiffCallback<>());
+        }
+        
+        // 2. 右边的热词还是照常显示
         fetchHotWords();
     }
 
