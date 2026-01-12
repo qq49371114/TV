@@ -1107,39 +1107,30 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
                 hideProgress();
                 mPlayers.reset();
                 break;
+                
             case Player.STATE_ENDED:
-            // 1. 检查你的“状态旗帜”，确认这是最后一集！
-            if (mIsLastEpisode) {
-                // 2. 我们只在需要的时候，才临时安装“传令兵”来监听“大脑”！
-                mSiteViewModel.search.observe(this, result -> {
-                    // “传令兵”听到了“大脑”的回应！
-                    
-                    // a. 把搜索结果 (result) 转换成弹窗需要的格式
-                    ArrayList<Word.Data> related = new ArrayList<>();
-                    if (result != null && result.getList() != null) {
-                        for (Vod item : result.getList()) {
-                            Word.Data data = new Word.Data();
-                            data.setTitle(item.getName());
-                            data.setPic(item.getPic());
-                            related.add(data);
+                if (mIsLastEpisode) {
+                    if (mQuickAdapter != null && mQuickAdapter.size() > 0) {
+                        List<Vod> list = new ArrayList<>();
+                        // 获取当前站点
+                        Site currentSite = getSite(); 
+                        
+                        for(int i=0; i<mQuickAdapter.size(); i++) {
+                            Object item = mQuickAdapter.get(i);
+                            if(item instanceof Vod) {
+                                Vod v = (Vod)item;
+                                v.setSite(currentSite); 
+                                list.add(v);
+                            }
                         }
+                        showTheFinalDialog(list); // ✨ 这里传的是 List<Vod>，这就对了！
+                    } else {
+                        showSmartNavPanel();
                     }
-                    
-                    // b. 命令你的“展示员”，去显示最终的弹窗！
-                    showTheFinalDialog(related);
-
-                    // c. 最关键的一步：传令兵完成任务后，立刻“自毁”，防止下次再监听到！
-                    mSiteViewModel.search.removeObservers(this);
-                });
-
-                // 3. 在安装好“传令兵”之后，命令你的“发令员”去按下按钮！
-                showSmartNavPanel();
-
-            } else {
-                // 如果不是最后一集，就执行原来的逻辑
-                checkEnded(true);
-            }
-            break; // 千万不要忘了这个 break！
+                } else {
+                    checkEnded(true);
+                }
+                break;// 千万不要忘了这个 break！
 
             case PlayerEvent.TRACK:
                 setMetadata();
@@ -1153,18 +1144,24 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void showSmartNavPanel() {
-    if (isFinishing()) return;
-    if (mPlayers != null) mPlayers.pause();
+        if (isFinishing()) return;
+        if (mPlayers != null) mPlayers.pause();
 
-    String videoName = getName();
-    if (TextUtils.isEmpty(videoName)) return;
+        String rawName = getName();
+        if (TextUtils.isEmpty(rawName)) return;
 
-    Toast.makeText(this, "正在为您推荐...", Toast.LENGTH_SHORT).show();
+        // 1. 清洗名字 (去掉干扰词)
+        String cleanName = rawName.replaceAll("(?i)\\[.*?\\]|\\(.*?\\)|\\d{4}|\\d{3,4}[p|k]", "").trim();
+        if (cleanName.isEmpty()) cleanName = rawName;
 
-    // ✨ 核心逻辑：只负责下达“开始搜索”的命令！✨
-    // “大脑先生(mViewModel)，请用这份网站通讯录(mSites)，去搜索这个关键词(videoName)！”
-    mViewModel.searchContent(mSites, videoName, false);
-}
+        // Toast.makeText(this, "正在为您推荐: " + cleanName, Toast.LENGTH_SHORT).show();
+
+        // 2. 立 Flag (告诉 setSearch 我要弹窗)
+        mIsSearchingForEndDialog = true; 
+        
+        // 3. 发起搜索
+        startSearch(cleanName); 
+    }
 
 // --- ✨↓ 这个负责显示弹窗的小方法，我们保留它，因为它带了“防重影”功能！↓✨ ---
    private void showTheFinalDialog(List<Vod> items) {
