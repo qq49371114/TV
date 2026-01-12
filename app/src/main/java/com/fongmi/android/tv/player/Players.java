@@ -253,10 +253,6 @@ public class Players implements Player.Listener, ParseCallback {
         return exoPlayer == null ? 0 : exoPlayer.getBufferedPosition();
     }
 
-    public boolean retried() {
-        return ++retry > 2;
-    }
-
     public boolean haveTrack(int type) {
         return exoPlayer != null && TrackUtil.count(exoPlayer.getCurrentTracks(), type) > 0;
     }
@@ -466,7 +462,7 @@ public class Players implements Player.Listener, ParseCallback {
         return subs;
     }
 
-    private void setMediaItem() {
+    public void setMediaItem() {
         if (url != null) setMediaItem(headers, url, format, drm, subs, danmakus, Constant.TIMEOUT_PLAY);
     }
 
@@ -667,9 +663,9 @@ public class Players implements Player.Listener, ParseCallback {
     }
 
     @Override
-    public void onPlayerError(@NonNull PlaybackException error) {
-        if (retried()) ErrorEvent.extract(tag, provider.get(error));
-        else switch (error.errorCode) {
+    public void onPlayerError(@NonNull PlaybackException e) {
+        if (++retry > 2) ErrorEvent.extract(tag, provider.get(e));
+        else switch (e.errorCode) {
             case PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW:
                 seekToDefaultPosition();
                 break;
@@ -683,10 +679,10 @@ public class Players implements Player.Listener, ParseCallback {
             case PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED:
             case PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED:
             case PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED:
-                setFormat(ExoUtil.getMimeType(error.errorCode));
+                setFormat(ExoUtil.getMimeType(e.errorCode));
                 break;
             default:
-                ErrorEvent.extract(tag, provider.get(error));
+                ErrorEvent.extract(tag, provider.get(e));
                 break;
         }
     }
