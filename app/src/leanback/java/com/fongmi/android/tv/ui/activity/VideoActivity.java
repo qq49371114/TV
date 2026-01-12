@@ -144,6 +144,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     // --- ✨↓ 把婉儿给你的“新零件”粘贴在这里！↓✨ ---
     private SiteViewModel mSiteViewModel;
     private List<Site> mSites;
+    private boolean mIsSearchingForEndDialog = false;
     //private List<Site> mSites;
     //private List<Word.Data> mTempSuggestions;
     // --- ✨↑ “新零件”添加完毕！↑✨ ---
