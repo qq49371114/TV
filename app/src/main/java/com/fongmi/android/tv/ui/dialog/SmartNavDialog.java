@@ -35,13 +35,12 @@ public class SmartNavDialog extends DialogFragment implements VodPresenter.OnCli
     private ArrayObjectAdapter mRelatedAdapter;
     private ArrayObjectAdapter mHotAdapter;
 
-    public static SmartNavDialog newInstance(String keyword) {
-        Bundle args = new Bundle();
-        args.putString("keyword", keyword);
-        SmartNavDialog fragment = new SmartNavDialog();
-        fragment.setArguments(args);
-        return fragment;
-    }
+    private static List<Vod> sRealVods;
+    
+    public static SmartNavDialog newInstance(List<Vod> vods) {
+    sRealVods = vods; // 存起来
+    return new SmartNavDialog();
+}
 
     @Nullable
     @Override
