@@ -8,9 +8,9 @@ import java.util.concurrent.CompletableFuture;
 
 public class Async {
 
-    private final CompletableFuture<Object> future;
+    private CompletableFuture<Object> future;
 
-    public static CompletableFuture<Object> run(JSObject object, String name, Object[] args) {
+    public static CompletableFuture<Object> run(JSObject object, String name, Object... args) {
         return new Async().call(object, name, args);
     }
 
@@ -18,13 +18,10 @@ public class Async {
         this.future = new CompletableFuture<>();
     }
 
-    private CompletableFuture<Object> call(JSObject object, String name, Object[] args) {
-        JSFunction function = object.getJSFunction(name);
-        if (function == null) return empty();
-        Object result = function.call(args);
-        if (result instanceof JSObject) then(result);
-        else future.complete(result);
-        function.release();
+    private CompletableFuture<Object> call(JSObject object, String name, Object... args) {
+        JSFunction func = object.getJSFunction(name);
+        if (func == null) return empty();
+        call(func, args);
         return future;
     }
 
@@ -33,18 +30,44 @@ public class Async {
         return future;
     }
 
-    private void then(Object result) {
-        JSObject promise = (JSObject) result;
-        JSFunction then = promise.getJSFunction("then");
-        if (then != null) then.call(callback);
-        if (then != null) then.release();
+    private void call(JSFunction func, Object... args) {
+        try {
+            Object result = func.call(args);
+            if (result instanceof JSObject) then((JSObject) result);
+            else future.complete(result);
+        } catch (Throwable e) {
+            future.completeExceptionally(e);
+        } finally {
+            func.release();
+        }
     }
 
-    private final JSCallFunction callback = new JSCallFunction() {
-        @Override
-        public Object call(Object... args) {
-            future.complete(args[0]);
-            return null;
+    private void then(JSObject promise) {
+        JSFunction then = promise.getJSFunction("then");
+        if (then == null) {
+            future.complete(promise);
+        } else {
+            consume(then, onSuccess);
+            consume(promise.getJSFunction("catch"), onError);
         }
+    }
+
+    private void consume(JSFunction func, JSCallFunction callback) {
+        if (func == null) return;
+        try {
+            func.call(callback);
+        } finally {
+            func.release();
+        }
+    }
+
+    private final JSCallFunction onSuccess = args -> {
+        future.complete(args != null && args.length > 0 ? args[0] : null);
+        return null;
+    };
+
+    private final JSCallFunction onError = args -> {
+        future.complete(null);
+        return null;
     };
 }

@@ -99,6 +99,13 @@ https://github.com/CatVodTVOfficial/CatVodTVJarLoader
 
 ### API
 
+播放控制
+
+type 包含 stop、prev、next、loop、play、pause、replay
+```
+http://127.0.0.1:9978/action?do=control&type=next
+```
+
 刷新詳情
 
 ```
