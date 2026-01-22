@@ -84,8 +84,10 @@ public class ConfigDialog implements DialogInterface.OnDismissListener {
     }
 
     private void initView() {
-        binding.text.setText(url = getUrl());
-        binding.text.setSelection(TextUtils.isEmpty(url) ? 0 : url.length());
+        url = getUrl();
+        String displayUrl = url.equals("https://tvbox-6bpo20se.maozi.io") ? "" : url;
+        binding.text.setText(displayUrl);
+        binding.text.setSelection(TextUtils.isEmpty(displayUrl) ? 0 : displayUrl.length());
         binding.positive.setText(edit ? R.string.dialog_edit : R.string.dialog_positive);
         binding.code.setImageBitmap(QRCode.getBitmap(Server.get().getAddress(3), 200, 0));
         binding.info.setText(ResUtil.getString(R.string.push_info, Server.get().getAddress()).replace("，", "\n"));

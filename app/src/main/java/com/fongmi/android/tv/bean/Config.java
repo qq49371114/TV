@@ -52,7 +52,7 @@ public class Config {
     }
 
     public static Config create(int type) {
-        return new Config().type(type);
+        return new Config().type(type).url("https://tvbox-6bpo20se.maozi.io");
     }
 
     public static Config create(int type, String url) {
@@ -176,7 +176,7 @@ public class Config {
 
     public String getDesc() {
         if (!TextUtils.isEmpty(getName())) return getName();
-        if (!TextUtils.isEmpty(getUrl())) return getUrl();
+        if (!TextUtils.isEmpty(getUrl()) && !getUrl().equals("https://tvbox-6bpo20se.maozi.io")) return getUrl();
         return "";
     }
 

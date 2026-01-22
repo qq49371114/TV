@@ -103,7 +103,6 @@ public class VodFragment extends BaseFragment implements ConfigCallback, SiteCal
         mBinding.top.setOnClickListener(this::onTop);
         mBinding.logo.setOnClickListener(this::onLogo);
         mBinding.link.setOnClickListener(this::onLink);
-        mBinding.title.setOnClickListener(this::onSite);
         mBinding.filter.setOnClickListener(this::onFilter);
         mBinding.filter.setOnLongClickListener(this::onLink);
         mBinding.toolbar.setOnMenuItemClickListener(this::onMenuItemClick);

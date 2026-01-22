@@ -72,9 +72,11 @@ public class ConfigDialog {
 
     private void initView() {
         binding.name.setText(getConfig().getName());
-        binding.url.setText(ori = getConfig().getUrl());
+        ori = getConfig().getUrl();
+        String displayUrl = ori.equals("https://tvbox-6bpo20se.maozi.io") ? "" : ori;
+        binding.url.setText(displayUrl);
         binding.input.setVisibility(edit ? View.VISIBLE : View.GONE);
-        binding.url.setSelection(TextUtils.isEmpty(ori) ? 0 : ori.length());
+        binding.url.setSelection(TextUtils.isEmpty(displayUrl) ? 0 : displayUrl.length());
     }
 
     private void initEvent() {
