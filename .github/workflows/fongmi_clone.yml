@@ -2,7 +2,7 @@ name: Sync Fongmi Branch
 
 on:
   schedule:
-    - cron: '0 19 * * *' # 每天北京时间凌晨3点
+    - cron: '0 19 * * *'
   workflow_dispatch:
 
 permissions:
@@ -13,19 +13,19 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      # 1. 检出我们自己的 fongmi 分支
-      - name: Checkout Fongmi Branch
+      # 1. 检出我们自己的 waner_tv 仓库的 fongmi 分支
+      - name: Checkout Self (waner_tv)
         uses: actions/checkout@v4
         with:
-          ref: fongmi # ✨ 目标分支：fongmi
-          token: ${{ secrets.ACTION_TOKEN }}
-          fetch-depth: 0
+          ref: fongmi # ✨ 检出我们要同步的目标分支
+          #token: ${{ secrets.ACTION_TOKEN }} # 如果你是在 waner_tv 里运行，用默认 token 其实也可以，但为了保险还是用 PAT
+          fetch-depth: 0 # 拉取完整历史
 
       # 2. 删除旧的工作流记录
       - name: Delete old workflow runs
         uses: Mattraks/delete-workflow-runs@v2
         with:
-          token: ${{ secrets.ACTION_TOKEN }}
+          token: ${{ github.token }} # ✨ 删除记录只需要默认 token 就够了
           repository: ${{ github.repository }}
           retain_days: 0
           keep_minimum_runs: 1
@@ -36,7 +36,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      # 4. 添加上游仓库
+      # 4. 添加上游仓库 (FongMi/TV)
       - name: Add Upstream Remote
         run: git remote add upstream https://github.com/FongMi/TV.git
 
@@ -48,6 +48,6 @@ jobs:
       - name: Reset to Upstream Fongmi
         run: git reset --hard upstream/fongmi 
 
-      # 7. 强制推送到我们自己的仓库
+      # 7. 强制推送到我们自己的 waner_tv 仓库
       - name: Force Push
         run: git push origin fongmi --force
