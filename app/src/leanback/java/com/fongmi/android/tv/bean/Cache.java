@@ -35,6 +35,12 @@ public class Cache {
         return filters == null ? Collections.emptyList() : filters;
     }
 
+    public static List<Filter> copy(String typeId) {
+        List<Filter> filters = get().cache.get(typeId);
+        if (filters == null) return Collections.emptyList();
+        return filters.stream().map(Filter::copy).toList();
+    }
+
     public static Cache clear() {
         get().cache.clear();
         return get();

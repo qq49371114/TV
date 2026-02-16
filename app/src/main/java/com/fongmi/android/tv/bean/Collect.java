@@ -63,7 +63,7 @@ public class Collect implements Parcelable, Diffable<Collect> {
     public boolean equals(@Nullable Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof Collect it)) return false;
-        return getSite().equals(it.getSite());
+        return Objects.equals(getSite(), it.getSite());
     }
 
     @Override

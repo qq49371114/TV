@@ -9,6 +9,7 @@ import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Device;
 import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.bean.Keep;
+import com.fongmi.android.tv.bean.Vod;
 import com.fongmi.android.tv.event.ActionEvent;
 import com.fongmi.android.tv.event.CastEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
@@ -81,11 +82,13 @@ public class Action implements Process {
     private void onRefresh(Map<String, String> params) {
         String type = params.get("type");
         String path = params.get("path");
+        String json = params.get("json");
         if ("live".equals(type)) RefreshEvent.live();
         else if ("detail".equals(type)) RefreshEvent.detail();
         else if ("player".equals(type)) RefreshEvent.player();
         else if ("danmaku".equals(type)) RefreshEvent.danmaku(path);
         else if ("subtitle".equals(type)) RefreshEvent.subtitle(path);
+        else if ("vod".equals(type)) RefreshEvent.vod(Vod.objectFrom(json));
     }
 
     private void onControl(Map<String, String> params) {

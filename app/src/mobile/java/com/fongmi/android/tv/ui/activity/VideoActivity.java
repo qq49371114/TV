@@ -473,29 +473,39 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void setDetail(Vod item) {
+        item.checkPic(getPic());
+        item.checkName(getName());
         mBinding.progressLayout.showContent();
-        mBinding.video.setTag(item.getPic(getPic()));
-        mBinding.name.setText(item.getName(getName()));
-        setText(mBinding.remark, 0, item.getRemarks());
-        setText(mBinding.content, 0, item.getContent());
-        setText(mBinding.site, R.string.detail_site, getSite().getName());
-        setText(mBinding.actor, R.string.detail_actor, item.getActor());
-        setText(mBinding.director, R.string.detail_director, item.getDirector());
-        mBinding.contentLayout.setVisibility(mBinding.content.getVisibility());
+        mBinding.name.setText(item.getName());
         mFlagAdapter.addAll(item.getFlags());
-        setOther(mBinding.other, item);
         App.removeCallbacks(mR4);
         checkHistory(item);
         checkFlag(item);
         checkKeepImg();
+        setText(item);
         updateKeep();
     }
 
+    private void setText(Vod item) {
+        setText(mBinding.site, R.string.detail_site, getSite().getName());
+        setText(mBinding.director, R.string.detail_director, item.getDirector());
+        setText(mBinding.actor, R.string.detail_actor, item.getActor());
+        setText(mBinding.content, 0, item.getContent());
+        setText(mBinding.remark, 0, item.getRemarks());
+        setOther(mBinding.other, item);
+    }
+
     private void setText(TextView view, int resId, String text) {
+        if (TextUtils.isEmpty(text) && !TextUtils.isEmpty(view.getText())) return;
         view.setText(getSpan(resId, text), TextView.BufferType.SPANNABLE);
         view.setVisibility(text.isEmpty() ? View.GONE : View.VISIBLE);
+        if (view == mBinding.content) setContentVisible();
         view.setLinkTextColor(MDColor.YELLOW_500);
         CustomMovement.bind(view);
+    }
+
+    private void setContentVisible() {
+        mBinding.contentLayout.setVisibility(mBinding.content.getVisibility());
     }
 
     private SpannableStringBuilder getSpan(int resId, String text) {
@@ -548,9 +558,9 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     private void setPlayer(Result result) {
         result.getUrl().set(mQualityAdapter.getPosition());
-        if (!result.getArtwork().isEmpty()) setArtwork(result.getArtwork());
+        if (result.hasArtwork()) setArtwork(result.getArtwork());
         if (result.hasPosition()) mHistory.setPosition(result.getPosition());
-        if (!result.getDesc().isEmpty()) setText(mBinding.content, R.string.detail_content, result.getDesc());
+        if (result.hasDesc()) setText(mBinding.content, 0, result.getDesc());
         setUseParse(VodConfig.hasParse() && ((result.getPlayUrl().isEmpty() && VodConfig.get().getFlags().contains(result.getFlag())) || result.getJx() == 1));
         if (mControlDialog != null && mControlDialog.isVisible()) mControlDialog.setParseVisible(isUseParse());
         mBinding.control.parse.setVisibility(isFullscreen() && isUseParse() ? View.VISIBLE : View.GONE);
@@ -1001,12 +1011,14 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
         App.post(mR1, Constant.INTERVAL_HIDE);
     }
 
-    private void setArtwork() {
-        setArtwork(mHistory.getVodPic());
+    private void setArtwork(String url) {
+        mHistory.setVodPic(url);
+        setMetadata();
+        setArtwork();
     }
 
-    private void setArtwork(String url) {
-        ImgUtil.load(this, url, new CustomTarget<>() {
+    private void setArtwork() {
+        ImgUtil.load(this, mHistory.getVodPic(), new CustomTarget<>() {
             @Override
             public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
                 mBinding.exo.setDefaultArtwork(resource);
@@ -1110,16 +1122,28 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     private void updateVod(Vod item) {
-        mHistory.setVodPic(item.getPic());
-        mHistory.setVodName(item.getName());
-        mBinding.name.setText(item.getName());
-        mBinding.control.title.setText(item.getName());
-        setText(mBinding.content, 0, item.getContent());
-        setText(mBinding.director, R.string.detail_director, item.getDirector());
-        mBinding.contentLayout.setVisibility(mBinding.content.getVisibility());
-        updateKeep();
-        setArtwork();
-        setMetadata();
+        boolean id = !item.getId().isEmpty();
+        boolean pic = !item.getPic().isEmpty();
+        boolean name = !item.getName().isEmpty();
+        if (id) getIntent().putExtra("id", item.getId());
+        if (id) mHistory.setKey(getHistoryKey());
+        if (pic) mHistory.setVodPic(item.getPic());
+        if (name) mHistory.setVodName(item.getName());
+        if (name) mBinding.name.setText(item.getName());
+        if (name) mBinding.control.title.setText(item.getName());
+        updateFlag(getFlag(), item.getFlags());
+        if (pic || name) setMetadata();
+        if (pic || name) updateKeep();
+        if (pic) setArtwork();
+        setText(item);
+    }
+
+    private void updateFlag(Flag activated, List<Flag> items) {
+        items.forEach(item -> mFlagAdapter.getItems().stream()
+                .filter(item::equals).findFirst().ifPresentOrElse(target -> {
+                    target.mergeEpisodes(item.getEpisodes(), mHistory.isRevSort());
+                    if (target.equals(activated)) setEpisodeAdapter(target.getEpisodes());
+                }, () -> mFlagAdapter.add(item)));
     }
 
     @Override
@@ -1434,7 +1458,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     }
 
     public void setRotate(boolean rotate) {
-        this.rotate = rotate;;
+        this.rotate = rotate;
         if (fullscreen && !rotate) setPadding(mBinding.control.getRoot());
         else noPadding(mBinding.control.getRoot());
     }
@@ -1465,7 +1489,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
 
     @Override
     public void onCasted() {
-        onPaused();
+        mPlayers.stop();
     }
 
     @Override
@@ -1631,7 +1655,7 @@ public class VideoActivity extends BaseActivity implements Clock.Callback, Custo
     @Override
     protected void onPause() {
         super.onPause();
-        if (isRedirect()) onPaused();
+        if (isRedirect()) mPlayers.stop();
     }
 
     @Override

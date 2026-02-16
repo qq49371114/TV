@@ -8,22 +8,22 @@ import com.google.gson.annotations.SerializedName;
 public class Cate implements Parcelable {
 
     @SerializedName("land")
-    private int land;
+    private Integer land;
     @SerializedName("circle")
-    private int circle;
+    private Integer circle;
     @SerializedName("ratio")
-    private float ratio;
+    private Float ratio;
 
     public int getLand() {
-        return land;
+        return land == null ? 0 : land;
     }
 
     public int getCircle() {
-        return circle;
+        return circle == null ? 0 : circle;
     }
 
     public float getRatio() {
-        return ratio;
+        return ratio == null ? 0 : ratio;
     }
 
     public Style getStyle() {
@@ -37,15 +37,15 @@ public class Cate implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(this.land);
-        dest.writeInt(this.circle);
-        dest.writeFloat(this.ratio);
+        dest.writeValue(this.land);
+        dest.writeValue(this.circle);
+        dest.writeValue(this.ratio);
     }
 
     protected Cate(Parcel in) {
-        this.land = in.readInt();
-        this.circle = in.readInt();
-        this.ratio = in.readFloat();
+        this.land = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.circle = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.ratio = (Float) in.readValue(Float.class.getClassLoader());
     }
 
     public static final Creator<Cate> CREATOR = new Creator<>() {

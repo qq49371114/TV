@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 public class Channel {
 
@@ -385,16 +386,16 @@ public class Channel {
         if (!(obj instanceof Channel it)) return false;
         String name1 = getName(), name2 = it.getName();
         String number1 = getNumber(), number2 = it.getNumber();
-        if (!name1.isEmpty() && !name2.isEmpty()) return name1.equals(name2);
-        if (!number1.isEmpty() && !number2.isEmpty()) return number1.equals(number2);
+        if (!name1.isEmpty() && !name2.isEmpty()) return Objects.equals(name1, name2);
+        if (!number1.isEmpty() && !number2.isEmpty()) return Objects.equals(number1, number2);
         return false;
     }
 
     @Override
     public int hashCode() {
         String name = getName(), number = getNumber();
-        if (!name.isEmpty()) return name.hashCode();
-        if (!number.isEmpty()) return number.hashCode();
+        if (!name.isEmpty()) return Objects.hash(name);
+        if (!number.isEmpty()) return Objects.hash(number);
         return 0;
     }
 }

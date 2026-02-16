@@ -10,6 +10,7 @@ import com.github.catvod.utils.Trans;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Calendar;
+import java.util.Objects;
 
 public class EpgData {
 
@@ -111,14 +112,11 @@ public class EpgData {
     public boolean equals(@Nullable Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof EpgData it)) return false;
-        return getTitle().equals(it.getTitle()) && getEnd().equals(it.getEnd()) && getStart().equals(it.getStart());
+        return Objects.equals(getTitle(), it.getTitle()) && Objects.equals(getEnd(), it.getEnd()) && Objects.equals(getStart(), it.getStart());
     }
 
     @Override
     public int hashCode() {
-        int result = getTitle().hashCode();
-        result = 31 * result + getEnd().hashCode();
-        result = 31 * result + getStart().hashCode();
-        return result;
+        return Objects.hash(getTitle(), getEnd(), getStart());
     }
 }

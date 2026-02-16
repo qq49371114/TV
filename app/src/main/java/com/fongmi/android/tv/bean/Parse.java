@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class Parse implements Diffable<Parse> {
 
@@ -131,12 +132,12 @@ public class Parse implements Diffable<Parse> {
     public boolean equals(@Nullable Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof Parse it)) return false;
-        return getName().equals(it.getName());
+        return Objects.equals(getName(), it.getName());
     }
 
     @Override
     public int hashCode() {
-        return getName().hashCode();
+        return Objects.hash(getName());
     }
 
     @Override

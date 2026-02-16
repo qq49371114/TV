@@ -96,6 +96,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Matcher;
+import java.util.stream.IntStream;
 
 public class VideoActivity extends BaseActivity implements CustomKeyDownVod.Listener, TrackDialog.Listener, ArrayPresenter.OnClickListener, Clock.Callback {
 
@@ -441,25 +442,30 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void setDetail(Vod item) {
+        item.checkPic(getPic());
+        item.checkName(getName());
         mBinding.progressLayout.showContent();
-        mBinding.video.setTag(item.getPic(getPic()));
-        mBinding.name.setText(item.getName(getName()));
-        setText(mBinding.remark, 0, item.getRemarks());
-        setText(mBinding.year, R.string.detail_year, item.getYear());
-        setText(mBinding.area, R.string.detail_area, item.getArea());
-        setText(mBinding.type, R.string.detail_type, item.getTypeName());
-        setText(mBinding.site, R.string.detail_site, getSite().getName());
-        setText(mBinding.actor, R.string.detail_actor, item.getActor());
-        setText(mBinding.content, R.string.detail_content, item.getContent());
-        setText(mBinding.director, R.string.detail_director, item.getDirector());
+        mBinding.name.setText(item.getName());
         mFlagAdapter.setItems(item.getFlags(), null);
-        mBinding.content.setMaxLines(getMaxLines());
         mBinding.video.requestFocus();
         App.removeCallbacks(mR4);
         checkHistory(item);
         checkFlag(item);
         checkKeepImg();
+        setText(item);
         updateKeep();
+    }
+
+    private void setText(Vod item) {
+        setText(mBinding.year, R.string.detail_year, item.getYear());
+        setText(mBinding.area, R.string.detail_area, item.getArea());
+        setText(mBinding.type, R.string.detail_type, item.getTypeName());
+        setText(mBinding.site, R.string.detail_site, getSite().getName());
+        setText(mBinding.content, R.string.detail_content, item.getContent());
+        setText(mBinding.director, R.string.detail_director, item.getDirector());
+        setText(mBinding.actor, R.string.detail_actor, item.getActor());
+        setText(mBinding.remark, 0, item.getRemarks());
+        mBinding.content.setMaxLines(getMaxLines());
     }
 
     private int getMaxLines() {
@@ -471,6 +477,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void setText(TextView view, int resId, String text) {
+        if (TextUtils.isEmpty(text) && !TextUtils.isEmpty(view.getText())) return;
         view.setText(getSpan(resId, text), TextView.BufferType.SPANNABLE);
         view.setVisibility(text.isEmpty() ? View.GONE : View.VISIBLE);
         view.setLinkTextColor(MDColor.YELLOW_500);
@@ -518,9 +525,9 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
 
     private void setPlayer(Result result) {
         result.getUrl().set(mQualityAdapter.getPosition());
-        if (!result.getArtwork().isEmpty()) setArtwork(result.getArtwork());
+        if (result.hasArtwork()) setArtwork(result.getArtwork());
         if (result.hasPosition()) mHistory.setPosition(result.getPosition());
-        if (!result.getDesc().isEmpty()) setText(mBinding.content, R.string.detail_content, result.getDesc());
+        if (result.hasDesc()) setText(mBinding.content, R.string.detail_content, result.getDesc());
         setUseParse(VodConfig.hasParse() && ((result.getPlayUrl().isEmpty() && VodConfig.get().getFlags().contains(result.getFlag())) || result.getJx() == 1));
         mPlayers.start(result, isUseParse(), getSite().isChangeable() ? getSite().getTimeout() : -1);
         mBinding.control.parse.setVisibility(isUseParse() ? View.VISIBLE : View.GONE);
@@ -913,12 +920,14 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
         App.post(mR2, 500);
     }
 
-    private void setArtwork() {
-        setArtwork(mHistory.getVodPic());
+    private void setArtwork(String url) {
+        mHistory.setVodPic(url);
+        setMetadata();
+        setArtwork();
     }
 
-    private void setArtwork(String url) {
-        ImgUtil.load(this, url, new CustomTarget<>() {
+    private void setArtwork() {
+        ImgUtil.load(this, mHistory.getVodPic(), new CustomTarget<>() {
             @Override
             public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
                 mBinding.exo.setDefaultArtwork(resource);
@@ -1012,17 +1021,29 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     }
 
     private void updateVod(Vod item) {
-        mHistory.setVodPic(item.getPic());
-        mHistory.setVodName(item.getName());
-        mBinding.name.setText(item.getName());
-        mBinding.widget.title.setText(item.getName());
-        setText(mBinding.content, R.string.detail_content, item.getContent());
-        setText(mBinding.director, R.string.detail_director, item.getDirector());
-        mBinding.content.setMaxLines(getMaxLines());
-        setPartAdapter();
-        updateKeep();
-        setArtwork();
-        setMetadata();
+        boolean id = !item.getId().isEmpty();
+        boolean pic = !item.getPic().isEmpty();
+        boolean name = !item.getName().isEmpty();
+        if (id) getIntent().putExtra("id", item.getId());
+        if (id) mHistory.setKey(getHistoryKey());
+        if (pic) mHistory.setVodPic(item.getPic());
+        if (name) mHistory.setVodName(item.getName());
+        if (name) mBinding.name.setText(item.getName());
+        if (name) mBinding.widget.title.setText(item.getName());
+        updateFlag(getFlag(), item.getFlags());
+        if (pic || name) setMetadata();
+        if (pic || name) updateKeep();
+        if (name) setPartAdapter();
+        if (pic) setArtwork();
+        setText(item);
+    }
+
+    private void updateFlag(Flag activated, List<Flag> items) {
+        items.forEach(item -> IntStream.range(0, mFlagAdapter.size()).mapToObj(i -> (Flag) mFlagAdapter.get(i))
+                .filter(item::equals).findFirst().ifPresentOrElse(target -> {
+                    target.mergeEpisodes(item.getEpisodes(), mHistory.isRevSort());
+                    if (target.equals(activated)) setEpisodeAdapter(target.getEpisodes());
+                }, () -> mFlagAdapter.add(item)));
     }
 
     @Override
@@ -1397,7 +1418,7 @@ public class VideoActivity extends BaseActivity implements CustomKeyDownVod.List
     @Override
     protected void onPause() {
         super.onPause();
-        if (isRedirect()) onPaused();
+        if (isRedirect()) mPlayers.stop();
     }
 
     @Override

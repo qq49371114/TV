@@ -38,6 +38,9 @@ public class Filter implements Parcelable {
         return items == null ? Collections.emptyList() : items;
     }
 
+    public Filter() {
+    }
+
     public String getKey() {
         return key;
     }
@@ -62,6 +65,16 @@ public class Filter implements Parcelable {
     public Filter check() {
         Iterables.removeIf(getValue(), Predicates.isNull());
         return this;
+    }
+
+    public Filter copy() {
+        Filter copy = new Filter();
+        copy.key = this.key;
+        copy.name = this.name;
+        copy.init = this.init;
+        copy.value = new ArrayList<>();
+        getValue().forEach(item -> copy.value.add(item.copy()));
+        return copy;
     }
 
     public Filter trans() {

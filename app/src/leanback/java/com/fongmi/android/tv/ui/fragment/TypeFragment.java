@@ -90,7 +90,7 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     }
 
     private List<Filter> getFilter() {
-        return Cache.get(getTypeId());
+        return Cache.copy(getTypeId());
     }
 
     private Site getSite() {

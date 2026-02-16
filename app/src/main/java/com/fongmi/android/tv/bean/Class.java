@@ -17,6 +17,7 @@ import org.simpleframework.xml.Text;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 @Root(strict = false)
 public class Class implements Parcelable, Diffable<Class> {
@@ -36,13 +37,13 @@ public class Class implements Parcelable, Diffable<Class> {
     private List<Filter> filters;
 
     @SerializedName("land")
-    private int land;
+    private Integer land;
 
     @SerializedName("circle")
-    private int circle;
+    private Integer circle;
 
     @SerializedName("ratio")
-    private float ratio;
+    private Float ratio;
 
     private boolean filter;
     private boolean activated;
@@ -87,15 +88,15 @@ public class Class implements Parcelable, Diffable<Class> {
     }
 
     public int getLand() {
-        return land;
+        return land == null ? 0 : land;
     }
 
     public int getCircle() {
-        return circle;
+        return circle == null ? 0 : circle;
     }
 
     public float getRatio() {
-        return ratio;
+        return ratio == null ? 0 : ratio;
     }
 
     public void setFilter(boolean filter) {
@@ -135,12 +136,12 @@ public class Class implements Parcelable, Diffable<Class> {
     public boolean equals(@Nullable Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof Class it)) return false;
-        return getTypeId().equals(it.getTypeId());
+        return Objects.equals(getTypeId(), it.getTypeId());
     }
 
     @Override
     public int hashCode() {
-        return getTypeId().hashCode();
+        return Objects.hash(getTypeId());
     }
 
     @Override
@@ -154,9 +155,9 @@ public class Class implements Parcelable, Diffable<Class> {
         dest.writeString(this.typeName);
         dest.writeString(this.typeFlag);
         dest.writeByte(this.filter ? (byte) 1 : (byte) 0);
-        dest.writeInt(this.land);
-        dest.writeInt(this.circle);
-        dest.writeFloat(this.ratio);
+        dest.writeValue(this.land);
+        dest.writeValue(this.circle);
+        dest.writeValue(this.ratio);
         dest.writeByte(this.activated ? (byte) 1 : (byte) 0);
     }
 
@@ -165,9 +166,9 @@ public class Class implements Parcelable, Diffable<Class> {
         this.typeName = in.readString();
         this.typeFlag = in.readString();
         this.filter = in.readByte() != 0;
-        this.land = in.readInt();
-        this.circle = in.readInt();
-        this.ratio = in.readFloat();
+        this.land = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.circle = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.ratio = (Float) in.readValue(Float.class.getClassLoader());
         this.activated = in.readByte() != 0;
     }
 
