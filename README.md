@@ -25,13 +25,12 @@
 
 ## 專案架構
 
-| 項目        | 值                             |
-|-----------|-------------------------------|
-| Package   | `com.fongmi.android.tv`       |
-| minSdk    | 24（Android 7.0 Nougat）        |
-| targetSdk | 28（Android 9.0 Pie）           |
-| ABI       | `arm64-v8a`、`armeabi-v7a`     |
-| Flavor    | `leanback`（電視版）、`mobile`（手機版） |
+| 項目      | 值                             |
+|---------|-------------------------------|
+| package | `com.fongmi.android.tv`       |
+| minSdk  | 24（Android 7.0 Nougat）        |
+| abi     | `arm64-v8a`、`armeabi-v7a`     |
+| flavor  | `leanback`（電視版）、`mobile`（手機版） |
 
 ```
 TV/
@@ -68,7 +67,7 @@ TV/
 
 ## 直播功能
 
-- 支援 M3U/M3U8、TXT（`#genre#` 分組）、JSON 三種直播源格式
+- 支援 M3U、TXT（`#genre#` 分組）、JSON 三種直播源格式
 - **EPG**：XMLTV 格式（支援 `.gz`），每 6 小時自動刷新
 - **追看 / 時移**：`append`、`pltv` 等多種類型
 - 頻道收藏、隱藏分組密碼保護
@@ -92,7 +91,7 @@ TV/
 
 - **DoH**：DNS over HTTPS，支援 Bootstrap IP
 - **代理**：HTTP / HTTPS / SOCKS4 / SOCKS5，依 host 正則規則動態選擇
-- **hosts**：DNS 解析覆蓋，支援萬用字元 `*`
+- **Hosts**：DNS 解析覆蓋，支援萬用字元 `*`
 - **CORS 注入**：依 host 規則在回應中注入自訂標頭
 - **廣告攔截**：`ads` 黑名單，符合域名直接攔截
 - **WebView 嗅探**：Sniffer 以 regex 攔截媒體 URL；支援 UA 偽裝
@@ -116,7 +115,7 @@ TV/
 
 ## 配置說明
 
-VOD 配置為應用主要入口，透過 URL 或本地路徑載入，頂層欄位定義：
+Vod 配置為應用主要入口，透過 URL 或本地路徑載入，頂層欄位定義：
 
 - 點播站點（`sites`）、解析規則（`parses`）
 - 直播來源（`lives`）
@@ -130,6 +129,6 @@ Live 配置可內嵌或獨立存放。完整欄位說明見 [CONFIG.md](docs/CON
 
 | 文件                          | 說明                   |
 |-----------------------------|----------------------|
-| [CONFIG.md](docs/CONFIG.md) | VOD / Live 完整配置欄位說明  |
+| [CONFIG.md](docs/CONFIG.md) | Vod / Live 完整配置欄位說明  |
 | [SPIDER.md](docs/SPIDER.md) | Spider 所有方法規格與回傳格式   |
 | [LOCAL.md](docs/LOCAL.md)   | 本地 HTTP API 所有端點完整說明 |
