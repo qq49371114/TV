@@ -132,3 +132,4 @@ Live 配置可內嵌或獨立存放。完整欄位說明見 [CONFIG.md](docs/CON
 | [CONFIG.md](docs/CONFIG.md) | Vod / Live 完整配置欄位說明  |
 | [SPIDER.md](docs/SPIDER.md) | Spider 所有方法規格與回傳格式   |
 | [LOCAL.md](docs/LOCAL.md)   | 本地 HTTP API 所有端點完整說明 |
+| [LIVE.md](docs/LIVE.md)     | 直播來源格式完整說明           |
