@@ -44,7 +44,7 @@ public class Download {
 
     public void start(Callback callback) {
         this.callback = callback;
-        future = App.submit(this::doInBackground);
+        future = Task.submit(this::doInBackground);
     }
 
     public Download cancel() {

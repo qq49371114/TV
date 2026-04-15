@@ -1,7 +1,9 @@
 package com.fongmi.android.tv.ui.activity;
 
 import android.app.PendingIntent;
+import android.app.SearchManager;
 import android.content.Intent;
+import android.text.TextUtils;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.MenuItem;
@@ -30,7 +32,6 @@ import com.fongmi.android.tv.event.ServerEvent;
 import com.fongmi.android.tv.event.StateEvent;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.player.Source;
-import com.fongmi.android.tv.player.exo.CacheManager;
 import com.fongmi.android.tv.receiver.ShortcutReceiver;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.service.PlaybackService;
@@ -91,6 +92,9 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
             VideoActivity.push(this, intent.getStringExtra(Intent.EXTRA_TEXT));
         } else if (Intent.ACTION_VIEW.equals(intent.getAction()) && intent.getData() != null) {
             PermissionUtil.requestFile(this, allGranted -> checkType(intent));
+        } else if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            String keyword = intent.getStringExtra(SearchManager.QUERY);
+            if (!TextUtils.isEmpty(keyword)) SearchActivity.start(this, keyword);
         }
     }
 
@@ -185,8 +189,8 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onServerEvent(ServerEvent event) {
-        if (event.type() != ServerEvent.Type.PUSH) return;
-        VideoActivity.push(this, event.text());
+        if (event.type() == ServerEvent.Type.PUSH) VideoActivity.push(this, event.text());
+        if (event.type() == ServerEvent.Type.SEARCH) SearchActivity.start(this, event.text());
     }
 
     @Override
@@ -227,7 +231,6 @@ public class HomeActivity extends BaseActivity implements NavigationBarView.OnIt
 
     @Override
     protected void onDestroy() {
-        CacheManager.get().release();
         LiveConfig.get().clear();
         VodConfig.get().clear();
         AppDatabase.backup();

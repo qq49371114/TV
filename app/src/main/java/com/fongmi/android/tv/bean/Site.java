@@ -106,6 +106,27 @@ public class Site implements Parcelable {
     @Ignore
     private boolean activated;
 
+    public Site() {
+    }
+
+    protected Site(Parcel in) {
+        this.key = in.readString();
+        this.name = in.readString();
+        this.api = in.readString();
+        this.ext = in.readString();
+        this.jar = in.readString();
+        this.click = in.readString();
+        this.playUrl = in.readString();
+        this.type = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.indexs = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.timeout = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.searchable = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.changeable = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.categories = in.createStringArrayList();
+        this.style = in.readParcelable(Style.class.getClassLoader());
+        this.activated = in.readByte() != 0;
+    }
+
     public static Site objectFrom(JsonElement element, String spider) {
         try {
             Site site = App.gson().fromJson(element, Site.class);
@@ -125,7 +146,8 @@ public class Site implements Parcelable {
         return site;
     }
 
-    public Site() {
+    public static List<Site> findAll() {
+        return AppDatabase.get().getSiteDao().findAll();
     }
 
     public String getKey() {
@@ -196,16 +218,8 @@ public class Site implements Parcelable {
         return searchable == null ? 1 : searchable;
     }
 
-    public void setSearchable(Integer searchable) {
-        this.searchable = searchable;
-    }
-
     public Integer getChangeable() {
         return changeable == null ? 1 : changeable;
-    }
-
-    public void setChangeable(Integer changeable) {
-        this.changeable = changeable;
     }
 
     public Integer getQuickSearch() {
@@ -256,6 +270,10 @@ public class Site implements Parcelable {
         return getSearchable() == 1;
     }
 
+    public void setSearchable(Integer searchable) {
+        this.searchable = searchable;
+    }
+
     public Site setSearchable(boolean searchable) {
         if (getSearchable() != 0) setSearchable(searchable ? 1 : 2);
         return this;
@@ -263,6 +281,10 @@ public class Site implements Parcelable {
 
     public boolean isChangeable() {
         return getChangeable() == 1;
+    }
+
+    public void setChangeable(Integer changeable) {
+        this.changeable = changeable;
     }
 
     public Site setChangeable(boolean changeable) {
@@ -308,10 +330,6 @@ public class Site implements Parcelable {
         return BaseLoader.get().getSpider(getKey(), getApi(), getExt(), getJar());
     }
 
-    public static List<Site> findAll() {
-        return AppDatabase.get().getSiteDao().findAll();
-    }
-
     public void save() {
         AppDatabase.get().getSiteDao().insertOrUpdate(this);
     }
@@ -350,24 +368,6 @@ public class Site implements Parcelable {
         dest.writeStringList(this.categories);
         dest.writeParcelable(this.style, flags);
         dest.writeByte(this.activated ? (byte) 1 : (byte) 0);
-    }
-
-    protected Site(Parcel in) {
-        this.key = in.readString();
-        this.name = in.readString();
-        this.api = in.readString();
-        this.ext = in.readString();
-        this.jar = in.readString();
-        this.click = in.readString();
-        this.playUrl = in.readString();
-        this.type = (Integer) in.readValue(Integer.class.getClassLoader());
-        this.indexs = (Integer) in.readValue(Integer.class.getClassLoader());
-        this.timeout = (Integer) in.readValue(Integer.class.getClassLoader());
-        this.searchable = (Integer) in.readValue(Integer.class.getClassLoader());
-        this.changeable = (Integer) in.readValue(Integer.class.getClassLoader());
-        this.categories = in.createStringArrayList();
-        this.style = in.readParcelable(Style.class.getClassLoader());
-        this.activated = in.readByte() != 0;
     }
 
     public static final Creator<Site> CREATOR = new Creator<>() {

@@ -13,7 +13,7 @@ public class JsLoader {
 
     private final ConcurrentHashMap<String, Spider> spiders;
     private final Loader loader;
-    private String recent;
+    private volatile String recent;
 
     public JsLoader() {
         spiders = new ConcurrentHashMap<>();
@@ -24,6 +24,7 @@ public class JsLoader {
         spiders.values().forEach(Spider::destroy);
         Module.get().clear();
         spiders.clear();
+        recent = null;
     }
 
     public void setRecent(String recent) {

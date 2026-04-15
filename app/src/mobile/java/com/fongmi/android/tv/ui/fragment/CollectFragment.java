@@ -101,8 +101,8 @@ public class CollectFragment extends BaseFragment implements MenuProvider, Colle
 
     private void setViewModel() {
         mViewModel = new ViewModelProvider(this).get(SiteViewModel.class).init();
-        mViewModel.search.observe(this, this::setCollect);
-        mViewModel.result.observe(this, this::setSearch);
+        mViewModel.getSearch().observe(this, this::setCollect);
+        mViewModel.getResult().observe(this, this::setSearch);
     }
 
     private void setSites() {

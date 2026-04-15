@@ -133,7 +133,7 @@ public class VodFragment extends BaseFragment implements ConfigCallback, SiteCal
 
     private void setViewModel() {
         mViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
-        mViewModel.result.observe(getViewLifecycleOwner(), this::setAdapter);
+        mViewModel.getResult().observe(getViewLifecycleOwner(), this::setAdapter);
     }
 
     private void setAdapter(Result result) {
@@ -141,6 +141,7 @@ public class VodFragment extends BaseFragment implements ConfigCallback, SiteCal
         mBinding.pager.getAdapter().notifyDataSetChanged();
         setFabVisible(0);
         hideProgress();
+        showContent();
     }
 
     private void setFabVisible(int position) {
@@ -243,6 +244,9 @@ public class VodFragment extends BaseFragment implements ConfigCallback, SiteCal
             case SIZE:
                 homeContent();
                 break;
+            case CATEGORY:
+                getFragment().onRefresh();
+                break;
         }
     }
 
@@ -275,14 +279,10 @@ public class VodFragment extends BaseFragment implements ConfigCallback, SiteCal
             }
 
             @Override
-            public void success() {
-                showContent();
-            }
-
-            @Override
             public void error(String msg) {
                 Notify.dismiss();
                 Notify.show(msg);
+                showContent();
             }
         });
     }

@@ -35,75 +35,82 @@ public class Vod implements Parcelable, Diffable<Vod> {
     @Element(name = "id", required = false)
     @SerializedName("vod_id")
     private String vodId;
-
     @Element(name = "name", required = false)
     @SerializedName("vod_name")
     private String vodName;
-
     @Element(name = "type", required = false)
     @SerializedName("type_name")
     private String typeName;
-
     @Element(name = "pic", required = false)
     @SerializedName("vod_pic")
     private String vodPic;
-
     @Element(name = "note", required = false)
     @SerializedName("vod_remarks")
     private String vodRemarks;
-
     @Element(name = "year", required = false)
     @SerializedName("vod_year")
     private String vodYear;
-
     @Element(name = "area", required = false)
     @SerializedName("vod_area")
     private String vodArea;
-
     @Element(name = "director", required = false)
     @SerializedName("vod_director")
     private String vodDirector;
-
     @Element(name = "actor", required = false)
     @SerializedName("vod_actor")
     private String vodActor;
-
     @Element(name = "des", required = false)
     @SerializedName("vod_content")
     private String vodContent;
-
     @SerializedName("vod_play_from")
     private String vodPlayFrom;
-
     @SerializedName("vod_play_url")
     private String vodPlayUrl;
-
     @SerializedName("vod_tag")
     private String vodTag;
-
     @SerializedName("action")
     private String action;
-
     @SerializedName("cate")
     private Cate cate;
-
     @SerializedName("style")
     private Style style;
-
     @SerializedName("land")
     private Integer land;
-
     @SerializedName("circle")
     private Integer circle;
-
     @SerializedName("ratio")
     private Float ratio;
-
     @Path("dl")
     @ElementList(entry = "dd", required = false, inline = true)
     private List<Flag> vodFlags;
-
     private Site site;
+
+    public Vod() {
+    }
+
+    protected Vod(Parcel in) {
+        this.vodId = in.readString();
+        this.vodName = in.readString();
+        this.typeName = in.readString();
+        this.vodPic = in.readString();
+        this.vodRemarks = in.readString();
+        this.vodYear = in.readString();
+        this.vodArea = in.readString();
+        this.vodDirector = in.readString();
+        this.vodActor = in.readString();
+        this.vodContent = in.readString();
+        this.vodPlayFrom = in.readString();
+        this.vodPlayUrl = in.readString();
+        this.vodTag = in.readString();
+        this.action = in.readString();
+        this.land = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.circle = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.ratio = (Float) in.readValue(Float.class.getClassLoader());
+        this.cate = in.readParcelable(Cate.class.getClassLoader());
+        this.style = in.readParcelable(Style.class.getClassLoader());
+        this.vodFlags = in.createTypedArrayList(Flag.CREATOR);
+        this.site = in.readParcelable(Site.class.getClassLoader());
+    }
 
     public static Vod objectFrom(String str) {
         Vod vod = App.gson().fromJson(str, Vod.class);
@@ -114,9 +121,6 @@ public class Vod implements Parcelable, Diffable<Vod> {
         Type listType = new TypeToken<List<Vod>>() {}.getType();
         List<Vod> items = App.gson().fromJson(str, listType);
         return items == null ? Collections.emptyList() : items;
-    }
-
-    public Vod() {
     }
 
     public String getId() {
@@ -296,8 +300,8 @@ public class Vod implements Parcelable, Diffable<Vod> {
         this.vodName = Trans.s2t(vodName);
         this.vodArea = Trans.s2t(vodArea);
         this.typeName = Trans.s2t(typeName);
-        this.vodRemarks = Trans.s2t(vodRemarks);
         if (vodActor != null) this.vodActor = Sniffer.CLICKER.matcher(vodActor).find() ? vodActor : Trans.s2t(vodActor);
+        if (vodRemarks != null) this.vodRemarks = Sniffer.CLICKER.matcher(vodRemarks).find() ? vodRemarks : Trans.s2t(vodRemarks);
         if (vodContent != null) this.vodContent = Sniffer.CLICKER.matcher(vodContent).find() ? vodContent : Trans.s2t(vodContent);
         if (vodDirector != null) this.vodDirector = Sniffer.CLICKER.matcher(vodDirector).find() ? vodDirector : Trans.s2t(vodDirector);
         return this;
@@ -351,28 +355,14 @@ public class Vod implements Parcelable, Diffable<Vod> {
         dest.writeParcelable(this.site, flags);
     }
 
-    protected Vod(Parcel in) {
-        this.vodId = in.readString();
-        this.vodName = in.readString();
-        this.typeName = in.readString();
-        this.vodPic = in.readString();
-        this.vodRemarks = in.readString();
-        this.vodYear = in.readString();
-        this.vodArea = in.readString();
-        this.vodDirector = in.readString();
-        this.vodActor = in.readString();
-        this.vodContent = in.readString();
-        this.vodPlayFrom = in.readString();
-        this.vodPlayUrl = in.readString();
-        this.vodTag = in.readString();
-        this.action = in.readString();
-        this.land = (Integer) in.readValue(Integer.class.getClassLoader());
-        this.circle = (Integer) in.readValue(Integer.class.getClassLoader());
-        this.ratio = (Float) in.readValue(Float.class.getClassLoader());
-        this.cate = in.readParcelable(Cate.class.getClassLoader());
-        this.style = in.readParcelable(Style.class.getClassLoader());
-        this.vodFlags = in.createTypedArrayList(Flag.CREATOR);
-        this.site = in.readParcelable(Site.class.getClassLoader());
+    @Override
+    public boolean isSameItem(Vod other) {
+        return equals(other);
+    }
+
+    @Override
+    public boolean isSameContent(Vod other) {
+        return getName().equals(other.getName()) && getPic().equals(other.getPic()) && getRemarks().equals(other.getRemarks()) && Objects.equals(getSite(), other.getSite());
     }
 
     public static final Creator<Vod> CREATOR = new Creator<>() {
@@ -386,14 +376,4 @@ public class Vod implements Parcelable, Diffable<Vod> {
             return new Vod[size];
         }
     };
-
-    @Override
-    public boolean isSameItem(Vod other) {
-        return equals(other);
-    }
-
-    @Override
-    public boolean isSameContent(Vod other) {
-        return getName().equals(other.getName()) && getPic().equals(other.getPic()) && getRemarks().equals(other.getRemarks()) && Objects.equals(getSite(), other.getSite());
-    }
 }

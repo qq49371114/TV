@@ -1,16 +1,21 @@
 package com.fongmi.android.tv.utils;
 
 import android.net.Uri;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
 import android.text.TextUtils;
+import android.text.style.ClickableSpan;
 
-import com.fongmi.android.tv.api.config.LiveConfig;
-import com.fongmi.android.tv.api.config.VodConfig;
+import com.fongmi.android.tv.api.config.RuleConfig;
+import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Rule;
 import com.github.catvod.utils.Json;
+import com.github.catvod.utils.Trans;
 import com.github.catvod.utils.Util;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,8 +49,22 @@ public class Sniffer {
     private static Rule getRule(Uri uri) {
         if (uri.getHost() == null) return Rule.empty();
         String hosts = TextUtils.join(",", Arrays.asList(UrlUtil.host(uri), UrlUtil.host(uri.getQueryParameter("url"))));
-        for (Rule rule : VodConfig.get().getRules()) for (String host : rule.getHosts()) if (Util.containOrMatch(hosts, host)) return rule;
-        for (Rule rule : LiveConfig.get().getRules()) for (String host : rule.getHosts()) if (Util.containOrMatch(hosts, host)) return rule;
+        for (Rule rule : RuleConfig.get().getRules()) for (String host : rule.getHosts()) if (Util.containOrMatch(hosts, host)) return rule;
         return Rule.empty();
+    }
+
+    public static SpannableStringBuilder buildClickable(String text, Function<Result, ClickableSpan> factory) {
+        SpannableStringBuilder span = new SpannableStringBuilder();
+        Matcher matcher = CLICKER.matcher(text);
+        int last = 0;
+        while (matcher.find()) {
+            span.append(text, last, matcher.start());
+            int start = span.length();
+            span.append(Trans.s2t(matcher.group(2).trim()));
+            span.setSpan(factory.apply(Result.type(matcher.group(1))), start, span.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            last = matcher.end();
+        }
+        span.append(text, last, text.length());
+        return span;
     }
 }

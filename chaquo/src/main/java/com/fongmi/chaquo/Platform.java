@@ -40,10 +40,6 @@ public class Platform extends Python.Platform {
     private final Context context;
     private String ABI;
 
-    public static Platform create() {
-        return new Platform();
-    }
-
     public Platform() {
         this.context = Init.context();
         this.sp = context.getSharedPreferences(Common.ASSET_DIR, Context.MODE_PRIVATE);
@@ -67,6 +63,10 @@ public class Platform extends Python.Platform {
             }
         }
         if (ABI == null) throw new RuntimeException("No supported ABI found in: " + supportedAbis);
+    }
+
+    public static Platform create() {
+        return new Platform();
     }
 
     @Override

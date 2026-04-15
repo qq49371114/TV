@@ -6,11 +6,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.github.catvod.bean.Proxy;
+import com.github.catvod.utils.Auth;
 import com.github.catvod.utils.Util;
 import com.google.common.net.HttpHeaders;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -49,7 +49,7 @@ public class OkAuthenticator implements Authenticator {
                         if (url.contains(proxyHost)) {
                             String userInfo = Uri.parse(url).getUserInfo();
                             if (userInfo != null) {
-                                return response.request().newBuilder().header(HttpHeaders.PROXY_AUTHORIZATION, Util.basic(userInfo)).build();
+                                return response.request().newBuilder().header(HttpHeaders.PROXY_AUTHORIZATION, Auth.basic(userInfo)).build();
                             }
                         }
                     }

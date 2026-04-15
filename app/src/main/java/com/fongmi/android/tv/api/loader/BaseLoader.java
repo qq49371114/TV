@@ -2,11 +2,11 @@ package com.fongmi.android.tv.api.loader;
 
 import android.text.TextUtils;
 
-import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.api.config.LiveConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Live;
 import com.fongmi.android.tv.bean.Site;
+import com.fongmi.android.tv.utils.Task;
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.crawler.SpiderNull;
 import com.github.catvod.utils.Util;
@@ -25,22 +25,30 @@ public class BaseLoader {
     private final PyLoader pyLoader;
     private final JsLoader jsLoader;
 
-    private static class Loader {
-        static volatile BaseLoader INSTANCE = new BaseLoader();
-    }
-
-    public static BaseLoader get() {
-        return Loader.INSTANCE;
-    }
-
     private BaseLoader() {
         jarLoader = new JarLoader();
         pyLoader = new PyLoader();
         jsLoader = new JsLoader();
     }
 
+    public static BaseLoader get() {
+        return Loader.INSTANCE;
+    }
+
+    private static boolean isJs(String api) {
+        return api.contains(".js");
+    }
+
+    private static boolean isPy(String api) {
+        return api.contains(".py");
+    }
+
+    private static boolean isCsp(String api) {
+        return api.startsWith("csp_");
+    }
+
     public void clear() {
-        App.execute(() -> {
+        Task.execute(() -> {
             jarLoader.clear();
             pyLoader.clear();
             jsLoader.clear();
@@ -48,12 +56,9 @@ public class BaseLoader {
     }
 
     public Spider getSpider(String key, String api, String ext, String jar) {
-        boolean js = api.contains(".js");
-        boolean py = api.contains(".py");
-        boolean csp = api.startsWith("csp_");
-        if (py) return pyLoader.getSpider(key, api, ext);
-        else if (js) return jsLoader.getSpider(key, api, ext, jar);
-        else if (csp) return jarLoader.getSpider(key, api, ext, jar);
+        if (isPy(api)) return pyLoader.getSpider(key, api, ext);
+        else if (isJs(api)) return jsLoader.getSpider(key, api, ext, jar);
+        else if (isCsp(api)) return jarLoader.getSpider(key, api, ext, jar);
         else return new SpiderNull();
     }
 
@@ -66,12 +71,9 @@ public class BaseLoader {
     }
 
     public void setRecent(String key, String api, String jar) {
-        boolean js = api.contains(".js");
-        boolean py = api.contains(".py");
-        boolean csp = api.startsWith("csp_");
-        if (js) jsLoader.setRecent(key);
-        else if (py) pyLoader.setRecent(key);
-        else if (csp) jarLoader.setRecent(Util.md5(jar));
+        if (isJs(api)) jsLoader.setRecent(key);
+        else if (isPy(api)) pyLoader.setRecent(key);
+        else if (isCsp(api)) jarLoader.setRecent(Util.md5(jar));
     }
 
     public Object[] proxy(Map<String, String> params) throws Exception {
@@ -83,8 +85,9 @@ public class BaseLoader {
 
     public void parseJar(String jar, boolean recent) {
         if (TextUtils.isEmpty(jar)) return;
-        jarLoader.parseJar(Util.md5(jar), jar);
-        if (recent) jarLoader.setRecent(Util.md5(jar));
+        String key = Util.md5(jar);
+        jarLoader.parseJar(key, jar);
+        if (recent) jarLoader.setRecent(key);
     }
 
     public DexClassLoader dex(String jar) {
@@ -97,5 +100,9 @@ public class BaseLoader {
 
     public JSONObject jsonExtMix(String flag, String key, String name, LinkedHashMap<String, HashMap<String, String>> jxs, String url) throws Throwable {
         return jarLoader.jsonExtMix(flag, key, name, jxs, url);
+    }
+
+    private static class Loader {
+        static volatile BaseLoader INSTANCE = new BaseLoader();
     }
 }

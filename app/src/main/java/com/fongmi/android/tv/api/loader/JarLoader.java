@@ -29,7 +29,7 @@ public class JarLoader {
     private final ConcurrentHashMap<String, Method> methods;
     private final ConcurrentHashMap<String, Spider> spiders;
     private final ConcurrentHashMap<String, Object> locks;
-    private String recent;
+    private volatile String recent;
 
     public JarLoader() {
         loaders = new ConcurrentHashMap<>();
@@ -44,6 +44,7 @@ public class JarLoader {
         methods.clear();
         spiders.clear();
         locks.clear();
+        recent = null;
     }
 
     public void setRecent(String recent) {
@@ -117,7 +118,9 @@ public class JarLoader {
         return spiders.computeIfAbsent(spKey, k -> {
             try {
                 parseJar(jaKey, jar);
-                Spider spider = (Spider) loaders.get(jaKey).loadClass("com.github.catvod.spider." + api.split("csp_")[1]).newInstance();
+                DexClassLoader loader = loaders.get(jaKey);
+                if (loader == null) return new SpiderNull();
+                Spider spider = (Spider) loader.loadClass("com.github.catvod.spider." + api.split("csp_")[1]).newInstance();
                 spider.siteKey = key;
                 spider.init(App.get(), ext);
                 return spider;
@@ -128,14 +131,20 @@ public class JarLoader {
         });
     }
 
+    private DexClassLoader requireRecentLoader() {
+        DexClassLoader loader = loaders.get(recent);
+        if (loader == null) throw new IllegalStateException("No jar loaded for recent key: " + recent);
+        return loader;
+    }
+
     public JSONObject jsonExt(String key, LinkedHashMap<String, String> jxs, String url) throws Throwable {
-        Class<?> clz = loaders.get(recent).loadClass("com.github.catvod.parser.Json" + key);
+        Class<?> clz = requireRecentLoader().loadClass("com.github.catvod.parser.Json" + key);
         Method method = clz.getMethod("parse", LinkedHashMap.class, String.class);
         return (JSONObject) method.invoke(null, jxs, url);
     }
 
     public JSONObject jsonExtMix(String flag, String key, String name, LinkedHashMap<String, HashMap<String, String>> jxs, String url) throws Throwable {
-        Class<?> clz = loaders.get(recent).loadClass("com.github.catvod.parser.Mix" + key);
+        Class<?> clz = requireRecentLoader().loadClass("com.github.catvod.parser.Mix" + key);
         Method method = clz.getMethod("parse", LinkedHashMap.class, String.class, String.class, String.class);
         return (JSONObject) method.invoke(null, jxs, name, flag, url);
     }

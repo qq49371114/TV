@@ -4,12 +4,12 @@ import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
 
-import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.Formatters;
 import com.github.catvod.utils.Trans;
 import com.google.gson.annotations.SerializedName;
 
-import java.util.Calendar;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Objects;
 
 public class EpgData {
@@ -87,7 +87,7 @@ public class EpgData {
 
     public String format() {
         if (getTitle().isEmpty()) return "";
-        if (getStart().isEmpty() && getEnd().isEmpty()) return ResUtil.getString(R.string.play_now, getTitle());
+        if (getStart().isEmpty() && getEnd().isEmpty()) return getTitle();
         return getStart() + " ~ " + getEnd() + "  " + getTitle();
     }
 
@@ -96,11 +96,12 @@ public class EpgData {
         return getStart() + " ~ " + getEnd();
     }
 
-    public void checkDay() {
-        Calendar cal = Calendar.getInstance();
-        cal.setTimeInMillis(getEndTime());
-        cal.add(Calendar.DAY_OF_MONTH, 1);
-        setEndTime(cal.getTimeInMillis());
+    public String getRange() {
+        return "clock=" + Formatters.EPG_RANGE.format(Instant.ofEpochMilli(getStartTime())) + "-" + Formatters.EPG_RANGE.format(Instant.ofEpochMilli(getEndTime()));
+    }
+
+    public void checkDay(ZoneId zoneId) {
+        setEndTime(Instant.ofEpochMilli(getEndTime()).atZone(zoneId).plusDays(1).toInstant().toEpochMilli());
     }
 
     public void trans() {

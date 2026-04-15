@@ -85,6 +85,13 @@
             tools:visibility="visible" />
 
         <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/title"
+            style="@style/Control"
+            android:text="@string/play_title"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/episodes"
             style="@style/Control"
             android:text="@string/detail_episode" />

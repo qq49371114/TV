@@ -158,12 +158,12 @@ public class Parse implements Diffable<Parse> {
         @JsonAdapter(HeaderAdapter.class)
         private Map<String, String> header;
 
-        public void setFlag(List<String> flag) {
-            this.flag = flag;
-        }
-
         public List<String> getFlag() {
             return flag == null ? Collections.emptyList() : flag;
+        }
+
+        public void setFlag(List<String> flag) {
+            this.flag = flag;
         }
 
         public Map<String, String> getHeader() {

@@ -18,16 +18,7 @@ public class Value implements Parcelable, Diffable<Value> {
     private String n;
     @SerializedName("v")
     private String v;
-
     private transient boolean activated;
-
-    public static Value create(String v) {
-        return new Value(v);
-    }
-
-    public static Value create(String n, String v) {
-        return new Value(n, v).trans();
-    }
 
     private Value(String v) {
         this.v = v;
@@ -36,6 +27,20 @@ public class Value implements Parcelable, Diffable<Value> {
     private Value(String n, String v) {
         this.n = n;
         this.v = v;
+    }
+
+    protected Value(Parcel in) {
+        this.n = in.readString();
+        this.v = in.readString();
+        this.activated = in.readByte() != 0;
+    }
+
+    public static Value create(String v) {
+        return new Value(v);
+    }
+
+    public static Value create(String n, String v) {
+        return new Value(n, v).trans();
     }
 
     public String getN() {
@@ -99,10 +104,14 @@ public class Value implements Parcelable, Diffable<Value> {
         dest.writeByte(this.activated ? (byte) 1 : (byte) 0);
     }
 
-    protected Value(Parcel in) {
-        this.n = in.readString();
-        this.v = in.readString();
-        this.activated = in.readByte() != 0;
+    @Override
+    public boolean isSameItem(Value other) {
+        return equals(other);
+    }
+
+    @Override
+    public boolean isSameContent(Value other) {
+        return equals(other);
     }
 
     public static final Creator<Value> CREATOR = new Creator<>() {
@@ -116,14 +125,4 @@ public class Value implements Parcelable, Diffable<Value> {
             return new Value[size];
         }
     };
-
-    @Override
-    public boolean isSameItem(Value other) {
-        return equals(other);
-    }
-
-    @Override
-    public boolean isSameContent(Value other) {
-        return equals(other);
-    }
 }

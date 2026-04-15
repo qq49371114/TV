@@ -118,6 +118,14 @@ public class Live {
     @Ignore
     private int width;
 
+    public Live() {
+    }
+
+    public Live(@NonNull String name, String url) {
+        this.name = name;
+        this.url = url;
+    }
+
     public static Live objectFrom(JsonElement element, String spider) {
         try {
             Live live = App.gson().fromJson(element, Live.class);
@@ -130,12 +138,12 @@ public class Live {
         }
     }
 
-    public Live() {
+    public static List<Live> findAll() {
+        return AppDatabase.get().getLiveDao().findAll();
     }
 
-    public Live(@NonNull String name, String url) {
-        this.name = name;
-        this.url = url;
+    public static Live find(String name) {
+        return AppDatabase.get().getLiveDao().find(name);
     }
 
     public String getName() {
@@ -353,14 +361,6 @@ public class Live {
         if (!getOrigin().isEmpty()) headers.put(HttpHeaders.ORIGIN, getOrigin());
         if (!getReferer().isEmpty()) headers.put(HttpHeaders.REFERER, getReferer());
         return headers;
-    }
-
-    public static List<Live> findAll() {
-        return AppDatabase.get().getLiveDao().findAll();
-    }
-
-    public static Live find(String name) {
-        return AppDatabase.get().getLiveDao().find(name);
     }
 
     public void save() {

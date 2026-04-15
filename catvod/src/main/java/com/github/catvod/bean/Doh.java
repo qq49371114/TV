@@ -41,9 +41,13 @@ public class Doh {
     }
 
     public static List<Doh> arrayFrom(JsonElement element) {
-        Type listType = new TypeToken<List<Doh>>() {}.getType();
-        List<Doh> items = new Gson().fromJson(element, listType);
-        return items == null ? new ArrayList<>() : items;
+        try {
+            Type listType = new TypeToken<List<Doh>>() {}.getType();
+            List<Doh> items = new Gson().fromJson(element, listType);
+            return items == null ? new ArrayList<>() : items;
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
     }
 
     public Doh name(String name) {
@@ -83,6 +87,11 @@ public class Doh {
         if (this == obj) return true;
         if (!(obj instanceof Doh it)) return false;
         return getUrl().equals(it.getUrl());
+    }
+
+    @Override
+    public int hashCode() {
+        return getUrl().hashCode();
     }
 
     @NonNull

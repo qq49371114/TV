@@ -13,6 +13,7 @@ import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Github;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.Task;
 import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Path;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -61,7 +62,7 @@ public class Updater implements Download.Callback {
 
     public void start(Activity activity) {
         if (!Setting.getUpdate()) return;
-        App.execute(() -> doInBackground(activity));
+        Task.execute(() -> doInBackground(activity));
     }
 
     private void doInBackground(Activity activity) {

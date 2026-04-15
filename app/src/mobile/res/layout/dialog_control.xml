@@ -187,6 +187,17 @@
                 android:textSize="14sp"
                 tools:text="片尾" />
 
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/shape_accent"
+                android:text="@string/play_title"
+                android:textColor="@color/control"
+                android:textSize="14sp"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
         </androidx.appcompat.widget.LinearLayoutCompat>
     </HorizontalScrollView>
 

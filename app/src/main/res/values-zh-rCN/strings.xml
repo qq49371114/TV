@@ -39,6 +39,7 @@
     <string name="play_reset">刷新</string>
     <string name="play_decode">硬解</string>
     <string name="play_timer">定时</string>
+    <string name="play_title">章节</string>
     <string name="play_scale">原始</string>
     <string name="play_config">配置</string>
     <string name="play_change">换源</string>
@@ -50,7 +51,6 @@
     <string name="play_track_video">视轨</string>
     <string name="play_forward_hint">已切换正序播放</string>
     <string name="play_backward_hint">已切换倒序播放</string>
-    <string name="play_now">正在播放：<xliff:g name="name">%s</xliff:g></string>
     <string name="play_ready">准备播放：<xliff:g name="name">%s</xliff:g></string>
     <string name="play_switch_flag">正在切换线路至「<xliff:g name="name">%s</xliff:g>」</string>
     <string name="play_switch_site">正在切换站源至「<xliff:g name="name">%s</xliff:g>」</string>
@@ -119,6 +119,7 @@
     <string name="dialog_edit">修改</string>
     <string name="dialog_positive">确定</string>
     <string name="dialog_negative">取消</string>
+    <string name="dialog_select_title">选择章节</string>
     <string name="dialog_config_hint">请输入配置…</string>
     <string name="dialog_config_name">请输入名称…</string>
     <string name="dialog_config_url">请输入地址…</string>

@@ -28,6 +28,15 @@ public class Track {
         this.format = format;
     }
 
+    public static List<Track> find(String key) {
+        return TextUtils.isEmpty(key) ? Collections.emptyList() : AppDatabase.get().getTrackDao().find(key);
+    }
+
+    public static void delete(String key) {
+        if (TextUtils.isEmpty(key)) return;
+        AppDatabase.get().getTrackDao().delete(key);
+    }
+
     public int getId() {
         return id;
     }
@@ -90,14 +99,5 @@ public class Track {
         if (TextUtils.isEmpty(getKey())) return this;
         AppDatabase.get().getTrackDao().insert(this);
         return this;
-    }
-
-    public static List<Track> find(String key) {
-        return TextUtils.isEmpty(key) ? Collections.emptyList() : AppDatabase.get().getTrackDao().find(key);
-    }
-
-    public static void delete(String key) {
-        if (TextUtils.isEmpty(key)) return;
-        AppDatabase.get().getTrackDao().delete(key);
     }
 }

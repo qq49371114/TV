@@ -68,6 +68,65 @@ public class Config {
         return new Config().type(type).url(url).name(name).insert();
     }
 
+    public static List<Config> getAll(int type) {
+        return AppDatabase.get().getConfigDao().findByType(type);
+    }
+
+    public static List<Config> findUrls() {
+        return AppDatabase.get().getConfigDao().findUrlByType(0);
+    }
+
+    public static void delete(String url) {
+        AppDatabase.get().getConfigDao().delete(url);
+    }
+
+    public static void delete(String url, int type) {
+        AppDatabase.get().getConfigDao().delete(url, type);
+    }
+
+    public static Config vod() {
+        Config item = AppDatabase.get().getConfigDao().findOne(0);
+        return item == null ? create(0) : item;
+    }
+
+    public static Config live() {
+        Config item = AppDatabase.get().getConfigDao().findOne(1);
+        return item == null ? create(1) : item;
+    }
+
+    public static Config wall() {
+        Config item = AppDatabase.get().getConfigDao().findOne(2);
+        return item == null ? create(2) : item;
+    }
+
+    public static Config find(int id) {
+        return AppDatabase.get().getConfigDao().findById(id);
+    }
+
+    public static Config find(String url, int type) {
+        Config item = AppDatabase.get().getConfigDao().find(url, type);
+        return item == null ? create(type, url) : item.type(type);
+    }
+
+    public static Config find(String url, String name, int type) {
+        Config item = AppDatabase.get().getConfigDao().find(url, type);
+        return item == null ? create(type, url, name) : item.type(type).name(name);
+    }
+
+    public static Config find(Config config) {
+        return find(config, config.getType());
+    }
+
+    public static Config find(Config config, int type) {
+        Config item = AppDatabase.get().getConfigDao().find(config.getUrl(), type);
+        return item == null ? create(type, config.getUrl(), config.getName()) : item.type(type).name(config.getName());
+    }
+
+    public static Config find(Depot depot, int type) {
+        Config item = AppDatabase.get().getConfigDao().find(depot.getUrl(), type);
+        return item == null ? create(type, depot.getUrl(), depot.getName()) : item.type(type).name(depot.getName());
+    }
+
     public int getId() {
         return id;
     }
@@ -176,65 +235,6 @@ public class Config {
         if (!TextUtils.isEmpty(getName())) return getName();
         if (!TextUtils.isEmpty(getUrl())) return getUrl();
         return "";
-    }
-
-    public static List<Config> getAll(int type) {
-        return AppDatabase.get().getConfigDao().findByType(type);
-    }
-
-    public static List<Config> findUrls() {
-        return AppDatabase.get().getConfigDao().findUrlByType(0);
-    }
-
-    public static void delete(String url) {
-        AppDatabase.get().getConfigDao().delete(url);
-    }
-
-    public static void delete(String url, int type) {
-        AppDatabase.get().getConfigDao().delete(url, type);
-    }
-
-    public static Config vod() {
-        Config item = AppDatabase.get().getConfigDao().findOne(0);
-        return item == null ? create(0) : item;
-    }
-
-    public static Config live() {
-        Config item = AppDatabase.get().getConfigDao().findOne(1);
-        return item == null ? create(1) : item;
-    }
-
-    public static Config wall() {
-        Config item = AppDatabase.get().getConfigDao().findOne(2);
-        return item == null ? create(2) : item;
-    }
-
-    public static Config find(int id) {
-        return AppDatabase.get().getConfigDao().findById(id);
-    }
-
-    public static Config find(String url, int type) {
-        Config item = AppDatabase.get().getConfigDao().find(url, type);
-        return item == null ? create(type, url) : item.type(type);
-    }
-
-    public static Config find(String url, String name, int type) {
-        Config item = AppDatabase.get().getConfigDao().find(url, type);
-        return item == null ? create(type, url, name) : item.type(type).name(name);
-    }
-
-    public static Config find(Config config) {
-        return find(config, config.getType());
-    }
-
-    public static Config find(Config config, int type) {
-        Config item = AppDatabase.get().getConfigDao().find(config.getUrl(), type);
-        return item == null ? create(type, config.getUrl(), config.getName()) : item.type(type).name(config.getName());
-    }
-
-    public static Config find(Depot depot, int type) {
-        Config item = AppDatabase.get().getConfigDao().find(depot.getUrl(), type);
-        return item == null ? create(type, depot.getUrl(), depot.getName()) : item.type(type).name(depot.getName());
     }
 
     public Config insert() {

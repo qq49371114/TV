@@ -14,6 +14,12 @@ public class Cate implements Parcelable {
     @SerializedName("ratio")
     private Float ratio;
 
+    protected Cate(Parcel in) {
+        this.land = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.circle = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.ratio = (Float) in.readValue(Float.class.getClassLoader());
+    }
+
     public int getLand() {
         return land == null ? 0 : land;
     }
@@ -40,12 +46,6 @@ public class Cate implements Parcelable {
         dest.writeValue(this.land);
         dest.writeValue(this.circle);
         dest.writeValue(this.ratio);
-    }
-
-    protected Cate(Parcel in) {
-        this.land = (Integer) in.readValue(Integer.class.getClassLoader());
-        this.circle = (Integer) in.readValue(Integer.class.getClassLoader());
-        this.ratio = (Float) in.readValue(Float.class.getClassLoader());
     }
 
     public static final Creator<Cate> CREATOR = new Creator<>() {

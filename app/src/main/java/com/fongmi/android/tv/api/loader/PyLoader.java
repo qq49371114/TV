@@ -12,7 +12,7 @@ public class PyLoader {
 
     private final ConcurrentHashMap<String, Spider> spiders;
     private final Loader loader;
-    private String recent;
+    private volatile String recent;
 
     public PyLoader() {
         spiders = new ConcurrentHashMap<>();
@@ -22,6 +22,7 @@ public class PyLoader {
     public void clear() {
         spiders.values().forEach(Spider::destroy);
         spiders.clear();
+        recent = null;
     }
 
     public void setRecent(String recent) {

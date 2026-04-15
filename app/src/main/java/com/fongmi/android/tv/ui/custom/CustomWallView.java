@@ -54,11 +54,11 @@ public class CustomWallView extends FrameLayout implements DefaultLifecycleObser
     private void init() {
         binding = ViewWallBinding.inflate(LayoutInflater.from(getContext()), this, true);
         ((ComponentActivity) getContext()).getLifecycle().addObserver(this);
-        createPlayer();
         refresh();
     }
 
-    private void createPlayer() {
+    private void ensurePlayer() {
+        if (player != null) return;
         player = new ExoPlayer.Builder(getContext()).build();
         player.setRepeatMode(Player.REPEAT_MODE_ALL);
         player.setPlayWhenReady(true);
@@ -76,7 +76,7 @@ public class CustomWallView extends FrameLayout implements DefaultLifecycleObser
     }
 
     private void stop() {
-        if (player.isPlaying()) {
+        if (player != null && player.isPlaying()) {
             player.stop();
             player.clearMediaItems();
         }
@@ -104,6 +104,7 @@ public class CustomWallView extends FrameLayout implements DefaultLifecycleObser
     }
 
     private void loadVideo(File file) {
+        ensurePlayer();
         ensureVideoView();
         video.setPlayer(player);
         video.setVisibility(VISIBLE);
@@ -145,7 +146,7 @@ public class CustomWallView extends FrameLayout implements DefaultLifecycleObser
     @Override
     public void onResume(@NonNull LifecycleOwner owner) {
         if (drawable != null) drawable.start();
-        if (video == null || video.getVisibility() != VISIBLE || player.getMediaItemCount() == 0) return;
+        if (player == null || video == null || video.getVisibility() != VISIBLE || player.getMediaItemCount() == 0) return;
         video.setPlayer(player);
         player.play();
     }
@@ -153,7 +154,7 @@ public class CustomWallView extends FrameLayout implements DefaultLifecycleObser
     @Override
     public void onPause(@NonNull LifecycleOwner owner) {
         if (drawable != null) drawable.pause();
-        if (video == null || video.getVisibility() != VISIBLE || player.getMediaItemCount() == 0) return;
+        if (player == null || video == null || video.getVisibility() != VISIBLE || player.getMediaItemCount() == 0) return;
         video.setPlayer(null);
         player.pause();
     }
@@ -163,7 +164,7 @@ public class CustomWallView extends FrameLayout implements DefaultLifecycleObser
         EventBus.getDefault().unregister(this);
         if (drawable != null) drawable.recycle();
         if (video != null) removeView(video);
-        player.release();
+        if (player != null) player.release();
         drawable = null;
         binding = null;
         player = null;

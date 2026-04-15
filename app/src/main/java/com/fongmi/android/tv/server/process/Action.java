@@ -10,13 +10,14 @@ import com.fongmi.android.tv.bean.Device;
 import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.bean.Keep;
 import com.fongmi.android.tv.bean.Vod;
-import com.fongmi.android.tv.event.ActionEvent;
 import com.fongmi.android.tv.event.CastEvent;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.event.ServerEvent;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.server.Nano;
+import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.server.impl.Process;
+import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.utils.FileUtil;
 import com.fongmi.android.tv.utils.Notify;
 import com.github.catvod.net.OkHttp;
@@ -86,20 +87,25 @@ public class Action implements Process {
         if ("live".equals(type)) RefreshEvent.live();
         else if ("detail".equals(type)) RefreshEvent.detail();
         else if ("player".equals(type)) RefreshEvent.player();
+        else if ("category".equals(type)) RefreshEvent.category();
         else if ("danmaku".equals(type)) RefreshEvent.danmaku(path);
         else if ("subtitle".equals(type)) RefreshEvent.subtitle(path);
         else if ("vod".equals(type)) RefreshEvent.vod(Vod.objectFrom(json));
     }
 
     private void onControl(Map<String, String> params) {
+        PlaybackService service = Server.get().getService();
         String type = params.get("type");
-        if ("stop".equals(type)) ActionEvent.stop();
-        else if ("prev".equals(type)) ActionEvent.prev();
-        else if ("next".equals(type)) ActionEvent.next();
-        else if ("loop".equals(type)) ActionEvent.loop();
-        else if ("play".equals(type)) ActionEvent.play();
-        else if ("pause".equals(type)) ActionEvent.pause();
-        else if ("replay".equals(type)) ActionEvent.replay();
+        if (service == null) return;
+        App.post(() -> {
+            if ("play".equals(type)) service.player().play();
+            else if ("pause".equals(type)) service.player().pause();
+            else if ("stop".equals(type)) service.dispatchStop();
+            else if ("prev".equals(type)) service.dispatchPrev();
+            else if ("next".equals(type)) service.dispatchNext();
+            else if ("loop".equals(type)) service.dispatchLoop();
+            else if ("replay".equals(type)) service.dispatchReplay();
+        });
     }
 
     private void onCast(Map<String, String> params) {

@@ -27,14 +27,6 @@ public class Episode implements Parcelable, Diffable<Episode> {
     private boolean activated;
     private boolean selected;
 
-    public static Episode create(String name, String url) {
-        return new Episode(name, "", url).trans();
-    }
-
-    public static Episode create(String name, String desc, String url) {
-        return new Episode(name, desc, url).trans();
-    }
-
     private Episode(String name, String desc, String url) {
         this.number = Util.getNumber(name);
         this.name = name;
@@ -43,6 +35,23 @@ public class Episode implements Parcelable, Diffable<Episode> {
     }
 
     public Episode() {
+    }
+
+    protected Episode(Parcel in) {
+        this.name = in.readString();
+        this.desc = in.readString();
+        this.url = in.readString();
+        this.number = in.readInt();
+        this.activated = in.readByte() != 0;
+        this.selected = in.readByte() != 0;
+    }
+
+    public static Episode create(String name, String url) {
+        return new Episode(name, "", url).trans();
+    }
+
+    public static Episode create(String name, String desc, String url) {
+        return new Episode(name, desc, url).trans();
     }
 
     public String getName() {
@@ -97,9 +106,14 @@ public class Episode implements Parcelable, Diffable<Episode> {
     public int getScore(String name, int number) {
         if (getName().equalsIgnoreCase(name)) return 100;
         if (number != -1 && getNumber() == number) return 80;
-        if (number == -1 && getName().toLowerCase().contains(name.toLowerCase())) return 70;
-        if (number == -1 && name.toLowerCase().contains(getName().toLowerCase())) return 60;
+        if (number == -1 && name.length() >= 2 && getName().toLowerCase().contains(name.toLowerCase())) return 70;
+        if (number == -1 && getName().length() >= 2 && name.toLowerCase().contains(getName().toLowerCase())) return 60;
         return 0;
+    }
+
+    public boolean matchesName(Episode other) {
+        if (other == null) return false;
+        return getName().equalsIgnoreCase(other.getName());
     }
 
     public Episode trans() {
@@ -113,12 +127,12 @@ public class Episode implements Parcelable, Diffable<Episode> {
     public boolean equals(@Nullable Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof Episode it)) return false;
-        return Objects.equals(getName(), it.getName());
+        return Objects.equals(getName(), it.getName()) && Objects.equals(getUrl(), it.getUrl());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getName());
+        return Objects.hash(getName(), getUrl());
     }
 
     @Override
@@ -136,13 +150,14 @@ public class Episode implements Parcelable, Diffable<Episode> {
         dest.writeByte(this.selected ? (byte) 1 : (byte) 0);
     }
 
-    protected Episode(Parcel in) {
-        this.name = in.readString();
-        this.desc = in.readString();
-        this.url = in.readString();
-        this.number = in.readInt();
-        this.activated = in.readByte() != 0;
-        this.selected = in.readByte() != 0;
+    @Override
+    public boolean isSameItem(Episode other) {
+        return equals(other);
+    }
+
+    @Override
+    public boolean isSameContent(Episode other) {
+        return getUrl().equals(other.getUrl()) && getDesc().equals(other.getDesc());
     }
 
     public record Rule(Episode episode, int score) {
@@ -163,14 +178,4 @@ public class Episode implements Parcelable, Diffable<Episode> {
             return new Episode[size];
         }
     };
-
-    @Override
-    public boolean isSameItem(Episode other) {
-        return equals(other);
-    }
-
-    @Override
-    public boolean isSameContent(Episode other) {
-        return getUrl().equals(other.getUrl()) && getDesc().equals(other.getDesc());
-    }
 }

@@ -2,7 +2,7 @@ package com.github.catvod.net.interceptor;
 
 import androidx.annotation.NonNull;
 
-import com.github.catvod.utils.Util;
+import com.github.catvod.utils.Auth;
 import com.google.common.net.HttpHeaders;
 
 import java.io.IOException;
@@ -37,7 +37,7 @@ public class AuthInterceptor implements Interceptor {
         if (user == null) return response;
         response.close();
         String header = response.header(HttpHeaders.WWW_AUTHENTICATE);
-        String auth = digest(header) ? Util.digest(user, header, request) : Util.basic(user);
+        String auth = digest(header) ? Auth.digest(user, header, request) : Auth.basic(user);
         return chain.proceed(request.newBuilder().header(HttpHeaders.AUTHORIZATION, auth).build());
     }
 
@@ -49,6 +49,6 @@ public class AuthInterceptor implements Interceptor {
         URI uri = request.url().uri();
         if (uri.getUserInfo() == null) return request;
         userMap.put(request.url().host(), uri.getUserInfo());
-        return request.newBuilder().header(HttpHeaders.AUTHORIZATION, Util.basic(uri.getUserInfo())).build();
+        return request.newBuilder().header(HttpHeaders.AUTHORIZATION, Auth.basic(uri.getUserInfo())).build();
     }
 }

@@ -16,7 +16,7 @@
         android:focusableInTouchMode="true"
         android:foreground="@drawable/selector_video"
         android:nextFocusLeft="@id/video"
-        android:nextFocusRight="@id/desc"
+        android:nextFocusRight="@id/content"
         android:nextFocusUp="@id/video"
         android:nextFocusDown="@id/flag">
 
@@ -152,27 +152,12 @@
         android:layout_alignStart="@+id/name"
         android:layout_marginTop="6dp"
         android:layout_marginEnd="24dp"
+        android:ellipsize="end"
+        android:maxLines="2"
         android:nextFocusDown="@id/content"
-        android:singleLine="true"
         android:textColor="@color/white"
         android:textSize="16sp"
         tools:text="演員：FongMi" />
-
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/content"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/actor"
-        android:layout_alignStart="@+id/name"
-        android:layout_marginTop="6dp"
-        android:layout_marginEnd="24dp"
-        android:ellipsize="end"
-        android:lineSpacingExtra="4dp"
-        android:maxLines="1"
-        android:nextFocusDown="@id/desc"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        tools:text="簡介：" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/row2"
@@ -183,7 +168,7 @@
         android:orientation="horizontal">
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/desc"
+            android:id="@+id/content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="16dp"
@@ -192,6 +177,7 @@
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:gravity="center"
+            android:nextFocusUp="@id/actor"
             android:nextFocusDown="@id/flag"
             android:singleLine="true"
             android:text="@string/detail_desc"
@@ -209,6 +195,7 @@
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:gravity="center"
+            android:nextFocusUp="@id/actor"
             android:nextFocusDown="@id/flag"
             android:singleLine="true"
             android:text="@string/keep"
@@ -226,6 +213,7 @@
             android:focusableInTouchMode="true"
             android:gravity="center"
             android:nextFocusRight="@id/change1"
+            android:nextFocusUp="@id/actor"
             android:nextFocusDown="@id/flag"
             android:singleLine="true"
             android:text="@string/play_change"

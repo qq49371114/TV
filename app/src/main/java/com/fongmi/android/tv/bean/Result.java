@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Setting;
+import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.gson.DanmakuAdapter;
 import com.fongmi.android.tv.gson.FilterAdapter;
 import com.fongmi.android.tv.gson.HeaderAdapter;
@@ -98,6 +99,14 @@ public class Result implements Parcelable {
     @SerializedName("drm")
     private Drm drm;
 
+    public Result() {
+    }
+
+    protected Result(Parcel in) {
+        this.types = new ArrayList<>();
+        in.readList(this.types, Class.class.getClassLoader());
+    }
+
     public static Result objectFrom(String str) {
         try {
             return App.gson().fromJson(str, Result.class);
@@ -162,9 +171,6 @@ public class Result implements Parcelable {
 
     public static Result vod(Vod item) {
         return list(Arrays.asList(item));
-    }
-
-    public Result() {
     }
 
     public List<Class> getTypes() {
@@ -323,6 +329,11 @@ public class Result implements Parcelable {
         return !getDesc().isEmpty();
     }
 
+    public boolean shouldUseParse() {
+        if (!VodConfig.hasParse()) return false;
+        return (getPlayUrl().isEmpty() && VodConfig.get().getFlags().contains(getFlag())) || getJx() == 1;
+    }
+
     public String getRealUrl() {
         return getPlayUrl() + getUrl().v();
     }
@@ -362,11 +373,6 @@ public class Result implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeList(this.types);
-    }
-
-    protected Result(Parcel in) {
-        this.types = new ArrayList<>();
-        in.readList(this.types, Class.class.getClassLoader());
     }
 
     public static final Creator<Result> CREATOR = new Creator<>() {

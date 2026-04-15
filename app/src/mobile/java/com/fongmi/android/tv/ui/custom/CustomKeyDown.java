@@ -31,6 +31,7 @@ public class CustomKeyDown extends GestureDetector.SimpleOnGestureListener imple
     private boolean changeSpeed;
     private boolean changeScale;
     private boolean changeTime;
+    private boolean multiTouch;
     private boolean animating;
     private boolean touch;
     private boolean lock;
@@ -54,9 +55,12 @@ public class CustomKeyDown extends GestureDetector.SimpleOnGestureListener imple
     }
 
     public boolean onTouchEvent(MotionEvent e) {
-        if (e.getAction() == MotionEvent.ACTION_UP) listener.onTouchEnd();
-        if (changeSpeed && e.getAction() == MotionEvent.ACTION_UP) listener.onSpeedEnd();
-        if (changeTime && e.getAction() == MotionEvent.ACTION_UP) listener.onSeekEnd(time);
+        int action = e.getActionMasked();
+        if (action == MotionEvent.ACTION_DOWN) multiTouch = false;
+        if (action == MotionEvent.ACTION_POINTER_DOWN) multiTouch = true;
+        if (action == MotionEvent.ACTION_UP) listener.onTouchEnd();
+        if (changeSpeed && action == MotionEvent.ACTION_UP) listener.onSpeedEnd();
+        if (changeTime && action == MotionEvent.ACTION_UP) listener.onSeekEnd(time);
         return e.getPointerCount() == 2 ? scaleDetector.onTouchEvent(e) : detector.onTouchEvent(e);
     }
 
@@ -110,7 +114,7 @@ public class CustomKeyDown extends GestureDetector.SimpleOnGestureListener imple
 
     @Override
     public void onLongPress(@NonNull MotionEvent e) {
-        if (isMultiple(e) || isEdge(e) || changeScale || lock) return;
+        if (multiTouch || isEdge(e) || changeScale || lock) return;
         listener.onSpeedUp();
         changeSpeed = true;
     }
@@ -120,7 +124,7 @@ public class CustomKeyDown extends GestureDetector.SimpleOnGestureListener imple
         if (isMultiple(e1) || isEdge(e1) || changeScale || lock || changeSpeed) return true;
         float deltaX = e2.getX() - e1.getX();
         float deltaY = e1.getY() - e2.getY();
-        if (touch) checkFunc(distanceX, distanceY, e2);
+        if (touch) checkFunc(Math.abs(deltaX), Math.abs(deltaY), e2);
         if (changeTime) listener.onSeeking(time = (long) (deltaX * 50));
         if (changeBright) setBright(deltaY);
         if (changeVolume) setVolume(deltaY);
@@ -149,7 +153,8 @@ public class CustomKeyDown extends GestureDetector.SimpleOnGestureListener imple
     }
 
     private void checkFunc(float distanceX, float distanceY, MotionEvent e2) {
-        if (Math.abs(distanceX) >= Math.abs(distanceY)) changeTime = true;
+        if ((float) Math.sqrt(distanceX * distanceX + distanceY * distanceY) < ResUtil.dp2px(20)) return;
+        if (distanceX >= distanceY) changeTime = true;
         else if (isSide(e2)) checkSide(e2);
         touch = false;
     }

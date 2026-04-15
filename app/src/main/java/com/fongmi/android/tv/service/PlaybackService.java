@@ -1,165 +1,512 @@
 package com.fongmi.android.tv.service;
 
-import android.annotation.SuppressLint;
-import android.app.ActivityManager;
-import android.app.Notification;
-import android.app.Service;
-import android.content.Context;
+import android.app.PendingIntent;
 import android.content.Intent;
-import android.content.pm.ServiceInfo;
-import android.graphics.Bitmap;
-import android.os.Build;
+import android.os.Binder;
 import android.os.IBinder;
-import android.support.v4.media.MediaMetadataCompat;
 
-import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.StringRes;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
-import androidx.core.app.ServiceCompat;
-import androidx.core.content.ContextCompat;
-import androidx.media.app.NotificationCompat.MediaStyle;
-import androidx.media.session.MediaButtonReceiver;
-import androidx.palette.graphics.Palette;
+import androidx.media3.common.ForwardingPlayer;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.Player;
+import androidx.media3.session.DefaultMediaNotificationProvider;
+import androidx.media3.session.LibraryResult;
+import androidx.media3.session.MediaLibraryService;
+import androidx.media3.session.MediaLibraryService.MediaLibrarySession;
+import androidx.media3.session.MediaSession;
+import androidx.media3.session.SessionError;
 
 import com.fongmi.android.tv.App;
+import com.fongmi.android.tv.BuildConfig;
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.bean.Result;
+import com.fongmi.android.tv.browse.BrowseTree;
 import com.fongmi.android.tv.event.ActionEvent;
-import com.fongmi.android.tv.player.Players;
-import com.fongmi.android.tv.receiver.ActionReceiver;
-import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.android.tv.event.ConfigEvent;
+import com.fongmi.android.tv.player.PlayerManager;
+import com.fongmi.android.tv.server.Server;
+import com.fongmi.android.tv.utils.Task;
+import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 
-public class PlaybackService extends Service {
+public class PlaybackService extends MediaLibraryService implements MediaLibrarySession.Callback, PlayerManager.Callback {
 
-    private static Players player;
+    public static final String LOCAL_BIND_ACTION = BuildConfig.APPLICATION_ID.concat(".LOCAL_BIND");
 
-    public static void start(Players player) {
-        ContextCompat.startForegroundService(App.get(), new Intent(App.get(), PlaybackService.class));
-        PlaybackService.player = player;
+    private static volatile boolean running;
+
+    private final List<PlayerCallback> playerCallbacks = new CopyOnWriteArrayList<>();
+    private final IBinder binder = new LocalBinder();
+
+    private NavigationCallback navigationCallback;
+    private MediaLibrarySession session;
+    private Runnable onNewBinding;
+    private boolean externalBound;
+    private PlayerManager player;
+    private Player exoPlayer;
+
+    public static boolean isRunning() {
+        return running;
     }
 
-    public static void stop() {
-        App.get().stopService(new Intent(App.get(), PlaybackService.class));
+    public void replaceBinding(Runnable callback) {
+        if (onNewBinding != null) onNewBinding.run();
+        onNewBinding = callback;
     }
 
-    private boolean isNull() {
-        return Objects.isNull(player) || Objects.isNull(player.getSession());
+    public PlayerManager player() {
+        return player;
     }
 
-    private boolean nonNull() {
-        return Objects.nonNull(player) && Objects.nonNull(player.getSession());
-    }
-
-    private NotificationManagerCompat getManager() {
-        return NotificationManagerCompat.from(this);
-    }
-
-    private NotificationCompat.Action buildNotificationAction(@DrawableRes int icon, @StringRes int title, String action) {
-        return new NotificationCompat.Action(icon, getString(title), ActionReceiver.getPendingIntent(this, action));
-    }
-
-    private NotificationCompat.Action getPlayPauseAction() {
-        if (nonNull() && player.isPlaying()) return buildNotificationAction(androidx.media3.ui.R.drawable.exo_icon_pause, androidx.media3.ui.R.string.exo_controls_pause_description, ActionEvent.PAUSE);
-        return buildNotificationAction(androidx.media3.ui.R.drawable.exo_icon_play, androidx.media3.ui.R.string.exo_controls_play_description, ActionEvent.PLAY);
-    }
-
-    private MediaMetadataCompat getMetadata() {
-        return isNull() ? null : player.getSession().getController().getMetadata();
-    }
-
-    private String getTitle() {
-        return getMetadata() == null || getMetadata().getString(MediaMetadataCompat.METADATA_KEY_TITLE).isEmpty() ? null : getMetadata().getString(MediaMetadataCompat.METADATA_KEY_TITLE);
-    }
-
-    private String getArtist() {
-        return getMetadata() == null || getMetadata().getString(MediaMetadataCompat.METADATA_KEY_ARTIST).isEmpty() ? null : getMetadata().getString(MediaMetadataCompat.METADATA_KEY_ARTIST);
-    }
-
-    private Bitmap getArt() {
-        return getMetadata() == null ? null : getMetadata().getBitmap(MediaMetadataCompat.METADATA_KEY_ART);
-    }
-
-    private void addAction(NotificationCompat.Builder builder) {
-        builder.addAction(buildNotificationAction(androidx.media3.ui.R.drawable.exo_icon_previous, androidx.media3.ui.R.string.exo_controls_previous_description, ActionEvent.PREV));
-        builder.addAction(getPlayPauseAction());
-        builder.addAction(buildNotificationAction(androidx.media3.ui.R.drawable.exo_icon_next, androidx.media3.ui.R.string.exo_controls_next_description, ActionEvent.NEXT));
-    }
-
-    private Notification buildNotification() {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, Notify.DEFAULT);
-        builder.setOngoing(false);
-        builder.setColorized(true);
-        builder.setOnlyAlertOnce(true);
-        builder.setContentText(getArtist());
-        builder.setContentTitle(getTitle());
-        builder.setSmallIcon(R.drawable.ic_notification);
-        builder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
-        builder.setDeleteIntent(ActionReceiver.getPendingIntent(this, ActionEvent.STOP));
-        if (nonNull()) builder.setContentIntent(player.getSession().getController().getSessionActivity());
-        if (nonNull()) builder.setStyle(new MediaStyle().setMediaSession(player.getSession().getSessionToken()).setShowActionsInCompactView(0, 1, 2));
-        if (getArt() != null) setIconColor(builder, getArt());
-        addAction(builder);
-        return builder.build();
-    }
-
-    private void setIconColor(NotificationCompat.Builder builder, Bitmap art) {
-        builder.setLargeIcon(art);
-        Palette palette = Palette.from(art).generate();
-        int white = ContextCompat.getColor(this, R.color.white);
-        builder.setColor(palette.getMutedColor(palette.getVibrantColor(white)));
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onActionEvent(ActionEvent event) {
-        if (event.isUpdate()) Notify.show(buildNotification());
+    private boolean hasNavigationCallback() {
+        return navigationCallback != null;
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
+        running = true;
+        player = new PlayerManager(this);
+        exoPlayer = player.getPlayer();
+        session = new MediaLibrarySession.Builder(this, wrap(exoPlayer), this).build();
+        session.setSessionActivity(buildDefaultIntent());
         EventBus.getDefault().register(this);
+        Server.get().setService(this);
+        setupNotification();
+    }
+
+    private PendingIntent buildDefaultIntent() {
+        Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+        if (intent == null) intent = new Intent();
+        return PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    private void setupNotification() {
+        DefaultMediaNotificationProvider provider = new DefaultMediaNotificationProvider.Builder(this).build();
+        provider.setSmallIcon(R.drawable.ic_notification);
+        setMediaNotificationProvider(provider);
     }
 
     @Override
-    @SuppressLint("ForegroundServiceType")
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (nonNull()) MediaButtonReceiver.handleIntent(player.getSession(), intent);
-        int type = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ? ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK : 0;
-        ServiceCompat.startForeground(this, Notify.ID, buildNotification(), type);
-        return START_NOT_STICKY;
+        if (intent != null) handleAction(intent.getAction());
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    private void handleAction(String action) {
+        if (ActionEvent.PLAY.equals(action)) player.play();
+        else if (ActionEvent.PAUSE.equals(action)) player.pause();
+        else if (ActionEvent.PREV.equals(action)) dispatchPrev();
+        else if (ActionEvent.NEXT.equals(action)) dispatchNext();
+        else if (ActionEvent.STOP.equals(action)) dispatchStop();
+        else if (ActionEvent.LOOP.equals(action)) dispatchLoop();
+        else if (ActionEvent.AUDIO.equals(action)) dispatchAudio();
+        else if (ActionEvent.REPLAY.equals(action)) dispatchReplay();
+    }
+
+    private boolean isLocalBind(Intent intent) {
+        return LOCAL_BIND_ACTION.equals(intent != null ? intent.getAction() : null);
+    }
+
+    private boolean isExternalBind(Intent intent) {
+        return "android.media.browse.MediaBrowserService".equals(intent != null ? intent.getAction() : null);
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        if (isLocalBind(intent)) return binder;
+        if (isExternalBind(intent)) externalBound = true;
+        return super.onBind(intent);
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        if (isExternalBind(intent)) releaseExternal();
+        return super.onUnbind(intent);
     }
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-        stopSelf();
+        tryShutdown();
+    }
+
+    @Override
+    public void onDisconnected(@NonNull MediaSession session, @NonNull MediaSession.ControllerInfo controller) {
+        if (controller.getPackageName().equals(getPackageName())) return;
+        tryShutdown();
     }
 
     @Override
     public void onDestroy() {
+        running = false;
+        releaseSession();
+        player.release();
+        removeForeground();
+        Server.get().setService(null);
         EventBus.getDefault().unregister(this);
-        getManager().cancel(Notify.ID);
-        stopForeground(true);
+        super.onDestroy();
+    }
+
+    public void shutdown() {
+        if (!running) return;
+        running = false;
+        player.stop();
+        stopSelf();
+    }
+
+    private void tryShutdown() {
+        if (!hasNavigationCallback() && !hasExternalClient()) shutdown();
+    }
+
+    private void releaseExternal() {
+        externalBound = false;
+        saveProgress();
+        BrowseTree.clear();
+        tryShutdown();
+    }
+
+    private void releaseSession() {
+        if (session == null) return;
+        session.release();
+        session = null;
+    }
+
+    private void removeForeground() {
+        stopForeground(STOP_FOREGROUND_REMOVE);
+    }
+
+    private void saveProgress() {
+        if (hasNavigationCallback() || session == null) return;
+        if (BrowseTree.saveProgress(exoPlayer.getCurrentPosition(), exoPlayer.getDuration())) {
+            session.notifyChildrenChanged("VOD", 0, null);
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onConfigEvent(ConfigEvent event) {
+        if (session == null) return;
+        if (event.isVod()) {
+            BrowseTree.clearVod();
+            session.notifyChildrenChanged("VOD", 0, null);
+        } else if (event.isLive()) {
+            BrowseTree.clearLive();
+            session.notifyChildrenChanged("LIVE", 0, null);
+        }
     }
 
     @Nullable
     @Override
-    public IBinder onBind(Intent intent) {
-        return null;
+    public MediaLibrarySession onGetSession(@NonNull MediaSession.ControllerInfo controllerInfo) {
+        return session;
     }
 
-    public static boolean isRunning() {
-        ActivityManager manager = (ActivityManager) App.get().getSystemService(Context.ACTIVITY_SERVICE);
-        List<ActivityManager.RunningServiceInfo> services = manager.getRunningServices(Integer.MAX_VALUE);
-        if (services == null || services.isEmpty()) return false;
-        String clz = PlaybackService.class.getName();
-        return services.stream().anyMatch(serviceInfo -> clz.equals(serviceInfo.service.getClassName()));
+    @NonNull
+    @Override
+    public MediaSession.ConnectionResult onConnect(@NonNull MediaSession session, @NonNull MediaSession.ControllerInfo controller) {
+        return new MediaLibrarySession.ConnectionResult.AcceptedResultBuilder(session).build();
+    }
+
+    public boolean hasExternalClient() {
+        return externalBound;
+    }
+
+    public void setSessionActivity(PendingIntent pendingIntent) {
+        if (session != null) session.setSessionActivity(pendingIntent);
+    }
+
+    public void resetSessionActivity() {
+        setSessionActivity(buildDefaultIntent());
+    }
+
+    public void setNavigationCallback(NavigationCallback navigationCallback) {
+        this.navigationCallback = navigationCallback;
+    }
+
+    public void addPlayerCallback(PlayerCallback callback) {
+        playerCallbacks.add(callback);
+    }
+
+    public void removePlayerCallback(PlayerCallback callback) {
+        playerCallbacks.remove(callback);
+    }
+
+    public boolean hasPlayerCallback() {
+        return !playerCallbacks.isEmpty();
+    }
+
+    public void dispatchPrev() {
+        dispatchNavigate(NavigationCallback::onPrev, -1);
+    }
+
+    public void dispatchNext() {
+        dispatchNavigate(NavigationCallback::onNext, 1);
+    }
+
+    private void dispatchNavigate(Consumer<NavigationCallback> action, int delta) {
+        if (navigationCallback != null) dispatch(action);
+        else navigateItem(delta);
+    }
+
+    public void dispatchStop() {
+        if (navigationCallback != null) dispatch(NavigationCallback::onStop);
+        else player.stop();
+    }
+
+    public void dispatchLoop() {
+        dispatch(NavigationCallback::onLoop);
+    }
+
+    public void dispatchReplay() {
+        if (navigationCallback != null) dispatch(NavigationCallback::onReplay);
+        else {
+            exoPlayer.seekTo(0);
+            exoPlayer.play();
+        }
+    }
+
+    public void dispatchAudio() {
+        dispatch(NavigationCallback::onAudio);
+    }
+
+    private void dispatch(Consumer<NavigationCallback> action) {
+        NavigationCallback callback = navigationCallback;
+        if (callback != null) App.post(() -> action.accept(callback));
+    }
+
+    private void navigateItem(int delta) {
+        MediaItem current = exoPlayer.getCurrentMediaItem();
+        if (current == null) return;
+        Task.submit(() -> {
+            try {
+                MediaItem next = BrowseTree.navigate(current.mediaId, delta);
+                if (next == null || next.localConfiguration == null) return;
+                Result result = BrowseTree.consumeBrowseResult(next.mediaId);
+                if (result == null || !isRunning()) return;
+                App.post(() -> startBrowse(player, next, result, 0));
+            } catch (Exception ignored) {
+            }
+        });
+    }
+
+    private boolean isSameItem(MediaItem item) {
+        if (item == null || item.localConfiguration == null) return false;
+        return item.localConfiguration.uri.toString().equals(player.getUrl());
+    }
+
+    private void interceptItem(@NonNull MediaItem item, long startPositionMs) {
+        if (isSameItem(item)) return;
+        playViaManager(item, startPositionMs);
+    }
+
+    private void interceptItems(@NonNull List<MediaItem> items, int startIndex, long startPositionMs) {
+        if (items.isEmpty()) return;
+        int idx = (startIndex >= 0 && startIndex < items.size()) ? startIndex : 0;
+        interceptItem(items.get(idx), startPositionMs > 0 ? startPositionMs : 0);
+    }
+
+    private ForwardingPlayer wrap(Player base) {
+        return new ForwardingPlayer(base) {
+            @Override
+            public void setMediaItem(@NonNull MediaItem item) {
+                interceptItem(item, 0);
+            }
+
+            @Override
+            public void setMediaItem(@NonNull MediaItem item, boolean resetPosition) {
+                interceptItem(item, 0);
+            }
+
+            @Override
+            public void setMediaItem(@NonNull MediaItem item, long startPositionMs) {
+                interceptItem(item, startPositionMs);
+            }
+
+            @Override
+            public void setMediaItems(@NonNull List<MediaItem> items) {
+                interceptItems(items, 0, 0);
+            }
+
+            @Override
+            public void setMediaItems(@NonNull List<MediaItem> items, boolean resetPosition) {
+                interceptItems(items, 0, 0);
+            }
+
+            @Override
+            public void setMediaItems(@NonNull List<MediaItem> items, int startIndex, long startPositionMs) {
+                interceptItems(items, startIndex, startPositionMs);
+            }
+
+            @Override
+            public void seekToPrevious() {
+                dispatchPrev();
+            }
+
+            @Override
+            public void seekToPreviousMediaItem() {
+                dispatchPrev();
+            }
+
+            @Override
+            public void seekToNext() {
+                dispatchNext();
+            }
+
+            @Override
+            public void seekToNextMediaItem() {
+                dispatchNext();
+            }
+
+            @Override
+            public void stop() {
+                dispatchStop();
+            }
+
+            @NonNull
+            @Override
+            public Commands getAvailableCommands() {
+                return super.getAvailableCommands().buildUpon().add(COMMAND_SEEK_TO_PREVIOUS).add(COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM).add(COMMAND_SEEK_TO_NEXT).add(COMMAND_SEEK_TO_NEXT_MEDIA_ITEM).add(COMMAND_SEEK_BACK).add(COMMAND_SEEK_FORWARD).add(COMMAND_STOP).build();
+            }
+        };
+    }
+
+    private void playViaManager(MediaItem item, long startPositionMs) {
+        if (item == null || item.localConfiguration == null) return;
+        Result result = BrowseTree.consumeBrowseResult(item.mediaId);
+        if (result != null) startBrowse(player, item, result, startPositionMs);
+    }
+
+    private void startBrowse(PlayerManager manager, MediaItem item, Result result, long startPositionMs) {
+        manager.startBrowse(item.mediaId, item.mediaMetadata, result);
+        if (startPositionMs > 0) manager.seekTo(startPositionMs);
+    }
+
+    @Override
+    public void onPrepare() {
+        playerCallbacks.forEach(PlayerCallback::onPrepare);
+    }
+
+    @Override
+    public void onTracksChanged() {
+        playerCallbacks.forEach(PlayerCallback::onTracksChanged);
+    }
+
+    @Override
+    public void onTitlesChanged() {
+        playerCallbacks.forEach(PlayerCallback::onTitlesChanged);
+    }
+
+    @Override
+    public void onError(String msg) {
+        playerCallbacks.forEach(callback -> callback.onError(msg));
+    }
+
+    @Override
+    public void onPlayerRebuild(Player newPlayer) {
+        exoPlayer = newPlayer;
+        if (session != null) session.setPlayer(wrap(newPlayer));
+        for (PlayerCallback callback : playerCallbacks) callback.onPlayerRebuild(newPlayer);
+    }
+
+    @NonNull
+    @Override
+    public ListenableFuture<LibraryResult<MediaItem>> onGetLibraryRoot(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @Nullable MediaLibraryService.LibraryParams params) {
+        return Futures.immediateFuture(LibraryResult.ofItem(BrowseTree.getRootItem(), params));
+    }
+
+    @NonNull
+    @Override
+    public ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetChildren(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @NonNull String parentId, int page, int pageSize, @Nullable MediaLibraryService.LibraryParams params) {
+        return Task.executor().submit(() -> LibraryResult.ofItemList(BrowseTree.getChildren(parentId), params));
+    }
+
+    @NonNull
+    @Override
+    public ListenableFuture<LibraryResult<Void>> onSearch(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @NonNull String query, @Nullable MediaLibraryService.LibraryParams params) {
+        Task.execute(() -> {
+            ImmutableList<MediaItem> results = BrowseTree.search(query);
+            App.post(() -> session.notifySearchResultChanged(browser, query, results.size(), params));
+        });
+        return Futures.immediateFuture(LibraryResult.ofVoid(params));
+    }
+
+    @NonNull
+    @Override
+    public ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> onGetSearchResult(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @NonNull String query, int page, int pageSize, @Nullable MediaLibraryService.LibraryParams params) {
+        return Futures.immediateFuture(LibraryResult.ofItemList(BrowseTree.getSearchResult(), params));
+    }
+
+    @NonNull
+    @Override
+    public ListenableFuture<LibraryResult<MediaItem>> onGetItem(@NonNull MediaLibrarySession session, @NonNull MediaSession.ControllerInfo browser, @NonNull String mediaId) {
+        MediaItem item = BrowseTree.getItem(mediaId);
+        return Futures.immediateFuture(item != null ? LibraryResult.ofItem(item, null) : LibraryResult.ofError(SessionError.ERROR_BAD_VALUE));
+    }
+
+    @NonNull
+    @Override
+    public ListenableFuture<MediaSession.MediaItemsWithStartPosition> onSetMediaItems(@NonNull MediaSession session, @NonNull MediaSession.ControllerInfo controller, @NonNull List<MediaItem> mediaItems, int startIndex, long startPositionMs) {
+        saveProgress();
+        return Task.executor().submit(() -> {
+            List<MediaItem> resolved = mediaItems.stream().map(BrowseTree::resolveOrKeep).toList();
+            int index = Math.max(startIndex, 0);
+            long position = BrowseTree.consumeResumePosition();
+            return new MediaSession.MediaItemsWithStartPosition(resolved, index, position);
+        });
+    }
+
+    public interface PlayerCallback {
+
+        default void onPrepare() {
+        }
+
+        default void onTracksChanged() {
+        }
+
+        default void onTitlesChanged() {
+        }
+
+        default void onError(String msg) {
+        }
+
+        default void onPlayerRebuild(Player player) {
+        }
+    }
+
+    public interface NavigationCallback {
+
+        default void onPrev() {
+        }
+
+        default void onNext() {
+        }
+
+        default void onStop() {
+        }
+
+        default void onLoop() {
+        }
+
+        default void onReplay() {
+        }
+
+        default void onAudio() {
+        }
+    }
+
+    public class LocalBinder extends Binder {
+
+        public PlaybackService getService() {
+            return PlaybackService.this;
+        }
     }
 }

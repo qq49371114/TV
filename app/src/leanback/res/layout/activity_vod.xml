@@ -14,8 +14,8 @@
         android:paddingStart="24dp"
         android:paddingTop="24dp"
         android:paddingEnd="24dp"
-        app:focusOutEnd="true"
-        app:focusOutFront="true" />
+        app:focusOutEnd="false"
+        app:focusOutFront="false" />
 
     <com.fongmi.android.tv.ui.custom.CustomViewPager
         android:id="@+id/pager"

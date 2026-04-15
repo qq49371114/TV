@@ -1,9 +1,12 @@
 package com.fongmi.android.tv.api.config;
 
+import android.text.TextUtils;
+
 import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.Decoder;
-import com.fongmi.android.tv.api.LiveParser;
+import com.fongmi.android.tv.api.LiveApi;
 import com.fongmi.android.tv.api.loader.BaseLoader;
+import com.fongmi.android.tv.api.parser.LiveParser;
 import com.fongmi.android.tv.bean.Channel;
 import com.fongmi.android.tv.bean.Config;
 import com.fongmi.android.tv.bean.Depot;
@@ -17,7 +20,6 @@ import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.bean.Header;
 import com.github.catvod.bean.Proxy;
-import com.github.catvod.net.OkHttp;
 import com.github.catvod.utils.Json;
 import com.google.gson.JsonObject;
 
@@ -37,10 +39,6 @@ public class LiveConfig extends BaseConfig {
     private List<Live> lives;
     private List<Rule> rules;
     private List<String> ads;
-
-    private static class Loader {
-        static volatile LiveConfig INSTANCE = new LiveConfig();
-    }
 
     public static LiveConfig get() {
         return Loader.INSTANCE;
@@ -71,8 +69,7 @@ public class LiveConfig extends BaseConfig {
     }
 
     public static boolean hasUrl() {
-        String url = getUrl();
-        return url != null && !url.isEmpty();
+        return !TextUtils.isEmpty(getUrl());
     }
 
     public static void load(Config config, Callback callback) {
@@ -95,6 +92,7 @@ public class LiveConfig extends BaseConfig {
         home = null;
         lives = null;
         rules = null;
+        RuleConfig.get().invalidate();
         return this;
     }
 
@@ -119,6 +117,23 @@ public class LiveConfig extends BaseConfig {
         String json = Decoder.getJson(UrlUtil.convert(config.getUrl()), TAG);
         if (Json.isObj(json)) checkJson(config, Json.parse(json).getAsJsonObject());
         else parseText(config, json);
+    }
+
+    @Override
+    protected boolean isLoaded() {
+        return !getLives().isEmpty() && !getHome().getGroups().isEmpty();
+    }
+
+    @Override
+    public synchronized void ensureLoaded() {
+        try {
+            if (isLoaded()) return;
+            super.ensureLoaded();
+            LiveApi.parse(getHome());
+            LiveApi.parseXml(getHome());
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 
     public void load() {
@@ -147,6 +162,7 @@ public class LiveConfig extends BaseConfig {
         List<Depot> items = Depot.arrayFrom(object.getAsJsonArray("urls").toString());
         List<Config> configs = new ArrayList<>();
         for (Depot item : items) configs.add(Config.find(item, LIVE));
+        if (configs.isEmpty()) throw new Exception("Depot urls is empty");
         load(this.config = configs.get(0));
         Config.delete(config.getUrl());
     }
@@ -161,9 +177,9 @@ public class LiveConfig extends BaseConfig {
     }
 
     private void initList(JsonObject object) {
-        setHeaders(Header.arrayFrom(object.getAsJsonArray("headers")));
-        setProxy(Proxy.arrayFrom(object.getAsJsonArray("proxy")));
-        setRules(Rule.arrayFrom(object.getAsJsonArray("rules")));
+        setHeaders(Header.arrayFrom(fetchArray(object, "headers")));
+        setProxy(Proxy.arrayFrom(fetchArray(object, "proxy")));
+        setRules(Rule.arrayFrom(fetchArray(object, "rules")));
         setHosts(Json.safeListString(object, "hosts"));
         setAds(Json.safeListString(object, "ads"));
     }
@@ -206,8 +222,9 @@ public class LiveConfig extends BaseConfig {
     }
 
     public int[] findByChannelNumber(String number, List<Group> items) {
+        int num = Integer.parseInt(number);
         for (int i = 0; i < items.size(); i++) {
-            int j = items.get(i).find(Integer.parseInt(number));
+            int j = items.get(i).find(num);
             if (j != -1) return new int[]{i, j};
         }
         return new int[]{-1, -1};
@@ -227,19 +244,7 @@ public class LiveConfig extends BaseConfig {
 
     private void setRules(List<Rule> rules) {
         this.rules = rules;
-    }
-
-    private void setHeaders(List<Header> headers) {
-        OkHttp.responseInterceptor().addAll(headers);
-    }
-
-    private void setProxy(List<Proxy> proxy) {
-        OkHttp.authenticator().addAll(proxy);
-        OkHttp.selector().addAll(proxy);
-    }
-
-    private void setHosts(List<String> hosts) {
-        OkHttp.dns().addAll(hosts);
+        RuleConfig.get().invalidate();
     }
 
     public List<String> getAds() {
@@ -248,18 +253,19 @@ public class LiveConfig extends BaseConfig {
 
     private void setAds(List<String> ads) {
         this.ads = ads;
+        RuleConfig.get().invalidate();
     }
 
     public Live getHome() {
         return home == null ? new Live() : home;
     }
 
-    public Live getLive(String key) {
-        return getLives().stream().filter(item -> item.getName().equals(key)).findFirst().orElse(new Live());
-    }
-
     public void setHome(Live home) {
         setHome(getConfig(), home, true);
+    }
+
+    public Live getLive(String key) {
+        return getLives().stream().filter(item -> item.getName().equals(key)).findFirst().orElse(new Live());
     }
 
     private void setHome(Config config, Live live, boolean save) {
@@ -269,5 +275,9 @@ public class LiveConfig extends BaseConfig {
         if (save) config.save();
         getLives().forEach(item -> item.setActivated(home));
         if (!save && (home.isBoot() || Setting.isBootLive())) ConfigEvent.boot();
+    }
+
+    private static class Loader {
+        static volatile LiveConfig INSTANCE = new LiveConfig();
     }
 }

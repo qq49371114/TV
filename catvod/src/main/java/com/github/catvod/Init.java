@@ -8,10 +8,6 @@ public class Init {
 
     private WeakReference<Context> context;
 
-    private static class Loader {
-        static volatile Init INSTANCE = new Init();
-    }
-
     private static Init get() {
         return Loader.INSTANCE;
     }
@@ -22,5 +18,9 @@ public class Init {
 
     public static Context context() {
         return get().context.get();
+    }
+
+    private static class Loader {
+        static volatile Init INSTANCE = new Init();
     }
 }

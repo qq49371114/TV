@@ -12,6 +12,7 @@ import androidx.room.PrimaryKey;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
+import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.impl.Diffable;
@@ -62,6 +63,17 @@ public class History implements Diffable<History> {
     @SerializedName("cid")
     private int cid;
 
+    private transient long updateTime;
+
+    public History() {
+        this.speed = 1;
+        this.scale = -1;
+        this.ending = C.TIME_UNSET;
+        this.opening = C.TIME_UNSET;
+        this.position = C.TIME_UNSET;
+        this.duration = C.TIME_UNSET;
+    }
+
     public static History objectFrom(String str) {
         return App.gson().fromJson(str, History.class);
     }
@@ -72,13 +84,39 @@ public class History implements Diffable<History> {
         return items == null ? Collections.emptyList() : items;
     }
 
-    public History() {
-        this.speed = 1;
-        this.scale = -1;
-        this.ending = C.TIME_UNSET;
-        this.opening = C.TIME_UNSET;
-        this.position = C.TIME_UNSET;
-        this.duration = C.TIME_UNSET;
+    public static List<History> get() {
+        return get(VodConfig.getCid());
+    }
+
+    public static List<History> get(int cid) {
+        return AppDatabase.get().getHistoryDao().find(cid, System.currentTimeMillis() - Constant.HISTORY_TIME);
+    }
+
+    public static History find(String key) {
+        return AppDatabase.get().getHistoryDao().find(VodConfig.getCid(), key);
+    }
+
+    public static List<History> findByName(String name) {
+        try {
+            return AppDatabase.get().getHistoryDao().findByName(VodConfig.getCid(), name);
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
+
+    public static void delete(int cid) {
+        AppDatabase.get().getHistoryDao().delete(cid);
+    }
+
+    public static void sync(List<History> targets) {
+        targets.forEach(target -> {
+            List<History> items = findByName(target.getVodName());
+            if (items.isEmpty()) target.cid(VodConfig.getCid()).save();
+            else {
+                long latestTime = items.stream().mapToLong(History::getCreateTime).max().orElse(0L);
+                if (target.getCreateTime() > latestTime) target.cid(VodConfig.getCid()).merge(items, true).save();
+            }
+        });
     }
 
     @NonNull
@@ -152,6 +190,10 @@ public class History implements Diffable<History> {
 
     public void setCreateTime(long createTime) {
         this.createTime = createTime;
+    }
+
+    public long getUpdateTime() {
+        return updateTime;
     }
 
     public long getOpening() {
@@ -247,30 +289,6 @@ public class History implements Diffable<History> {
         return isRevPlay() ? R.string.play_backward_hint : R.string.play_forward_hint;
     }
 
-    public static List<History> get() {
-        return get(VodConfig.getCid());
-    }
-
-    public static List<History> get(int cid) {
-        return AppDatabase.get().getHistoryDao().find(cid, System.currentTimeMillis() - Constant.HISTORY_TIME);
-    }
-
-    public static History find(String key) {
-        return AppDatabase.get().getHistoryDao().find(VodConfig.getCid(), key);
-    }
-
-    public static List<History> findByName(String name) {
-        try {
-            return AppDatabase.get().getHistoryDao().findByName(VodConfig.getCid(), name);
-        } catch (Exception e) {
-            return Collections.emptyList();
-        }
-    }
-
-    public static void delete(int cid) {
-        AppDatabase.get().getHistoryDao().delete(cid);
-    }
-
     private boolean shouldMerge(History item, boolean force) {
         if (!force && getKey().equals(item.getKey())) return false;
         if (getDuration() <= 0 || item.getDuration() <= 0) return true;
@@ -284,8 +302,17 @@ public class History implements Diffable<History> {
         return this;
     }
 
+    public boolean canSave() {
+        return getPosition() > 0 && getDuration() > 0 && !Setting.isIncognito();
+    }
+
+    public boolean canSync() {
+        return System.currentTimeMillis() - getUpdateTime() > 5000 && !Setting.isIncognito();
+    }
+
     public History merge() {
-        return merge(false);
+        merge(false);
+        return this;
     }
 
     private History merge(boolean force) {
@@ -302,6 +329,7 @@ public class History implements Diffable<History> {
     }
 
     public History save() {
+        updateTime = System.currentTimeMillis();
         AppDatabase.get().getHistoryDao().insertOrUpdate(this);
         return this;
     }
@@ -328,17 +356,6 @@ public class History implements Diffable<History> {
                 break;
             }
         }
-    }
-
-    public static void sync(List<History> targets) {
-        targets.forEach(target -> {
-            List<History> items = findByName(target.getVodName());
-            if (items.isEmpty()) target.cid(VodConfig.getCid()).save();
-            else {
-                long latestTime = items.stream().mapToLong(History::getCreateTime).max().orElse(0L);
-                if (target.getCreateTime() > latestTime) target.cid(VodConfig.getCid()).merge(items, true).save();
-            }
-        });
     }
 
     @Override

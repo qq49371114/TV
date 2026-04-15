@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -36,9 +35,10 @@ public class Spider extends com.github.catvod.crawler.Spider {
 
     private final ExecutorService executor;
     private final DexClassLoader dex;
+    private final String api;
+
     private QuickJSContext ctx;
     private JSObject jsObject;
-    private final String api;
     private boolean cat;
 
     public Spider(String api, DexClassLoader dex) {
@@ -52,7 +52,7 @@ public class Spider extends com.github.catvod.crawler.Spider {
     }
 
     private Object call(String func, Object... args) throws Exception {
-        return CompletableFuture.supplyAsync(() -> Async.run(jsObject, func, args), executor).join().get();
+        return submit(() -> Async.run(jsObject, func, args)).get().get();
     }
 
     @Override

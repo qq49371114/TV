@@ -1,8 +1,12 @@
-let ic_dir = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAA7AAAAOwBeShxvQAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAIoSURBVFiF7Ze/T9RgGMc/T9/WO+74IXdRNKCJxETPQaOJi8LoxiouTurmv+DAYvwH3JzVhOhgSHByMTqY6GBCCBFMcJFwURC4O1rbvo8DoIg9rvHuYOGTdGjfb/J88vZpn1Z0bKw7JjsiaCcJqMiCKQ1OyuhonLTeLG5MZlLQq/UCooqd/nwfuNcOAUfgSorcbR0fN20RACRF7hgzc0PtEJB47IGmCSq8EXjbOKjG+VG54Buv531puK/WkfO2L0cY+ZI5ksVfD84vTt91U5vCEBvH7qxU0GqV18PX+Xg2+e6GFmZXhPlc3zOX5dW0Do2xMbIeEBuXmVMX68Y8BwxQzhXFlWqtdQKbzA+cIch0pMq630vgX55DTJgY+Bn18ql8hyAqphb4VjjeMLPVeG722nOKztddw0EPTARPUws0ohqB3TRw8w2KAwyaCRara/i2u+niCqxHf85TPQWe+Jw2L3kX3GhaYCdip5xU74FV28dSPNB8QZR8VEbCiCe1h+kFWopCVLH42oWz58Xh98s/y9o+CWzjQOBA4EBg3wX+mgWxdwlrTtSJRrjBK0T99glUC49R52jdcG75Fp7/on0C4BGGIeWFMtsHRL4zT2/hMCoerebfHkgYTWm+2/+XHTsQ4h3y6D/ZnxgWjRKvt0wgv3QTa+rN/I0mbDVipxxLe3c5kWjNgqIOSOO/nRajMVu99kF0hi4iM4LQtSfVrWbigHMa21k35NEvWSq4Cnb1Ay8AAAAASUVORK5CYII=';
-let ic_file = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAA7AAAAOwBeShxvQAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAJdSURBVFiF7ZfLaxNRFMa/c+8MbZO0xAgmGIIxUmtsQCkobsSNO12I7v0PXAjuBDeCCN0I/gvdu3HhQlHBBwouTA1UUoulKXmYSDp59TEzx4XUpmFm0tsMTRd+u5l7uN9vvnvunRmCh+r1+km2+CWAlFedm5byP79PIHRx8tKk4VYjvCawTfvafs0BoN1qThWNYn7h3cK4EgDPI23P07Ox5pM7+zXfVqPRPFbulPO517nQngBmv3JwkwIPQXQDXDs9KAAANI1WtLpVXcx9yEU8AWY/WU95nRvL1tVbfhgLKXcgGq1oZe3XajabPdJdo3VfMOg2AAL7YQ8kUyewIiQs0wQAbG5sjHbqnUUARx0BAMi/IP4oEAxganpnFcuFEggU7q7x3AUHoaED9C6Bp5gZlmUpGQgSENL9OR0B2KUJCssFFAslJQAShPMXzkHX9b0DuCmRTCCRTCgB9JPzSeirhbeUEjDqBgyjoWQgiBCLxyCEcx8494DLZLZtwzbVmpAFeUaqlEA4EkY4Eu5fqKBDeg64bsNVVEoVJQMCITOTga47WznfJefJ4onjiMWjygBSk67jSgcRCYImlNqmr4beA0M/iP4ncDgT+BfBAUThmQDbpv+OPZ+8ngBa+xWEWfbFt9PqgJmh6/r7XR5OxduIkpcw9uMsWE4MZM7QMKoFq2uBF2dS6VO1vgArWzPIjDwHSUCOA2DXf0sFit9z6XS61nu7F8AEgLfrD/CtfQUhWR3YNzZS+ngzdPc+ps03TuO7Xjuzn61HzHQPDL1pAvaAu4AZJYvo+uPL9MWt5g/5NsVsHsMO8wAAAABJRU5ErkJggg==';
-let current_root = '';
-let current_file = '';
-let current_parent = '';
+﻿const icDir = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F5A623'><path d='M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z'/></svg>`;
+const icFile = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23717970'><path d='M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z'/></svg>`;
+let currentRoot = '';
+let currentFile = '';
+let currentParent = '';
+let longPressTimer = null;
+let longPressTriggered = false;
+let pendingDelFolder = null;
+let warnToastTimer = null;
 
 function search() {
     doAction('search', { word: $('#keyword').val() });
@@ -16,235 +20,213 @@ function setting() {
     doAction('setting', { text: $('#setting_text').val(), name: $('#setting_name').val() });
 }
 
-function file(path) {
-    doAction('file', { path: path });
-}
-
 function doAction(action, kv) {
-    kv['do'] = action;
-    $.post('/action', kv, function (data) {
-        console.log(data);
-    });
-    return false;
+    $.post('/action', { ...kv, do: action });
 }
 
-function tpl_top(path) {
-    return `<a class="weui-cell weui-cell_access" href="javascript:void(0)" onclick="listFile('` + path + `')">
-    <div class="weui-cell__hd"><img src="` + ic_dir + `" alt="" style="width: 32px; margin-right: 16px; display: block;"></div>
-    <span class="weui-cell__bd">
-        <span class="weui-cell__name">..</span>
-    </span>
-    <span class="weui-cell__ft">
-    </span>
+function startLongPress(callback) {
+    longPressTriggered = false;
+    longPressTimer = setTimeout(() => {
+        longPressTriggered = true;
+        callback();
+    }, 500);
+}
+
+function cancelLongPress() {
+    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+}
+
+function escPath(s) {
+    return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+function escHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function buildParentItem() {
+    return `<a class="file-item" href="javascript:void(0)" onclick="history.back()">
+    <img class="file-icon" src="${icDir}" alt="">
+    <div class="file-info"><div class="file-name">..</div></div>
     </a>`;
 }
 
-function tpl_dir(name, time, path) {
-    return `<a class="weui-cell weui-cell_access" href="javascript:void(0)" onclick="listFile('` + path + `')">
-    <div class="weui-cell__hd"><img src="` + ic_dir + `" alt="" style="width: 32px; margin-right: 16px; display: block;"></div>
-    <span class="weui-cell__bd">
-    <span class="weui-cell__name">` + name + `</span>
-        <div class="weui-cell__desc">` + time + `</div>
-    </span>
-    <span class="weui-cell__ft">
-    </span>
+function buildDirItem(name, time, path) {
+    const ep = escPath(path);
+    return `<a class="file-item" href="javascript:void(0)" ontouchstart="startLongPress(()=>showDelFolderDialog('${ep}',currentRoot))" ontouchmove="cancelLongPress()" ontouchend="cancelLongPress()" oncontextmenu="return false" onclick="if(!longPressTriggered)listFile('${ep}',true)">
+    <img class="file-icon" src="${icDir}" alt="">
+    <div class="file-info"><div class="file-name">${escHtml(name)}</div><div class="file-time">${escHtml(time)}</div></div>
     </a>`;
 }
 
-function tpl_file(name, time, path, canDel) {
-    return `<a class="weui-cell weui-cell_access" href="javascript:void(0)" onclick="selectFile('` + path + `', ` + canDel + `)">
-    <div class="weui-cell__hd"><img src="` + ic_file + `" alt="" style="width: 32px; margin-right: 16px; display: block;"></div>
-    <span class="weui-cell__bd">
-        <span class="weui-cell__name">` + name + `</span>
-        <div class="weui-cell__desc">` + time + `</div>
-    </span>
+function buildFileItem(name, time, path) {
+    const ep = escPath(path);
+    return `<a class="file-item" href="javascript:void(0)" ontouchstart="startLongPress(()=>showDelFileDialog('${ep}'))" ontouchmove="cancelLongPress()" ontouchend="cancelLongPress()" oncontextmenu="return false" onclick="if(!longPressTriggered)selectFile('${ep}')">
+    <img class="file-icon" src="${icFile}" alt="">
+    <div class="file-info"><div class="file-name">${escHtml(name)}</div><div class="file-time">${escHtml(time)}</div></div>
     </a>`;
 }
 
-function clear_list() {
-    $('#file_list').html('');
-}
-
-function add_file(node) {
+function addFile(node) {
     $('#file_list').append(node);
 }
 
-function selectFile(path, canDel) {
-    current_file = path;
-    if (canDel) $("#delFileBtn").show();
-    else $("#delFileBtn").hide();
-    $("#fileUrl").html("file:/" + current_file);
+function selectFile(path) {
+    currentFile = path;
+    $("#fileUrl").text("file:/" + path);
     $("#fileInfoDialog").show();
 }
 
 function pushFile(yes) {
-    hideFileInfo();
-    if (yes == 1) {
-        file("file:/" + current_file);
-    }
-}
-
-function hideFileInfo() {
     $("#fileInfoDialog").hide();
+    if (yes === 1) doAction('file', { path: "file:/" + currentFile });
 }
 
-function listFile(path) {
-    $('#loadingToast').show();
+function listFile(path, addHistory = false) {
+    const loadingTimer = setTimeout(() => $('#loadingToast').show(), 200);
     $.get('/file' + path, function (res) {
-        let info = JSON.parse(res);
-        let parent = info.parent;
-        let canDel = info.parent != '.';
-        current_root = path;
-        current_parent = parent;
-        let array = info.files;
-        if (path === '' && array.length == 0) {
-            warnToast('可能沒有存儲權限');
+        clearTimeout(loadingTimer);
+        let info;
+        try {
+            info = JSON.parse(res);
+        } catch (e) {
+            $('#loadingToast').hide();
+            warnToast('回應格式錯誤');
+            return;
         }
-        clear_list();
-        if (parent !== '.') {
-            add_file(tpl_top(parent));
-        }
-        if (canDel) {
-            $('#delCurFolder').show();
-        } else {
-            $('#delCurFolder').hide();
-        }
+        const parent = info.parent;
+        currentRoot = path;
+        currentParent = parent;
+        const array = info.files;
+        if (path === '' && array.length === 0) warnToast('可能沒有存儲權限');
+        $('#file_list').html('');
+        if (parent !== '.') addFile(buildParentItem());
         array.forEach(node => {
-            if (node.dir === 1) {
-                add_file(tpl_dir(node.name, node.time, node.path));
-            } else {
-                add_file(tpl_file(node.name, node.time, node.path, canDel));
-            }
+            if (node.dir === 1) addFile(buildDirItem(node.name, node.time, node.path));
+            else addFile(buildFileItem(node.name, node.time, node.path));
         });
+        if (addHistory) history.pushState(path, '');
         $('#loadingToast').hide();
-    })
+    }).fail(function () {
+        clearTimeout(loadingTimer);
+        $('#loadingToast').hide();
+        warnToast('載入失敗');
+    });
 }
-
 
 function uploadFile() {
     $('#file_uploader').click();
 }
 
-function uploadTip() {
-    let files = $('#file_uploader')[0].files;
-    if (files.length <= 0) return false;
-    let tip = '';
-    for (var i = 0; i < files.length; i++) {
-        tip += (files[i].name) + ',';
-    }
-    tip = tip.substring(0, tip.length - 1);
-    $('#uploadTipContent').html(tip);
+function onFileSelected() {
+    const files = $('#file_uploader')[0].files;
+    if (files.length === 0) return;
+    const tip = Array.from(files).map(f => f.name).join(', ');
+    $('#uploadTipContent').text(tip);
     $('#uploadTip').show();
 }
 
-function doUpload(yes) {
+function confirmUpload(yes) {
     $('#uploadTip').hide();
-    if (yes == 1) {
-        let files = $('#file_uploader')[0].files;
-        if (files.length <= 0) return false;
-        var formData = new FormData();
-        formData.append('path', current_root);
-        for (i = 0; i < files.length; i++) {
-            formData.append("files-" + i, files[i]);
+    if (yes !== 1) return;
+    const files = $('#file_uploader')[0].files;
+    if (files.length === 0) return;
+    const formData = new FormData();
+    formData.append('path', currentRoot);
+    Array.from(files).forEach((f, i) => formData.append('files-' + i, f));
+    $('#loadingToast').show();
+    $.ajax({
+        url: '/upload',
+        type: 'post',
+        data: formData,
+        processData: false,
+        contentType: false,
+        complete: function () {
+            $('#loadingToast').hide();
+            $('#file_uploader').val('');
+            listFile(currentRoot);
         }
-        $('#loadingToast').show();
-        $.ajax({
-            url: '/upload',
-            type: 'post',
-            data: formData,
-            processData: false,
-            contentType: false,
-            complete: function () {
-                $('#loadingToast').hide();
-                listFile(current_root);
-            }
-        });
-    }
+    });
 }
 
-function newFolder() {
+function showNewFolderDialog() {
     $('#newFolder').show();
 }
 
-function doNewFolder(yes) {
+function confirmNewFolder(yes) {
     $('#newFolder').hide();
-    if (yes == 1) {
-        let name = $('#newFolderContent')[0].value.trim();
-        if (name.length <= 0) return false;
-        $('#loadingToast').show();
-        $.post('/newFolder', { path: current_root, name: name }, function (data) {
-            $('#loadingToast').hide();
-            listFile(current_root);
-        });
-    }
+    const name = $('#newFolderContent').val().trim();
+    $('#newFolderContent').val('');
+    if (yes !== 1 || name.length === 0) return;
+    $('#loadingToast').show();
+    $.post('/newFolder', { path: currentRoot, name }, function () {
+        $('#loadingToast').hide();
+        listFile(currentRoot);
+    }).fail(function () {
+        $('#loadingToast').hide();
+        warnToast('新增失敗');
+    });
 }
 
-function delFolder() {
-    $('#delFolderContent').html('是否刪除 ' + current_root);
+function showDelFolderDialog(path, refreshPath) {
+    pendingDelFolder = { path, refreshPath };
+    $('#delFolderContent').text('是否刪除 ' + path);
     $('#delFolder').show();
 }
 
-function doDelFolder(yes) {
+function confirmDelFolder(yes) {
     $('#delFolder').hide();
-    if (yes == 1) {
-        $('#loadingToast').show();
-        $.post('/delFolder', { path: current_root }, function (data) {
-            $('#loadingToast').hide();
-            listFile(current_parent);
-        });
-    }
+    if (yes !== 1 || !pendingDelFolder) { pendingDelFolder = null; return; }
+    const { path, refreshPath } = pendingDelFolder;
+    pendingDelFolder = null;
+    $('#loadingToast').show();
+    $.post('/delFolder', { path }, function () {
+        $('#loadingToast').hide();
+        listFile(refreshPath);
+    }).fail(function () {
+        $('#loadingToast').hide();
+        warnToast('刪除失敗');
+    });
 }
 
-function delFile() {
-    $('#delFileContent').html('是否刪除 ' + current_file);
+function showDelFileDialog(path) {
+    currentFile = path;
+    $('#delFileContent').text('是否刪除 ' + path);
     $('#delFile').show();
-    hideFileInfo();
 }
 
-function doDelFile(yes) {
+function confirmDelFile(yes) {
     $('#delFile').hide();
-    if (yes == 1) {
-        $('#loadingToast').show();
-        $.post('/delFile', { path: current_file }, function (data) {
-            $('#loadingToast').hide();
-            listFile(current_root);
-        });
-    }
+    if (yes !== 1) return;
+    $('#loadingToast').show();
+    $.post('/delFile', { path: currentFile }, function () {
+        $('#loadingToast').hide();
+        listFile(currentRoot);
+    }).fail(function () {
+        $('#loadingToast').hide();
+        warnToast('刪除失敗');
+    });
 }
 
 function warnToast(msg) {
-    $('#warnToastContent').html(msg);
+    $('#warnToastContent').text(msg);
     $('#warnToast').show();
-    setTimeout(() => {
-        $('#warnToast').hide();
-    }, 1000);
+    if (warnToastTimer) clearTimeout(warnToastTimer);
+    warnToastTimer = setTimeout(() => { $('#warnToast').hide(); warnToastTimer = null; }, 1000);
 }
 
 function showPanel(id) {
-    let tab = $('#tab' + id);
-    $(tab).attr('aria-selected', 'true').addClass('weui-bar__item_on');
-    $(tab).siblings('.weui-bar__item_on').removeClass('weui-bar__item_on').attr('aria-selected', 'false');
-    var panelId = '#' + $(tab).attr('aria-controls');
-    $(panelId).css('display', 'block');
-    $(panelId).siblings('.weui-tab__panel').css('display', 'none');
-    if (id === 4) listFile('')
+    for (let i = 1; i <= 4; i++) {
+        document.getElementById('panel' + i).classList.toggle('active', i === id);
+        document.getElementById('tab' + i).classList.toggle('active', i === id);
+    }
+    if (id === 4 && document.getElementById('file_list').innerHTML === '') listFile('');
 }
 
-$(function () {
-    $('.weui-tabbar__item').on('click', function () {
-        showPanel(parseInt($(this).attr('id').substr(3)));
-    });
-});
+const tab = parseInt(new URLSearchParams(window.location.search).get('tab')) || 1;
+history.replaceState(null, '');
+showPanel(tab);
 
-$(document).ready(function () {
-    var url = window.location.search;
-    if (url.indexOf('tab=2') > 0) {
-        showPanel(2);
-    } else if (url.indexOf('tab=3') > 0) {
-        showPanel(3);
-    } else if (url.indexOf('tab=4') > 0) {
-        showPanel(4);
-    } else {
-        showPanel(1);
-    }
+window.addEventListener('popstate', function () {
+    listFile(currentParent);
 });

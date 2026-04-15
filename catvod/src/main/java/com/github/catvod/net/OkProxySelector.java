@@ -7,12 +7,8 @@ import java.io.IOException;
 import java.net.ProxySelector;
 import java.net.SocketAddress;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class OkProxySelector extends ProxySelector {

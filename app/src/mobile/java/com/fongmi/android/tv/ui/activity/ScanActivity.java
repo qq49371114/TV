@@ -9,7 +9,6 @@ import androidx.annotation.NonNull;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.databinding.ActivityScanBinding;
-import com.fongmi.android.tv.event.ScanEvent;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.utils.Util;
 import com.google.zxing.BarcodeFormat;
@@ -49,7 +48,7 @@ public class ScanActivity extends BaseActivity implements BarcodeCallback {
     @Override
     public void barcodeResult(BarcodeResult result) {
         if (!result.getText().startsWith("http")) return;
-        ScanEvent.post(result.getText());
+        setResult(RESULT_OK, new Intent().putExtra("address", result.getText()));
         finish();
     }
 

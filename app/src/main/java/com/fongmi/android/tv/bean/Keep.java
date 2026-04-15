@@ -43,6 +43,44 @@ public class Keep implements Diffable<Keep> {
         return items == null ? Collections.emptyList() : items;
     }
 
+    public static Keep find(String key) {
+        return find(VodConfig.getCid(), key);
+    }
+
+    public static Keep find(int cid, String key) {
+        return AppDatabase.get().getKeepDao().find(cid, key);
+    }
+
+    public static boolean exist(String key) {
+        return AppDatabase.get().getKeepDao().find(key) != null;
+    }
+
+    public static void deleteAll() {
+        AppDatabase.get().getKeepDao().delete();
+    }
+
+    public static void delete(int cid) {
+        AppDatabase.get().getKeepDao().delete(cid);
+    }
+
+    public static void delete(String key) {
+        AppDatabase.get().getKeepDao().delete(key);
+    }
+
+    public static List<Keep> getVod() {
+        return AppDatabase.get().getKeepDao().getVod();
+    }
+
+    public static List<Keep> getLive() {
+        return AppDatabase.get().getKeepDao().getLive();
+    }
+
+    public static void sync(List<Config> configs, List<Keep> targets) {
+        targets.forEach(target -> configs.stream()
+                .filter(config -> target.getCid() == config.getId()).findFirst()
+                .ifPresent(config -> target.save(Config.find(config).getId())));
+    }
+
     @NonNull
     public String getKey() {
         return key;
@@ -108,41 +146,9 @@ public class Keep implements Diffable<Keep> {
         return getKey().split(AppDatabase.SYMBOL)[1];
     }
 
-    public static Keep find(String key) {
-        return find(VodConfig.getCid(), key);
-    }
-
-    public static Keep find(int cid, String key) {
-        return AppDatabase.get().getKeepDao().find(cid, key);
-    }
-
-    public static boolean exist(String key) {
-        return AppDatabase.get().getKeepDao().find(key) != null;
-    }
-
-    public static void deleteAll() {
-        AppDatabase.get().getKeepDao().delete();
-    }
-
-    public static void delete(int cid) {
-        AppDatabase.get().getKeepDao().delete(cid);
-    }
-
-    public static void delete(String key) {
-        AppDatabase.get().getKeepDao().delete(key);
-    }
-
-    public static List<Keep> getVod() {
-        return AppDatabase.get().getKeepDao().getVod();
-    }
-
-    public static List<Keep> getLive() {
-        return AppDatabase.get().getKeepDao().getLive();
-    }
-
     public void save(int cid) {
         setCid(cid);
-        AppDatabase.get().getKeepDao().insertOrUpdate(this);
+        save();
     }
 
     public void save() {
@@ -152,12 +158,6 @@ public class Keep implements Diffable<Keep> {
     public Keep delete() {
         AppDatabase.get().getKeepDao().delete(getCid(), getKey());
         return this;
-    }
-
-    public static void sync(List<Config> configs, List<Keep> targets) {
-        targets.forEach(target -> configs.stream()
-                .filter(config -> target.getCid() == config.getId()).findFirst()
-                .ifPresent(config -> target.save(Config.find(config).getId())));
     }
 
     @Override

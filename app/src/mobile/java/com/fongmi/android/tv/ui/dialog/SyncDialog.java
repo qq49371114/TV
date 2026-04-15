@@ -1,10 +1,14 @@
 package com.fongmi.android.tv.ui.dialog;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.content.res.TypedArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -21,7 +25,6 @@ import com.fongmi.android.tv.bean.Device;
 import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.bean.Keep;
 import com.fongmi.android.tv.databinding.DialogDeviceBinding;
-import com.fongmi.android.tv.event.ScanEvent;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.ui.activity.ScanActivity;
 import com.fongmi.android.tv.ui.adapter.DeviceAdapter;
@@ -30,10 +33,6 @@ import com.fongmi.android.tv.utils.ResUtil;
 import com.fongmi.android.tv.utils.ScanTask;
 import com.github.catvod.net.OkHttp;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.IOException;
 import java.util.Locale;
@@ -47,11 +46,11 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
 
     private final FormBody.Builder body;
     private final OkHttpClient client;
-    private final ScanTask scanTask;
     private final TypedArray mode;
 
     private DialogDeviceBinding binding;
     private DeviceAdapter adapter;
+    private ScanTask scanTask;
     private String type;
 
     public static SyncDialog create() {
@@ -97,7 +96,6 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
     @Override
     protected void initView() {
         binding.mode.setVisibility(View.VISIBLE);
-        EventBus.getDefault().register(this);
         setRecyclerView();
         getDevice();
         setMode();
@@ -135,7 +133,7 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
     }
 
     private void onScan() {
-        ScanActivity.start(requireActivity());
+        launcher.launch(new Intent(requireActivity(), ScanActivity.class));
     }
 
     private void onRefresh() {
@@ -147,11 +145,6 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
 
     private void onSuccess() {
         dismiss();
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onScanEvent(ScanEvent event) {
-        scanTask.start(event.address());
     }
 
     @Override
@@ -196,12 +189,10 @@ public class SyncDialog extends BaseDialog implements DeviceAdapter.OnClickListe
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        EventBus.getDefault().unregister(this);
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
         scanTask.stop();
     }
+
+    private final ActivityResultLauncher<Intent> launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+        if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) scanTask.start(result.getData().getStringExtra("address"));
+    });
 }

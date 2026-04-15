@@ -5,8 +5,8 @@ import com.fongmi.android.tv.bean.Device;
 import com.fongmi.android.tv.server.Server;
 import com.github.catvod.net.OkHttp;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 import java.util.stream.IntStream;
 
@@ -15,22 +15,22 @@ import okhttp3.Response;
 
 public class ScanTask {
 
-    private final List<Future<?>> future;
+    private final CopyOnWriteArrayList<Future<?>> future;
     private final OkHttpClient client;
     private Listener listener;
 
     public ScanTask(Listener listener) {
         this.client = OkHttp.client(1000);
-        this.future = new ArrayList<>();
+        this.future = new CopyOnWriteArrayList<>();
         this.listener = listener;
     }
 
     public void start() {
-        App.execute(() -> run(getUrl()));
+        Task.execute(() -> run(getUrl()));
     }
 
     public void start(String url) {
-        App.execute(() -> run(List.of(url)));
+        Task.execute(() -> run(List.of(url)));
     }
 
     public void stop() {
@@ -41,7 +41,7 @@ public class ScanTask {
     }
 
     private void run(List<String> urls) {
-        for (String url : urls) future.add(App.submitSearch(() -> findDevice(url)));
+        for (String url : urls) future.add(Task.submitLarge(() -> findDevice(url)));
     }
 
     private List<String> getUrl() {

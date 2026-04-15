@@ -28,6 +28,7 @@ import com.fongmi.android.tv.impl.CustomTarget;
 import com.github.catvod.utils.Json;
 import com.google.common.net.HttpHeaders;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -36,7 +37,7 @@ import jahirfiquitiva.libs.textdrawable.TextDrawable;
 
 public class ImgUtil {
 
-    private static final Set<String> failed = new HashSet<>();
+    private static final Set<String> failed = Collections.synchronizedSet(new HashSet<>());
 
     public static void logo(ImageView view) {
         try {

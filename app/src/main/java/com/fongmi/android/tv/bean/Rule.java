@@ -26,16 +26,16 @@ public class Rule {
     @SerializedName("exclude")
     private List<String> exclude;
 
+    public Rule(String name) {
+        this.name = name;
+    }
+
     public static Rule create(String name) {
         return new Rule(name);
     }
 
     public static Rule empty() {
         return new Rule("");
-    }
-
-    public Rule(String name) {
-        this.name = name;
     }
 
     public static List<Rule> arrayFrom(JsonElement element) {

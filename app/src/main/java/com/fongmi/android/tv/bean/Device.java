@@ -18,6 +18,8 @@ import com.fongmi.android.tv.utils.UrlUtil;
 import com.fongmi.android.tv.utils.Util;
 import com.google.gson.annotations.SerializedName;
 
+import org.jupnp.model.meta.RemoteDevice;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -63,7 +65,7 @@ public class Device implements Diffable<Device>, Comparable<Device> {
         return device;
     }
 
-    public static Device get(org.fourthline.cling.model.meta.Device<?, ?, ?> item) {
+    public static Device get(RemoteDevice item) {
         Device device = new Device();
         device.setUuid(item.getIdentity().getUdn().getIdentifierString());
         device.setName(item.getDetails().getFriendlyName());
@@ -73,6 +75,14 @@ public class Device implements Diffable<Device>, Comparable<Device> {
 
     public static Device objectFrom(String str) {
         return App.gson().fromJson(str, Device.class);
+    }
+
+    public static List<Device> getAll() {
+        return AppDatabase.get().getDeviceDao().findAll();
+    }
+
+    public static void delete() {
+        AppDatabase.get().getDeviceDao().delete();
     }
 
     public Integer getId() {
@@ -154,14 +164,6 @@ public class Device implements Diffable<Device>, Comparable<Device> {
     public Device save() {
         AppDatabase.get().getDeviceDao().insertOrUpdate(this);
         return this;
-    }
-
-    public static List<Device> getAll() {
-        return AppDatabase.get().getDeviceDao().findAll();
-    }
-
-    public static void delete() {
-        AppDatabase.get().getDeviceDao().delete();
     }
 
     @Override

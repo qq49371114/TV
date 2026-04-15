@@ -43,6 +43,10 @@ public class Core {
         return new Gson().fromJson(str, Core.class);
     }
 
+    public static String getString(String value) {
+        return (value = UrlUtil.convert(value)).startsWith("http") ? OkHttp.string(value) : value;
+    }
+
     public String getAuth() {
         return !getResp().isEmpty() ? Server.get().getAddress("/tvbus") : TextUtils.isEmpty(auth) ? "" : UrlUtil.convert(auth);
     }
@@ -87,8 +91,11 @@ public class Core {
         return !getPkg().isEmpty() && !getSign().isEmpty() ? new Hook(getSign(), getPkg()) : null;
     }
 
-    public static String getString(String value) {
-        return (value = UrlUtil.convert(value)).startsWith("http") ? OkHttp.string(value) : value;
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Core it)) return false;
+        return getSign().equals(it.getSign());
     }
 
     public static class Option {
@@ -105,12 +112,5 @@ public class Core {
         public List<String> getValues() {
             return values == null ? Collections.emptyList() : values;
         }
-    }
-
-    @Override
-    public boolean equals(@Nullable Object obj) {
-        if (this == obj) return true;
-        if (!(obj instanceof Core it)) return false;
-        return getSign().equals(it.getSign());
     }
 }

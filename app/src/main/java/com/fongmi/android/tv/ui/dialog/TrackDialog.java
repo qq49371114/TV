@@ -25,7 +25,8 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.Sub;
 import com.fongmi.android.tv.bean.Track;
 import com.fongmi.android.tv.databinding.DialogTrackBinding;
-import com.fongmi.android.tv.player.Players;
+import com.fongmi.android.tv.player.PlayerManager;
+import com.fongmi.android.tv.player.exo.TrackUtil;
 import com.fongmi.android.tv.ui.adapter.TrackAdapter;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.utils.FileChooser;
@@ -41,8 +42,8 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
     private final TrackNameProvider provider;
     private final TrackAdapter adapter;
     private DialogTrackBinding binding;
+    private PlayerManager player;
     private Listener listener;
-    private Players player;
     private int type;
 
     public static TrackDialog create() {
@@ -54,7 +55,7 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
         this.provider = new DefaultTrackNameProvider(App.get().getResources());
     }
 
-    public TrackDialog player(Players player) {
+    public TrackDialog player(PlayerManager player) {
         this.player = player;
         return this;
     }
@@ -111,14 +112,14 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
     }
 
     private void addTrack(List<Track> items) {
-        List<Tracks.Group> groups = player.get().getCurrentTracks().getGroups();
+        List<Tracks.Group> groups = player.getCurrentTracks().getGroups();
         for (int i = 0; i < groups.size(); i++) {
             Tracks.Group trackGroup = groups.get(i);
             if (trackGroup.getType() != type) continue;
             for (int j = 0; j < trackGroup.length; j++) {
                 Format format = trackGroup.getTrackFormat(j);
                 String name = provider.getTrackName(format);
-                Track item = new Track(type, name, format.id + format.sampleMimeType);
+                Track item = new Track(type, name, TrackUtil.format(format));
                 item.setSelected(trackGroup.isTrackSelected(j));
                 items.add(item);
             }

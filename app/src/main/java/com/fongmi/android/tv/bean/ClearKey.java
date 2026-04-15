@@ -42,6 +42,12 @@ public class ClearKey {
         }
     }
 
+    @NonNull
+    @Override
+    public String toString() {
+        return App.gson().toJson(this);
+    }
+
     public static class Keys {
 
         @SerializedName("kty")
@@ -56,11 +62,5 @@ public class ClearKey {
             this.kid = kid;
             this.k = k;
         }
-    }
-
-    @NonNull
-    @Override
-    public String toString() {
-        return App.gson().toJson(this);
     }
 }

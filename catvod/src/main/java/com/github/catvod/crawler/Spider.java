@@ -15,6 +15,14 @@ public abstract class Spider {
 
     public String siteKey;
 
+    public static Dns safeDns() {
+        return OkHttp.dns();
+    }
+
+    public static OkHttpClient client() {
+        return OkHttp.client();
+    }
+
     public void init(Context context) throws Exception {
     }
 
@@ -71,13 +79,5 @@ public abstract class Spider {
     }
 
     public void destroy() {
-    }
-
-    public static Dns safeDns() {
-        return OkHttp.dns();
-    }
-
-    public static OkHttpClient client() {
-        return OkHttp.client();
     }
 }

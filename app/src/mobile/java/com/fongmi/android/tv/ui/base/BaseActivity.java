@@ -8,8 +8,6 @@ import android.os.Bundle;
 import android.view.DisplayCutout;
 import android.view.View;
 import android.view.ViewGroup;
-import android.window.OnBackInvokedCallback;
-import android.window.OnBackInvokedDispatcher;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
@@ -26,8 +24,6 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 public abstract class BaseActivity extends AppCompatActivity {
-
-    private OnBackInvokedCallback callback;
 
     protected abstract ViewBinding getBinding();
 
@@ -92,16 +88,12 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     private void setBackCallback() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(OnBackInvokedDispatcher.PRIORITY_DEFAULT, callback = this::onBackInvoked);
-        } else {
-            getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-                @Override
-                public void handleOnBackPressed() {
-                    onBackInvoked();
-                }
-            });
-        }
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                onBackInvoked();
+            }
+        });
     }
 
     private void enableEdgeToEdge() {
@@ -122,8 +114,7 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         EventBus.getDefault().unregister(this);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(callback);
+        super.onDestroy();
     }
 }

@@ -27,6 +27,14 @@ public record ConfigEvent(Type type) {
         Setting.putBootLive(false);
     }
 
+    public boolean isVod() {
+        return type == Type.VOD;
+    }
+
+    public boolean isLive() {
+        return type == Type.LIVE;
+    }
+
     public enum Type {
         COMMON, VOD, LIVE, WALL, BOOT
     }

@@ -8,6 +8,11 @@ import androidx.annotation.Nullable;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.google.gson.annotations.SerializedName;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+import java.util.Collections;
+import java.util.List;
 
 public class Danmaku {
 
@@ -17,6 +22,12 @@ public class Danmaku {
     private String url;
 
     private boolean selected;
+
+    public static List<Danmaku> arrayFrom(String str) {
+        Type listType = new TypeToken<List<Danmaku>>() {}.getType();
+        List<Danmaku> items = App.gson().fromJson(str, listType);
+        return items == null ? Collections.emptyList() : items;
+    }
 
     public static Danmaku from(String path) {
         Danmaku danmaku = new Danmaku();

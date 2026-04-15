@@ -20,7 +20,7 @@ public class Json {
         try {
             return JsonParser.parseString(json);
         } catch (Throwable e) {
-            return new JsonParser().parse(json);
+            return new JsonObject();
         }
     }
 
@@ -73,7 +73,7 @@ public class Json {
         List<JsonElement> result = new ArrayList<>();
         if (!obj.has(key)) return result;
         if (obj.get(key).isJsonObject()) result.add(obj.get(key).getAsJsonObject());
-        for (JsonElement opt : obj.getAsJsonArray(key)) result.add(opt.getAsJsonObject());
+        else for (JsonElement opt : obj.getAsJsonArray(key)) result.add(opt.getAsJsonObject());
         return result;
     }
 

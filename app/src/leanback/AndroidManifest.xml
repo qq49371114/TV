@@ -30,6 +30,7 @@
             android:name=".ui.activity.HomeActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:exported="true"
+            android:launchMode="singleTop"
             android:screenOrientation="sensorLandscape"
             android:theme="@style/Theme.Splash">
             <intent-filter>
@@ -38,6 +39,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -105,12 +112,14 @@
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:exported="true"
             android:launchMode="singleTop"
+            android:parentActivityName=".ui.activity.HomeActivity"
             android:screenOrientation="sensorLandscape" />
 
         <activity
             android:name=".ui.activity.VideoActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|keyboard|keyboardHidden|navigation"
             android:launchMode="singleTop"
+            android:parentActivityName=".ui.activity.HomeActivity"
             android:screenOrientation="sensorLandscape" />
 
         <activity
@@ -132,7 +141,6 @@
         <activity
             android:name=".ui.activity.CollectActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
-            android:launchMode="singleTop"
             android:screenOrientation="sensorLandscape" />
 
         <activity
@@ -151,8 +159,9 @@
             android:screenOrientation="sensorLandscape" />
 
         <service
-            android:name="com.android.cast.dlna.dmr.DLNARendererService"
-            android:exported="false" />
+            android:name=".service.DLNARendererService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
 
         <receiver
             android:name=".receiver.BootReceiver"

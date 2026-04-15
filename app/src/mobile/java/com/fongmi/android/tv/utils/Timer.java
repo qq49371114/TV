@@ -1,8 +1,11 @@
 package com.fongmi.android.tv.utils;
 
+import android.content.Intent;
 import android.os.CountDownTimer;
 
+import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.event.ActionEvent;
+import com.fongmi.android.tv.service.PlaybackService;
 
 import java.util.concurrent.TimeUnit;
 
@@ -53,8 +56,14 @@ public class Timer {
 
     private void onFinish() {
         if (callback != null) callback.onFinish();
-        ActionEvent.pause();
+        if (PlaybackService.isRunning()) sendPause();
         reset();
+    }
+
+    private void sendPause() {
+        Intent intent = new Intent(App.get(), PlaybackService.class);
+        intent.setAction(ActionEvent.PAUSE);
+        App.get().startService(intent);
     }
 
     public void delay() {

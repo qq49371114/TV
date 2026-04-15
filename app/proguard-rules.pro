@@ -29,25 +29,13 @@
 -keep class com.github.catvod.crawler.** { *; }
 -keep class * extends com.github.catvod.crawler.Spider
 
-# Cling
--dontwarn javax.**
--dontwarn sun.net.**
--dontwarn java.awt.**
--dontwarn com.sun.net.**
--dontwarn org.ietf.jgss.**
--keep class org.fourthline.cling.** { *; }
--keep class javax.xml.** { *; }
-
-# EXO
--dontwarn org.kxml2.io.**
--dontwarn org.xmlpull.v1.**
--dontwarn android.content.res.**
--dontwarn org.slf4j.impl.StaticLoggerBinder
--keep class org.xmlpull.** { *; }
--keepclassmembers class org.xmlpull.** { *; }
-
 # Jianpian
 -keep class com.p2p.** { *; }
+
+# JUPnP
+-dontwarn org.jupnp.**
+-keep class org.jupnp.** { *; }
+-keep class javax.xml.** { *; }
 
 # Nano
 -keep class fi.iki.elonen.** { *; }
@@ -69,10 +57,6 @@
 
 # Sardine
 -keep class com.thegrizzlylabs.sardineandroid.** { *; }
-
-# Smbj
--keep class com.hierynomus.** { *; }
--keep class net.engio.mbassy.** { *; }
 
 # TVBus
 -keep class com.tvbus.engine.** { *; }

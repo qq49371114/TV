@@ -3,15 +3,17 @@ package com.fongmi.android.tv.player.exo;
 import static androidx.media3.extractor.ts.DefaultTsPayloadReaderFactory.FLAG_ENABLE_HDMV_DTS_AUDIO_STREAMS;
 
 import android.net.Uri;
-import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
+import androidx.media3.database.StandaloneDatabaseProvider;
 import androidx.media3.datasource.DataSource;
 import androidx.media3.datasource.DefaultDataSource;
 import androidx.media3.datasource.HttpDataSource;
 import androidx.media3.datasource.cache.CacheDataSource;
+import androidx.media3.datasource.cache.NoOpCacheEvictor;
+import androidx.media3.datasource.cache.SimpleCache;
 import androidx.media3.datasource.okhttp.OkHttpDataSource;
 import androidx.media3.exoplayer.drm.DrmSessionManagerProvider;
 import androidx.media3.exoplayer.source.ConcatenatingMediaSource2;
@@ -24,9 +26,7 @@ import androidx.media3.extractor.ts.TsExtractor;
 
 import com.fongmi.android.tv.App;
 import com.github.catvod.net.OkHttp;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.github.catvod.utils.Path;
 
 public class MediaSourceFactory implements MediaSource.Factory {
 
@@ -34,6 +34,7 @@ public class MediaSourceFactory implements MediaSource.Factory {
     private HttpDataSource.Factory httpDataSourceFactory;
     private DataSource.Factory dataSourceFactory;
     private ExtractorsFactory extractorsFactory;
+    private static SimpleCache cache;
 
     public MediaSourceFactory() {
         defaultMediaSourceFactory = new DefaultMediaSourceFactory(getDataSourceFactory(), getExtractorsFactory());
@@ -60,24 +61,15 @@ public class MediaSourceFactory implements MediaSource.Factory {
     @NonNull
     @Override
     public MediaSource createMediaSource(@NonNull MediaItem mediaItem) {
-        if (mediaItem.mediaId.contains("***") && mediaItem.mediaId.contains("|||")) {
-            return createConcatenatingMediaSource(setHeader(mediaItem));
-        } else {
-            return defaultMediaSourceFactory.createMediaSource(setHeader(mediaItem));
-        }
+        getHttpDataSourceFactory().setDefaultRequestProperties(ExoUtil.extractHeaders(mediaItem));
+        String url = mediaItem.requestMetadata.mediaUri != null ? mediaItem.requestMetadata.mediaUri.toString() : "";
+        if (url.contains("***") && url.contains("|||")) return createConcatenatingMediaSource(mediaItem, url);
+        else return defaultMediaSourceFactory.createMediaSource(mediaItem);
     }
 
-    private MediaItem setHeader(MediaItem mediaItem) {
-        Map<String, String> headers = new HashMap<>();
-        Bundle extras = mediaItem.requestMetadata.extras;
-        if (extras != null) for (String key : extras.keySet()) headers.put(key, extras.get(key).toString());
-        getHttpDataSourceFactory().setDefaultRequestProperties(headers);
-        return mediaItem;
-    }
-
-    private MediaSource createConcatenatingMediaSource(MediaItem mediaItem) {
+    private MediaSource createConcatenatingMediaSource(MediaItem mediaItem, String url) {
         ConcatenatingMediaSource2.Builder builder = new ConcatenatingMediaSource2.Builder();
-        for (String split : mediaItem.mediaId.split("\\*\\*\\*")) {
+        for (String split : url.split("\\*\\*\\*")) {
             String[] info = split.split("\\|\\|\\|");
             if (info.length >= 2) builder.add(defaultMediaSourceFactory.createMediaSource(mediaItem.buildUpon().setUri(Uri.parse(info[0])).build()), Long.parseLong(info[1]));
         }
@@ -95,11 +87,16 @@ public class MediaSourceFactory implements MediaSource.Factory {
     }
 
     private CacheDataSource.Factory buildReadOnlyCacheDataSource(DataSource.Factory upstreamFactory) {
-        return new CacheDataSource.Factory().setCache(CacheManager.get().getCache()).setUpstreamDataSourceFactory(upstreamFactory).setCacheWriteDataSinkFactory(null).setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR);
+        return new CacheDataSource.Factory().setCache(getCache()).setUpstreamDataSourceFactory(upstreamFactory).setCacheWriteDataSinkFactory(null).setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR);
     }
 
     private HttpDataSource.Factory getHttpDataSourceFactory() {
         if (httpDataSourceFactory == null) httpDataSourceFactory = new OkHttpDataSource.Factory(OkHttp.player());
         return httpDataSourceFactory;
+    }
+
+    private static SimpleCache getCache() {
+        if (cache == null) cache = new SimpleCache(Path.exo(), new NoOpCacheEvictor(), new StandaloneDatabaseProvider(App.get()));
+        return cache;
     }
 }

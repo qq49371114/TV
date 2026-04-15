@@ -30,6 +30,17 @@ public class Group {
     private int position;
     private int width;
 
+    public Group(String name) {
+        this(name, false);
+    }
+
+    public Group(String name, boolean pass) {
+        this.name = name;
+        this.position = -1;
+        if (name.contains("_")) parse(pass);
+        if (name.isEmpty()) setName(ResUtil.getString(R.string.setting_live));
+    }
+
     public static List<Group> arrayFrom(String str) {
         Type listType = new TypeToken<List<Group>>() {}.getType();
         List<Group> items = App.gson().fromJson(str, listType);
@@ -46,17 +57,6 @@ public class Group {
 
     public static Group create(String name, boolean pass) {
         return new Group(name, pass);
-    }
-
-    public Group(String name) {
-        this(name, false);
-    }
-
-    public Group(String name, boolean pass) {
-        this.name = name;
-        this.position = -1;
-        if (name.contains("_")) parse(pass);
-        if (name.isEmpty()) setName(ResUtil.getString(R.string.setting_live));
     }
 
     private void parse(boolean pass) {

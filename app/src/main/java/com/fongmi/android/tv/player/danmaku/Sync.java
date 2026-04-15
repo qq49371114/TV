@@ -1,20 +1,20 @@
 package com.fongmi.android.tv.player.danmaku;
 
-import com.fongmi.android.tv.player.Players;
+import androidx.media3.common.Player;
 
 import master.flame.danmaku.danmaku.model.AbsDanmakuSync;
 
 public class Sync extends AbsDanmakuSync {
 
-    private final Players player;
+    private final Player player;
 
-    public Sync(Players player) {
+    public Sync(Player player) {
         this.player = player;
     }
 
     @Override
     public long getUptimeMillis() {
-        return player.getPosition();
+        return player.getCurrentPosition();
     }
 
     @Override

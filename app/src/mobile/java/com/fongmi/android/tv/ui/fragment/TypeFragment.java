@@ -124,8 +124,8 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
 
     private void setViewModel() {
         mViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
-        mViewModel.result.observe(getViewLifecycleOwner(), this::setAdapter);
-        mViewModel.action.observe(getViewLifecycleOwner(), result -> Notify.show(result.getMsg()));
+        mViewModel.getResult().observe(getViewLifecycleOwner(), this::setAdapter);
+        mViewModel.getAction().observe(getViewLifecycleOwner(), result -> Notify.show(result.getMsg()));
     }
 
     private void getHome() {
@@ -161,8 +161,10 @@ public class TypeFragment extends BaseFragment implements CustomScroller.Callbac
     }
 
     private void checkMore() {
-        if (mScroller.isDisable() || mBinding.recycler.canScrollVertically(1) || mBinding.recycler.getScrollState() != 0 || isHome()) return;
-        getVideo(getTypeId(), String.valueOf(mScroller.addPage()));
+        mBinding.recycler.post(() -> {
+            if (mScroller.isDisable() || mBinding.recycler.canScrollVertically(1) || mBinding.recycler.getScrollState() != 0 || isHome()) return;
+            getVideo(getTypeId(), String.valueOf(mScroller.addPage()));
+        });
     }
 
     public void scrollToTop() {

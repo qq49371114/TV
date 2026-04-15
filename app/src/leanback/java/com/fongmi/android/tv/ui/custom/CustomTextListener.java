@@ -10,6 +10,23 @@ import java.util.List;
 
 public abstract class CustomTextListener implements TextWatcher, RecognitionListener {
 
+    private Runnable done;
+
+    public void setDone(Runnable done) {
+        this.done = done;
+    }
+
+    private void done() {
+        if (done != null) done.run();
+    }
+
+    private String parseResult(Bundle results) {
+        if (results == null) return "";
+        List<String> texts = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+        if (texts == null) return "";
+        return String.join("\n", texts).trim();
+    }
+
     @Override
     public void onReadyForSpeech(Bundle params) {
     }
@@ -31,25 +48,23 @@ public abstract class CustomTextListener implements TextWatcher, RecognitionList
     }
 
     @Override
-    public void onError(int error) {
-    }
-
-    @Override
-    public void onResults(Bundle results) {
-        if (results == null) return;
-        StringBuilder sb = new StringBuilder();
-        List<String> texts = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-        for (String text : texts) sb.append(text).append("\n");
-        String result = sb.toString().trim();
-        if (!result.isEmpty()) onResults(result);
-    }
-
-    @Override
     public void onPartialResults(Bundle partialResults) {
     }
 
     @Override
     public void onEvent(int eventType, Bundle params) {
+    }
+
+    @Override
+    public void onError(int error) {
+        done();
+    }
+
+    @Override
+    public void onResults(Bundle results) {
+        done();
+        String result = parseResult(results);
+        if (!result.isEmpty()) onResults(result);
     }
 
     @Override

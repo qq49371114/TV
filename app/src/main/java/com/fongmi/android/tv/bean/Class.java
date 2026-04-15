@@ -51,6 +51,17 @@ public class Class implements Parcelable, Diffable<Class> {
     public Class() {
     }
 
+    protected Class(Parcel in) {
+        this.typeId = in.readString();
+        this.typeName = in.readString();
+        this.typeFlag = in.readString();
+        this.filter = in.readByte() != 0;
+        this.land = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.circle = (Integer) in.readValue(Integer.class.getClassLoader());
+        this.ratio = (Float) in.readValue(Float.class.getClassLoader());
+        this.activated = in.readByte() != 0;
+    }
+
     public static Class objectFrom(String json) {
         return App.gson().fromJson(json, Class.class);
     }
@@ -99,12 +110,12 @@ public class Class implements Parcelable, Diffable<Class> {
         return ratio == null ? 0 : ratio;
     }
 
-    public void setFilter(boolean filter) {
-        this.filter = filter;
-    }
-
     public boolean getFilter() {
         return filter;
+    }
+
+    public void setFilter(boolean filter) {
+        this.filter = filter;
     }
 
     public boolean isActivated() {
@@ -161,15 +172,14 @@ public class Class implements Parcelable, Diffable<Class> {
         dest.writeByte(this.activated ? (byte) 1 : (byte) 0);
     }
 
-    protected Class(Parcel in) {
-        this.typeId = in.readString();
-        this.typeName = in.readString();
-        this.typeFlag = in.readString();
-        this.filter = in.readByte() != 0;
-        this.land = (Integer) in.readValue(Integer.class.getClassLoader());
-        this.circle = (Integer) in.readValue(Integer.class.getClassLoader());
-        this.ratio = (Float) in.readValue(Float.class.getClassLoader());
-        this.activated = in.readByte() != 0;
+    @Override
+    public boolean isSameItem(Class other) {
+        return equals(other);
+    }
+
+    @Override
+    public boolean isSameContent(Class other) {
+        return getTypeName().equals(other.getTypeName()) && getTypeFlag().equals(other.getTypeFlag());
     }
 
     public static final Creator<Class> CREATOR = new Creator<>() {
@@ -183,14 +193,4 @@ public class Class implements Parcelable, Diffable<Class> {
             return new Class[size];
         }
     };
-
-    @Override
-    public boolean isSameItem(Class other) {
-        return equals(other);
-    }
-
-    @Override
-    public boolean isSameContent(Class other) {
-        return getTypeName().equals(other.getTypeName()) && getTypeFlag().equals(other.getTypeFlag());
-    }
 }

@@ -28,6 +28,17 @@ public class Filter implements Parcelable {
     @SerializedName("value")
     private List<Value> value;
 
+    public Filter() {
+    }
+
+    protected Filter(Parcel in) {
+        this.key = in.readString();
+        this.name = in.readString();
+        this.init = in.readString();
+        this.value = new ArrayList<>();
+        in.readList(this.value, Value.class.getClassLoader());
+    }
+
     public static Filter objectFrom(JsonElement element) {
         return App.gson().fromJson(element, Filter.class);
     }
@@ -36,9 +47,6 @@ public class Filter implements Parcelable {
         Type listType = new TypeToken<List<Filter>>() {}.getType();
         List<Filter> items = App.gson().fromJson(result, listType);
         return items == null ? Collections.emptyList() : items;
-    }
-
-    public Filter() {
     }
 
     public String getKey() {
@@ -94,14 +102,6 @@ public class Filter implements Parcelable {
         dest.writeString(this.name);
         dest.writeString(this.init);
         dest.writeList(this.value);
-    }
-
-    protected Filter(Parcel in) {
-        this.key = in.readString();
-        this.name = in.readString();
-        this.init = in.readString();
-        this.value = new ArrayList<>();
-        in.readList(this.value, Value.class.getClassLoader());
     }
 
     public static final Creator<Filter> CREATOR = new Creator<>() {

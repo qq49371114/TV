@@ -3,23 +3,21 @@ package com.fongmi.android.tv.ui.activity;
 import android.content.Intent;
 import android.net.Uri;
 
-import androidx.leanback.widget.ArrayObjectAdapter;
-import androidx.leanback.widget.ItemBridgeAdapter;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.databinding.ActivityFileBinding;
+import com.fongmi.android.tv.ui.adapter.FileAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
-import com.fongmi.android.tv.ui.presenter.FilePresenter;
 import com.fongmi.android.tv.utils.PermissionUtil;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.github.catvod.utils.Path;
 
 import java.io.File;
 
-public class FileActivity extends BaseActivity implements FilePresenter.OnClickListener {
+public class FileActivity extends BaseActivity implements FileAdapter.OnClickListener {
 
     private ActivityFileBinding mBinding;
-    private ArrayObjectAdapter mAdapter;
+    private FileAdapter mAdapter;
     private File dir;
 
     private boolean isRoot() {
@@ -40,7 +38,7 @@ public class FileActivity extends BaseActivity implements FilePresenter.OnClickL
     private void setRecyclerView() {
         mBinding.recycler.setHasFixedSize(true);
         mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
-        mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(new FilePresenter(this))));
+        mBinding.recycler.setAdapter(mAdapter = new FileAdapter(this));
     }
 
     private void checkPermission() {
@@ -49,8 +47,8 @@ public class FileActivity extends BaseActivity implements FilePresenter.OnClickL
 
     private void update(File dir) {
         mBinding.recycler.setSelectedPosition(0);
-        mAdapter.setItems(Path.list(this.dir = dir), null);
-        mBinding.progressLayout.showContent(true, mAdapter.size());
+        mAdapter.addAll(Path.list(this.dir = dir));
+        mBinding.progressLayout.showContent(true, mAdapter.getItemCount());
     }
 
     @Override

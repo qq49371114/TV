@@ -11,8 +11,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
-import androidx.leanback.widget.ArrayObjectAdapter;
-import androidx.leanback.widget.ItemBridgeAdapter;
 import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,9 +25,9 @@ import com.fongmi.android.tv.bean.Collect;
 import com.fongmi.android.tv.bean.Site;
 import com.fongmi.android.tv.databinding.ActivityCollectBinding;
 import com.fongmi.android.tv.model.SiteViewModel;
+import com.fongmi.android.tv.ui.adapter.CollectAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
 import com.fongmi.android.tv.ui.fragment.CollectFragment;
-import com.fongmi.android.tv.ui.presenter.CollectPresenter;
 import com.fongmi.android.tv.utils.ResUtil;
 import com.google.gson.reflect.TypeToken;
 
@@ -39,13 +37,13 @@ import java.util.List;
 public class CollectActivity extends BaseActivity {
 
     private ActivityCollectBinding mBinding;
-    private ArrayObjectAdapter mAdapter;
+    private CollectAdapter mAdapter;
     private SiteViewModel mViewModel;
     private List<Site> mSites;
     private View mOldView;
 
     public static void start(Activity activity, String keyword) {
-        Intent intent = new Intent(activity, CollectActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        Intent intent = new Intent(activity, CollectActivity.class);
         intent.putExtra("keyword", keyword);
         activity.startActivity(intent);
     }
@@ -88,6 +86,7 @@ public class CollectActivity extends BaseActivity {
             @Override
             public void onPageSelected(int position) {
                 mBinding.recycler.setSelectedPosition(position);
+                mBinding.recycler.requestFocus();
             }
         });
         mBinding.recycler.addOnChildViewHolderSelectedListener(new OnChildViewHolderSelectedListener() {
@@ -101,12 +100,12 @@ public class CollectActivity extends BaseActivity {
     private void setRecyclerView() {
         mBinding.recycler.setHorizontalSpacing(ResUtil.dp2px(16));
         mBinding.recycler.setRowHeight(ViewGroup.LayoutParams.WRAP_CONTENT);
-        mBinding.recycler.setAdapter(new ItemBridgeAdapter(mAdapter = new ArrayObjectAdapter(new CollectPresenter())));
+        mBinding.recycler.setAdapter(mAdapter = new CollectAdapter());
     }
 
     private void setViewModel() {
         mViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
-        mViewModel.search.observe(this, result -> {
+        mViewModel.getSearch().observe(this, result -> {
             if (result.getList().isEmpty()) return;
             getFragment().addVideo(result.getList());
             mAdapter.add(Collect.create(result.getList()));
@@ -140,8 +139,7 @@ public class CollectActivity extends BaseActivity {
 
     private void onChildSelected(@Nullable RecyclerView.ViewHolder child) {
         if (mOldView != null) mOldView.setActivated(false);
-        if (child == null) return;
-        mOldView = child.itemView;
+        if ((mOldView = child != null ? child.itemView : null) == null) return;
         mOldView.setActivated(true);
         App.post(mRunnable, 100);
     }
@@ -168,12 +166,12 @@ public class CollectActivity extends BaseActivity {
         @NonNull
         @Override
         public Fragment getItem(int position) {
-            return CollectFragment.newInstance(getKeyword(), (Collect) mAdapter.get(position));
+            return CollectFragment.newInstance(getKeyword(), mAdapter.get(position));
         }
 
         @Override
         public int getCount() {
-            return mAdapter.size();
+            return mAdapter.getItemCount();
         }
 
         @Override

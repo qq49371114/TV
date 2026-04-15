@@ -10,12 +10,23 @@ public class Async {
 
     private CompletableFuture<Object> future;
 
-    public static CompletableFuture<Object> run(JSObject object, String name, Object... args) {
-        return new Async().call(object, name, args);
-    }
+    private final JSCallFunction success = args -> {
+        future.complete(args != null && args.length > 0 ? args[0] : null);
+        return null;
+    };
+
+    private final JSCallFunction error = args -> {
+        String msg = args != null && args.length > 0 && args[0] != null ? args[0].toString() : "";
+        future.completeExceptionally(new Exception(msg));
+        return null;
+    };
 
     private Async() {
         this.future = new CompletableFuture<>();
+    }
+
+    public static CompletableFuture<Object> run(JSObject object, String name, Object... args) {
+        return new Async().call(object, name, args);
     }
 
     private CompletableFuture<Object> call(JSObject object, String name, Object... args) {
@@ -47,8 +58,8 @@ public class Async {
         if (then == null) {
             future.complete(promise);
         } else {
-            consume(then, onSuccess);
-            consume(promise.getJSFunction("catch"), onError);
+            consume(then, success);
+            consume(promise.getJSFunction("catch"), error);
         }
     }
 
@@ -61,13 +72,4 @@ public class Async {
         }
     }
 
-    private final JSCallFunction onSuccess = args -> {
-        future.complete(args != null && args.length > 0 ? args[0] : null);
-        return null;
-    };
-
-    private final JSCallFunction onError = args -> {
-        future.complete(null);
-        return null;
-    };
 }

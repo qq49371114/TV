@@ -7,6 +7,7 @@ import static fi.iki.elonen.NanoHTTPD.newFixedLengthResponse;
 import com.fongmi.android.tv.server.Nano;
 import com.fongmi.android.tv.server.impl.Process;
 import com.fongmi.android.tv.utils.FileUtil;
+import com.fongmi.android.tv.utils.Formatters;
 import com.github.catvod.utils.Path;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -16,9 +17,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Map;
 import java.util.zip.CRC32;
 
@@ -27,12 +27,6 @@ import fi.iki.elonen.NanoHTTPD.Response;
 import fi.iki.elonen.NanoHTTPD.Response.Status;
 
 public class Local implements Process {
-
-    private final SimpleDateFormat format;
-
-    public Local() {
-        this.format = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault());
-    }
 
     @Override
     public boolean isRequest(IHTTPSession session, String url) {
@@ -91,7 +85,7 @@ public class Local implements Process {
             JsonObject obj = new JsonObject();
             obj.addProperty("name", file.getName());
             obj.addProperty("path", relativeTo(file, rootPath));
-            obj.addProperty("time", format.format(new Date(file.lastModified())));
+            obj.addProperty("time", Formatters.LOCAL_DATETIME.format(Instant.ofEpochMilli(file.lastModified()).atZone(ZoneId.systemDefault())));
             obj.addProperty("dir", file.isDirectory() ? 1 : 0);
             files.add(obj);
         }

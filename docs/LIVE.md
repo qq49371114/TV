@@ -4,7 +4,7 @@ LiveParser 依內容自動偵測格式，支援三種直播來源：
 
 | 格式                 | 判斷條件                          |
 |--------------------|-------------------------------|
-| [JSON](#json-陣列格式) | 內容為 JSON（`[` 開頭）              |
+| [JSON](#json-格式) | 內容為 JSON（`[` 開頭）              |
 | [M3U](#m3u-格式)     | 任一行含 `#EXTM3U`（且不含 `#genre#`） |
 | [TXT](#txt-格式)     | 其他                            |
 
@@ -14,7 +14,7 @@ LiveParser 依內容自動偵測格式，支援三種直播來源：
 
 - [TXT 格式](#txt-格式)
 - [M3U 格式](#m3u-格式)
-- [JSON 陣列格式](#json-陣列格式)
+- [JSON 格式](#json-格式)
 - [頻道指令](#頻道指令)
 - [DRM 宣告](#drm-宣告)
 - [追看/時移](#追看時移)
@@ -173,7 +173,7 @@ http://example.com/auth-stream.m3u8
 
 ---
 
-## JSON 陣列格式
+## JSON 格式
 
 內容以 `[` 開頭時，直接反序列化為 `List<Group>`，結構與 Live 配置的 `groups` 欄位相同。
 
@@ -325,8 +325,6 @@ http://example.com/clearkey.mpd
 |-----------|-------------------------------|
 | `append`  | 將 `source` 模板附加至原始 URL 末尾（預設） |
 | `default` | 以格式化後的 `source` 完全替換原始 URL    |
-
-> **PLTV 自動追看**：若頻道未設定任何追看，但播放 URL 含有 `/PLTV/`，框架會自動套用內建的 PLTV 追看設定（`append` 類型，7 天，替換 `/PLTV/` → `/TVOD/`，模板 `?playseek=${(b)yyyyMMddHHmmss}-${(e)yyyyMMddHHmmss}`），無需手動設定。
 
 **`source` 模板變數：**
 

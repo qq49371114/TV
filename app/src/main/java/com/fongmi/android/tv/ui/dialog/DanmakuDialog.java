@@ -16,7 +16,7 @@ import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.bean.Danmaku;
 import com.fongmi.android.tv.databinding.DialogDanmakuBinding;
-import com.fongmi.android.tv.player.Players;
+import com.fongmi.android.tv.player.PlayerManager;
 import com.fongmi.android.tv.ui.adapter.DanmakuAdapter;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.utils.FileChooser;
@@ -26,7 +26,7 @@ public final class DanmakuDialog extends BaseDialog implements DanmakuAdapter.On
 
     private final DanmakuAdapter adapter;
     private DialogDanmakuBinding binding;
-    private Players player;
+    private PlayerManager player;
 
     public static DanmakuDialog create() {
         return new DanmakuDialog();
@@ -36,7 +36,7 @@ public final class DanmakuDialog extends BaseDialog implements DanmakuAdapter.On
         this.adapter = new DanmakuAdapter(this);
     }
 
-    public DanmakuDialog player(Players player) {
+    public DanmakuDialog player(PlayerManager player) {
         this.player = player;
         return this;
     }

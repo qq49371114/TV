@@ -418,8 +418,8 @@ public void destroy()
 | `vod_content`   | `string`  | 簡介/描述。                                                                                        |
 | `vod_play_from` | `string`  | 播放來源名稱，多個來源以 `$$$` 分隔。                                                                        |
 | `vod_play_url`  | `string`  | 播放集數 URL，格式詳見[下方說明](#播放集數格式vod_play_from--vod_play_url)。                                      |
-| `vod_tag`       | `string`  | 特殊標記。`"folder"` 表示此項為資料夾，點擊後以 `action` 欄位的 URL 取得子列表。                                         |
-| `action`        | `string`  | 資料夾類型的子列表請求 URL，回傳格式同 `categoryContent`。                                                      |
+| `vod_tag`       | `string`  | 特殊標記。`"folder"` 表示此項為資料夾，點擊後以 `vod_id` 作為 `tid` 呼叫 `categoryContent` 取得子列表。                    |
+| `action`        | `string`  | 自訂動作字串，點擊時優先於資料夾行為觸發。type==3 呼叫 `Spider.action(action)`，type==4 發送 HTTP 請求，結果以 Toast 顯示。     |
 | `cate`          | `Cate`    | 資料夾顯示樣式物件，包含 `land`、`circle`、`ratio` 三個子欄位（含義同下方三欄）。設定此欄位等同於 `vod_tag: "folder"`，即自動將此項視為資料夾。 |
 | `land`          | `integer` | 橫向顯示旗標，覆蓋 [Class](#class--分類物件) 層級的 `land` 設定。                                                |
 | `circle`        | `integer` | 圓形顯示旗標，覆蓋 [Class](#class--分類物件) 層級的 `circle` 設定。                                              |

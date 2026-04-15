@@ -4,6 +4,14 @@ import android.view.KeyEvent;
 
 public class KeyUtil {
 
+    public static boolean isActionDown(KeyEvent event) {
+        return event.getAction() == KeyEvent.ACTION_DOWN;
+    }
+
+    public static boolean isActionUp(KeyEvent event) {
+        return event.getAction() == KeyEvent.ACTION_UP;
+    }
+
     public static boolean isEnterKey(KeyEvent event) {
         return event.getKeyCode() == KeyEvent.KEYCODE_DPAD_CENTER || event.getKeyCode() == KeyEvent.KEYCODE_ENTER || event.getKeyCode() == KeyEvent.KEYCODE_SPACE || event.getKeyCode() == KeyEvent.KEYCODE_NUMPAD_ENTER;
     }
@@ -33,14 +41,22 @@ public class KeyUtil {
     }
 
     public static boolean isMenuKey(KeyEvent event) {
-        return event.getAction() == KeyEvent.ACTION_UP && event.getKeyCode() == KeyEvent.KEYCODE_MENU;
+        return isActionUp(event) && event.getKeyCode() == KeyEvent.KEYCODE_MENU;
     }
 
-    public static boolean isActionDown(KeyEvent event) {
-        return event.getAction() == KeyEvent.ACTION_DOWN;
+    public static boolean isMediaPlayPause(KeyEvent event) {
+        return isActionUp(event) && (event.getKeyCode() == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE || event.getKeyCode() == KeyEvent.KEYCODE_MEDIA_PLAY || event.getKeyCode() == KeyEvent.KEYCODE_MEDIA_PAUSE);
     }
 
-    public static boolean isActionUp(KeyEvent event) {
-        return event.getAction() == KeyEvent.ACTION_UP;
+    public static boolean isMediaStop(KeyEvent event) {
+        return isActionUp(event) && event.getKeyCode() == KeyEvent.KEYCODE_MEDIA_STOP;
+    }
+
+    public static boolean isMediaRewind(KeyEvent event) {
+        return isActionUp(event) && event.getKeyCode() == KeyEvent.KEYCODE_MEDIA_REWIND;
+    }
+
+    public static boolean isMediaFastForward(KeyEvent event) {
+        return isActionUp(event) && event.getKeyCode() == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD;
     }
 }

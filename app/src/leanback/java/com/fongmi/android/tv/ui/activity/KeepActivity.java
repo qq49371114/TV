@@ -3,7 +3,6 @@ package com.fongmi.android.tv.ui.activity;
 import android.app.Activity;
 import android.content.Intent;
 
-import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.viewbinding.ViewBinding;
 
 import com.fongmi.android.tv.Product;
@@ -15,8 +14,8 @@ import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.ui.adapter.KeepAdapter;
 import com.fongmi.android.tv.ui.base.BaseActivity;
-import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.utils.Notify;
+import com.fongmi.android.tv.utils.ResUtil;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -44,9 +43,10 @@ public class KeepActivity extends BaseActivity implements KeepAdapter.OnClickLis
     private void setRecyclerView() {
         mBinding.recycler.setHasFixedSize(true);
         mBinding.recycler.setItemAnimator(null);
+        mBinding.recycler.setNumColumns(Product.getColumn());
+        mBinding.recycler.setVerticalSpacing(ResUtil.dp2px(16));
+        mBinding.recycler.setHorizontalSpacing(ResUtil.dp2px(16));
         mBinding.recycler.setAdapter(mAdapter = new KeepAdapter(this));
-        mBinding.recycler.setLayoutManager(new GridLayoutManager(this, Product.getColumn()));
-        mBinding.recycler.addItemDecoration(new SpaceItemDecoration(Product.getColumn(), 16));
     }
 
     private void getKeep() {

@@ -1,6 +1,7 @@
 package com.fongmi.android.tv.ui.activity;
 
 import android.annotation.SuppressLint;
+import android.app.SearchManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -44,8 +45,8 @@ import com.fongmi.android.tv.event.ServerEvent;
 import com.fongmi.android.tv.impl.Callback;
 import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.player.Source;
-import com.fongmi.android.tv.player.exo.CacheManager;
 import com.fongmi.android.tv.server.Server;
+import com.fongmi.android.tv.service.DLNARendererService;
 import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.ui.adapter.BaseDiffCallback;
 import com.fongmi.android.tv.ui.base.BaseActivity;
@@ -118,6 +119,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         mResult = Result.empty();
         mClock = Clock.create(mBinding.clock);
         mBinding.progressLayout.showProgress();
+        DLNARendererService.start(this);
         Updater.create().start(this);
         setRecyclerView();
         setViewModel();
@@ -144,6 +146,9 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
             VideoActivity.push(this, intent.getStringExtra(Intent.EXTRA_TEXT));
         } else if (Intent.ACTION_VIEW.equals(intent.getAction()) && intent.getData() != null) {
             PermissionUtil.requestFile(this, allGranted -> checkType(intent));
+        } else if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            String keyword = intent.getStringExtra(SearchManager.QUERY);
+            if (!TextUtils.isEmpty(keyword)) SearchActivity.start(this, keyword);
         }
     }
 
@@ -170,7 +175,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     private void setViewModel() {
         mViewModel = new ViewModelProvider(this).get(SiteViewModel.class);
-        mViewModel.result.observe(this, result -> {
+        mViewModel.getResult().observe(this, result -> {
             mAdapter.remove("progress");
             addVideo(mResult = result);
             Cache.clear().put(result);
@@ -249,11 +254,14 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     private void addGrid(List<Vod> items, Style style) {
+        List<ListRow> rows = new ArrayList<>();
+        VodPresenter presenter = new VodPresenter(this, style);
         for (List<Vod> part : Lists.partition(items, Product.getColumn(style))) {
-            ArrayObjectAdapter adapter = new ArrayObjectAdapter(new VodPresenter(this, style));
-            adapter.setItems(part, new BaseDiffCallback<Vod>());
-            mAdapter.add(new ListRow(adapter));
+            ArrayObjectAdapter adapter = new ArrayObjectAdapter(presenter);
+            adapter.addAll(0, part);
+            rows.add(new ListRow(adapter));
         }
+        mAdapter.addAll(mAdapter.size(), rows);
     }
 
     private void setFunc() {
@@ -263,7 +271,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
         items.add(Func.create(R.string.home_search));
         items.add(Func.create(R.string.home_keep));
         items.add(Func.create(R.string.home_push));
-        items.add(Func.create(R.string.home_cast));
         items.add(Func.create(R.string.home_setting));
         mFuncAdapter.setItems(items, new BaseDiffCallback<Func>());
     }
@@ -345,7 +352,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     public void onServerEvent(ServerEvent event) {
         switch (event.type()) {
             case SEARCH:
-                CollectActivity.start(this, event.text());
+                SearchActivity.start(this, event.text());
                 break;
             case PUSH:
                 VideoActivity.push(this, event.text());
@@ -393,9 +400,6 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
                 break;
             case R.string.home_push:
                 PushActivity.start(this);
-                break;
-            case R.string.home_cast:
-                CastActivity.start(this);
                 break;
             case R.string.home_setting:
                 SettingActivity.start(this);
@@ -487,7 +491,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     protected void onDestroy() {
-        CacheManager.get().release();
+        DLNARendererService.stop(this);
         LiveConfig.get().clear();
         VodConfig.get().clear();
         AppDatabase.backup();

@@ -28,11 +28,10 @@ import com.fongmi.android.tv.R;
 import com.github.catvod.utils.Shell;
 
 import java.net.NetworkInterface;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Formatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -168,18 +167,6 @@ public class Util {
         return text;
     }
 
-    public static Date parse(SimpleDateFormat format, String source) {
-        try {
-            return format.parse(source);
-        } catch (Exception e) {
-            return new Date(0);
-        }
-    }
-
-    public static long parse(List<SimpleDateFormat> formats, String source) {
-        return formats.stream().map(format -> parse(format, source)).map(Date::getTime).filter(time -> time > 0).findFirst().orElse(0L);
-    }
-
     public static boolean isLeanback() {
         return "leanback".equals(BuildConfig.FLAVOR_mode);
     }
@@ -194,6 +181,11 @@ public class Util {
         } catch (Exception e) {
             return "";
         }
+    }
+
+    public static String timeMs(long timeMs) {
+        StringBuilder sb = new StringBuilder();
+        return format(sb, new Formatter(sb, Locale.getDefault()), timeMs);
     }
 
     public static Intent getChooser(Intent intent) {

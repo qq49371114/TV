@@ -20,6 +20,18 @@ public class Collect implements Parcelable, Diffable<Collect> {
     private Site site;
     private int page;
 
+    public Collect(Site site, List<Vod> list) {
+        this.site = site;
+        this.list = list;
+    }
+
+    protected Collect(Parcel in) {
+        this.activated = in.readByte() != 0;
+        this.list = in.createTypedArrayList(Vod.CREATOR);
+        this.site = in.readParcelable(Site.class.getClassLoader());
+        this.page = in.readInt();
+    }
+
     public static Collect all() {
         Collect item = new Collect(Site.get("all", ResUtil.getString(R.string.all)), new ArrayList<>());
         item.setActivated(true);
@@ -28,11 +40,6 @@ public class Collect implements Parcelable, Diffable<Collect> {
 
     public static Collect create(List<Vod> list) {
         return new Collect(list.get(0).getSite(), list);
-    }
-
-    public Collect(Site site, List<Vod> list) {
-        this.site = site;
-        this.list = list;
     }
 
     public Site getSite() {
@@ -82,13 +89,6 @@ public class Collect implements Parcelable, Diffable<Collect> {
         dest.writeTypedList(this.list);
         dest.writeParcelable(this.site, flags);
         dest.writeInt(this.page);
-    }
-
-    protected Collect(Parcel in) {
-        this.activated = in.readByte() != 0;
-        this.list = in.createTypedArrayList(Vod.CREATOR);
-        this.site = in.readParcelable(Site.class.getClassLoader());
-        this.page = in.readInt();
     }
 
     @Override

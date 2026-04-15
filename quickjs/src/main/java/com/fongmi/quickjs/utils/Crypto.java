@@ -62,8 +62,8 @@ public class Crypto {
     }
 
     private static Key generateKey(boolean pub, String key) throws Exception {
-        if (pub) key = key.replaceAll(System.lineSeparator(), "").replace("-----BEGIN PUBLIC KEY-----", "").replace("-----END PUBLIC KEY-----", "");
-        else key = key.replaceAll(System.lineSeparator(), "").replace("-----BEGIN PRIVATE KEY-----", "").replace("-----END PRIVATE KEY-----", "");
+        if (pub) key = key.replaceAll("[\\r\\n]", "").replace("-----BEGIN PUBLIC KEY-----", "").replace("-----END PUBLIC KEY-----", "");
+        else key = key.replaceAll("[\\r\\n]", "").replace("-----BEGIN PRIVATE KEY-----", "").replace("-----END PRIVATE KEY-----", "");
         return pub ? KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(Base64.decode(key, Base64.DEFAULT))) : KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(Base64.decode(key, Base64.DEFAULT)));
     }
 }

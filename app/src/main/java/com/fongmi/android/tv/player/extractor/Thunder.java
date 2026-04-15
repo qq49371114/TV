@@ -83,16 +83,16 @@ public class Thunder implements Source.Extractor {
             return new Parser(url);
         }
 
+        private static boolean isTorrent(String url) {
+            return !url.startsWith("magnet") && url.split(";")[0].toLowerCase().endsWith(".torrent");
+        }
+
         private Episode create(GetTaskId taskId) {
             return Episode.create(taskId.getFileName(), taskId.getRealUrl());
         }
 
         private Episode create(TorrentFileInfo info) {
             return Episode.create(info.getFileName(), info.getSize(), info.getPlayUrl());
-        }
-
-        private static boolean isTorrent(String url) {
-            return !url.startsWith("magnet") && url.split(";")[0].toLowerCase().endsWith(".torrent");
         }
 
         @Override

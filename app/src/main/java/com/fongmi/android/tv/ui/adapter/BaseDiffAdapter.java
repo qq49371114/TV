@@ -84,6 +84,15 @@ public abstract class BaseDiffAdapter<T extends Diffable<T>, VH extends Recycler
         setItems(current, runnable);
     }
 
+    public void sort(List<T> items) {
+        sort(items, null);
+    }
+
+    public void sort(List<T> items, Runnable runnable) {
+        List<T> current = Stream.concat(getItems().stream(), items.stream()).distinct().sorted().toList();
+        setItems(current, runnable);
+    }
+
     public void remove(T item) {
         remove(item, null);
     }

@@ -7,22 +7,20 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.fongmi.android.tv.databinding.AdapterRestoreBinding;
+import com.fongmi.android.tv.utils.Formatters;
 import com.github.catvod.utils.Path;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class RestoreAdapter extends RecyclerView.Adapter<RestoreAdapter.ViewHolder> {
 
     private final OnClickListener listener;
-    private final SimpleDateFormat format;
     private final List<File> mItems;
 
     public RestoreAdapter(OnClickListener listener) {
-        this.format = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
         this.mItems = new ArrayList<>();
         this.listener = listener;
         this.addAll();
@@ -67,7 +65,7 @@ public class RestoreAdapter extends RecyclerView.Adapter<RestoreAdapter.ViewHold
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         File item = mItems.get(position);
         holder.binding.name.setText(item.getName());
-        holder.binding.time.setText(format.format(item.lastModified()));
+        holder.binding.time.setText(Formatters.TIME_SEC.format(Instant.ofEpochMilli(item.lastModified())));
         holder.binding.delete.setOnClickListener(v -> listener.onDeleteClick(item));
         holder.binding.getRoot().setOnClickListener(v -> listener.onItemClick(item));
     }

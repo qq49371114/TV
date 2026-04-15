@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import androidx.preference.PreferenceManager;
 
 import com.github.catvod.Init;
-import com.google.gson.internal.LazilyParsedNumber;
 
 public class Prefers {
 
@@ -63,19 +62,19 @@ public class Prefers {
 
     public static void put(String key, Object obj) {
         if (obj == null) return;
-        if (obj instanceof String) {
-            getPrefers().edit().putString(key, (String) obj).apply();
-        } else if (obj instanceof Boolean) {
-            getPrefers().edit().putBoolean(key, (Boolean) obj).apply();
-        } else if (obj instanceof Float) {
-            getPrefers().edit().putFloat(key, (Float) obj).apply();
-        } else if (obj instanceof Integer) {
-            getPrefers().edit().putInt(key, (Integer) obj).apply();
-        } else if (obj instanceof Long) {
-            getPrefers().edit().putLong(key, (Long) obj).apply();
-        } else if (obj instanceof LazilyParsedNumber number) {
-            if (number.toString().contains(".")) put(key, number.floatValue());
-            else put(key, number.intValue());
+        if (obj instanceof String val) {
+            getPrefers().edit().putString(key, val).apply();
+        } else if (obj instanceof Boolean val) {
+            getPrefers().edit().putBoolean(key, val).apply();
+        } else if (obj instanceof Float val) {
+            getPrefers().edit().putFloat(key, val).apply();
+        } else if (obj instanceof Integer val) {
+            getPrefers().edit().putInt(key, val).apply();
+        } else if (obj instanceof Long val) {
+            getPrefers().edit().putLong(key, val).apply();
+        } else if (obj instanceof Number val) {
+            if (val.toString().contains(".")) put(key, val.floatValue());
+            else put(key, val.intValue());
         }
     }
 

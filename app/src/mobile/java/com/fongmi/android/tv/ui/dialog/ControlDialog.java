@@ -17,7 +17,7 @@ import com.fongmi.android.tv.bean.History;
 import com.fongmi.android.tv.bean.Parse;
 import com.fongmi.android.tv.databinding.ActivityVideoBinding;
 import com.fongmi.android.tv.databinding.DialogControlBinding;
-import com.fongmi.android.tv.player.Players;
+import com.fongmi.android.tv.player.PlayerManager;
 import com.fongmi.android.tv.ui.adapter.ParseAdapter;
 import com.fongmi.android.tv.ui.base.ViewType;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
@@ -35,10 +35,10 @@ public class ControlDialog extends BaseDialog implements ParseAdapter.OnClickLis
     private ActivityVideoBinding parent;
     private FragmentActivity activity;
     private List<TextView> scales;
+    private PlayerManager player;
     private final String[] scale;
     private Listener listener;
     private History history;
-    private Players player;
     private boolean parse;
 
     public static ControlDialog create() {
@@ -59,13 +59,13 @@ public class ControlDialog extends BaseDialog implements ParseAdapter.OnClickLis
         return this;
     }
 
-    public ControlDialog player(Players player) {
-        this.player = player;
+    public ControlDialog parse(boolean parse) {
+        this.parse = parse;
         return this;
     }
 
-    public ControlDialog parse(boolean parse) {
-        this.parse = parse;
+    public ControlDialog player(PlayerManager player) {
+        this.player = player;
         return this;
     }
 
@@ -86,14 +86,13 @@ public class ControlDialog extends BaseDialog implements ParseAdapter.OnClickLis
 
     @Override
     protected void initView() {
-        if (player == null) dismiss();
-        if (player == null) return;
         binding.decode.setText(parent.control.action.decode.getText());
         binding.ending.setText(parent.control.action.ending.getText());
         binding.opening.setText(parent.control.action.opening.getText());
         binding.loop.setActivated(parent.control.action.loop.isActivated());
         binding.timer.setActivated(Timer.get().isRunning());
         setTrackVisible();
+        setTitleVisible();
         setScaleText();
         setPlayer();
         setParse();
@@ -107,6 +106,7 @@ public class ControlDialog extends BaseDialog implements ParseAdapter.OnClickLis
         binding.text.setOnClickListener(v -> dismiss(parent.control.action.text));
         binding.audio.setOnClickListener(v -> dismiss(parent.control.action.audio));
         binding.video.setOnClickListener(v -> dismiss(parent.control.action.video));
+        binding.title.setOnClickListener(v -> dismiss(parent.control.action.title));
         binding.player.setOnClickListener(v -> dismiss(parent.control.action.player));
         binding.danmaku.setOnClickListener(v -> dismiss(parent.control.action.danmaku));
         binding.loop.setOnClickListener(v -> active(binding.loop, parent.control.action.loop));
@@ -170,10 +170,6 @@ public class ControlDialog extends BaseDialog implements ParseAdapter.OnClickLis
         dismiss();
     }
 
-    public void updateParse() {
-        binding.parse.getAdapter().notifyItemRangeChanged(0, binding.parse.getAdapter().getItemCount());
-    }
-
     public void setPlayer() {
         binding.speed.setValue(Math.max(player.getSpeed(), 0.5f));
         binding.player.setText(parent.control.action.player.getText());
@@ -191,6 +187,10 @@ public class ControlDialog extends BaseDialog implements ParseAdapter.OnClickLis
         binding.audio.setVisibility(parent.control.action.audio.getVisibility());
         binding.video.setVisibility(parent.control.action.video.getVisibility());
         binding.track.setVisibility(binding.text.getVisibility() == View.GONE && binding.audio.getVisibility() == View.GONE && binding.video.getVisibility() == View.GONE ? View.GONE : View.VISIBLE);
+    }
+
+    public void setTitleVisible() {
+        binding.title.setVisibility(parent.control.action.title.getVisibility());
     }
 
     @Override

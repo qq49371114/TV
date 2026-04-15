@@ -41,16 +41,6 @@ public class Backup {
         return backup;
     }
 
-    public void restore() {
-        AppDatabase.get().clearAllTables();
-        AppDatabase.get().getSiteDao().insertOrUpdate(getSite());
-        AppDatabase.get().getLiveDao().insertOrUpdate(getLive());
-        AppDatabase.get().getKeepDao().insertOrUpdate(getKeep());
-        AppDatabase.get().getConfigDao().insertOrUpdate(getConfig());
-        AppDatabase.get().getHistoryDao().insertOrUpdate(getHistory());
-        for (Map.Entry<String, ?> entry : getPrefers().entrySet()) Prefers.put(entry.getKey(), entry.getValue());
-    }
-
     public static Backup objectFrom(String json) {
         try {
             Gson gson = new GsonBuilder().setObjectToNumberStrategy(ToNumberPolicy.LAZILY_PARSED_NUMBER).create();
@@ -59,6 +49,16 @@ public class Backup {
         } catch (Exception e) {
             return new Backup();
         }
+    }
+
+    public void restore() {
+        AppDatabase.get().clearAllTables();
+        AppDatabase.get().getSiteDao().insertOrUpdate(getSite());
+        AppDatabase.get().getLiveDao().insertOrUpdate(getLive());
+        AppDatabase.get().getKeepDao().insertOrUpdate(getKeep());
+        AppDatabase.get().getConfigDao().insertOrUpdate(getConfig());
+        AppDatabase.get().getHistoryDao().insertOrUpdate(getHistory());
+        for (Map.Entry<String, ?> entry : getPrefers().entrySet()) Prefers.put(entry.getKey(), entry.getValue());
     }
 
     public List<Site> getSite() {

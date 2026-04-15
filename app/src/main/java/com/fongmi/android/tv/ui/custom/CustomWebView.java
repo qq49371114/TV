@@ -20,7 +20,7 @@ import androidx.annotation.NonNull;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.Setting;
-import com.fongmi.android.tv.api.config.LiveConfig;
+import com.fongmi.android.tv.api.config.RuleConfig;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.impl.ParseCallback;
 import com.fongmi.android.tv.ui.dialog.WebDialog;
@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
 public class CustomWebView extends WebView implements DialogInterface.OnDismissListener {
@@ -45,13 +46,13 @@ public class CustomWebView extends WebView implements DialogInterface.OnDismissL
     private static final String BLANK = "about:blank";
     private static final int MAX_URLS = 5;
 
+    private final AtomicReference<ParseCallback> callbackRef = new AtomicReference<>();
     private LinkedHashSet<String> urls;
     private WebResourceResponse empty;
-    private ParseCallback callback;
     private WebDialog dialog;
     private Runnable timer;
+    private boolean stopped;
     private boolean detect;
-    private boolean stop;
     private String click;
     private String from;
     private String key;
@@ -67,7 +68,7 @@ public class CustomWebView extends WebView implements DialogInterface.OnDismissL
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    public void initSettings() {
+    private void initSettings() {
         timer = () -> stop(true);
         urls = new LinkedHashSet<>();
         empty = new WebResourceResponse("text/plain", "utf-8", new ByteArrayInputStream("".getBytes()));
@@ -90,7 +91,7 @@ public class CustomWebView extends WebView implements DialogInterface.OnDismissL
     public CustomWebView start(String key, String from, Map<String, String> headers, String url, String click, ParseCallback callback, boolean detect) {
         SpiderDebug.log(TAG, "key=%s, from=%s, click=%s, url=%s, headers=%s", key, from, click, url, headers);
         App.post(timer, Constant.TIMEOUT_PARSE_WEB);
-        this.callback = callback;
+        callbackRef.set(callback);
         this.detect = detect;
         this.click = click;
         this.from = from;
@@ -109,7 +110,7 @@ public class CustomWebView extends WebView implements DialogInterface.OnDismissL
     private void checkHeader(String url, Map<String, String> headers) {
         for (String key : headers.keySet()) {
             if (HttpHeaders.USER_AGENT.equalsIgnoreCase(key)) getSettings().setUserAgentString(headers.get(key));
-            if (HttpHeaders.COOKIE.equalsIgnoreCase(key)) CookieManager.getInstance().setCookie(url, headers.get(key));
+            else if (HttpHeaders.COOKIE.equalsIgnoreCase(key)) CookieManager.getInstance().setCookie(url, headers.get(key));
         }
     }
 
@@ -187,8 +188,7 @@ public class CustomWebView extends WebView implements DialogInterface.OnDismissL
     }
 
     private boolean isAd(String host) {
-        for (String ad : VodConfig.get().getAds()) if (Util.containOrMatch(host, ad)) return true;
-        for (String ad : LiveConfig.get().getAds()) if (Util.containOrMatch(host, ad)) return true;
+        for (String ad : RuleConfig.get().getAds()) if (Util.containOrMatch(host, ad)) return true;
         return false;
     }
 
@@ -204,28 +204,30 @@ public class CustomWebView extends WebView implements DialogInterface.OnDismissL
     }
 
     private void onParseAdd(Map<String, String> headers, String url) {
-        post(() -> CustomWebView.create(App.get()).start(key, from, headers, url, click, callback, false));
+        ParseCallback cb = callbackRef.get();
+        if (cb == null) return;
+        post(() -> CustomWebView.create(App.get()).start(key, from, headers, url, click, cb, false));
     }
 
     private void onParseSuccess(Map<String, String> headers, String url) {
-        if (callback != null) callback.onParseSuccess(headers, url, from);
+        ParseCallback cb = callbackRef.getAndSet(null);
+        if (cb != null) cb.onParseSuccess(headers, url, from);
         post(() -> stop(false));
-        callback = null;
     }
 
     private void onParseError() {
-        if (callback != null) callback.onParseError();
-        callback = null;
+        ParseCallback cb = callbackRef.getAndSet(null);
+        if (cb != null) cb.onParseError();
     }
 
     public void stop(boolean error) {
-        if (stop) return;
-        stop = true;
+        if (stopped) return;
+        stopped = true;
         hideDialog();
         stopLoading();
         loadUrl(BLANK);
         App.removeCallbacks(timer);
         if (error) onParseError();
-        else callback = null;
+        else callbackRef.set(null);
     }
 }

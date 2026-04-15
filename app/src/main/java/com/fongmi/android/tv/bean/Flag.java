@@ -38,16 +38,6 @@ public class Flag implements Parcelable, Diffable<Flag> {
     private boolean activated;
     private int position;
 
-    public static Flag create(String flag) {
-        return new Flag(flag).trans();
-    }
-
-    public static Flag create(String flag, String url) {
-        Flag item = create(flag);
-        item.setEpisodes(url);
-        return item;
-    }
-
     public Flag() {
         this.position = -1;
         this.episodes = new ArrayList<>();
@@ -57,6 +47,25 @@ public class Flag implements Parcelable, Diffable<Flag> {
         this.flag = flag;
         this.position = -1;
         this.episodes = new ArrayList<>();
+    }
+
+    protected Flag(Parcel in) {
+        this.flag = in.readString();
+        this.show = in.readString();
+        this.urls = in.readString();
+        this.episodes = in.createTypedArrayList(Episode.CREATOR);
+        this.activated = in.readByte() != 0;
+        this.position = in.readInt();
+    }
+
+    public static Flag create(String flag) {
+        return new Flag(flag).trans();
+    }
+
+    public static Flag create(String flag, String url) {
+        Flag item = create(flag);
+        item.setEpisodes(url);
+        return item;
     }
 
     public String getShow() {
@@ -79,6 +88,16 @@ public class Flag implements Parcelable, Diffable<Flag> {
         return episodes;
     }
 
+    public void setEpisodes(String url) {
+        String[] urls = url.contains("#") ? url.split("#") : new String[]{url};
+        for (int i = 0; i < urls.length; i++) {
+            String[] split = urls[i].split("\\$", 2);
+            String number = String.format(Locale.getDefault(), "%02d", i + 1);
+            Episode episode = split.length > 1 ? Episode.create(split[0].isEmpty() ? number : split[0].trim(), split[1]) : Episode.create(number, urls[i]);
+            getEpisodes().add(episode);
+        }
+    }
+
     public boolean isActivated() {
         return activated;
     }
@@ -86,6 +105,11 @@ public class Flag implements Parcelable, Diffable<Flag> {
     public void setActivated(Flag item) {
         this.activated = item.equals(this);
         if (activated) item.episodes = episodes;
+    }
+
+    private void setActivated(Episode episode) {
+        setPosition(getEpisodes().indexOf(episode));
+        for (int i = 0; i < getEpisodes().size(); i++) getEpisodes().get(i).setActivated(i == getPosition());
     }
 
     public int getPosition() {
@@ -101,11 +125,6 @@ public class Flag implements Parcelable, Diffable<Flag> {
         else getEpisodes().forEach(Episode::deactivated);
     }
 
-    private void setActivated(Episode episode) {
-        setPosition(getEpisodes().indexOf(episode));
-        for (int i = 0; i < getEpisodes().size(); i++) getEpisodes().get(i).setActivated(i == getPosition());
-    }
-
     public Episode find(String remarks, boolean strict) {
         if (getEpisodes().isEmpty()) return null;
         if (getEpisodes().size() == 1) return getEpisodes().get(0);
@@ -116,21 +135,10 @@ public class Flag implements Parcelable, Diffable<Flag> {
                 .orElseGet(() -> getPosition() != -1 ? getEpisodes().get(getPosition()) : strict ? null : getEpisodes().get(0));
     }
 
-    public void setEpisodes(String url) {
-        String[] urls = url.contains("#") ? url.split("#") : new String[]{url};
-        for (int i = 0; i < urls.length; i++) {
-            String[] split = urls[i].split("\\$", 2);
-            String number = String.format(Locale.getDefault(), "%02d", i + 1);
-            Episode episode = split.length > 1 ? Episode.create(split[0].isEmpty() ? number : split[0].trim(), split[1]) : Episode.create(number, urls[i]);
-            if (!getEpisodes().contains(episode)) getEpisodes().add(episode);
-        }
-    }
-
     public void mergeEpisodes(List<Episode> items, boolean rev) {
         for (Episode item : items) {
-            if (episodes.contains(item)) continue;
-            if (rev) episodes.add(0, item);
-            else episodes.add(item);
+            if (rev) getEpisodes().add(0, item);
+            else getEpisodes().add(item);
         }
     }
 
@@ -173,13 +181,14 @@ public class Flag implements Parcelable, Diffable<Flag> {
         dest.writeInt(this.position);
     }
 
-    protected Flag(Parcel in) {
-        this.flag = in.readString();
-        this.show = in.readString();
-        this.urls = in.readString();
-        this.episodes = in.createTypedArrayList(Episode.CREATOR);
-        this.activated = in.readByte() != 0;
-        this.position = in.readInt();
+    @Override
+    public boolean isSameItem(Flag other) {
+        return equals(other);
+    }
+
+    @Override
+    public boolean isSameContent(Flag other) {
+        return equals(other);
     }
 
     public static final Creator<Flag> CREATOR = new Creator<>() {
@@ -193,14 +202,4 @@ public class Flag implements Parcelable, Diffable<Flag> {
             return new Flag[size];
         }
     };
-
-    @Override
-    public boolean isSameItem(Flag other) {
-        return equals(other);
-    }
-
-    @Override
-    public boolean isSameContent(Flag other) {
-        return equals(other);
-    }
 }

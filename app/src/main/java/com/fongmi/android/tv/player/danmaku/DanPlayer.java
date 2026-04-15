@@ -1,11 +1,12 @@
 package com.fongmi.android.tv.player.danmaku;
 
+import androidx.annotation.NonNull;
 import androidx.media3.common.Player;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.bean.Danmaku;
-import com.fongmi.android.tv.player.Players;
 import com.fongmi.android.tv.utils.ResUtil;
+import com.fongmi.android.tv.utils.Task;
 import com.github.catvod.net.OkHttp;
 
 import java.util.HashMap;
@@ -19,15 +20,17 @@ import master.flame.danmaku.danmaku.model.IDisplayer;
 import master.flame.danmaku.danmaku.model.android.DanmakuContext;
 import master.flame.danmaku.ui.widget.DanmakuView;
 
-public class DanPlayer implements DrawHandler.Callback {
+public class DanPlayer implements DrawHandler.Callback, Player.Listener {
 
     private final DanmakuContext context;
-    private DanmakuView view;
+    private final DanmakuView view;
     private Future<?> future;
-    private Players player;
+    private Player player;
 
-    public DanPlayer() {
+    public DanPlayer(DanmakuView view) {
         context = DanmakuContext.create();
+        view.setCallback(this);
+        this.view = view;
         initContext();
     }
 
@@ -45,67 +48,51 @@ public class DanPlayer implements DrawHandler.Callback {
         context.setDanmakuStyle(IDisplayer.DANMAKU_STYLE_STROKEN, 3);
     }
 
-    public void setView(DanmakuView view) {
-        view.setCallback(this);
-        this.view = view;
+    public void attachPlayer(Player player) {
+        this.player = player;
+        player.addListener(this);
+        context.setDanmakuSync(new Sync(player));
     }
 
-    public void setPlayer(Players player) {
-        context.setDanmakuSync(new Sync(this.player = player));
+    public void detachPlayer() {
+        player.removeListener(this);
     }
 
     private boolean isPrepared() {
-        return view != null && view.isPrepared();
+        return view.isPrepared();
     }
 
-    public DanPlayer cancel() {
-        if (future == null) return this;
+    private void cancel() {
+        if (future == null) return;
         OkHttp.cancel("danmaku");
         future.cancel(true);
         future = null;
-        return this;
     }
 
-    public void seekTo(long time) {
-        App.execute(() -> {
-            if (!isPrepared()) return;
-            view.seekTo(time);
-            view.hide();
-        });
+    private void play() {
+        if (isPrepared()) view.resume();
     }
 
-    public void play() {
-        App.execute(() -> {
-            if (isPrepared()) view.resume();
-        });
-    }
-
-    public void pause() {
-        App.execute(() -> {
-            if (isPrepared()) view.pause();
-        });
+    private void pause() {
+        if (isPrepared()) view.pause();
     }
 
     public void stop() {
         cancel();
-        App.execute(() -> {
-            if (view != null) view.stop();
-        });
+        view.stop();
     }
 
     public void release() {
         cancel();
-        App.execute(() -> {
-            if (view != null) view.release();
-        });
+        detachPlayer();
+        view.release();
     }
 
     public void setDanmaku(Danmaku item) {
         cancel();
-        future = App.submit(() -> {
-            if (view != null) view.release();
-            if (item.isEmpty() || view == null) return;
-            view.prepare(new Parser().load(new Loader().load(item).getDataSource()), context);
+        future = Task.submit(() -> {
+            if (item.isEmpty()) view.stop();
+            else view.prepare(new Parser().load(new Loader().load(item).getDataSource()), context);
         });
     }
 
@@ -113,22 +100,24 @@ public class DanPlayer implements DrawHandler.Callback {
         context.setScaleTextSize(size);
     }
 
-    public void check(int state) {
-        if (state == Player.STATE_BUFFERING) pause();
-        else if (state == Player.STATE_READY) prepared();
+    @Override
+    public void onIsPlayingChanged(boolean isPlaying) {
+        if (isPlaying) play();
+        else pause();
+    }
+
+    @Override
+    public void onPositionDiscontinuity(@NonNull Player.PositionInfo oldPosition, @NonNull Player.PositionInfo newPosition, int reason) {
+        if (isPrepared()) view.seekTo(newPosition.positionMs);
     }
 
     @Override
     public void prepared() {
         App.post(() -> {
-            boolean playing = player.isPlaying();
-            long position = player.getPosition();
-            App.execute(() -> {
-                if (!isPrepared()) return;
-                if (playing) view.start(position);
-                else view.pause();
-                view.show();
-            });
+            if (!isPrepared()) return;
+            view.start(player.getCurrentPosition());
+            if (!player.isPlaying()) view.pause();
+            view.show();
         });
     }
 

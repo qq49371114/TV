@@ -25,10 +25,6 @@ public class WallConfig extends BaseConfig {
 
     private static final String TAG = WallConfig.class.getSimpleName();
 
-    private static class Loader {
-        static volatile WallConfig INSTANCE = new WallConfig();
-    }
-
     public static WallConfig get() {
         return Loader.INSTANCE;
     }
@@ -85,6 +81,11 @@ public class WallConfig extends BaseConfig {
         setSnapshot(file);
     }
 
+    @Override
+    protected boolean isLoaded() {
+        return false;
+    }
+
     private void checkUrl(String url, File file) throws Throwable {
         if (url.startsWith("file")) Path.copy(Path.local(url), file);
         else Download.create(UrlUtil.convert(url), file).tag(TAG).get();
@@ -101,6 +102,8 @@ public class WallConfig extends BaseConfig {
         Bitmap bitmap = Glide.with(App.get()).asBitmap().frame(0).load(file).override(ResUtil.getScreenWidth(), ResUtil.getScreenHeight()).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE).submit().get();
         try (FileOutputStream fos = new FileOutputStream(FileUtil.getWallCache())) {
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+        } finally {
+            bitmap.recycle();
         }
     }
 
@@ -122,5 +125,9 @@ public class WallConfig extends BaseConfig {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private static class Loader {
+        static volatile WallConfig INSTANCE = new WallConfig();
     }
 }
