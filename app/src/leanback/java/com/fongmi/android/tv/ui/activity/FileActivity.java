@@ -2,6 +2,7 @@ package com.fongmi.android.tv.ui.activity;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 
 import androidx.viewbinding.ViewBinding;
 
@@ -30,7 +31,7 @@ public class FileActivity extends BaseActivity implements FileAdapter.OnClickLis
     }
 
     @Override
-    protected void initView() {
+    protected void initView(Bundle savedInstanceState) {
         setRecyclerView();
         checkPermission();
     }

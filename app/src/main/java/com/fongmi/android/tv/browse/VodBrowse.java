@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
 import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
 
+import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.SiteApi;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.bean.Episode;
@@ -118,7 +119,7 @@ class VodBrowse {
     }
 
     static boolean saveProgress(long position, long duration) {
-        if (browseHistory == null) return false;
+        if (browseHistory == null || Setting.isIncognito()) return false;
         History history = browseHistory;
         history.setPosition(position);
         history.setDuration(duration);

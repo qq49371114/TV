@@ -1,6 +1,6 @@
 plugins {
-    id 'com.android.application' version '8.13.2' apply false
-    id 'com.android.library' version '8.13.2' apply false
+    id 'com.android.application' version '9.1.1' apply false
+    id 'com.android.library' version '9.1.1' apply false
     id 'com.chaquo.python' version '17.0.0' apply false
 }
 
@@ -8,7 +8,7 @@ tasks.register('clean', Delete) {
     delete rootProject.layout.buildDirectory
 }
 
-tasks.register('buildAllRelease') {
+tasks.register('buildRelease') {
     group = 'build'
     dependsOn project(':app').tasks.matching { it.name ==~ /assemble.+Release/ }
     doLast {
@@ -16,7 +16,7 @@ tasks.register('buildAllRelease') {
             from fileTree("$rootDir/app/build/outputs/apk") { include '**/release/*.apk' }
             into "$rootDir/Release/apk"
             eachFile { it.path = it.name }
-            includeEmptyDirs false
+            includeEmptyDirs = false
         }
     }
 }

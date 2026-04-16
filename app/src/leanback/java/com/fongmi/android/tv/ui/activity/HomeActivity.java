@@ -115,7 +115,7 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
     }
 
     @Override
-    protected void initView() {
+    protected void initView(Bundle savedInstanceState) {
         mResult = Result.empty();
         mClock = Clock.create(mBinding.clock);
         mBinding.progressLayout.showProgress();
@@ -385,26 +385,12 @@ public class HomeActivity extends BaseActivity implements CustomTitleView.Listen
 
     @Override
     public void onItemClick(Func item) {
-        switch (item.getResId()) {
-            case R.string.home_vod:
-                VodActivity.start(this, mResult);
-                break;
-            case R.string.home_live:
-                LiveActivity.start(this);
-                break;
-            case R.string.home_search:
-                SearchActivity.start(this);
-                break;
-            case R.string.home_keep:
-                KeepActivity.start(this);
-                break;
-            case R.string.home_push:
-                PushActivity.start(this);
-                break;
-            case R.string.home_setting:
-                SettingActivity.start(this);
-                break;
-        }
+        if (item.getResId() == R.string.home_vod) VodActivity.start(this, mResult);
+        else if (item.getResId() == R.string.home_live) LiveActivity.start(this);
+        else if (item.getResId() == R.string.home_keep) KeepActivity.start(this);
+        else if (item.getResId() == R.string.home_push) PushActivity.start(this);
+        else if (item.getResId() == R.string.home_search) SearchActivity.start(this);
+        else if (item.getResId() == R.string.home_setting) SettingActivity.start(this);
     }
 
     @Override

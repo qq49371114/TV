@@ -25,6 +25,7 @@ import com.fongmi.android.tv.browse.BrowseTree;
 import com.fongmi.android.tv.event.ActionEvent;
 import com.fongmi.android.tv.event.ConfigEvent;
 import com.fongmi.android.tv.player.PlayerManager;
+import com.fongmi.android.tv.player.engine.PlaySpec;
 import com.fongmi.android.tv.server.Server;
 import com.fongmi.android.tv.utils.Task;
 import com.google.common.collect.ImmutableList;
@@ -53,6 +54,7 @@ public class PlaybackService extends MediaLibraryService implements MediaLibrary
     private Runnable onNewBinding;
     private boolean externalBound;
     private PlayerManager player;
+    private String navigationKey;
     private Player exoPlayer;
 
     public static boolean isRunning() {
@@ -228,8 +230,13 @@ public class PlaybackService extends MediaLibraryService implements MediaLibrary
         setSessionActivity(buildDefaultIntent());
     }
 
-    public void setNavigationCallback(NavigationCallback navigationCallback) {
+    public void setNavigationCallback(NavigationCallback navigationCallback, String key) {
         this.navigationCallback = navigationCallback;
+        this.navigationKey = key;
+    }
+
+    private boolean isNavigationOwner() {
+        return navigationKey == null || navigationKey.equals(player.getKey());
     }
 
     public void addPlayerCallback(PlayerCallback callback) {
@@ -253,12 +260,13 @@ public class PlaybackService extends MediaLibraryService implements MediaLibrary
     }
 
     private void dispatchNavigate(Consumer<NavigationCallback> action, int delta) {
-        if (navigationCallback != null) dispatch(action);
+        if (hasNavigationCallback() && isNavigationOwner()) dispatch(action);
         else navigateItem(delta);
     }
 
     public void dispatchStop() {
-        if (navigationCallback != null) dispatch(NavigationCallback::onStop);
+        if (exoPlayer.getPlaybackState() == Player.STATE_IDLE) return;
+        if (hasNavigationCallback() && isNavigationOwner()) dispatch(NavigationCallback::onStop);
         else player.stop();
     }
 
@@ -267,7 +275,7 @@ public class PlaybackService extends MediaLibraryService implements MediaLibrary
     }
 
     public void dispatchReplay() {
-        if (navigationCallback != null) dispatch(NavigationCallback::onReplay);
+        if (hasNavigationCallback() && isNavigationOwner()) dispatch(NavigationCallback::onReplay);
         else {
             exoPlayer.seekTo(0);
             exoPlayer.play();
@@ -386,7 +394,7 @@ public class PlaybackService extends MediaLibraryService implements MediaLibrary
     }
 
     private void startBrowse(PlayerManager manager, MediaItem item, Result result, long startPositionMs) {
-        manager.startBrowse(item.mediaId, item.mediaMetadata, result);
+        manager.startBrowse(PlaySpec.from(result, item.mediaId, item.mediaMetadata));
         if (startPositionMs > 0) manager.seekTo(startPositionMs);
     }
 
@@ -414,7 +422,7 @@ public class PlaybackService extends MediaLibraryService implements MediaLibrary
     public void onPlayerRebuild(Player newPlayer) {
         exoPlayer = newPlayer;
         if (session != null) session.setPlayer(wrap(newPlayer));
-        for (PlayerCallback callback : playerCallbacks) callback.onPlayerRebuild(newPlayer);
+        playerCallbacks.forEach(callback -> callback.onPlayerRebuild(newPlayer));
     }
 
     @NonNull

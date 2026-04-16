@@ -1,15 +1,13 @@
 package com.fongmi.android.tv.bean;
 
-import android.net.Uri;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.media3.common.C;
-import androidx.media3.common.MediaItem;
 
 import com.fongmi.android.tv.App;
-import com.fongmi.android.tv.player.exo.ExoUtil;
+import com.fongmi.android.tv.player.PlayerHelper;
 import com.fongmi.android.tv.utils.UrlUtil;
 import com.github.catvod.utils.Trans;
 import com.google.gson.annotations.SerializedName;
@@ -32,7 +30,7 @@ public class Sub {
         sub.url = path;
         sub.name = UrlUtil.path(path);
         sub.flag = C.SELECTION_FLAG_FORCED;
-        sub.format = ExoUtil.getMimeType(sub.name);
+        sub.format = PlayerHelper.getSubtitleMimeType(sub.name);
         return sub;
     }
 
@@ -59,10 +57,6 @@ public class Sub {
     public void trans() {
         if (Trans.pass()) return;
         this.name = Trans.s2t(name);
-    }
-
-    public MediaItem.SubtitleConfiguration config() {
-        return new MediaItem.SubtitleConfiguration.Builder(Uri.parse(UrlUtil.convert(getUrl()))).setLabel(getName()).setMimeType(getFormat()).setSelectionFlags(getFlag()).setLanguage(getLang()).build();
     }
 
     @Override

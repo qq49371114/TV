@@ -3,17 +3,15 @@ plugins {
 }
 
 android {
-    namespace 'com.p2p'
+    namespace = 'com.p2p'
 
     compileSdk {
-        version = release(36) {
-            it.minorApiLevel = 1
-        }
+        version = release(37)
     }
 
     defaultConfig {
         minSdk 24
-        targetSdk 36
+        targetSdk 37
     }
 }
 

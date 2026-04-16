@@ -5,11 +5,14 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.WindowManager;
 
 import androidx.media3.common.C;
+import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.Player;
 import androidx.media3.common.VideoSize;
 import androidx.media3.ui.PlayerView;
@@ -24,6 +27,8 @@ import com.fongmi.android.tv.databinding.ActivityCastBinding;
 import com.fongmi.android.tv.dlna.CastAction;
 import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.player.PlayerHelper;
+import com.fongmi.android.tv.player.PlayerManager;
+import com.fongmi.android.tv.player.engine.PlaySpec;
 import com.fongmi.android.tv.service.DLNARendererService;
 import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.ui.base.PlaybackActivity;
@@ -99,7 +104,8 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
     }
 
     @Override
-    protected void initView() {
+    protected void initView(Bundle savedInstanceState) {
+        super.initView(savedInstanceState);
         bindService(new Intent(this, DLNARendererService.class), mRendererConnection, Context.BIND_AUTO_CREATE);
         mClock = Clock.create(mBinding.widget.clock);
         mKeyDown = CustomKeyDownVod.create(this);
@@ -129,7 +135,6 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
     }
 
     private void setVideoView() {
-        bindPlaybackService();
         setScale(scale = Setting.getScale());
         findViewById(R.id.timeBar).setNextFocusUpId(R.id.reset);
         mBinding.control.action.reset.setText(ResUtil.getStringArray(R.array.select_reset)[0]);
@@ -160,9 +165,7 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
     }
 
     private void start() {
-        player().setKey(getPlaybackKey());
-        player().setMediaItem(mAction.getHeaders(), mAction.getCurrentURI());
-        setMetadata();
+        player().start(new PlaySpec(getPlaybackKey(), mAction.getCurrentURI(), mAction.getHeaders(), buildMetadata()), Constant.TIMEOUT_PLAY);
     }
 
     private void setDecode() {
@@ -267,7 +270,6 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
     }
 
     private void hideControl() {
-        mBinding.control.action.text.setText(R.string.play_track_text);
         mBinding.control.getRoot().setVisibility(View.GONE);
         App.removeCallbacks(mR1);
     }
@@ -298,17 +300,19 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
         mBinding.control.action.video.setVisibility(player().haveTrack(C.TRACK_TYPE_VIDEO) ? View.VISIBLE : View.GONE);
     }
 
-    private void setMetadata() {
-        player().setMetadata(mBinding.widget.title.getText().toString(), "", "");
+    private MediaMetadata buildMetadata() {
+        return PlayerManager.buildMetadata(mBinding.widget.title.getText().toString(), "", "");
     }
 
     private void onPaused() {
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         controller().pause();
     }
 
     private void onPlay() {
         if (player().getPlaybackState() == Player.STATE_ENDED) controller().seekTo(0);
         if (!player().isEmpty() && player().getPlaybackState() == Player.STATE_IDLE) controller().prepare();
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         controller().play();
     }
 
@@ -348,7 +352,6 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
 
     @Override
     protected void onTracksChanged() {
-        setMetadata();
         setTrackVisible();
     }
 
@@ -516,7 +519,6 @@ public class CastActivity extends PlaybackActivity implements CustomKeyDownVod.L
     protected void onDestroy() {
         mClock.release();
         releaseRenderer();
-        releasePlaybackService();
         App.removeCallbacks(mR1, mR2);
         super.onDestroy();
     }

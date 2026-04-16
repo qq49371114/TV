@@ -33,9 +33,9 @@ public abstract class BaseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(getBinding().getRoot());
         EventBus.getDefault().register(this);
+        initView(savedInstanceState);
         Util.hideSystemUI(this);
         setBackCallback();
-        initView();
         initEvent();
     }
 
@@ -54,7 +54,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         return true;
     }
 
-    protected void initView() {
+    protected void initView(Bundle savedInstanceState) {
     }
 
     protected void initEvent() {

@@ -8,12 +8,10 @@ rootProject.file('local.properties').withInputStream {
 }
 
 android {
-    namespace 'com.fongmi.android.tv'
+    namespace = 'com.fongmi.android.tv'
 
     compileSdk {
-        version = release(36) {
-            it.minorApiLevel = 1
-        }
+        version = release(37)
     }
 
     defaultConfig {
@@ -21,8 +19,8 @@ android {
         minSdk 24
         //noinspection ExpiredTargetSdkVersion
         targetSdk 28
-        versionCode 537
-        versionName "5.3.7"
+        versionCode 539
+        versionName "5.3.9"
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = ["room.schemaLocation": "$projectDir/schemas".toString(), "eventBusIndex": "com.fongmi.android.tv.event.EventIndex"]
@@ -50,8 +48,8 @@ android {
     }
 
     buildFeatures {
-        buildConfig true
-        viewBinding true
+        buildConfig = true
+        viewBinding = true
     }
 
     signingConfigs {
@@ -65,9 +63,9 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled true
-            shrinkResources true
-            signingConfig signingConfigs.release
+            minifyEnabled = true
+            shrinkResources = true
+            signingConfig = signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro', 'proguard-rules-media.pro'
         }
     }
@@ -79,13 +77,8 @@ android {
         }
     }
 
-    android.applicationVariants.configureEach { variant ->
-        variant.outputs.configureEach { output ->
-            outputFileName = "${variant.productFlavors[0].name}-${variant.productFlavors[1].name}.apk"
-        }
-    }
-
     configurations.configureEach {
+        exclude group: 'com.android.support'
         resolutionStrategy {
             force 'com.squareup.okhttp3:okhttp:' + okhttpVersion
         }
@@ -96,9 +89,20 @@ android {
     }
 
     compileOptions {
-        coreLibraryDesugaringEnabled true
+        coreLibraryDesugaringEnabled = true
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+androidComponents {
+    onVariants(selector().withBuildType('release')) { variant ->
+        def flavors = variant.productFlavors.collectEntries { [(it.first): it.second] }
+        def mode = flavors['mode'] ?: 'mode'
+        def abi = flavors['abi'] ?: 'abi'
+        variant.outputs.each { output ->
+            output.outputFileName.set("${mode}-${abi}.apk")
+        }
     }
 }
 

@@ -4,19 +4,17 @@ plugins {
 }
 
 android {
-    namespace 'com.fongmi.chaquo'
+    namespace = 'com.fongmi.chaquo'
 
     compileSdk {
-        version = release(36) {
-            it.minorApiLevel = 1
-        }
+        version = release(37)
     }
 
     defaultConfig {
         minSdk 24
-        targetSdk 36
+        targetSdk 37
         python {
-            version "3.10"
+            version = "3.10"
             pip {
                 install("-r", "requirements.txt")
             }

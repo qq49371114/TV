@@ -1,33 +1,85 @@
 package com.fongmi.android.tv.player;
 
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.accessibility.CaptioningManager;
+
+import androidx.media3.common.Format;
+import androidx.media3.common.MimeTypes;
+import androidx.media3.common.util.Util;
+import androidx.media3.ui.CaptionStyleCompat;
+import androidx.media3.ui.PlayerView;
 
 import com.fongmi.android.tv.App;
-import com.fongmi.android.tv.player.exo.ExoUtil;
+import com.fongmi.android.tv.BuildConfig;
+import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.utils.FileUtil;
-import com.fongmi.android.tv.utils.Util;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.function.LongConsumer;
 
 public class PlayerHelper {
 
+    public static String getDefaultUa() {
+        return Util.getUserAgent(App.get(), BuildConfig.APPLICATION_ID);
+    }
+
+    public static CaptionStyleCompat getCaptionStyle() {
+        return Setting.isCaption() ? CaptionStyleCompat.createFromCaptionStyle(((CaptioningManager) App.get().getSystemService(Context.CAPTIONING_SERVICE)).getUserStyle()) : new CaptionStyleCompat(Color.WHITE, Color.TRANSPARENT, Color.TRANSPARENT, CaptionStyleCompat.EDGE_TYPE_OUTLINE, Color.BLACK, null);
+    }
+
+    public static void setSubtitleView(PlayerView exo) {
+        exo.getSubtitleView().setStyle(getCaptionStyle());
+        exo.getSubtitleView().setApplyEmbeddedStyles(true);
+        exo.getSubtitleView().setApplyEmbeddedFontSizes(false);
+        if (Setting.getSubtitleTextSize() != 0) exo.getSubtitleView().setFractionalTextSize(Setting.getSubtitleTextSize());
+    }
+
+    public static String getSubtitleMimeType(String path) {
+        if (TextUtils.isEmpty(path)) return "";
+        if (path.endsWith(".vtt")) return MimeTypes.TEXT_VTT;
+        if (path.endsWith(".ssa") || path.endsWith(".ass")) return MimeTypes.TEXT_SSA;
+        if (path.endsWith(".ttml") || path.endsWith(".xml") || path.endsWith(".dfxp")) return MimeTypes.APPLICATION_TTML;
+        return MimeTypes.APPLICATION_SUBRIP;
+    }
+
+    public static Bundle toBundle(Map<String, String> headers) {
+        Bundle bundle = new Bundle();
+        headers.forEach(bundle::putString);
+        return bundle;
+    }
+
+    public static String describeFormat(Format format) {
+        StringJoiner joiner = new StringJoiner(",");
+        if (format.id != null) joiner.add(format.id);
+        if (format.codecs != null) joiner.add(format.codecs);
+        if (format.sampleMimeType != null) joiner.add(format.sampleMimeType);
+        if (format.containerMimeType != null) joiner.add(format.containerMimeType);
+        return joiner.toString();
+    }
+
     public static void share(Activity activity, String url, Map<String, String> headers, CharSequence title) {
         try {
             if (url == null || url.isEmpty()) return;
-            Bundle bundle = ExoUtil.toBundle(headers);
+            Bundle bundle = toBundle(headers);
             Intent intent = new Intent(Intent.ACTION_SEND);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.putExtra(Intent.EXTRA_TEXT, url);
             intent.putExtra("extra_headers", bundle);
             intent.putExtra("title", title).putExtra("name", title);
             intent.setType("text/plain");
-            activity.startActivity(Util.getChooser(intent));
+            activity.startActivity(getChooser(intent));
         } catch (Exception ignored) {
         }
     }
@@ -47,7 +99,7 @@ public class PlayerHelper {
             intent.putExtra("title", title).putExtra("return_result", isVod);
             intent.putExtra("headers", list.toArray(String[]::new));
             if (isVod) intent.putExtra("position", (int) position);
-            activity.startActivityForResult(Util.getChooser(intent), 1001);
+            activity.startActivityForResult(getChooser(intent), 1001);
         } catch (Exception ignored) {
         }
     }
@@ -61,5 +113,16 @@ public class PlayerHelper {
             if ("user".equals(endBy)) seekTo.accept(position);
         } catch (Exception ignored) {
         }
+    }
+
+    private static Intent getChooser(Intent intent) {
+        List<ComponentName> components = new ArrayList<>();
+        for (ResolveInfo resolveInfo : App.get().getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)) {
+            String pkgName = resolveInfo.activityInfo.packageName;
+            if (pkgName.equals(App.get().getPackageName())) {
+                components.add(new ComponentName(pkgName, resolveInfo.activityInfo.name));
+            }
+        }
+        return Intent.createChooser(intent, null).putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, components.toArray(new ComponentName[0]));
     }
 }

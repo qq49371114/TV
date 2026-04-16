@@ -3,21 +3,19 @@ plugins {
 }
 
 android {
-    namespace 'com.ghost.thunder'
+    namespace = 'com.ghost.thunder'
 
     compileSdk {
-        version = release(36) {
-            it.minorApiLevel = 1
-        }
+        version = release(37)
     }
 
     defaultConfig {
         minSdk 24
-        targetSdk 36
+        targetSdk 37
     }
 
     compileOptions {
-        coreLibraryDesugaringEnabled true
+        coreLibraryDesugaringEnabled = true
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }

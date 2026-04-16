@@ -2,6 +2,7 @@ package com.fongmi.android.tv.ui.activity;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.view.KeyEvent;
@@ -70,7 +71,7 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
     }
 
     @Override
-    protected void initView() {
+    protected void initView(Bundle savedInstanceState) {
         CustomKeyboard.init(this, mBinding);
         setRecyclerView();
         checkKeyword();
@@ -93,8 +94,8 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
         mBinding.mic.setListener(this, new CustomTextListener() {
             @Override
             public void onResults(String result) {
+                if (!result.isEmpty()) setKeyword(result);
                 mBinding.keyword.requestFocus();
-                setKeyword(result);
             }
         });
     }
@@ -299,8 +300,15 @@ public class SearchActivity extends BaseActivity implements WordAdapter.OnClickL
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+        mBinding.mic.setFocusable(false);
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
+        mBinding.mic.setFocusable(true);
         mBinding.keyword.requestFocus();
     }
 

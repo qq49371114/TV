@@ -4,9 +4,11 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,6 +16,7 @@ import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.C;
+import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.Player;
 import androidx.media3.common.VideoSize;
 import androidx.media3.ui.PlayerView;
@@ -44,6 +47,7 @@ import com.fongmi.android.tv.impl.LiveCallback;
 import com.fongmi.android.tv.impl.PassCallback;
 import com.fongmi.android.tv.model.LiveViewModel;
 import com.fongmi.android.tv.player.PlayerHelper;
+import com.fongmi.android.tv.player.PlayerManager;
 import com.fongmi.android.tv.player.Source;
 import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.ui.adapter.ChannelAdapter;
@@ -110,10 +114,6 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         return LiveConfig.get().getHome();
     }
 
-    private long getTimeout() {
-        return getHome().isEmpty() ? Constant.TIMEOUT_PLAY : getHome().getTimeout();
-    }
-
     @Override
     protected boolean customWall() {
         return false;
@@ -152,7 +152,8 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     @Override
-    protected void initView() {
+    protected void initView(Bundle savedInstanceState) {
+        super.initView(savedInstanceState);
         mClock = Clock.create(mBinding.widget.clock);
         mKeyDown = CustomKeyDownLive.create(this);
         mObserveEpg = this::setEpg;
@@ -212,7 +213,6 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void setVideoView() {
-        bindPlaybackService();
         setScale(Setting.getLiveScale());
         findViewById(R.id.timeBar).setNextFocusUpId(R.id.config);
         mBinding.control.action.invert.setActivated(Setting.isInvert());
@@ -740,9 +740,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void start(Result result) {
-        player().setKey(getPlaybackKey());
-        player().start(result, false, getTimeout());
-        setMetadata();
+        startPlayer(getPlaybackKey(), result, false, getHome().getTimeout(), buildMetadata());
     }
 
     private void resetAdapter() {
@@ -848,9 +846,13 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mBinding.control.action.speed.setVisibility(player().isVod() ? View.VISIBLE : View.GONE);
     }
 
-    private void setMetadata() {
+    private MediaMetadata buildMetadata() {
         String artist = mBinding.widget.play.getText().toString();
-        player().setMetadata(mChannel.getShow(), artist, mChannel.getLogo());
+        return PlayerManager.buildMetadata(mChannel.getShow(), artist, mChannel.getLogo());
+    }
+
+    private void setMetadata() {
+        player().setMetadata(buildMetadata());
     }
 
     private void startFlow() {
@@ -932,10 +934,12 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void onPaused() {
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         controller().pause();
     }
 
     private void onPlay() {
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         controller().play();
     }
 
@@ -1060,7 +1064,6 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     protected void onDestroy() {
         mClock.release();
         Source.get().exit();
-        releasePlaybackService();
         App.removeCallbacks(mR0, mR1, mR2, mR3, mR4);
         mViewModel.url().removeObserver(mObserveUrl);
         mViewModel.epg().removeObserver(mObserveEpg);

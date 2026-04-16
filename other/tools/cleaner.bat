@@ -1,7 +1,6 @@
-git clone --mirror https://github.com/FongMi/Release.git
-java -jar bfg.jar --delete-files *.apk Release.git
-java -jar bfg.jar --delete-files *.json Release.git
-cd Release.git
+@echo off
+cd /d %~dp0
+java -jar bfg.jar --delete-files "{*.apk,*.json}" ..\..\Release\.git
+cd ..\..\Release
 git reflog expire --expire=now --all && git gc --prune=now --aggressive
-git push
-git gc
+git push origin --force --all

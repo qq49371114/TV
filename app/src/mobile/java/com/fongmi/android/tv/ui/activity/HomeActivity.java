@@ -3,9 +3,9 @@ package com.fongmi.android.tv.ui.activity;
 import android.app.PendingIntent;
 import android.app.SearchManager;
 import android.content.Intent;
-import android.text.TextUtils;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
 

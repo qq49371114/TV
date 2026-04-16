@@ -25,8 +25,8 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.bean.Sub;
 import com.fongmi.android.tv.bean.Track;
 import com.fongmi.android.tv.databinding.DialogTrackBinding;
+import com.fongmi.android.tv.player.PlayerHelper;
 import com.fongmi.android.tv.player.PlayerManager;
-import com.fongmi.android.tv.player.exo.TrackUtil;
 import com.fongmi.android.tv.ui.adapter.TrackAdapter;
 import com.fongmi.android.tv.ui.custom.SpaceItemDecoration;
 import com.fongmi.android.tv.utils.FileChooser;
@@ -119,7 +119,7 @@ public final class TrackDialog extends BaseDialog implements TrackAdapter.OnClic
             for (int j = 0; j < trackGroup.length; j++) {
                 Format format = trackGroup.getTrackFormat(j);
                 String name = provider.getTrackName(format);
-                Track item = new Track(type, name, TrackUtil.format(format));
+                Track item = new Track(type, name, PlayerHelper.describeFormat(format));
                 item.setSelected(trackGroup.isTrackSelected(j));
                 items.add(item);
             }

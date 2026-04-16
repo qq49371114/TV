@@ -4,7 +4,6 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.media3.common.C;
-import androidx.media3.common.MediaItem;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.gson.HeaderAdapter;
@@ -38,11 +37,11 @@ public class Drm {
         return new Drm(key, type, header, forceKey);
     }
 
-    private String getKey() {
+    public String getKey() {
         return TextUtils.isEmpty(key) ? "" : key;
     }
 
-    private String getType() {
+    public String getType() {
         return TextUtils.isEmpty(type) ? "" : type;
     }
 
@@ -50,7 +49,7 @@ public class Drm {
         return forceKey;
     }
 
-    private Map<String, String> getHeader() {
+    public Map<String, String> getHeader() {
         return header == null ? new HashMap<>() : header;
     }
 
@@ -59,15 +58,6 @@ public class Drm {
         if (getType().contains("widevine")) return C.WIDEVINE_UUID;
         if (getType().contains("clearkey")) return C.CLEARKEY_UUID;
         return C.UUID_NIL;
-    }
-
-    public MediaItem.DrmConfiguration get() {
-        MediaItem.DrmConfiguration.Builder builder = new MediaItem.DrmConfiguration.Builder(getUUID());
-        builder.setMultiSession(!C.CLEARKEY_UUID.equals(getUUID()));
-        builder.setForceDefaultLicenseUri(isForceKey());
-        builder.setLicenseRequestHeaders(getHeader());
-        builder.setLicenseUri(getKey());
-        return builder.build();
     }
 
     @NonNull

@@ -6,6 +6,7 @@ import android.speech.SpeechRecognizer;
 import android.text.Editable;
 import android.text.TextWatcher;
 
+import java.util.Collections;
 import java.util.List;
 
 public abstract class CustomTextListener implements TextWatcher, RecognitionListener {
@@ -20,11 +21,10 @@ public abstract class CustomTextListener implements TextWatcher, RecognitionList
         if (done != null) done.run();
     }
 
-    private String parseResult(Bundle results) {
-        if (results == null) return "";
-        List<String> texts = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-        if (texts == null) return "";
-        return String.join("\n", texts).trim();
+    private String parse(Bundle bundle) {
+        List<String> texts = bundle == null ? Collections.emptyList() : bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+        if (texts == null || texts.isEmpty()) return "";
+        return texts.get(0).trim();
     }
 
     @Override
@@ -58,13 +58,13 @@ public abstract class CustomTextListener implements TextWatcher, RecognitionList
     @Override
     public void onError(int error) {
         done();
+        onResults("");
     }
 
     @Override
     public void onResults(Bundle results) {
         done();
-        String result = parseResult(results);
-        if (!result.isEmpty()) onResults(result);
+        onResults(parse(results));
     }
 
     @Override

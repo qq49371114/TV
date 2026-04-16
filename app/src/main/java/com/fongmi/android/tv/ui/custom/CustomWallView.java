@@ -22,7 +22,6 @@ import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.databinding.ViewWallBinding;
 import com.fongmi.android.tv.event.ConfigEvent;
 import com.fongmi.android.tv.utils.FileUtil;
-import com.fongmi.android.tv.utils.ResUtil;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -91,16 +90,20 @@ public class CustomWallView extends FrameLayout implements DefaultLifecycleObser
     }
 
     private void load() {
-        File file = FileUtil.getWall(Setting.getWall());
+        int wall = Setting.getWall();
+        File file = FileUtil.getWall(wall);
         cache = Drawable.createFromPath(FileUtil.getWallCache().getAbsolutePath());
-        if (!file.getName().endsWith("0")) loadRes(ResUtil.getDrawable(file.getName()));
+        if (Setting.getWallType() == 0 && wall != 0) loadRes(wall);
         else if (Setting.getWallType() == 2) loadVideo(file);
         else if (Setting.getWallType() == 1) loadGif(file);
         else loadImage();
     }
 
-    private void loadRes(int resId) {
-        binding.image.setImageResource(resId);
+    private void loadRes(int wall) {
+        if (wall == 1) binding.image.setImageResource(R.drawable.wallpaper_1);
+        else if (wall == 2) binding.image.setImageResource(R.drawable.wallpaper_2);
+        else if (wall == 3) binding.image.setImageResource(R.drawable.wallpaper_3);
+        else if (wall == 4) binding.image.setImageResource(R.drawable.wallpaper_4);
     }
 
     private void loadVideo(File file) {

@@ -3,7 +3,6 @@ package com.fongmi.android.tv.model;
 import com.fongmi.android.tv.api.SiteApi;
 import com.fongmi.android.tv.bean.Result;
 import com.fongmi.android.tv.bean.Site;
-import com.github.catvod.crawler.SpiderDebug;
 import com.github.catvod.utils.Trans;
 
 import java.util.concurrent.Callable;

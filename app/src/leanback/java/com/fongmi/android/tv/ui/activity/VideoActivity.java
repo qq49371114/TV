@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.text.style.ClickableSpan;
 import android.view.KeyEvent;
@@ -21,6 +22,7 @@ import androidx.leanback.widget.OnChildViewHolderSelectedListener;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.C;
+import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.Player;
 import androidx.media3.common.VideoSize;
 import androidx.media3.ui.PlayerView;
@@ -51,6 +53,7 @@ import com.fongmi.android.tv.event.RefreshEvent;
 import com.fongmi.android.tv.impl.CustomTarget;
 import com.fongmi.android.tv.model.SiteViewModel;
 import com.fongmi.android.tv.player.PlayerHelper;
+import com.fongmi.android.tv.player.PlayerManager;
 import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.ui.adapter.ArrayAdapter;
 import com.fongmi.android.tv.ui.adapter.EpisodeAdapter;
@@ -241,7 +244,7 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
     @Override
     protected void onServiceConnected() {
         player().setDanmakuView(mBinding.danmaku);
-        checkCast();
+        setDanmakuSize();
         checkId();
     }
 
@@ -257,7 +260,8 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
     }
 
     @Override
-    protected void initView() {
+    protected void initView(Bundle savedInstanceState) {
+        super.initView(savedInstanceState);
         mFrameParams = mBinding.video.getLayoutParams();
         mClock = Clock.create(mBinding.widget.clock);
         mKeyDown = CustomKeyDownVod.create(this);
@@ -272,6 +276,7 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
         setRecyclerView();
         setVideoView();
         setViewModel();
+        checkCast();
     }
 
     @Override
@@ -356,7 +361,6 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
     }
 
     private void setVideoView() {
-        bindPlaybackService();
         mBinding.control.action.danmaku.setVisibility(Setting.isDanmakuLoad() ? View.VISIBLE : View.GONE);
         mBinding.control.action.reset.setText(ResUtil.getStringArray(R.array.select_reset)[Setting.getReset()]);
     }
@@ -379,7 +383,7 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
     }
 
     private void checkCast() {
-        if (isCast()) onVideo();
+        if (isCast() && !isFullscreen()) enterFullscreen();
         else mBinding.progressLayout.showProgress();
     }
 
@@ -474,7 +478,6 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
     private void getPlayer(Flag flag, Episode episode) {
         mBinding.widget.title.setText(getString(R.string.detail_title, mBinding.name.getText(), episode.getName()));
         mViewModel.playerContent(getKey(), flag.getFlag(), episode.getUrl());
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mBinding.widget.title.setSelected(true);
         updateHistory(episode);
         showProgress();
@@ -482,17 +485,15 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
     }
 
     private void setPlayer(Result result) {
-        player().setKey(getHistoryKey());
+        mQualityAdapter.addAll(result);
         setUseParse(result.shouldUseParse());
+        setQualityVisible(result.getUrl().isMulti());
         result.getUrl().set(mQualityAdapter.getPosition());
         if (result.hasArtwork()) setArtwork(result.getArtwork());
         if (result.hasDesc()) mBinding.content.setTag(result.getDesc());
         if (result.hasPosition()) mHistory.setPosition(result.getPosition());
         mBinding.control.parse.setVisibility(isUseParse() ? View.VISIBLE : View.GONE);
-        player().start(result, isUseParse(), getSite().getTimeout());
-        setQualityVisible(result.getUrl().isMulti());
-        mQualityAdapter.addAll(result);
-        setMetadata();
+        startPlayer(getHistoryKey(), result, isUseParse(), getSite().getTimeout(), buildMetadata());
     }
 
     @Override
@@ -538,7 +539,7 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
 
     @Override
     public void onItemClick(Result result) {
-        player().start(result, isUseParse(), getSite().getTimeout());
+        startPlayer(getHistoryKey(), result, isUseParse(), getSite().getTimeout(), buildMetadata());
     }
 
     private void reverseEpisode(boolean scroll) {
@@ -615,21 +616,26 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
         mBinding.video.setForeground(null);
         mBinding.video.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT));
         mBinding.flag.setSelectedPosition(mFlagAdapter.getPosition());
-        player().setDanmakuSize(1.2f);
         mKeyDown.setFull(true);
         setFullscreen(true);
+        setDanmakuSize();
         mFocus2 = null;
     }
 
     private void exitFullscreen() {
         mBinding.video.setForeground(ResUtil.getDrawable(R.drawable.selector_video));
         mBinding.video.setLayoutParams(mFrameParams);
-        player().setDanmakuSize(0.8f);
         getFocus1().requestFocus();
         mKeyDown.setFull(false);
         setFullscreen(false);
+        setDanmakuSize();
         mFocus2 = null;
         hideInfo();
+    }
+
+    private void setDanmakuSize() {
+        if (service() == null) return;
+        player().setDanmakuSize(isFullscreen() ? 1.2f : 0.8f);
     }
 
     private void onContent() {
@@ -791,6 +797,7 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
     }
 
     private void onDecode() {
+        mClock.setCallback(null);
         player().toggleDecode();
         setDecode();
     }
@@ -856,7 +863,6 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
     }
 
     private void hideControl() {
-        mBinding.control.action.text.setText(R.string.play_track_text);
         mBinding.control.getRoot().setVisibility(View.GONE);
         App.removeCallbacks(mR1);
     }
@@ -943,14 +949,14 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
     }
 
     private void saveHistory(boolean exit) {
-        if (mHistory != null && mHistory.canSave()) Task.execute(() -> {
+        if (mHistory != null && mHistory.canSave() && !Setting.isIncognito()) Task.execute(() -> {
             mHistory.merge().save();
             if (exit) RefreshEvent.history();
         });
     }
 
     private void syncHistory() {
-        if (mHistory != null) Task.execute(() -> mHistory.save());
+        if (mHistory != null && !Setting.isIncognito()) Task.execute(() -> mHistory.save());
     }
 
     private void updateHistory(Episode item) {
@@ -1096,9 +1102,7 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
     protected void onPlayingChanged(boolean isPlaying) {
         if (isPlaying) {
             hideCenter();
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         } else if (isPaused()) {
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             if (isFullscreen()) showInfo();
             else hideInfo();
         }
@@ -1161,12 +1165,16 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
         mBinding.control.action.title.setVisibility(View.GONE);
     }
 
-    private void setMetadata() {
+    private MediaMetadata buildMetadata() {
         String title = mHistory.getVodName();
         String episode = getEpisode().getName();
         boolean empty = episode.isEmpty() || title.equals(episode);
         String artist = empty ? "" : episode;
-        player().setMetadata(title, artist, mHistory.getVodPic());
+        return PlayerManager.buildMetadata(title, artist, mHistory.getVodPic());
+    }
+
+    private void setMetadata() {
+        player().setMetadata(buildMetadata());
     }
 
     private void startFlow() {
@@ -1266,12 +1274,14 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
     }
 
     private void onPaused() {
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         controller().pause();
     }
 
     private void onPlay() {
         if (mHistory != null && player().getPlaybackState() == Player.STATE_ENDED) controller().seekTo(mHistory.getOpening());
         if (!player().isEmpty() && player().getPlaybackState() == Player.STATE_IDLE) controller().prepare();
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         controller().play();
     }
 
@@ -1443,7 +1453,6 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
         mClock.release();
         saveHistory(true);
         RefreshEvent.keep();
-        releasePlaybackService();
         App.removeCallbacks(mR1, mR2, mR3, mR4);
         mViewModel.getResult().removeObserver(mObserveDetail);
         mViewModel.getPlayer().removeObserver(mObservePlayer);

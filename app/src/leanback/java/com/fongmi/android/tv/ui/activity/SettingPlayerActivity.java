@@ -2,6 +2,7 @@ package com.fongmi.android.tv.ui.activity;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Bundle;
 import android.provider.Settings;
 import android.view.View;
 
@@ -43,7 +44,7 @@ public class SettingPlayerActivity extends BaseActivity implements UaCallback, B
     }
 
     @Override
-    protected void initView() {
+    protected void initView(Bundle savedInstanceState) {
         setVisible();
         format = new DecimalFormat("0.#");
         mBinding.render.requestFocus();

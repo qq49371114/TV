@@ -9,17 +9,23 @@ import android.os.IBinder;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
+import androidx.media3.common.MediaMetadata;
 import androidx.media3.common.Player;
 import androidx.media3.common.VideoSize;
+import androidx.media3.exoplayer.drm.FrameworkMediaDrm;
 import androidx.media3.session.MediaController;
 import androidx.media3.session.SessionToken;
 import androidx.media3.ui.PlayerView;
 
+import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.Setting;
+import com.fongmi.android.tv.bean.Result;
+import com.fongmi.android.tv.player.PlayerHelper;
 import com.fongmi.android.tv.player.PlayerManager;
-import com.fongmi.android.tv.player.exo.ExoUtil;
+import com.fongmi.android.tv.player.engine.PlaySpec;
 import com.fongmi.android.tv.service.PlaybackService;
 import com.fongmi.android.tv.ui.custom.CustomSeekView;
+import com.fongmi.android.tv.utils.ResUtil;
 import com.google.common.util.concurrent.ListenableFuture;
 
 public abstract class PlaybackActivity extends BaseActivity implements MediaController.Listener, Player.Listener, ServiceConnection {
@@ -50,7 +56,7 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
 
     protected void setRedirect(boolean redirect) {
         this.redirect = redirect;
-        if (mService != null) mService.setNavigationCallback(redirect ? null : getNavigationCallback());
+        if (mService != null) mService.setNavigationCallback(redirect ? null : getNavigationCallback(), getPlaybackKey());
     }
 
     protected boolean isAudioOnly() {
@@ -124,20 +130,80 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
     protected void onReclaim() {
     }
 
-    protected void bindPlaybackService() {
+    protected void startPlayer(String key, Result result, boolean useParse, long timeout, MediaMetadata metadata) {
+        if (result.getDrm() != null && !FrameworkMediaDrm.isCryptoSchemeSupported(result.getDrm().getUUID())) {
+            onError(ResUtil.getString(R.string.error_play_drm));
+        } else if (result.hasMsg()) {
+            onError(result.getMsg());
+        } else if (result.getParse() == 1 || result.getJx() == 1) {
+            player().startParse(key, result, useParse, metadata);
+        } else if (PlayerManager.isIllegal(result.getRealUrl())) {
+            onError(ResUtil.getString(R.string.error_play_url));
+        } else {
+            player().start(PlaySpec.from(result, key, metadata), timeout);
+        }
+    }
+
+    private void bindPlaybackService() {
         startService(new Intent(this, PlaybackService.class));
         bindService(new Intent(this, PlaybackService.class).setAction(PlaybackService.LOCAL_BIND_ACTION), this, BIND_AUTO_CREATE);
         buildControllerAsync();
     }
 
-    protected void releasePlaybackService() {
+    private void buildControllerAsync() {
+        SessionToken token = new SessionToken(this, new ComponentName(this, PlaybackService.class));
+        mControllerFuture = new MediaController.Builder(this, token).setListener(this).buildAsync();
+        mControllerFuture.addListener(this::onControllerConnected, ContextCompat.getMainExecutor(this));
+    }
+
+    private void onControllerConnected() {
+        try {
+            mController = mControllerFuture.get();
+            if (mController == null) return;
+            mController.addListener(this);
+            initPlayerViews();
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void initPlayerViews() {
+        PlayerHelper.setSubtitleView(getExoView());
+        getSeekView().setPlayer(mController);
+    }
+
+    private PendingIntent buildSessionIntent() {
+        Intent intent = new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) intent.putExtras(extras);
+        return PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    private boolean shouldReclaim() {
+        return mService != null && !isOwner();
+    }
+
+    private void closePiP() {
+        if (!isInPictureInPictureMode()) return;
+        detach();
+        finish();
+    }
+
+    private void attachSurface() {
+        getExoView().setPlayer(mController);
+    }
+
+    private void detachSurface() {
+        getExoView().setPlayer(null);
+    }
+
+    private void releasePlaybackService() {
         if (mService != null) releaseService(isOwner());
         detach();
     }
 
     private void releaseService(boolean owner) {
-        if (owner) mService.setNavigationCallback(null);
         mService.removePlayerCallback(mPlayerCallback);
+        if (owner) mService.setNavigationCallback(null, null);
         if (mService.hasExternalClient() || mService.hasPlayerCallback()) mService.resetSessionActivity();
         else if (owner) mService.shutdown();
     }
@@ -160,40 +226,6 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
         mService.removePlayerCallback(mPlayerCallback);
         unbindService(this);
         mService = null;
-    }
-
-    private void buildControllerAsync() {
-        SessionToken token = new SessionToken(this, new ComponentName(this, PlaybackService.class));
-        mControllerFuture = new MediaController.Builder(this, token).setListener(this).buildAsync();
-        mControllerFuture.addListener(this::onControllerConnected, ContextCompat.getMainExecutor(this));
-    }
-
-    private void onControllerConnected() {
-        try {
-            mController = mControllerFuture.get();
-            if (mController == null) return;
-            mController.addListener(this);
-            initPlayerViews();
-        } catch (Exception ignored) {
-        }
-    }
-
-    private void initPlayerViews() {
-        ExoUtil.setSubtitleView(getExoView());
-        getSeekView().setPlayer(mController);
-    }
-
-    private PendingIntent buildSessionIntent() {
-        Intent intent = new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-        Bundle extras = getIntent().getExtras();
-        if (extras != null) intent.putExtras(extras);
-        return PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-    }
-
-    private void closePiP() {
-        if (!isInPictureInPictureMode()) return;
-        detach();
-        finish();
     }
 
     private final PlaybackService.PlayerCallback mPlayerCallback = new PlaybackService.PlayerCallback() {
@@ -220,11 +252,15 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
 
         @Override
         public void onPlayerRebuild(Player player) {
-            if (!isOwner()) return;
-            detachSurface();
-            attachSurface();
+            if (isOwner()) detachSurface();
         }
     };
+
+    @Override
+    protected void initView(Bundle savedInstanceState) {
+        super.initView(savedInstanceState);
+        bindPlaybackService();
+    }
 
     @Override
     public void onIsPlayingChanged(boolean isPlaying) {
@@ -248,7 +284,7 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
         mService = ((PlaybackService.LocalBinder) binder).getService();
         mService.replaceBinding(this::closePiP);
         mService.setSessionActivity(buildSessionIntent());
-        mService.setNavigationCallback(getNavigationCallback());
+        mService.setNavigationCallback(getNavigationCallback(), getPlaybackKey());
         mService.addPlayerCallback(mPlayerCallback);
         onServiceConnected();
     }
@@ -258,22 +294,9 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
         mService = null;
     }
 
-    private boolean shouldReclaim() {
-        return mService != null && !isOwner();
-    }
-
-    private void attachSurface() {
-        getExoView().setPlayer(mController);
-    }
-
-    private void detachSurface() {
-        getExoView().setPlayer(null);
-    }
-
     @Override
     protected void onResume() {
         super.onResume();
-        if (mController != null) mController.addListener(this);
         setRedirect(false);
         if (shouldReclaim()) {
             detachSurface();
@@ -294,6 +317,11 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
         super.onStop();
         if (isOwner()) detachSurface();
         if (Setting.isBackgroundOff() && isOwner() && mController != null) mController.pause();
-        if (mController != null) mController.removeListener(this);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        releasePlaybackService();
     }
 }

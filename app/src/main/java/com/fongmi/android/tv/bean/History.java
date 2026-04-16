@@ -12,7 +12,6 @@ import androidx.room.PrimaryKey;
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.Constant;
 import com.fongmi.android.tv.R;
-import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.api.config.VodConfig;
 import com.fongmi.android.tv.db.AppDatabase;
 import com.fongmi.android.tv.impl.Diffable;
@@ -303,11 +302,11 @@ public class History implements Diffable<History> {
     }
 
     public boolean canSave() {
-        return getPosition() > 0 && getDuration() > 0 && !Setting.isIncognito();
+        return getPosition() > 0 && getDuration() > 0;
     }
 
     public boolean canSync() {
-        return System.currentTimeMillis() - getUpdateTime() > 5000 && !Setting.isIncognito();
+        return System.currentTimeMillis() - getUpdateTime() > 5000;
     }
 
     public History merge() {
