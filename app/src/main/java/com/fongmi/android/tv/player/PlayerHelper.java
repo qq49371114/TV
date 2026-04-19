@@ -2,25 +2,19 @@ package com.fongmi.android.tv.player;
 
 import android.app.Activity;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.accessibility.CaptioningManager;
 
 import androidx.media3.common.Format;
 import androidx.media3.common.MimeTypes;
 import androidx.media3.common.util.Util;
-import androidx.media3.ui.CaptionStyleCompat;
-import androidx.media3.ui.PlayerView;
 
 import com.fongmi.android.tv.App;
 import com.fongmi.android.tv.BuildConfig;
-import com.fongmi.android.tv.Setting;
 import com.fongmi.android.tv.utils.FileUtil;
 
 import java.util.ArrayList;
@@ -33,17 +27,6 @@ public class PlayerHelper {
 
     public static String getDefaultUa() {
         return Util.getUserAgent(App.get(), BuildConfig.APPLICATION_ID);
-    }
-
-    public static CaptionStyleCompat getCaptionStyle() {
-        return Setting.isCaption() ? CaptionStyleCompat.createFromCaptionStyle(((CaptioningManager) App.get().getSystemService(Context.CAPTIONING_SERVICE)).getUserStyle()) : new CaptionStyleCompat(Color.WHITE, Color.TRANSPARENT, Color.TRANSPARENT, CaptionStyleCompat.EDGE_TYPE_OUTLINE, Color.BLACK, null);
-    }
-
-    public static void setSubtitleView(PlayerView exo) {
-        exo.getSubtitleView().setStyle(getCaptionStyle());
-        exo.getSubtitleView().setApplyEmbeddedStyles(true);
-        exo.getSubtitleView().setApplyEmbeddedFontSizes(false);
-        if (Setting.getSubtitleTextSize() != 0) exo.getSubtitleView().setFractionalTextSize(Setting.getSubtitleTextSize());
     }
 
     public static String getSubtitleMimeType(String path) {

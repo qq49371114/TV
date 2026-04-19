@@ -11,7 +11,6 @@ import android.text.style.ClickableSpan;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -481,7 +480,6 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
         mBinding.widget.title.setSelected(true);
         updateHistory(episode);
         showProgress();
-        hideCenter();
     }
 
     private void setPlayer(Result result) {
@@ -824,6 +822,7 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
     private void showProgress() {
         mBinding.progress.getRoot().setVisibility(View.VISIBLE);
         App.post(mR3, 0);
+        hideCenter();
         hideError();
     }
 
@@ -995,7 +994,7 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
         boolean pic = !item.getPic().isEmpty();
         boolean name = !item.getName().isEmpty();
         if (id) getIntent().putExtra("id", item.getId());
-        if (id) mHistory.setKey(getHistoryKey());
+        if (id) mHistory.replace(getHistoryKey());
         if (name) mHistory.setVodName(item.getName());
         if (name) mBinding.name.setText(item.getName());
         if (name) mBinding.widget.title.setText(item.getName());
@@ -1067,7 +1066,7 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
 
     @Override
     protected void onError(String msg) {
-        Track.delete(player().getUrl());
+        Track.delete(player().getKey());
         mClock.setCallback(null);
         player().resetTrack();
         player().reset();
@@ -1150,7 +1149,6 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
         if (mBinding.control.action.loop.isActivated()) {
             onReplay();
         } else {
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             checkNext(notify);
         }
     }
@@ -1274,14 +1272,12 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
     }
 
     private void onPaused() {
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         controller().pause();
     }
 
     private void onPlay() {
-        if (mHistory != null && player().getPlaybackState() == Player.STATE_ENDED) controller().seekTo(mHistory.getOpening());
-        if (!player().isEmpty() && player().getPlaybackState() == Player.STATE_IDLE) controller().prepare();
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        if (mHistory != null && isEnded()) controller().seekTo(mHistory.getOpening());
+        if (!player().isEmpty() && isIdle()) controller().prepare();
         controller().play();
     }
 
@@ -1357,11 +1353,8 @@ public class VideoActivity extends PlaybackActivity implements CustomKeyDownVod.
 
     @Override
     public void onSeekEnd(long time) {
-        controller().seekTo(player().getPosition() + time);
         mKeyDown.reset();
-        showProgress();
-        hideCenter();
-        onPlay();
+        seekTo(time);
     }
 
     @Override

@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.fongmi.android.tv.bean.Result;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,6 +45,13 @@ public class CastAction implements Parcelable {
 
     public Map<String, String> getHeaders() {
         return headers;
+    }
+
+    public Result result() {
+        Result result = new Result();
+        result.setUrl(getCurrentURI());
+        result.setHeader(getHeaders());
+        return result;
     }
 
     @Override

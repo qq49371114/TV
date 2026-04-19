@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -86,6 +85,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     private Observer<Epg> mObserveEpg;
     private LiveViewModel mViewModel;
     private List<Group> mHides;
+    private String mPlaybackKey;
     private Channel mChannel;
     private View mOldView;
     private Group mGroup;
@@ -131,7 +131,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     @Override
     protected String getPlaybackKey() {
-        return "live";
+        return mPlaybackKey;
     }
 
     @Override
@@ -473,7 +473,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
     @Override
     protected void onError(String msg) {
-        Track.delete(player().getUrl());
+        Track.delete(player().getKey());
         player().resetTrack();
         player().reset();
         player().stop();
@@ -538,6 +538,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     private void showProgress() {
         mBinding.progress.getRoot().setVisibility(View.VISIBLE);
         App.post(mR2, 0);
+        hideCenter();
         hideError();
     }
 
@@ -740,7 +741,8 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void start(Result result) {
-        startPlayer(getPlaybackKey(), result, false, getHome().getTimeout(), buildMetadata());
+        mPlaybackKey = result.getRealUrl();
+        startPlayer(mPlaybackKey, result, false, getHome().getTimeout(), buildMetadata());
     }
 
     private void resetAdapter() {
@@ -926,20 +928,15 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void seek(long time) {
-        controller().seekTo(player().getPosition() + time);
         mKeyDown.reset();
-        showProgress();
-        hideCenter();
-        onPlay();
+        seekTo(time);
     }
 
     private void onPaused() {
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         controller().pause();
     }
 
     private void onPlay() {
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         controller().play();
     }
 

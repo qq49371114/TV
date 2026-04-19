@@ -8,9 +8,7 @@ tasks.register('clean', Delete) {
     delete rootProject.layout.buildDirectory
 }
 
-tasks.register('buildRelease') {
-    group = 'build'
-    dependsOn project(':app').tasks.matching { it.name ==~ /assemble.+Release/ }
+project(':app').tasks.matching { it.name ==~ /assemble.+Release/ }.configureEach {
     doLast {
         copy {
             from fileTree("$rootDir/app/build/outputs/apk") { include '**/release/*.apk' }

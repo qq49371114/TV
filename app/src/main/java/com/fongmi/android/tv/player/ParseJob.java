@@ -164,7 +164,7 @@ public class ParseJob implements ParseCallback {
     private void checkResult(Result result) {
         result.setHeader(parse.getHeader());
         if (result.getUrl().isEmpty()) onParseError();
-        else if (result.getParse() == 1) startWeb(result.getHeader(), UrlUtil.convert(result.getUrl().v()));
+        else if (result.needParse()) startWeb(result.getHeader(), UrlUtil.convert(result.getUrl().v()));
         else onParseSuccess(result.getHeader(), result.getUrl().v(), result.getJxFrom());
     }
 

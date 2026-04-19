@@ -26,9 +26,7 @@ import com.fongmi.android.tv.player.engine.PlaySpec;
 import com.fongmi.android.tv.player.engine.PlayerEngine;
 import com.fongmi.android.tv.utils.Notify;
 import com.fongmi.android.tv.utils.ResUtil;
-import com.fongmi.android.tv.utils.UrlUtil;
 import com.fongmi.android.tv.utils.Util;
-import com.github.catvod.utils.Path;
 import com.google.common.net.HttpHeaders;
 
 import java.util.HashMap;
@@ -39,8 +37,6 @@ import java.util.Map;
 import master.flame.danmaku.ui.widget.DanmakuView;
 
 public class PlayerManager implements ParseCallback {
-
-    public static final String TAG = PlayerManager.class.getSimpleName();
 
     private final Runnable runnable;
     private final Callback callback;
@@ -59,14 +55,6 @@ public class PlayerManager implements ParseCallback {
         this.engine = new ExoPlayerEngine(PlayerEngine.HARD, listener);
         this.player = engine.getPlayer();
         this.callback = callback;
-    }
-
-    public static boolean isIllegal(String url) {
-        Uri uri = UrlUtil.uri(url);
-        String host = UrlUtil.host(uri);
-        String scheme = UrlUtil.scheme(uri);
-        if ("data".equals(scheme)) return false;
-        return scheme.isEmpty() || "file".equals(scheme) ? !Path.exists(url) : host.isEmpty();
     }
 
     public void release() {
@@ -128,10 +116,6 @@ public class PlayerManager implements ParseCallback {
         return spec == null || TextUtils.isEmpty(spec.getUrl());
     }
 
-    public boolean isHard() {
-        return engine.isHard();
-    }
-
     public boolean isPortrait() {
         return getVideoHeight() > getVideoWidth();
     }
@@ -141,11 +125,11 @@ public class PlayerManager implements ParseCallback {
     }
 
     public boolean isLive() {
-        return player.isCurrentMediaItemLive();
+        return engine.isLive();
     }
 
     public boolean isVod() {
-        return !player.isCurrentMediaItemLive();
+        return engine.isVod();
     }
 
     public boolean haveTrack(int type) {
@@ -218,8 +202,7 @@ public class PlayerManager implements ParseCallback {
 
     public void setMetadata(MediaMetadata data) {
         if (spec != null) spec.setMetadata(data);
-        MediaItem current = player.getCurrentMediaItem();
-        if (current != null) player.replaceMediaItem(player.getCurrentMediaItemIndex(), current.buildUpon().setMediaMetadata(data).build());
+        engine.setMetadata(data);
     }
 
     public void setDanmakuView(DanmakuView view) {
@@ -312,10 +295,10 @@ public class PlayerManager implements ParseCallback {
         setMediaItem(timeout);
     }
 
-    public void startParse(String key, Result result, boolean useParse, MediaMetadata metadata) {
+    public void parse(String key, Result result, boolean useParse, MediaMetadata metadata) {
         stopParse();
+        spec = PlaySpec.fromParse(result, key, metadata);
         parseJob = ParseJob.create(this).start(result, useParse);
-        spec = new PlaySpec(key, result.getFormat(), result.getDrm(), result.getSubs(), result.getDanmaku(), metadata);
     }
 
     private void stopParse() {

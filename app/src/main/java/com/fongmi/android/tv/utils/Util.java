@@ -123,7 +123,7 @@ public class Util {
         StringBuilder sb = new StringBuilder();
         text = Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY).toString().replace("\u00A0", " ").replace("\u3000", " ");
         for (String line : text.split("\\r?\\n")) sb.append(line.trim()).append("\n");
-        return substring(sb.toString());
+        return substring(sb.toString()).trim();
     }
 
     public static String getAndroidId() {

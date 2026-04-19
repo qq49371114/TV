@@ -29,15 +29,19 @@ public class PlaySpec {
     private String url;
     private Drm drm;
 
-    public PlaySpec(String key, String url, Map<String, String> headers, MediaMetadata metadata) {
-        this(key, url, headers, null, null, null, null, metadata);
+    public static PlaySpec from(String key, String url, Map<String, String> headers, MediaMetadata metadata) {
+        return new PlaySpec(key, url, headers, null, null, null, null, metadata);
     }
 
-    public PlaySpec(String key, String format, Drm drm, List<Sub> subs, List<Danmaku> danmakus, MediaMetadata metadata) {
-        this(key, null, null, format, drm, subs, danmakus, metadata);
+    public static PlaySpec from(Result result, String key, MediaMetadata metadata) {
+        return new PlaySpec(key, result.getRealUrl(), result.getHeader(), result.getFormat(), result.getDrm(), result.getSubs(), result.getDanmaku(), metadata);
     }
 
-    public PlaySpec(String key, String url, Map<String, String> headers, String format, Drm drm, List<Sub> subs, List<Danmaku> danmakus, MediaMetadata metadata) {
+    public static PlaySpec fromParse(Result result, String key, MediaMetadata metadata) {
+        return new PlaySpec(key, null, null, result.getFormat(), result.getDrm(), result.getSubs(), result.getDanmaku(), metadata);
+    }
+
+    private PlaySpec(String key, String url, Map<String, String> headers, String format, Drm drm, List<Sub> subs, List<Danmaku> danmakus, MediaMetadata metadata) {
         this.key = key;
         this.url = url;
         this.drm = drm;
@@ -48,12 +52,8 @@ public class PlaySpec {
         this.metadata = metadata;
     }
 
-    public static PlaySpec from(Result result, String key, MediaMetadata metadata) {
-        return new PlaySpec(key, result.getRealUrl(), result.getHeader(), result.getFormat(), result.getDrm(), result.getSubs(), result.getDanmaku(), metadata);
-    }
-
     public String getKey() {
-        return key != null ? key : url;
+        return key;
     }
 
     public void setKey(String key) {

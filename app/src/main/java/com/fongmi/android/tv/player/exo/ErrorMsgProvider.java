@@ -8,6 +8,7 @@ public class ErrorMsgProvider {
         return switch (e.errorCode) {
             case PlaybackException.ERROR_CODE_TIMEOUT -> "Timeout";
             case PlaybackException.ERROR_CODE_UNSPECIFIED -> "Unspecified";
+            case PlaybackException.ERROR_CODE_FAILED_RUNTIME_CHECK -> "Failed Runtime Check";
             case PlaybackException.ERROR_CODE_IO_UNSPECIFIED -> "IO Unspecified";
             case PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS -> "Bad HTTP Status";
             case PlaybackException.ERROR_CODE_IO_INVALID_HTTP_CONTENT_TYPE -> "Invalid HTTP Content Type";

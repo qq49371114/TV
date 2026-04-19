@@ -142,6 +142,7 @@ public class CustomSeekView extends FrameLayout implements Player.Listener, Time
     private void seekToTimeBarPosition(long positionMs) {
         player.seekTo(positionMs);
         updateProgress();
+        player.play();
     }
 
     @Override

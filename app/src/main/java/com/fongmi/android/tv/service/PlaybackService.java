@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 import androidx.media3.common.ForwardingPlayer;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.Player;
+import androidx.media3.session.CommandButton;
 import androidx.media3.session.DefaultMediaNotificationProvider;
 import androidx.media3.session.LibraryResult;
 import androidx.media3.session.MediaLibraryService;
@@ -80,6 +81,7 @@ public class PlaybackService extends MediaLibraryService implements MediaLibrary
         running = true;
         player = new PlayerManager(this);
         exoPlayer = player.getPlayer();
+        exoPlayer.addListener(listener);
         session = new MediaLibrarySession.Builder(this, wrap(exoPlayer), this).build();
         session.setSessionActivity(buildDefaultIntent());
         EventBus.getDefault().register(this);
@@ -95,8 +97,13 @@ public class PlaybackService extends MediaLibraryService implements MediaLibrary
 
     private void setupNotification() {
         DefaultMediaNotificationProvider provider = new DefaultMediaNotificationProvider.Builder(this).build();
+        session.setMediaButtonPreferences(ImmutableList.of(buildStopButton()));
         provider.setSmallIcon(R.drawable.ic_notification);
         setMediaNotificationProvider(provider);
+    }
+
+    private CommandButton buildStopButton() {
+        return new CommandButton.Builder(CommandButton.ICON_STOP).setPlayerCommand(Player.COMMAND_STOP).setDisplayName(getString(androidx.media3.ui.R.string.exo_controls_stop_description)).build();
     }
 
     @Override
@@ -134,6 +141,7 @@ public class PlaybackService extends MediaLibraryService implements MediaLibrary
     @Override
     public boolean onUnbind(Intent intent) {
         if (isExternalBind(intent)) releaseExternal();
+        if (isLocalBind(intent)) tryShutdown();
         return super.onUnbind(intent);
     }
 
@@ -159,10 +167,20 @@ public class PlaybackService extends MediaLibraryService implements MediaLibrary
         super.onDestroy();
     }
 
+    private void stopAndClear() {
+        player.stop();
+        exoPlayer.clearMediaItems();
+    }
+
+    public void suspend() {
+        stopAndClear();
+        removeForeground();
+    }
+
     public void shutdown() {
         if (!running) return;
         running = false;
-        player.stop();
+        stopAndClear();
         stopSelf();
     }
 
@@ -267,7 +285,7 @@ public class PlaybackService extends MediaLibraryService implements MediaLibrary
     public void dispatchStop() {
         if (exoPlayer.getPlaybackState() == Player.STATE_IDLE) return;
         if (hasNavigationCallback() && isNavigationOwner()) dispatch(NavigationCallback::onStop);
-        else player.stop();
+        else stopAndClear();
     }
 
     public void dispatchLoop() {
@@ -420,10 +438,19 @@ public class PlaybackService extends MediaLibraryService implements MediaLibrary
 
     @Override
     public void onPlayerRebuild(Player newPlayer) {
+        exoPlayer.removeListener(listener);
         exoPlayer = newPlayer;
+        exoPlayer.addListener(listener);
         if (session != null) session.setPlayer(wrap(newPlayer));
         playerCallbacks.forEach(callback -> callback.onPlayerRebuild(newPlayer));
     }
+
+    private final Player.Listener listener = new Player.Listener() {
+        @Override
+        public void onPlaybackStateChanged(int state) {
+            if (state == Player.STATE_ENDED && !(hasNavigationCallback() && isNavigationOwner())) navigateItem(1);
+        }
+    };
 
     @NonNull
     @Override

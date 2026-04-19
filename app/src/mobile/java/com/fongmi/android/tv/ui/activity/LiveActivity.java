@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -90,6 +89,7 @@ public class LiveActivity extends PlaybackActivity implements CustomKeyDown.List
     private LiveViewModel mViewModel;
     private CustomKeyDown mKeyDown;
     private List<Group> mHides;
+    private String mPlaybackKey;
     private Channel mChannel;
     private Group mGroup;
     private Runnable mR1;
@@ -132,7 +132,7 @@ public class LiveActivity extends PlaybackActivity implements CustomKeyDown.List
 
     @Override
     protected String getPlaybackKey() {
-        return "live";
+        return mPlaybackKey;
     }
 
     @Override
@@ -691,7 +691,8 @@ public class LiveActivity extends PlaybackActivity implements CustomKeyDown.List
     }
 
     private void start(Result result) {
-        startPlayer(getPlaybackKey(), result, false, getHome().getTimeout(), buildMetadata());
+        mPlaybackKey = result.getRealUrl();
+        startPlayer(mPlaybackKey, result, false, getHome().getTimeout(), buildMetadata());
     }
 
     private void checkControl() {
@@ -748,7 +749,7 @@ public class LiveActivity extends PlaybackActivity implements CustomKeyDown.List
 
     @Override
     protected void onError(String msg) {
-        Track.delete(player().getUrl());
+        Track.delete(player().getKey());
         player().resetTrack();
         player().reset();
         player().stop();
@@ -954,12 +955,10 @@ public class LiveActivity extends PlaybackActivity implements CustomKeyDown.List
     }
 
     private void onPaused() {
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         controller().pause();
     }
 
     private void onPlay() {
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         controller().play();
     }
 
@@ -1044,9 +1043,7 @@ public class LiveActivity extends PlaybackActivity implements CustomKeyDown.List
     @Override
     public void onSeekEnd(long time) {
         if (player().isLive()) return;
-        controller().seekTo(player().getPosition() + time);
-        showProgress();
-        onPlay();
+        seekTo(time);
     }
 
     @Override

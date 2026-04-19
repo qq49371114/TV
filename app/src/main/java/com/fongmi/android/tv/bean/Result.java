@@ -84,8 +84,6 @@ public class Result implements Parcelable {
     private String click;
     @SerializedName("key")
     private String key;
-    @SerializedName("lrc")
-    private String lrc;
     @SerializedName("position")
     private Long position;
     @SerializedName("pagecount")
@@ -277,10 +275,6 @@ public class Result implements Parcelable {
         this.key = key;
     }
 
-    public String getLrc() {
-        return TextUtils.isEmpty(lrc) ? "" : lrc;
-    }
-
     public Long getPosition() {
         return position;
     }
@@ -332,6 +326,10 @@ public class Result implements Parcelable {
     public boolean shouldUseParse() {
         if (!VodConfig.hasParse()) return false;
         return (getPlayUrl().isEmpty() && VodConfig.get().getFlags().contains(getFlag())) || getJx() == 1;
+    }
+
+    public boolean needParse() {
+        return getParse() == 1 || getJx() == 1;
     }
 
     public String getRealUrl() {

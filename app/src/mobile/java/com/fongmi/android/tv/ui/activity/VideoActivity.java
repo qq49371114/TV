@@ -15,7 +15,6 @@ import android.text.style.ClickableSpan;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -1115,7 +1114,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         boolean pic = !item.getPic().isEmpty();
         boolean name = !item.getName().isEmpty();
         if (id) getIntent().putExtra("id", item.getId());
-        if (id) mHistory.setKey(getHistoryKey());
+        if (id) mHistory.replace(getHistoryKey());
         if (name) mHistory.setVodName(item.getName());
         if (name) mBinding.name.setText(item.getName());
         if (name) mBinding.control.title.setText(item.getName());
@@ -1193,7 +1192,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     @Override
     protected void onError(String msg) {
         mBinding.swipeLayout.setEnabled(true);
-        Track.delete(player().getUrl());
+        Track.delete(player().getKey());
         mClock.setCallback(null);
         player().resetTrack();
         player().reset();
@@ -1312,7 +1311,6 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         if (mBinding.control.action.loop.isActivated()) {
             onReplay();
         } else {
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             checkNext(notify);
         }
     }
@@ -1429,14 +1427,12 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     }
 
     private void onPaused() {
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         controller().pause();
     }
 
     private void onPlay() {
-        if (mHistory != null && player().getPlaybackState() == Player.STATE_ENDED) controller().seekTo(mHistory.getOpening());
-        if (!player().isEmpty() && player().getPlaybackState() == Player.STATE_IDLE) controller().prepare();
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        if (mHistory != null && isEnded()) controller().seekTo(mHistory.getOpening());
+        if (!player().isEmpty() && isIdle()) controller().prepare();
         controller().play();
     }
 
@@ -1560,9 +1556,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
 
     @Override
     public void onSeekEnd(long time) {
-        controller().seekTo(player().getPosition() + time);
-        showProgress();
-        onPlay();
+        seekTo(time);
     }
 
     @Override

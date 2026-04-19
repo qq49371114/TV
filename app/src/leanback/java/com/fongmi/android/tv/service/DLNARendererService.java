@@ -144,7 +144,7 @@ public class DLNARendererService extends AndroidUpnpServiceImpl implements Servi
     private void cleanupPlaybackRefs() {
         App.removeCallbacks(positionUpdater);
         if (currentListenerPlayer != null) {
-            currentListenerPlayer.removeListener(playerListener);
+            currentListenerPlayer.removeListener(listener);
             currentListenerPlayer = null;
         }
         if (playbackService != null) {
@@ -195,7 +195,7 @@ public class DLNARendererService extends AndroidUpnpServiceImpl implements Servi
         player = playbackService.player();
         avTransportImpl.setPlayerManager(player);
         currentListenerPlayer = player.getPlayer();
-        currentListenerPlayer.addListener(playerListener);
+        currentListenerPlayer.addListener(listener);
         App.post(positionUpdater, 1000);
     }
 
@@ -228,7 +228,7 @@ public class DLNARendererService extends AndroidUpnpServiceImpl implements Servi
         }
     };
 
-    private final Player.Listener playerListener = new Player.Listener() {
+    private final Player.Listener listener = new Player.Listener() {
         @Override
         public void onPlaybackStateChanged(int playbackState) {
             notifyState();
@@ -243,9 +243,9 @@ public class DLNARendererService extends AndroidUpnpServiceImpl implements Servi
     private final PlaybackService.PlayerCallback playerCallback = new PlaybackService.PlayerCallback() {
         @Override
         public void onPlayerRebuild(Player newPlayer) {
-            if (currentListenerPlayer != null) currentListenerPlayer.removeListener(playerListener);
+            if (currentListenerPlayer != null) currentListenerPlayer.removeListener(listener);
             currentListenerPlayer = newPlayer;
-            newPlayer.addListener(playerListener);
+            newPlayer.addListener(listener);
         }
     };
 

@@ -94,7 +94,7 @@ public class Flag implements Parcelable, Diffable<Flag> {
             String[] split = urls[i].split("\\$", 2);
             String number = String.format(Locale.getDefault(), "%02d", i + 1);
             Episode episode = split.length > 1 ? Episode.create(split[0].isEmpty() ? number : split[0].trim(), split[1]) : Episode.create(number, urls[i]);
-            getEpisodes().add(episode);
+            if (!getEpisodes().contains(episode)) getEpisodes().add(episode);
         }
     }
 
@@ -137,6 +137,7 @@ public class Flag implements Parcelable, Diffable<Flag> {
 
     public void mergeEpisodes(List<Episode> items, boolean rev) {
         for (Episode item : items) {
+            if (getEpisodes().contains(item)) continue;
             if (rev) getEpisodes().add(0, item);
             else getEpisodes().add(item);
         }
